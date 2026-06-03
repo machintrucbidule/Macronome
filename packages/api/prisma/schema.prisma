@@ -69,3 +69,45 @@ model FoodPortion {
 
   @@map("food_portion")
 }
+
+/// Manual calorie/macro target (spec/schema/tables-weight-targets.md → target).
+/// Carbs are never stored (derived remainder); the gram floors/ceiling are computed
+/// on current weight, not persisted here. Saving inserts a new row per effective_from
+/// (history). CHECKs, UNIQUE(user_id,effective_from) and the owner FK live in
+/// migration SQL (column-faithful schema mirrors the DDL contract gate).
+model Target {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  calorieMin     Int      @map("calorie_min")
+  calorieMax     Int      @map("calorie_max")
+  proteinGPerKg  Decimal  @map("protein_g_per_kg") @db.Decimal
+  fatGPerKg      Decimal  @map("fat_g_per_kg") @db.Decimal
+  targetWeightKg Decimal? @map("target_weight_kg") @db.Decimal
+  rateKgPerWeek  Decimal? @map("rate_kg_per_week") @db.Decimal
+  effectiveFrom  DateTime @map("effective_from") @db.Date
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@unique([userId, effectiveFrom])
+  @@map("target")
+}
+
+/// Body weigh-in (spec/schema/tables-weight-targets.md → weight_entry). Consecutive
+/// entries define variable-length periods; per-period stats are derived, not stored.
+/// Introduced in M2 so the metabolic engine can read the current weight; the periods,
+/// EMA, trajectory and Weight screen are built on this table in M4. CHECKs,
+/// UNIQUE(user_id,date) and the owner FK live in migration SQL.
+model WeightEntry {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  date      DateTime @db.Date
+  weightKg  Decimal  @map("weight_kg") @db.Decimal
+  waistCm   Decimal? @map("waist_cm") @db.Decimal
+  dietFlag  String   @map("diet_flag")
+  note      String?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@unique([userId, date])
+  @@map("weight_entry")
+}

@@ -57,12 +57,27 @@ typecheck + lint (`docs/architecture/testing.md` §6). Tick the box only then.
       **Deferred (tracked):** `GET /search/loggable` + `food.recipe_id` FK → M5;
       remaining nav/component variants + locale number formatting + table h-scroll → M9
       (autocomplete dropdown → M3). See `M1-foods.md` and the target files.
-- [ ] **M2 — Targets & metabolic engine** → `docs/dev-plan/M2-targets-metabolic.md`
-      _depends-on: M0._ Pure engine + targets resource; no day dependency yet.
+- [x] **M2 — Targets & metabolic engine** → `docs/dev-plan/M2-targets-metabolic.md`
+      _depends-on: M0._ Done: pure metabolic engine (`domain/metabolic`) + derived-macro
+      engine (`domain/targets`) with the neutral oracles; `target` + `weight_entry`
+      tables + migration; targets resource (`GET/POST /target`, `POST /target/suggest`)
+      with engine readout + non-blocking warnings; `GET/PATCH /profile`; Cibles screen
+      (manual targets, derived tiles, suggest dialog, carb-inconsistency banner).
+      Acceptance green: metabolic/targets oracles + integration (carb≤0 200+warning &
+      save, tenancy isolation, 422) + e2e smoke.
+      **Scope change (approved):** `weight_entry` table created **early in M2** (its home
+      is M4) so the engine can read the current weight needed for floors/BMR/carb-ceiling.
+      A minimal `weight.repo.latestAsOf` is the only read; M4 builds periods/EMA/
+      trajectory/Weight-screen on the existing table (see M2 + M4 files).
+      **Deferred (tracked):** real recent-avg activity (≈30-day mean) + `empirical_burn`
+      wiring → M3 (need `day_log`; M2 ships pure fns + sedentary fallback/null + flags);
+      live-while-typing tile recompute + BMI tile + account-menu placement of Cibles → M9.
 - [ ] **M3 — Daily log (meals, entries, leftover)** → `docs/dev-plan/M3-daily-log.md`
       _depends-on: M1, M2._ The core daily loop; snapshots + proration + verdict.
 - [ ] **M4 — Weight & variable periods** → `docs/dev-plan/M4-weight.md`
       _depends-on: M2 (BMR), M3 (logged-day intake for period stats)._
+      **Note:** the `weight_entry` table + migration already exist (created in M2);
+      M4 adds the periods/EMA/trajectory/screen on top — no table DDL needed.
 - [ ] **M5 — Recipes & derived food** → `docs/dev-plan/M5-recipes.md`
       _depends-on: M1._ Recipes build a derived Food that M3 can log.
 - [ ] **M6 — Stats & adherence** → `docs/dev-plan/M6-stats.md`

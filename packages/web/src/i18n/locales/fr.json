@@ -90,5 +90,63 @@
       "title": "Archiver l'aliment ?",
       "body": "« <b>{{name}}</b> » disparaîtra des recherches et de cette liste, mais restera dans l'historique de tes repas passés et dans ton garde-manger. Tu pourras le restaurer."
     }
+  },
+  "cibles": {
+    "title": "Cibles",
+    "badge": {
+      "manual": "saisi à la main",
+      "computed": "calculé"
+    },
+    "targets": {
+      "title": "Mes cibles",
+      "calorie": "Cible calorique quotidienne",
+      "calorieMin": "Minimum",
+      "calorieMax": "Maximum",
+      "ratios": "Ratios de macros",
+      "proteinRatio": "Protéines",
+      "fatRatio": "Lipides",
+      "carbNote": "Les glucides ne se saisissent pas : ils sont le reste calculé (plafond à droite).",
+      "goal": "Objectif de poids",
+      "targetWeight": "Poids cible",
+      "rate": "Rythme visé"
+    },
+    "profile": {
+      "sex": "Sexe",
+      "male": "Homme",
+      "female": "Femme",
+      "birthdate": "Date de naissance",
+      "height": "Taille",
+      "save": "Mettre à jour le profil"
+    },
+    "engine": {
+      "title": "Moteur métabolique",
+      "currentWeight": "Poids actuel",
+      "age": "Âge",
+      "recentActivity": "Activité moyenne récente",
+      "activityFallback": "(aucun jour enregistré — sédentaire par défaut)",
+      "proteinFloor": "Plancher protéines ≥",
+      "fatFloor": "Plancher lipides ≥",
+      "carbCeiling": "Plafond glucides ≤",
+      "floorNote": "Recalculé quand le poids change.",
+      "bmr": "Métabolisme de base",
+      "estimatedBurn": "Dépense estimée",
+      "empiricalBurn": "Dépense empirique",
+      "empiricalNote": "Disponible avec l'historique des jours (à venir).",
+      "deficitAtTarget": "Déficit à la cible",
+      "kgPerWeek": "{{value}} kg/semaine"
+    },
+    "warning": {
+      "carb": "⚠ Cibles incohérentes : les planchers protéines + lipides atteignent ou dépassent déjà le maximum calorique. Le plafond de glucides est négatif. L'enregistrement reste possible.",
+      "noWeight": "Aucune pesée enregistrée : les planchers, le métabolisme de base et le déficit ne sont pas calculables tant qu'il n'y a pas de poids."
+    },
+    "suggest": {
+      "open": "Suggérer une cible…",
+      "title": "Suggérer une cible depuis le déficit visé",
+      "deficit": "Déficit quotidien visé",
+      "compute": "Calculer",
+      "proposed": "Plage proposée : {{min}} – {{max}} kcal",
+      "apply": "Appliquer",
+      "noWeight": "Pas de pesée : impossible d'estimer la dépense."
+    }
   }
 }

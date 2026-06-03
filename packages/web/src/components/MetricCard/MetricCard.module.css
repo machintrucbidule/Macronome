@@ -1,0 +1,42 @@
+/* Derived metric tile (Cibles). Semantic tokens only. */
+
+.card {
+  background: var(--bg-elev-2);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-md);
+  padding: var(--sp-5) var(--sp-6);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-caps);
+  color: var(--text-faint);
+}
+
+.value {
+  font-family: var(--font-num);
+  font-size: var(--fs-18);
+  font-weight: var(--fw-bold);
+  color: var(--text);
+}
+.value.warn {
+  color: var(--nok);
+}
+
+.unit {
+  font-size: var(--fs-12);
+  font-weight: var(--fw-normal);
+  color: var(--text-dim);
+  margin-left: 4px;
+}
+
+.note {
+  font-size: var(--fs-11);
+  color: var(--text-faint);
+  line-height: var(--lh-snug);
+}

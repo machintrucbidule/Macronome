@@ -1,0 +1,21 @@
+/* Inline status banner. Semantic tokens only. */
+
+.banner {
+  border: var(--bw) solid var(--border-strong);
+  border-radius: var(--r-md);
+  padding: var(--sp-4) var(--sp-6);
+  font-size: var(--fs-12);
+  line-height: var(--lh-snug);
+}
+
+.warning {
+  border-color: color-mix(in srgb, var(--nok) 45%, transparent);
+  background: color-mix(in srgb, var(--nok) 10%, transparent);
+  color: var(--nok);
+}
+
+.info {
+  border-color: var(--border);
+  background: var(--bg-elev-2);
+  color: var(--text-dim);
+}

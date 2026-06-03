@@ -4,12 +4,18 @@
 and projection. Depends-on: M2 (BMR for period burns), M3 (logged-day intake for
 per-period `avg_intake`).
 
+> **Pre-existing from M2:** the `weight_entry` table + migration already exist (created
+> early in M2 so the metabolic engine could read the current weight). A minimal
+> `weight.repo.latestAsOf` is in place. M4 **does not** add table DDL — it adds the
+> weigh-in CRUD (POST/PATCH/DELETE), period derivation, EMA, trajectory and the screen,
+> extending the existing `data/repositories/weight.repo.ts`.
+
 ## Scope
 
 - `weight_entry` (`spec/schema/tables-weight-targets.md`): `date` (editable),
   `weight_kg`, `waist_cm?`, `diet_flag` (in/not-in diet), `note?`. **One weigh-in per
   day** — onto an occupied date replaces/updates (confirmation). Activity not stored
-  here.
+  here. (Table already created in M2; see the note above.)
 - Pure weight (`spec/logic/weight-periods-trajectory.md`): `derivePeriods` (span =
   date(next)−date(prev) ≥1; editing a date re-derives adjacent periods), `ema`
   (α=0.35 over the weigh-in series, seeded at first real weight), `trajectory`
@@ -34,7 +40,7 @@ cartouche), `MetricCard/`, `Form/`, `states/`.
 - **weight.test.ts:** EMA chain (`[80.0,79.0,78.0],α0.35 → 79.7, 79.1`); broken-line
   trajectory (`anchor 80.0, rate 1.0, goal 72 → 79.0/79.0/77.0`; real 78.0 →
   écart +1.0); BMI (`80/180 → 24.7`); projection (`ema 80.0, goal 72, slope −0.05 →
-  ~160 d`; `slope≥0 → non-baissière`; `ema≤goal → atteint`); single/empty weigh-in.
+~160 d`; `slope≥0 → non-baissière`; `ema≤goal → atteint`); single/empty weigh-in.
 - **Integration** (`testing.md` §2): **409 `weigh_in_date_occupied` with `existing_id`**;
   editing a weigh-in date **re-derives periods**; tenancy → 404.
 - **e2e:** add weigh-ins → see EMA + trajectory + a derived period; edit a date →
@@ -47,7 +53,7 @@ trajectory maths live only in `domain/weight` (server), the chart renders result
 
 ## Checklist
 
-- [ ] weight_entry table + migration; one-per-day replace rule
+- [x] weight_entry table + migration (done in M2) · [ ] one-per-day replace rule (M4)
 - [ ] domain/weight + neutral oracle tests (EMA, trajectory, BMI, projection, edges)
 - [ ] weight service + repo (re-derive on date edit) + route/controller + DTOs
 - [ ] Poids screen: entry, chart, period table, mode toggle

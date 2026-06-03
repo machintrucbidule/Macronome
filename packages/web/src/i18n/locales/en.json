@@ -90,5 +90,63 @@
       "title": "Archive this food?",
       "body": "\"<b>{{name}}</b>\" will disappear from search and this list, but stays in your past meal history and pantry. You can restore it."
     }
+  },
+  "cibles": {
+    "title": "Targets",
+    "badge": {
+      "manual": "entered by hand",
+      "computed": "computed"
+    },
+    "targets": {
+      "title": "My targets",
+      "calorie": "Daily calorie target",
+      "calorieMin": "Minimum",
+      "calorieMax": "Maximum",
+      "ratios": "Macro ratios",
+      "proteinRatio": "Protein",
+      "fatRatio": "Fat",
+      "carbNote": "Carbs are never entered: they are the computed remainder (ceiling on the right).",
+      "goal": "Weight goal",
+      "targetWeight": "Target weight",
+      "rate": "Desired rate"
+    },
+    "profile": {
+      "sex": "Sex",
+      "male": "Male",
+      "female": "Female",
+      "birthdate": "Birth date",
+      "height": "Height",
+      "save": "Update profile"
+    },
+    "engine": {
+      "title": "Metabolic engine",
+      "currentWeight": "Current weight",
+      "age": "Age",
+      "recentActivity": "Recent average activity",
+      "activityFallback": "(no logged day — sedentary fallback)",
+      "proteinFloor": "Protein floor ≥",
+      "fatFloor": "Fat floor ≥",
+      "carbCeiling": "Carb ceiling ≤",
+      "floorNote": "Recomputes as weight changes.",
+      "bmr": "Basal metabolic rate",
+      "estimatedBurn": "Estimated burn",
+      "empiricalBurn": "Empirical burn",
+      "empiricalNote": "Available once days are logged (coming soon).",
+      "deficitAtTarget": "Deficit at target",
+      "kgPerWeek": "{{value}} kg/week"
+    },
+    "warning": {
+      "carb": "⚠ Inconsistent targets: the protein + fat floors already meet or exceed the calorie maximum. The carb ceiling is negative. You can still save.",
+      "noWeight": "No weigh-in yet: floors, BMR and the deficit are not computable until there is a weight."
+    },
+    "suggest": {
+      "open": "Suggest a target…",
+      "title": "Suggest a target from a desired deficit",
+      "deficit": "Desired daily deficit",
+      "compute": "Compute",
+      "proposed": "Proposed range: {{min}} – {{max}} kcal",
+      "apply": "Apply",
+      "noWeight": "No weigh-in: cannot estimate the burn."
+    }
   }
 }

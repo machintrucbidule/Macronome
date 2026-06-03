@@ -9,6 +9,8 @@ import { applyTrustProxy } from './http/middleware/trustProxy.js';
 import authRoutes from './http/routes/auth.js';
 import foodsRoutes from './http/routes/foods.js';
 import healthRoutes from './http/routes/health.js';
+import profileRoutes from './http/routes/profile.js';
+import targetRoutes from './http/routes/target.js';
 import { logger } from './observability/logger.js';
 
 // Fixed middleware order (ARCHITECTURE.md §3): trust-proxy → session → CSRF →
@@ -27,6 +29,8 @@ export function createApp(): Express {
   app.use('/api/v1/health', healthRoutes);
   app.use('/api/v1/auth', authRoutes);
   app.use('/api/v1/foods', foodsRoutes);
+  app.use('/api/v1/target', targetRoutes);
+  app.use('/api/v1/profile', profileRoutes);
 
   app.use(errorHandler);
   return app;

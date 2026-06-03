@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { LoginPage } from '../features/login/LoginPage';
 import { FoodsPage } from '../features/foods/FoodsPage';
+import { CiblesPage } from '../features/targets/CiblesPage';
 import { AppShell } from './AppShell';
 import { HealthStatus } from './HealthStatus';
 
@@ -12,6 +13,7 @@ export function AppRouter() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/foods" element={<FoodsPage />} />
+        <Route path="/cibles" element={<CiblesPage />} />
         <Route
           path="/"
           element={
