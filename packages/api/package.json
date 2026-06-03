@@ -1,0 +1,42 @@
+{
+  "name": "@macronome/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/src/server.js",
+  "scripts": {
+    "dev": "tsx watch --env-file=.env src/server.ts",
+    "build": "prisma generate && tsc -b",
+    "start": "node dist/src/server.js",
+    "test": "vitest run",
+    "test:int": "vitest run --config vitest.integration.config.ts",
+    "prisma:dev": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
+    "prisma:generate": "prisma generate",
+    "create-user": "tsx --env-file=.env scripts/create-user.ts"
+  },
+  "dependencies": {
+    "@macronome/shared": "*",
+    "@prisma/client": "^6.2.1",
+    "argon2": "^0.41.1",
+    "connect-pg-simple": "^10.0.0",
+    "express": "^5.0.1",
+    "express-rate-limit": "^7.4.1",
+    "express-session": "^1.18.1",
+    "helmet": "^8.0.0",
+    "pg": "^8.13.1",
+    "pino": "^9.6.0",
+    "pino-http": "^10.4.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/connect-pg-simple": "^7.0.3",
+    "@types/express": "^5.0.0",
+    "@types/express-session": "^1.18.0",
+    "@types/pg": "^8.11.10",
+    "@types/supertest": "^6.0.2",
+    "prisma": "^6.2.1",
+    "supertest": "^7.0.0",
+    "tsx": "^4.19.2"
+  }
+}

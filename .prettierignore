@@ -1,0 +1,13 @@
+# Personal/provenance corpus — never touched by tooling
+/specifications/
+
+# Generated / vendored
+**/dist/
+**/node_modules/
+**/*.generated.*
+packages/**/prisma/migrations/
+packages/**/node_modules/.prisma/
+playwright-report/
+test-results/
+coverage/
+package-lock.json

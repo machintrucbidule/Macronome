@@ -1,0 +1,25 @@
+{
+  "app": {
+    "title": "Macronome",
+    "tagline": "Nutrition & weight tracker"
+  },
+  "nav": {
+    "home": "Home"
+  },
+  "theme": {
+    "toggle": "Toggle theme",
+    "dark": "Dark",
+    "light": "Light"
+  },
+  "health": {
+    "checking": "Checking connection…",
+    "ok": "Connected: proxy → API → database.",
+    "error": "Failed to reach the API."
+  },
+  "login": {
+    "title": "Sign in",
+    "username": "Username",
+    "password": "Password",
+    "submit": "Sign in"
+  }
+}

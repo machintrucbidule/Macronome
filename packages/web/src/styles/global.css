@@ -1,0 +1,31 @@
+/* Base document styles. Consumes semantic tokens from tokens.css (never raw hex).
+   Theme switches via [data-theme] on <html>; the body cross-fades. */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--fs-13);
+  line-height: var(--lh-normal);
+  transition:
+    background var(--dur-theme) var(--ease),
+    color var(--dur-theme) var(--ease);
+}
+
+a {
+  color: var(--accent);
+}
+
+#root {
+  min-height: 100vh;
+}

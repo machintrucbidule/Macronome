@@ -1,0 +1,25 @@
+{
+  "app": {
+    "title": "Macronome",
+    "tagline": "Suivi nutrition & poids"
+  },
+  "nav": {
+    "home": "Accueil"
+  },
+  "theme": {
+    "toggle": "Changer de thème",
+    "dark": "Sombre",
+    "light": "Clair"
+  },
+  "health": {
+    "checking": "Vérification de la connexion…",
+    "ok": "Connexion établie : proxy → API → base de données.",
+    "error": "Échec de la connexion à l'API."
+  },
+  "login": {
+    "title": "Connexion",
+    "username": "Identifiant",
+    "password": "Mot de passe",
+    "submit": "Se connecter"
+  }
+}

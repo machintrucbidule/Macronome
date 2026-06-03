@@ -1,0 +1,19 @@
+{
+  "name": "@macronome/etl",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -b",
+    "start": "tsx src/run.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@macronome/shared": "*",
+    "@prisma/client": "^6.2.1",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2"
+  }
+}

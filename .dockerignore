@@ -1,0 +1,16 @@
+**/node_modules
+**/dist
+**/.tsbuild
+**/*.tsbuildinfo
+specifications/
+.git
+.github
+e2e
+playwright-report
+test-results
+coverage
+*.dump
+*.sql
+.env
+.env.*
+!.env.example

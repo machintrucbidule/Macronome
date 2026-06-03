@@ -7,8 +7,8 @@ applies here too).
 
 The contracts this plan serves are FIXED: logical (`spec/`), visual (`design/`),
 decisions (`DECISIONS.md`), architecture (`ARCHITECTURE.md` + `docs/architecture/`).
-Implement against them; never edit them to fit the code (`CLAUDE.md` → *Fixed
-contracts*).
+Implement against them; never edit them to fit the code (`CLAUDE.md` → _Fixed
+contracts_).
 
 ---
 
@@ -17,7 +17,7 @@ contracts*).
 A tight loop per milestone — never start one whose dependencies aren't checked off:
 
 1. **Pick** the next unblocked milestone in the order below (top-down; a milestone is
-   unblocked when every milestone in its *depends-on* list is fully checked).
+   unblocked when every milestone in its _depends-on_ list is fully checked).
 2. **Locate** every file via `docs/architecture/module-map.md` (logic→domain,
    screen→feature, component→file, table→repo) — the milestone file lists them.
 3. **Implement** within the modularity rules (`docs/architecture/modularity.md`):
@@ -41,31 +41,33 @@ typecheck + lint (`docs/architecture/testing.md` §6). Tick the box only then.
 
 ## Milestones (in build order)
 
-- [ ] **M0 — Walking skeleton & toolchain** → `docs/dev-plan/M0-foundations.md`
-      *depends-on: none.* Scaffold, DB, auth skeleton, one e2e route, all three test
-      layers + Prisma↔DDL check + typecheck + lint + pre-commit, Windows dev loop,
-      Proxmox deploy + backup/restore drill.
+- [x] **M0 — Walking skeleton & toolchain** → `docs/dev-plan/M0-foundations.md`
+      _depends-on: none._ Scaffold, DB, auth skeleton, one e2e route, all three test
+      layers + Prisma↔DDL check + typecheck + lint + pre-commit, Windows dev loop
+      verified. **Deferred to production setup** (per user decision — local-only this
+      session): executing the Docker deploy + the pg_dump/pg_restore drill. The Docker
+      config artifacts (compose, Caddyfile, Dockerfile, .env.example) are delivered.
 - [ ] **M1 — Foods (catalog + search)** → `docs/dev-plan/M1-foods.md`
-      *depends-on: M0.* The first vertical slice; everything loggable starts here.
+      _depends-on: M0._ The first vertical slice; everything loggable starts here.
 - [ ] **M2 — Targets & metabolic engine** → `docs/dev-plan/M2-targets-metabolic.md`
-      *depends-on: M0.* Pure engine + targets resource; no day dependency yet.
+      _depends-on: M0._ Pure engine + targets resource; no day dependency yet.
 - [ ] **M3 — Daily log (meals, entries, leftover)** → `docs/dev-plan/M3-daily-log.md`
-      *depends-on: M1, M2.* The core daily loop; snapshots + proration + verdict.
+      _depends-on: M1, M2._ The core daily loop; snapshots + proration + verdict.
 - [ ] **M4 — Weight & variable periods** → `docs/dev-plan/M4-weight.md`
-      *depends-on: M2 (BMR), M3 (logged-day intake for period stats).*
+      _depends-on: M2 (BMR), M3 (logged-day intake for period stats)._
 - [ ] **M5 — Recipes & derived food** → `docs/dev-plan/M5-recipes.md`
-      *depends-on: M1.* Recipes build a derived Food that M3 can log.
+      _depends-on: M1._ Recipes build a derived Food that M3 can log.
 - [ ] **M6 — Stats & adherence** → `docs/dev-plan/M6-stats.md`
-      *depends-on: M3 (verdicts/day_kcal).* Read-only over frozen history.
+      _depends-on: M3 (verdicts/day_kcal)._ Read-only over frozen history.
 - [ ] **M7 — Settings & pantry** → `docs/dev-plan/M7-settings-pantry.md`
-      *depends-on: M1, M3.* Pantry pins, meal-slot templates, profile, account.
+      _depends-on: M1, M3._ Pantry pins, meal-slot templates, profile, account.
 - [ ] **M8 — Migration ETL (late, stable schema)** → `docs/dev-plan/M8-migration.md`
-      *depends-on: M1–M7 (schema stable).* Run against the real workbook; validation
+      _depends-on: M1–M7 (schema stable)._ Run against the real workbook; validation
       is **local-only** and re-runnable.
 - [ ] **M9 — Polish** → `docs/dev-plan/M9-polish.md`
-      *depends-on: M1–M7.* Remaining screen states, i18n completeness, a11y, perf.
+      _depends-on: M1–M7._ Remaining screen states, i18n completeness, a11y, perf.
 - [ ] **M10 — Reserved AI-advisor hook (NOT built)** → `docs/dev-plan/M10-ai-advisor-hook.md`
-      *depends-on: M0 (route), M6 (payload shape).* Inert config + 501 route only.
+      _depends-on: M0 (route), M6 (payload shape)._ Inert config + 501 route only.
 
 ---
 

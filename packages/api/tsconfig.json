@@ -1,0 +1,20 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": ".",
+    "baseUrl": ".",
+    "paths": {
+      "@macronome/shared": ["../shared/src/index.ts"]
+    },
+    "types": ["node"]
+  },
+  "references": [{ "path": "../shared" }],
+  "include": [
+    "src/**/*",
+    "test/**/*",
+    "scripts/**/*",
+    "vitest.config.ts",
+    "vitest.integration.config.ts"
+  ]
+}

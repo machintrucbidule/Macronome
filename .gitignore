@@ -23,6 +23,7 @@ dist/
 build/
 coverage/
 *.tsbuildinfo
+.tsbuild/
 
 # --- prisma generated client ---
 packages/*/node_modules/.prisma/
@@ -35,6 +36,8 @@ test-results/
 *.dump
 *.sql
 *.sql.gz
+# ...but Prisma migration SQL is part of the schema contract and MUST be tracked.
+!packages/*/prisma/migrations/**/*.sql
 
 # --- misc ---
 .DS_Store

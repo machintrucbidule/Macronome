@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: macronome
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: macronome_test
+        ports:
+          - '5433:5432'
+        options: >-
+          --health-cmd "pg_isready -U macronome"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://macronome:test@localhost:5433/macronome_test
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Gates (no DB needed)
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run check:schema
+
+      # Unit oracles (neutral *.test.ts only)
+      - run: npm test
+
+      # Integration against the service Postgres
+      - run: npm run migrate
+      - run: npm run test:int
+
+      # e2e on PRs to main (drives the running stack)
+      - name: e2e
+        if: github.event_name == 'pull_request'
+        run: |
+          printf 'DATABASE_URL=%s\nPORT=3000\nSESSION_SECRET=ci-session-secret-0123456789abcdef\nTRUSTED_PROXY=loopback\nPUBLIC_BASE_URL=http://localhost:5173\nCOOKIE_SECURE=false\nNODE_ENV=development\n' "$DATABASE_URL" > packages/api/.env
+          npx playwright install --with-deps chromium
+          npm run e2e

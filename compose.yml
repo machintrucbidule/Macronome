@@ -1,0 +1,51 @@
+# Production stack (deployment-agnostic; import into Portainer or any Docker host).
+# The `proxy` service is the default, replaceable frontal — drop it to front the
+# stack with a tunnel / external load balancer. See docs/architecture/ops.md.
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER}']
+      interval: 10s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: packages/api/Dockerfile
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      SESSION_SECRET: ${SESSION_SECRET}
+      TRUSTED_PROXY: ${TRUSTED_PROXY}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL}
+      COOKIE_SECURE: 'true'
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # The image entrypoint runs `prisma migrate deploy` then `node dist/src/server.js`.
+    # Recommended: dump the DB before deploy (see ops.md §5).
+
+  proxy:
+    image: caddy:2
+    ports:
+      - '80:80'
+      - '443:443'
+    environment:
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./packages/web/dist:/srv/web:ro
+      - caddy_data:/data
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
+  caddy_data:

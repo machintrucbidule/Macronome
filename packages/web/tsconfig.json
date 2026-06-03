@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": ".tsbuild",
+    "rootDir": ".",
+    "baseUrl": ".",
+    "paths": {
+      "@macronome/shared": ["../shared/src/index.ts"]
+    },
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["node", "vite/client"]
+  },
+  "references": [{ "path": "../shared" }],
+  "include": ["src/**/*", "src/**/*.json", "vite.config.ts", "vitest.config.ts"]
+}

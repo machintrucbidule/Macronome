@@ -1,0 +1,31 @@
+// Prisma schema — a faithful second copy of the DDL contract (spec/schema/*).
+// When the two would diverge, the contract wins; `npm run check:schema` guards it.
+// PG extensions (unaccent, pg_trgm), GIN trigram indexes, and the connect-pg-simple
+// session table live in migration SQL, not here (docs/architecture/testing.md §5).
+//
+// M0 implements the `app_user` table only; later milestones add the rest.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Authenticated account. username is stored lower-cased; the plain unique index
+/// implements the contract's case-insensitive uniqueness (CHECKs live in SQL).
+model AppUser {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username     String   @unique
+  passwordHash String   @map("password_hash")
+  sex          String
+  birthdate    DateTime @db.Date
+  heightCm     Decimal  @map("height_cm") @db.Decimal
+  settings     Json     @default("{}")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@map("app_user")
+}

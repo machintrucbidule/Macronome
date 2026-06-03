@@ -39,9 +39,9 @@ Scaffold the monorepo exactly as specified (no feature logic):
      `compose.test.yml`, Playwright e2e (drives the health/login round-trip).
    - **Prisma↔DDL check** `npm run check:schema` (`testing.md` §5): diff
      `schema.prisma` against `spec/schema/*`, fail on drift, whitelist the
-     extension/trigram SQL. Wired into CI and the *done* rule.
+     extension/trigram SQL. Wired into CI and the _done_ rule.
    - `npm run typecheck`, `npm run lint`, **pre-commit** (husky + lint-staged: eslint
-     + prettier + `tsc --noEmit` on changed files).
+     - prettier + `tsc --noEmit` on changed files).
    - CI workflow (GitHub Actions): lint + typecheck + check:schema + unit +
      integration on push; e2e on PRs. **Only `*.test.ts` run in CI**; `*.local.test.ts`
      are git-ignored.
@@ -96,13 +96,33 @@ locale JSON, lockfiles.
 
 ## Checklist
 
-- [ ] monorepo + workspaces + tsconfig + eslint/prettier + 300-line rule
-- [ ] compose.yml / compose.test.yml / Caddyfile / .env.example
-- [ ] Postgres up + first migration (unaccent/pg_trgm in SQL)
-- [ ] auth skeleton (sessions, argon2id, CSRF, rate-limit/lockout, trusted proxy) + create-user
-- [ ] health + auth/session route; SPA shell renders the round-trip; tokens.css verbatim
-- [ ] unit + integration + e2e harness; Prisma↔DDL check; typecheck; lint; pre-commit; CI
-- [ ] Windows-11 dev loop verified (db:dev / dev:api / dev:web)
-- [ ] Proxmox deploy verified
-- [ ] backup/restore drill proven
-- acceptance: **end-to-end green + deploy + restore proven**
+- [x] monorepo + workspaces + tsconfig + eslint/prettier + 300-line rule
+- [x] compose.yml / compose.test.yml / Caddyfile / .env.example (+ api Dockerfile)
+- [x] Postgres up + first migration (unaccent/pg_trgm + session table in SQL)
+- [x] auth skeleton (sessions, argon2id, CSRF, rate-limit/lockout, trusted proxy) + create-user
+- [x] health + auth/session route; SPA shell renders the round-trip; tokens.css verbatim
+- [x] unit + integration + e2e harness; Prisma↔DDL check; typecheck; lint; pre-commit; CI
+- [x] Windows-11 dev loop verified (db:dev / dev:api / dev:web — proven via the e2e webServer round-trip)
+- [~] ~~Proxmox deploy verified~~ → **deferred to production setup** (local-only this
+  session, per user decision). The Docker config to import into Portainer is delivered
+  (`compose.yml`, `Caddyfile`, `packages/api/Dockerfile`, `.env.example`); the deploy
+  is executed at go-live, not specific to Proxmox.
+- [~] ~~backup/restore drill proven~~ → **deferred to production setup** (run the
+  documented `pg_dump`→`pg_restore` once against the live DB at go-live; ops.md §6).
+- acceptance: **local end-to-end green** (build + typecheck + lint + unit + integration + e2e + check:schema + pre-commit gate). Deploy + restore drill deferred as above.
+
+## M0 implementation notes (decisions taken during the build)
+
+- **Monorepo resolution:** `@macronome/shared` is aliased to source for dev (tsconfig
+  `paths` for tsx/typecheck, Vite alias for web) so dev needs no prebuild; prod resolves
+  the built `dist` via package `main`. A single `vite` is pinned via root `overrides`.
+- **Typecheck** uses `tsc -b` (not `tsc -b --noEmit`, which TS rejects with composite
+  references — TS6310); emit lands in gitignored `dist`/`.tsbuild`.
+- **ESLint** is flat + type-aware (`projectService`); the 300-line cap and layer
+  import-boundaries (web↛api, domain↛data/http/Prisma, controllers↛Prisma) are enforced.
+- **check:schema** parses the `spec/schema/*.md` tables vs `schema.prisma` and fails on
+  drift for implemented tables (verified once with an injected column). The
+  connect-pg-simple `session` table is whitelisted (infra, not in the DDL contract).
+- **Auth:** server sessions in Postgres (`connect-pg-simple`), argon2id (with a dummy
+  hash on the unknown-user path for non-enumerating, uniform-timing 401), double-submit
+  CSRF, login lockout keyed on (username, real client IP) → 429 with `retry_after_s`.

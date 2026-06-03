@@ -1,0 +1,13 @@
+# Test / local-dev Postgres only. The API and web run natively on the host
+# (npm run dev:api / dev:web) — the full compose.yml is prod-only (ops.md §3).
+services:
+  postgres-test:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: macronome_test
+      POSTGRES_USER: macronome
+      POSTGRES_PASSWORD: test
+    ports:
+      - '5433:5432' # non-default port to avoid clashing with a local Postgres
+    tmpfs:
+      - /var/lib/postgresql/data # ephemeral: fast, wiped on restart
