@@ -14,6 +14,7 @@ These are inputs you implement against, not files you change. They split across 
 locations:
 
 **Git-synced contracts** (pushed; the neutralised, shareable authority):
+
 - `spec/` — logical contract: data schema (`spec/schema/`), API (`spec/api/`),
   domain logic with **neutral** worked numeric examples (`spec/logic/`).
 - `design/` — visual contract: `tokens.css` (copied verbatim into the web app),
@@ -22,6 +23,7 @@ locations:
 
 **Git-ignored local authority** (under `specifications/`, never pushed; may contain
 personal data):
+
 - `specifications/screens/*.md`, `specifications/mockups/*.html`,
   `specifications/masterplan.md`, `specifications/RECONCILIATION_LOG.md`,
   `specifications/OPEN_GAPS.md`, `specifications/suivi_poids.xlsx`,
@@ -63,18 +65,26 @@ The precise mapping (logic spec → module, screen → feature, component → fi
 
 Run from the repo root.
 
-| Task | Command |
-|---|---|
-| Install | `npm install` |
-| Start test/dev DB | `npm run db:dev` (Postgres via `compose.test.yml`) |
-| Dev API | `npm run dev:api` |
-| Dev web | `npm run dev:web` (Vite proxies `/api` to the API) |
-| Typecheck | `npm run typecheck` |
-| Lint | `npm run lint` |
-| Unit + integration tests | `npm test` (and `npm run test:int`) |
-| E2E | `npm run e2e` |
-| Build all | `npm run build` |
-| DB migrate (prod) | `npm run migrate` |
+| Task                     | Command                                            |
+| ------------------------ | -------------------------------------------------- |
+| Install                  | `npm install`                                      |
+| Generate Prisma client   | `npm run prisma:generate -w @macronome/api`        |
+| Start test/dev DB        | `npm run db:dev` (Postgres via `compose.test.yml`) |
+| Dev API                  | `npm run dev:api`                                  |
+| Dev web                  | `npm run dev:web` (Vite proxies `/api` to the API) |
+| Typecheck                | `npm run typecheck`                                |
+| Lint                     | `npm run lint`                                     |
+| Unit + integration tests | `npm test` (and `npm run test:int`)                |
+| E2E                      | `npm run e2e`                                      |
+| Build all                | `npm run build`                                    |
+| DB migrate (prod)        | `npm run migrate`                                  |
+
+> **Generate the Prisma client before lint/typecheck.** The type-aware ESLint rules
+> and `tsc` need the generated client; without it `@prisma/client` is `any` and lint
+> fails (this is what bit CI). A fresh clone has no client until you generate it — run
+> the command above (or `npm run build`). CI and the Dockerfile generate it after
+> install; do not remove those steps. There is **no `postinstall` generate** on purpose
+> (it would break the Docker `deps`/`--omit=dev` stages where the schema/CLI are absent).
 
 Create a migration: `npm run prisma:dev -w @macronome/api -- --name <change>`
 (after editing `packages/api/prisma/schema.prisma` to match `spec/schema/*`).
@@ -119,10 +129,28 @@ First user (no public sign-up): run the ETL, or the `create-user` script in
    Keep files small; extract early.
 3. **For a calculation**: wire the worked example(s) from the relevant `spec/logic`
    file as the unit-test oracle(s) first, then make them pass.
-4. **Run** the relevant tests + `npm run typecheck` + `npm run lint`.
-5. **Done** = relevant test layer green + typecheck + lint clean.
+4. **Run** the relevant tests + `npm run typecheck` + `npm run lint` (generate the
+   Prisma client first — see Commands). `verify.bat` runs the whole gate on Windows.
+5. **Done** = relevant test layer green + typecheck + lint clean **and CI green**.
 6. **Update `DEV_PLAN.md`** (the living checklist) — tick what you completed.
+7. **Commit and push to `main`.** Then confirm the CI run is green (`gh run watch`);
+   if it fails, fix forward in the same flow.
 
 Per-package notes: `packages/api/CLAUDE.md`, `packages/web/CLAUDE.md`,
 `packages/shared/CLAUDE.md` (provided in `docs/architecture/context-files/` until
 the repo is scaffolded in milestone 3b).
+
+---
+
+## Git & CI
+
+- **Push directly to `main`.** This is a single-developer project — **no feature
+  branches, no PRs**. Commit per logical change, verify locally, push `main`. (This
+  overrides the generic "branch off the default branch" habit.)
+- **CI must stay green.** `.github/workflows/ci.yml` runs on every push: it does
+  `npm ci`, **generates the Prisma client**, then lint → typecheck → check:schema →
+  unit → migrate → integration (and e2e on PRs to `main`). A green local run that
+  skips `prisma generate` is **not** proof CI passes — the client must be generated
+  (CI is the "fresh clone" context). After pushing, check the run with `gh run watch`.
+- **Never commit personal/local files** (`.env`, `specifications/`, `*.local.test.ts`,
+  DB dumps). Confirm `git status` before each commit.

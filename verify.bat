@@ -12,6 +12,12 @@ call "%~dp0test-db-start.bat"
 if errorlevel 1 goto fail
 
 echo.
+echo === [0/6] generate Prisma client ===
+REM Type-aware lint/typecheck need the generated client (same as CI / Docker).
+call npm run prisma:generate -w @macronome/api
+if errorlevel 1 goto fail
+
+echo.
 echo === [1/6] schema check ===
 call npm run check:schema
 if errorlevel 1 goto fail

@@ -36,6 +36,10 @@ jobs:
 
       - run: npm ci
 
+      # Generate the Prisma client so type-aware lint/typecheck (and the runtime
+      # tests) see real types instead of `any` (mirrors the Dockerfile build step).
+      - run: npm run prisma:generate -w @macronome/api
+
       # Gates (no DB needed)
       - run: npm run lint
       - run: npm run typecheck
