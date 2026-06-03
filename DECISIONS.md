@@ -1,0 +1,193 @@
+# DECISIONS
+
+Resolutions of `specifications/OPEN_GAPS.md`, decided by the author during the
+detailed-spec phase. Each entry: the decision and its rationale. Rule-changing
+decisions are also folded into `specifications/masterplan.md` / the relevant `specifications/screens/*.md`.
+
+Convention: "Gap N" refers to the numbered point in `specifications/OPEN_GAPS.md`.
+
+---
+
+## Gap 1 — Day target reference & snapshot timing (DOMAIN) — RESOLVED
+
+A past day is always fully editable, exactly like the current day; every
+dependent figure recomputes afterwards. The reference *targets* a day is judged
+against are pinned to that day's own date, not to today.
+
+- **1a — Calorie target of a past day:** the target **in effect on that date**
+  (the `Target` row whose `effective_from` is the latest one ≤ the day). Changing
+  today's calorie target never rewrites past verdicts. *(Author: A.)*
+- **1b — Protein/fat floors of a past day:** computed on the **body weight in
+  effect on that date** (the most recent weigh-in dated ≤ the day). These floors
+  are display-only — they never enter the OK/NOK verdict, which is calorie-only.
+  *(Author: A.)*
+- **1c — Freeze timing:** while a day's date == today it tracks live edits
+  (changing the target or weighing in updates the day); once date < today the
+  day's snapshot is frozen and later target/weigh-in changes never alter it.
+  Re-opening a past day to enter data uses the values of that day's own date.
+  *(Author: A.)*
+
+**Rationale:** keeps the OK/NOK history stable and interpretable (one target
+change can't repaint months of verdicts or distort the Stats OK-rate), while
+honouring "edit the past as freely as today". Since the auto verdict is
+calorie-only, the only verdict-bearing snapshot field is the calorie min/max;
+the macro-gram thresholds are stored solely to render a past day's macro tiles
+faithfully.
+
+**Schema/spec impact:** a `DayLog` is created lazily on first interaction with a
+date (no row for never-touched days). Its `target_snapshot` (calorie min/max +
+protein/fat/carb gram thresholds) is resolved from that date's effective target
+and that date's current weight; recomputed while the date is today, frozen
+once the date is in the past.
+
+---
+
+## Gap 3 — Summary vs detailed days at migration (ETL-only) — RESOLVED
+
+Clarified fact: the workbook holds full meal detail only for the current day
+(sometimes the previous day too), not ~2 weeks.
+
+- **3a:** all imported history arrives as **summary** days (total calories +
+  OK/NOK + comment, read-only archive). **No detailed day is imported at all** —
+  detailed days are created exclusively in the app from go-live onward. *(Author.)*
+- **3c:** import **only genuinely filled days** (those with a calorie total), up
+  to the present. Future pre-traced rows and empty rows in `Archive cal`, and the
+  forward-projected rows in `Suivi`, are skipped. *(Author: A.)*
+
+**Scope note (author-raised, accepted):** the migration *cutoff date* and
+*duplicate-date resolution* are ETL-script runtime details, not app-design
+decisions, and do not affect the schema or runtime logic. They are pinned in
+`spec/logic/migration-etl.md` without further arbitration; the only schema-level
+fact is the already-settled `DayLog.kind ∈ {summary, detailed}` with summary
+days read-only and calorie-only.
+
+---
+
+## Gap 4 — (nb)/(poids) merge at migration (ETL-only) — DEFAULTED
+
+Pinned in `spec/logic/migration-etl.md`; not author-arbitrated (ETL runtime,
+no schema impact: target shape is the already-settled Food + named-portion model).
+Workbook-grounded rules:
+
+- Clean (nb)+(poids) pairs → one Food: per-100 g macros = the (poids) row; one
+  named portion with grams = `kcal(nb) ÷ kcal(poids)`. Illustrative: `Item A` 35 g,
+  `Item B` 43.5 g, `Item C` 50 g (the ratio is the source of truth).
+- When an embedded suffix carries grams ("(nb/35g)") use it; it equals
+  the ratio (cross-check only).
+- "(nb)"-only orphans (e.g. broths/drinks logged by unit count only) → no
+  per-100 g basis → no auto-merge → manual-review list.
+- "(poids)"-only orphans: "cf recette" rows → manual review (attach to recipe);
+  plain rows → import as a plain food, no portion.
+- Suffix-less foods → imported as-is, one food each. "Avis" → Top3/Ok2/
+  Moyen1/Bof0/(N-A & blank)→unrated.
+- Manual-review list = a table (name, reason, suggested action); no ambiguous
+  auto-merge.
+- Real workbook row inventory/counts are validated by the local-only migration
+  tests against the git-ignored `suivi_poids.xlsx`, not pinned here.
+
+---
+
+## Gap 2 — Rolling-window definition (DOMAIN) — RESOLVED
+
+- **2a:** a window of N = the **last N calendar days** ending at the latest
+  logged day; the average is over the **logged days inside** that span (a 7-day
+  average of a week with 5 logged days = mean of those 5). Not "the last N logged
+  days". *(Author: A.)*
+
+**Rationale:** an "N-day average" must denote a real wall-clock span (matches the
+workbook and human reading); the logged-days variant would let a "7-day" figure
+silently cover three weeks under sparse logging. Consistent with the settled
+OK-rate rule (denominator = logged days within the same calendar window).
+
+---
+
+## Gap 6 — Private/shared visibility in v1 (DOMAIN) — RESOLVED
+
+- **6a:** migrated foods populate the **shared common catalog**
+  (`visibility = shared`); foods the user creates by hand default to
+  **private**. *(Author: B.)*
+- **6b:** the private/shared tag is **shown and editable** in v1 (keep the tag,
+  the filter, and the visibility toggle on the Foods screen). *(Author: C.)*
+
+**Modeling resolution (author-confirmed by default):** `Food.visibility`
+(`private | shared`) is an editable flag, **independent of `Food.owner_id`**
+(which records the creator and is always set). The "shared common catalog" = rows
+with `visibility = shared`. Name-resolution rule: for a given user, a food they
+own with the same normalized name **shadows** a shared food owned by someone else;
+implemented but with no observable effect while there is a single user.
+
+**Spec impact:** Foods screen keeps the visibility chip, the visibility filter,
+and the modal toggle for v1 (reverses the "hide in v1" leaning of the gap note).
+New-food default = private; migration default = shared.
+
+---
+
+## Gap 13 — Soft-deleted container referenced by history (DOMAIN) — RESOLVED
+
+- **13:** the leftover deduction is **re-editable**, not one-shot. Each
+  `MealEntry` keeps its **served** quantity; **consumed = served − this entry's
+  share of the net leftover** is derived, so a past day's leftover can be
+  reopened and adjusted like anything else (consistent with Gap 1: edit the past
+  freely). *(Author: B.)*
+
+**Container-history resolution:** the `LeftoverGroup` **freezes the container as a
+value** at apply time — it stores `container_name` + `tare_g` (a snapshot),
+**not a live FK** to the `Container` row. Deleting/editing a container therefore
+**never** touches historical leftovers. Gap #13 is dissolved: there is no live
+container reference in history to protect, and container deletion needs no
+blocking or soft-delete-for-history rule (containers may be deleted freely; the
+built-in "Rien" stays locked).
+
+**Schema impact:** `LeftoverGroup` persists (`meal_id`, `container_name`,
+`tare_g`, `gross_grams`, derived `leftover_net_grams`, linked selected
+`MealEntry`s). `MealEntry.served_quantity` is stored; consumed + scaled macros
+are derived from served and the entry's leftover share.
+
+---
+
+## Gap 5 — "Deficit at target" reference intake (DOMAIN) — RESOLVED
+
+- **5:** the reference intake for the Cibles "déficit à la cible" constat is the
+  **midpoint of the calorie range** `(calorie_min + calorie_max)/2`. *(Author: A.)*
+
+**Rationale:** neutral centre of the piloted range; max/min would bias the
+constat; a separate user-set figure adds a field for a purely informational
+number. Confirms G7.
+
+---
+
+# Domain-logic gaps (#1–6, #13): ALL RESOLVED.
+# UX/implementation gaps (#7–12, #14): batched below.
+
+---
+
+## Gaps 7–12, 14 — UX / implementation (batch) — RESOLVED (author: ok)
+
+- **7 — Unrated rendering:** unrated → em-dash "—" with **no star widget**;
+  Bof/0 → the 3-star widget showing 0 filled. The two are visually distinct (a
+  dash vs. an empty-star control). Picker offers a "non noté" action that clears
+  to the dash.
+- **8 — Pantry editor (Paramètres):** (a) pantry foods within a meal ordered by
+  insertion order; (b) no duplicate — a food already pinned on a meal cannot be
+  re-added (pin = boolean per (meal_slot_name, food_id)); (c) removing a food
+  here = unpinning = affects **future-day pre-fill only**; today's and past days'
+  already-created lines are untouched (a day's lines are independent once the day
+  exists). Same operation as toggling 📌 off on Repas, seen from the other side.
+- **9 — EMA factor:** α = 0.35 kept as the documented default, implemented as a
+  named constant (trivially tunable); fine calibration is a post-load step,
+  outside the spec. Pinned details: the EMA runs **over the weigh-in series**
+  (each weigh-in is one point, no daily resampling) and is **seeded at the first
+  weigh-in's real weight** (same anchor as the trajectory).
+- **10 — Sort-by-portion:** the Portion column is **display-only, not sortable**.
+  Sortable columns: Nom, kcal, L, G, P, Note, Visib.
+- **11 — Activity descriptions:** workbook FR descriptions adopted (typos
+  "Modérement/Extrêment" corrected to the canonical "Modérément/Extrêmement"),
+  plus EN translations. Both live in the i18n tables. (Full strings in
+  `spec/logic/metabolic-engine.md` reference data.)
+- **12 — "Best month" threshold:** a month needs **≥ 5 logged days** to qualify
+  for "best month"; named constant.
+- **14 — AI advisor hook:** named but inert in two places — (a) data: a
+  `User.settings.llm_endpoint` config (OpenAI-compatible URL + optional key,
+  online or local), stored, unused in v1; (b) API: a reserved route documented
+  "not implemented in v1" that, once enabled, receives a curated payload (recent
+  intake, macro adherence, weight trend, deficit). No work in v1.

@@ -1,0 +1,41 @@
+# --- Personal/provenance corpus: local authority, NEVER pushed (contains personal data) ---
+# Holds: masterplan.md, OPEN_GAPS.md, RECONCILIATION_LOG.md, screens/, mockups/,
+# suivi_poids.xlsx, tests-local/ (real-value oracle data + migration fixtures).
+# The SYNCED contracts now live at spec/ and design/ (NOT here) and ARE tracked.
+/specifications/
+
+# --- Local-only tests: real-value oracles & migration-against-real-workbook ---
+# CI runs the neutral *.test.ts oracles; these *.local.test.ts are never pushed.
+*.local.test.ts
+**/*.local.test.ts
+
+# --- ETL: the real workbook fixture is local-only (neutral sample.xlsx stays tracked) ---
+packages/etl/fixtures/*.real.xlsx
+
+# --- secrets & environment ---
+.env
+.env.*
+!.env.example
+
+# --- node / build ---
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# --- prisma generated client ---
+packages/*/node_modules/.prisma/
+
+# --- tests / e2e artifacts ---
+playwright-report/
+test-results/
+
+# --- database dumps / backups ---
+*.dump
+*.sql
+*.sql.gz
+
+# --- misc ---
+.DS_Store
+*.log
