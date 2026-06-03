@@ -10,15 +10,18 @@ interface TargetFieldsProps {
   set: (patch: Partial<TargetDraft>) => void;
 }
 
-export function TargetFields({ draft, set }: TargetFieldsProps) {
+/** Field label suffixed with the "(optional)" hint (module scope to keep callers terse). */
+function OptionalLabel({ textKey }: { textKey: string }) {
   const { t } = useTranslation();
-  const optional = (
+  return (
     <>
-      {' '}
-      <span className="hint">{t('common.optional')}</span>
+      {t(textKey)} <span className="hint">{t('common.optional')}</span>
     </>
   );
+}
 
+export function TargetFields({ draft, set }: TargetFieldsProps) {
+  const { t } = useTranslation();
   return (
     <>
       <div className={styles.group}>
@@ -68,12 +71,7 @@ export function TargetFields({ draft, set }: TargetFieldsProps) {
         <div className={styles.groupTitle}>{t('cibles.targets.goal')}</div>
         <div className={styles.grid2}>
           <NumberInput
-            label={
-              <>
-                {t('cibles.targets.targetWeight')}
-                {optional}
-              </>
-            }
+            label={<OptionalLabel textKey="cibles.targets.targetWeight" />}
             suffix="kg"
             min={0}
             step={0.1}
@@ -81,12 +79,7 @@ export function TargetFields({ draft, set }: TargetFieldsProps) {
             onChange={(e) => set({ targetWeightKg: e.target.value })}
           />
           <NumberInput
-            label={
-              <>
-                {t('cibles.targets.rate')}
-                {optional}
-              </>
-            }
+            label={<OptionalLabel textKey="cibles.targets.rate" />}
             suffix="kg/sem"
             min={0}
             step={0.01}
