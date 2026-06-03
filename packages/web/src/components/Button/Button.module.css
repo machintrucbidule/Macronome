@@ -1,0 +1,54 @@
+/* Buttons (design/components/buttons.md). Base + primary/ghost/danger. */
+.btn {
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-13);
+  padding: 10px 16px;
+  border-radius: var(--r-md);
+  border: var(--bw) solid var(--border);
+  cursor: pointer;
+  transition:
+    filter var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease),
+    background var(--dur-fast) var(--ease);
+}
+
+.btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 22%, transparent);
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+}
+
+.primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+}
+.primary:hover {
+  filter: brightness(1.06);
+}
+.primary:disabled {
+  filter: saturate(0.4) brightness(0.8);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--text-dim);
+}
+.ghost:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.danger {
+  background: transparent;
+  color: var(--nok);
+  border-color: color-mix(in srgb, var(--nok) 45%, transparent);
+}
+.danger:hover {
+  background: var(--nok-soft);
+}

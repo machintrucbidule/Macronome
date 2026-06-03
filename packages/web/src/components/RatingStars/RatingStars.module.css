@@ -1,0 +1,44 @@
+/* Rating stars (design/components/rating-stars.md, DECISIONS.md Gap #7).
+   0..3 real grades vs a distinct unrated em-dash. */
+
+.stars {
+  display: inline-flex;
+  gap: 2px;
+}
+.s {
+  font-size: var(--fs-13);
+  line-height: 1;
+  color: var(--star-off);
+}
+.s.on {
+  color: var(--star);
+}
+
+/* unrated: a bare em-dash, no star widget (must differ from 0/Bof) */
+.unrated {
+  color: var(--text-faint);
+  font-family: var(--font-num);
+}
+
+/* ---- picker (food modal) ---- */
+.picker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.picker .s {
+  font-size: var(--fs-22);
+  cursor: pointer;
+}
+.clear {
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  color: var(--text-faint);
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: var(--sp-3);
+}
+.clear:hover {
+  color: var(--text);
+}

@@ -44,9 +44,33 @@ edit modal reuses `Modal/` shell + `Form/`). All files ≤300 lines.
 
 ## Checklist
 
-- [ ] food + food_portion tables + migration; GIN trigram index
-- [ ] food.repo (scoped) + foods service + routes/controllers + DTOs
-- [ ] normalize() + neutral unit tests; rating constant
-- [ ] Foods screen: table, edit modal, rating stars, visibility chip/filter
-- [ ] integration: dup-name warning, archive-from-search, tenancy 404, 422
-- acceptance: neutral unit oracles + listed integration cases green
+- [x] food + food_portion tables + migration; GIN trigram index
+- [x] food.repo (scoped) + foods service + routes/controllers + DTOs
+- [x] normalize() + neutral unit tests; rating constant
+- [x] Foods screen: table, edit modal, rating stars, visibility chip/filter
+- [x] integration: dup-name warning, archive-from-search, tenancy 404, 422
+- [x] acceptance: neutral unit oracles + listed integration cases green (+ e2e smoke)
+
+### Deferred from M1 (tracked so nothing is dropped)
+
+- **`GET /search/loggable` (food ∪ recipe-derived) + web `api/loggableSearch.ts`** →
+  deferred to **M5** (needs the recipe table). M1 ships foods-only search via
+  `GET /foods?q=`. Recorded in `M5-recipes.md`.
+- **`food.recipe_id` FK** to the recipe table → added in **M5** (column exists now as a
+  plain nullable Uuid; no Prisma relation, FK in migration SQL). Recorded in `M5-recipes.md`.
+- **UI component variants not needed by Aliments** (full `TopNav`/`PrimaryNav`/
+  `AccountMenu`, the autocomplete dropdown, remaining Button/Form/Modal/states variants,
+  table horizontal-scroll + sticky-appbar offset, locale-aware number formatting) →
+  built minimally for M1; remaining variants recorded in `M3-daily-log.md` (autocomplete)
+  and `M9-polish.md` (nav, a11y, number formatting, table scroll).
+
+## Implementation notes
+
+- `normalized_name` is maintained by the app `normalize()` helper on write
+  (`domain/search/normalize.ts`); `unaccent`/`pg_trgm` extensions installed in SQL; the
+  `pg_trgm` GIN index backs accent-insensitive search. The parity unit test asserts the
+  app key matches `unaccent(lower(name))`.
+- No Prisma-level relations on `food`/`food_portion` (the `check:schema` parser treats a
+  relation field as a column); FKs (`food.owner_id`, `food_portion.food_id` CASCADE) and
+  all CHECK constraints live in the migration SQL. The auto-generated `DROP TABLE session`
+  was removed from the migration (session table is infra, lives in SQL).

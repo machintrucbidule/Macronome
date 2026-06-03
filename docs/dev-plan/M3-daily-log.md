@@ -67,3 +67,11 @@ feature-local folders, not inline.
 - [ ] integration: leftover 409s (nothing written), tenancy 404, frozen-past stability
 - [ ] e2e: daily-log entry + leftover (apply + block)
 - acceptance: day-verdict & leftover neutral oracles + listed integration/e2e green
+
+### Carried over from M1 (build here)
+
+- [ ] **Autocomplete dropdown** (`components/Form/Autocomplete`, `design/components/
+forms-inputs.md` §"Autocomplete dropdown") for the entry/food picker — the Daily-log
+      consumer of `GET /search/loggable`. M1 built only the table SearchField; the dropdown
+      with keyboard nav, match highlight, portion/recipe tags, and the custom-food option is
+      built here where it is first used.

@@ -1,0 +1,64 @@
+/* Modal shell (design/components/modals.md). Scrim + panel; sizes md/confirm for M1. */
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-scrim);
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: var(--sp-9) var(--sp-6);
+  overflow: auto;
+}
+
+.modal {
+  background: var(--bg-elev);
+  border: var(--bw) solid var(--border-strong);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow);
+  max-height: 90vh;
+  overflow: auto;
+  width: min(560px, 93vw);
+}
+.md {
+  width: min(560px, 93vw);
+}
+.confirm {
+  width: min(420px, 92vw);
+}
+
+.header {
+  font-family: var(--font-display);
+  font-size: var(--fs-16);
+  padding: 16px 20px;
+  border-bottom: var(--bw) solid var(--border);
+}
+
+.sub {
+  font-size: var(--fs-13);
+  color: var(--text-dim);
+  line-height: var(--lh-snug);
+  padding: 12px 20px 0;
+}
+
+.body {
+  padding: 14px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-7);
+}
+
+.actions {
+  border-top: var(--bw) solid var(--border);
+  padding: 14px 20px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--sp-5);
+}
+.actionsRight {
+  display: flex;
+  gap: var(--sp-5);
+  margin-left: auto;
+}

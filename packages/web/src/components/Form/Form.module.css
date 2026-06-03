@@ -1,0 +1,106 @@
+/* Form inputs (design/components/forms-inputs.md). Minimal subset for M1:
+   text/number input, search field, filter chip. */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.label {
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-caps);
+  color: var(--text-dim);
+}
+
+.hint {
+  color: var(--text-faint);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* ---- text / number input ---- */
+.input {
+  height: 36px;
+  background: var(--bg-field);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-md);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--fs-13);
+  padding: 0 12px;
+}
+.num {
+  font-family: var(--font-num);
+  text-align: right;
+}
+.input::placeholder {
+  color: var(--text-faint);
+}
+.input:focus {
+  outline: none;
+  border-color: var(--focus);
+}
+.input[aria-invalid='true'] {
+  border-color: var(--nok);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--nok) 20%, transparent);
+}
+
+/* number input with a unit suffix (kcal / g) */
+.withSuffix {
+  position: relative;
+}
+.withSuffix .input {
+  width: 100%;
+  padding-right: 38px;
+}
+.suffix {
+  position: absolute;
+  right: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  color: var(--text-faint);
+  pointer-events: none;
+}
+
+/* ---- search field ---- */
+.search {
+  position: relative;
+  display: inline-flex;
+  flex: 1;
+  min-width: 200px;
+}
+.search svg {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: var(--text-faint);
+}
+.search .input {
+  width: 100%;
+  padding-left: 32px;
+}
+
+/* ---- filter chip ---- */
+.chip {
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  border: var(--bw) solid var(--border);
+  background: var(--bg-field);
+  color: var(--text-dim);
+  border-radius: var(--r-pill);
+  padding: 5px 10px;
+  cursor: pointer;
+}
+.chip[aria-pressed='true'] {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}

@@ -1,0 +1,26 @@
+/* Empty / loading states (design/components/states.md). Minimal subset for M1. */
+
+.empty {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: var(--fs-13);
+  padding: var(--sp-10) var(--page-gutter);
+}
+
+.skeletonRow {
+  height: 14px;
+  margin: 12px 10px;
+  border-radius: var(--r-sm);
+  background: linear-gradient(90deg, var(--bg-elev) 25%, var(--bg-elev-2) 37%, var(--bg-elev) 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}

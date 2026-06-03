@@ -1,16 +1,23 @@
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { NavLink } from 'react-router-dom';
 import { ThemeToggle } from './ThemeToggle';
 import styles from './AppShell.module.css';
 
-// In-app frame: appbar (wordmark + theme toggle) + page body. The full primary nav
-// and account menu arrive with their screens in later milestones.
+// In-app frame: appbar (wordmark + primary nav + theme toggle) + page body. The nav
+// grows screen by screen (M1 adds Aliments); the account menu and remaining tabs
+// arrive with their milestones.
 export function AppShell({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
   return (
     <div>
       <header className={styles.appbar}>
         <span className={styles.wordmark}>{t('app.title')}</span>
+        <nav className={styles.nav}>
+          <NavLink to="/foods" className={({ isActive }) => (isActive ? styles.active : '')}>
+            {t('foods.title')}
+          </NavLink>
+        </nav>
         <span className={styles.spacer} />
         <ThemeToggle />
       </header>

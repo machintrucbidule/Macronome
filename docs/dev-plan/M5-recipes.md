@@ -33,7 +33,7 @@ Web: `features/recipes/`, `api/recipes.ts`, components `DataTable/` (ingredient 
 
 - **recipes.test.ts:** per-100 g + per-portion on the neutral "Sample bake"
   (`A 200g/400kcal, B 300g/150, C 100g/90 → 600g/640kcal; per100 106.7; 4 servings →
-  150g/160.0 kcal`); batch-weight change keeps per-portion **macros** (cooked 900 g →
+150g/160.0 kcal`); batch-weight change keeps per-portion **macros** (cooked 900 g →
   per100 71.1, per-portion still 160.0); **transitive cycle rejected**.
 - **Integration** (`testing.md` §2): **422 `would_create_cycle`**; save (re)builds the
   derived food + auto "portion"; tenancy → 404.
@@ -53,3 +53,13 @@ only in `domain/recipes`.
 - [ ] Recettes screen: builder with cycle-disabled adds, batch/servings, preview
 - [ ] integration: 422 would_create_cycle, derived-food rebuild, tenancy 404
 - acceptance: recipes neutral oracles + listed integration cases green
+
+### Carried over from M1 (build here, now that the recipe table exists)
+
+- [ ] **`GET /search/loggable`** — diacritic-insensitive autocomplete over food ∪
+      recipe-derived food (`spec/api/foods-recipes.md` §"Combined log search"); excludes
+      archived; returns `{id,name,kind:'food'|'recipe',named_portions}`. Add the web client
+      `packages/web/src/api/loggableSearch.ts`. Deferred from M1 (no recipe table then).
+- [ ] **`food.recipe_id` FK** — add the foreign key to `recipe(id)` (the column already
+      exists as a plain nullable Uuid from M1; add the FK in this milestone's migration SQL,
+      set when `source='recipe'`).

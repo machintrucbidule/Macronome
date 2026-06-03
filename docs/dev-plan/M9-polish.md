@@ -41,3 +41,14 @@ Polish touches many files but adds no large ones; state components live under
 - [ ] keyboard nav + focus management + modal focus trap
 - [ ] perf check on large data; indexes verified
 - acceptance: state/i18n/a11y checks green; critical-flow e2e still green
+
+### Carried over from M1 (finish the visual contract)
+
+- [ ] **Sticky app bar + table-header offset:** make the AppShell appbar sticky so the
+      dense-table `thead` `top: var(--appbar-h)` offset is correct; add the horizontal-scroll
+      table variant (`design/components/data-tables.md` `.tblscroll`) without re-introducing
+      the sticky-offset overlap (M1 removed `.wrap` overflow to avoid it).
+- [ ] **Full primary nav + account menu** (`design/components/top-nav.md`): M1 added only
+      an Aliments nav link; build `TopNav`/`PrimaryNav`/`AccountMenu` with all tabs.
+- [ ] **Locale-aware number formatting** (Intl) for kcal/macro grams in the foods table
+      and modals (M1 uses plain `toFixed`/`Math.round` with a dot separator).

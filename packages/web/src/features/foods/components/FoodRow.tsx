@@ -1,0 +1,60 @@
+import { useTranslation } from 'react-i18next';
+import type { Food } from '@macronome/shared';
+import { Stars } from '../../../components/RatingStars/Stars';
+import { tableStyles } from '../../../components/DataTable/SortableTh';
+import { gramsDisplay, kcalDisplay, portionSummary } from '../format';
+import styles from '../foods.module.css';
+
+// One food row in the Aliments table (specifications/screens/food-db.md). Click opens
+// the edit modal; the hover icon archives (or restores an archived row).
+interface FoodRowProps {
+  food: Food;
+  onOpen: (food: Food) => void;
+  onArchive: (food: Food) => void;
+  onRestore: (food: Food) => void;
+}
+
+export function FoodRow({ food, onOpen, onArchive, onRestore }: FoodRowProps) {
+  const { t } = useTranslation();
+  const archived = food.archived_at !== null;
+  return (
+    <tr
+      className={`${styles.row} ${tableStyles.clickable} ${archived ? tableStyles.archived : ''}`}
+      onClick={() => onOpen(food)}
+    >
+      <td>
+        <span className={tableStyles.nameLabel} title={food.name}>
+          {food.name}
+        </span>
+        {food.comment && <div className={styles.comment}>{food.comment}</div>}
+      </td>
+      <td className={tableStyles.num}>{kcalDisplay(food.kcal_per_100g)}</td>
+      <td className={tableStyles.numc}>{gramsDisplay(food.fat_per_100g)}</td>
+      <td className={tableStyles.numc}>{gramsDisplay(food.carb_per_100g)}</td>
+      <td className={tableStyles.numc}>{gramsDisplay(food.protein_per_100g)}</td>
+      <td className={styles.portion}>{portionSummary(food.named_portions)}</td>
+      <td className={tableStyles.numc}>
+        <Stars rating={food.rating} />
+      </td>
+      <td className={styles.vis}>
+        <span className={`${styles.vistag} ${food.visibility === 'shared' ? styles.shared : ''}`}>
+          {t(`foods.visibility.${food.visibility}`)}
+        </span>
+      </td>
+      <td>
+        <button
+          type="button"
+          className={styles.iconbtn}
+          title={archived ? t('foods.restore') : t('foods.archive')}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (archived) onRestore(food);
+            else onArchive(food);
+          }}
+        >
+          {archived ? '↺' : '🗑'}
+        </button>
+      </td>
+    </tr>
+  );
+}

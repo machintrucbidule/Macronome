@@ -47,8 +47,16 @@ typecheck + lint (`docs/architecture/testing.md` §6). Tick the box only then.
       verified. **Deferred to production setup** (per user decision — local-only this
       session): executing the Docker deploy + the pg_dump/pg_restore drill. The Docker
       config artifacts (compose, Caddyfile, Dockerfile, .env.example) are delivered.
-- [ ] **M1 — Foods (catalog + search)** → `docs/dev-plan/M1-foods.md`
+- [x] **M1 — Foods (catalog + search)** → `docs/dev-plan/M1-foods.md`
       _depends-on: M0._ The first vertical slice; everything loggable starts here.
+      Done: food/food_portion + migration (GIN trigram, CHECKs, FKs in SQL); foods
+      CRUD/search API (scoped repo + service + controllers); `normalize()` + rating
+      constant (neutral oracles); Aliments screen (sortable table, add/edit modal,
+      rating stars, visibility chip/filter, archive). Acceptance green: unit +
+      integration (dup-name warning, archive-from-search, tenancy 404, 422) + e2e smoke.
+      **Deferred (tracked):** `GET /search/loggable` + `food.recipe_id` FK → M5;
+      remaining nav/component variants + locale number formatting + table h-scroll → M9
+      (autocomplete dropdown → M3). See `M1-foods.md` and the target files.
 - [ ] **M2 — Targets & metabolic engine** → `docs/dev-plan/M2-targets-metabolic.md`
       _depends-on: M0._ Pure engine + targets resource; no day dependency yet.
 - [ ] **M3 — Daily log (meals, entries, leftover)** → `docs/dev-plan/M3-daily-log.md`

@@ -29,3 +29,43 @@ model AppUser {
 
   @@map("app_user")
 }
+
+/// Catalog food (spec/schema/tables-catalog.md → food). Per-100 g macros; soft
+/// delete via archived_at. `normalized_name` is the unaccent+lower search key,
+/// maintained by domain/search/normalize.ts on write. Relations (owner_id → app_user,
+/// recipe_id → recipe) are enforced by FKs in migration SQL, not Prisma relations,
+/// so the column-faithful schema stays in step with the DDL contract gate. The
+/// recipe FK is added in M5 when the recipe table exists.
+model Food {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId        String    @map("owner_id") @db.Uuid
+  name           String
+  normalizedName String    @map("normalized_name")
+  kcalPer100g    Decimal   @map("kcal_per_100g") @db.Decimal
+  fatPer100g     Decimal   @map("fat_per_100g") @db.Decimal
+  carbPer100g    Decimal   @map("carb_per_100g") @db.Decimal
+  proteinPer100g Decimal   @map("protein_per_100g") @db.Decimal
+  comment        String?
+  rating         Int?      @db.SmallInt
+  visibility     String    @default("private")
+  source         String    @default("manual")
+  recipeId       String?   @map("recipe_id") @db.Uuid
+  archivedAt     DateTime? @map("archived_at") @db.Timestamptz()
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@map("food")
+}
+
+/// Named portion of a food (spec/schema/tables-catalog.md → food_portion). The
+/// food_id FK (ON DELETE CASCADE) and UNIQUE(food_id,label) live in migration SQL.
+model FoodPortion {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  foodId    String   @map("food_id") @db.Uuid
+  label     String
+  grams     Decimal  @db.Decimal
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@map("food_portion")
+}

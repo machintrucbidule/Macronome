@@ -7,6 +7,7 @@ import { sessionMiddleware } from './http/middleware/session.js';
 import { tenantContext } from './http/middleware/tenant.js';
 import { applyTrustProxy } from './http/middleware/trustProxy.js';
 import authRoutes from './http/routes/auth.js';
+import foodsRoutes from './http/routes/foods.js';
 import healthRoutes from './http/routes/health.js';
 import { logger } from './observability/logger.js';
 
@@ -25,6 +26,7 @@ export function createApp(): Express {
 
   app.use('/api/v1/health', healthRoutes);
   app.use('/api/v1/auth', authRoutes);
+  app.use('/api/v1/foods', foodsRoutes);
 
   app.use(errorHandler);
   return app;

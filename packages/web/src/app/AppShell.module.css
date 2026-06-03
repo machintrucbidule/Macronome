@@ -15,6 +15,23 @@
   letter-spacing: var(--ls-caps);
 }
 
+.nav {
+  display: flex;
+  gap: var(--sp-6);
+}
+.nav a {
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  color: var(--text-dim);
+  text-decoration: none;
+}
+.nav a:hover {
+  color: var(--text);
+}
+.nav a.active {
+  color: var(--accent);
+}
+
 .spacer {
   margin-left: auto;
 }

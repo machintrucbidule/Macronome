@@ -1,0 +1,90 @@
+/* Dense data table (design/components/data-tables.md). Shared conventions for the
+   Aliments/Recettes/Journal/Poids tables. */
+
+/* No overflow scroll container here: that would make the sticky thead offset
+   (top: --appbar-h) resolve against this box instead of the viewport and overlap
+   the first row. Narrow screens drop columns responsively; a horizontal-scroll
+   variant for very long tables (e.g. Poids periods) is an M9 polish item. */
+.wrap {
+  width: 100%;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-13);
+}
+
+.table thead th {
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+  font-weight: var(--fw-regular);
+  padding: 9px 10px;
+  border-bottom: var(--bw) solid var(--border-strong);
+  text-align: left;
+  white-space: nowrap;
+  position: sticky;
+  top: var(--appbar-h);
+  background: var(--bg);
+  z-index: var(--z-popover);
+}
+
+.table thead th.r {
+  text-align: right;
+}
+.table thead th.c {
+  text-align: center;
+}
+
+.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+.sortable:hover {
+  color: var(--text);
+}
+.sorted {
+  color: var(--accent);
+}
+.arr {
+  font-size: var(--fs-9);
+}
+
+.table tbody td {
+  padding: 8px 10px;
+  border-bottom: var(--bw) solid color-mix(in srgb, var(--border) 50%, transparent);
+}
+.num {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-align: right;
+}
+.numc {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.clickable {
+  cursor: pointer;
+  /* keep a row clear of the sticky header when scrolled/anchored to */
+  scroll-margin-top: 140px;
+}
+.clickable:hover {
+  background: var(--bg-elev-2);
+}
+
+.archived {
+  opacity: 0.45;
+}
+.archived .nameLabel::after {
+  content: ' · archivé';
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  color: var(--text-faint);
+}

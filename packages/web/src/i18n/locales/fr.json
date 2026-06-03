@@ -21,5 +21,74 @@
     "username": "Identifiant",
     "password": "Mot de passe",
     "submit": "Se connecter"
+  },
+  "common": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "remove": "Supprimer",
+    "optional": "(optionnel)"
+  },
+  "foods": {
+    "title": "Aliments",
+    "count": "{{count}} affiché",
+    "count_other": "{{count}} affichés",
+    "searchPlaceholder": "Rechercher (insensible aux accents)…",
+    "add": "+ Ajouter un aliment",
+    "archive": "Archiver",
+    "restore": "Restaurer",
+    "empty": "Aucun aliment. Ajoute ton premier aliment.",
+    "col": {
+      "name": "Nom",
+      "kcal": "kcal/100g",
+      "fat": "L",
+      "carb": "G",
+      "protein": "P",
+      "portion": "Portion",
+      "rating": "Note",
+      "visibility": "Visib."
+    },
+    "visibility": {
+      "all": "Toutes",
+      "private": "Privé",
+      "shared": "Partagé"
+    },
+    "filters": {
+      "title": "Filtres",
+      "minRating": "Note minimale",
+      "visibility": "Visibilité",
+      "all": "Toutes",
+      "showArchived": "Afficher les archivés"
+    },
+    "rating": {
+      "clear": "effacer"
+    },
+    "field": {
+      "name": "Nom",
+      "namePlaceholder": "Blancs de poulet",
+      "kcal": "Calories",
+      "fat": "Lipides",
+      "carb": "Glucides",
+      "protein": "Protéines",
+      "rating": "Note",
+      "visibility": "Visibilité",
+      "comment": "Commentaire"
+    },
+    "portions": {
+      "head": "Portions nommées",
+      "add": "+ Ajouter",
+      "empty": "Aucune portion nommée.",
+      "labelPlaceholder": "libellé (ex. œuf)"
+    },
+    "modal": {
+      "addTitle": "Ajouter un aliment",
+      "editTitle": "Modifier l'aliment",
+      "sub": "Macros exprimées pour 100 g. Les portions nommées convertissent un nombre en grammes.",
+      "duplicate": "Un aliment porte déjà ce nom.",
+      "editNote": "Modifier les macros n'affecte que les futurs repas — les jours déjà enregistrés gardent leurs valeurs figées."
+    },
+    "confirm": {
+      "title": "Archiver l'aliment ?",
+      "body": "« <b>{{name}}</b> » disparaîtra des recherches et de cette liste, mais restera dans l'historique de tes repas passés et dans ton garde-manger. Tu pourras le restaurer."
+    }
   }
 }

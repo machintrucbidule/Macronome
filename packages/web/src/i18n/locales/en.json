@@ -21,5 +21,74 @@
     "username": "Username",
     "password": "Password",
     "submit": "Sign in"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "remove": "Remove",
+    "optional": "(optional)"
+  },
+  "foods": {
+    "title": "Foods",
+    "count": "{{count}} shown",
+    "count_other": "{{count}} shown",
+    "searchPlaceholder": "Search (accent-insensitive)…",
+    "add": "+ Add a food",
+    "archive": "Archive",
+    "restore": "Restore",
+    "empty": "No foods yet. Add your first food.",
+    "col": {
+      "name": "Name",
+      "kcal": "kcal/100g",
+      "fat": "F",
+      "carb": "C",
+      "protein": "P",
+      "portion": "Portion",
+      "rating": "Rating",
+      "visibility": "Visib."
+    },
+    "visibility": {
+      "all": "All",
+      "private": "Private",
+      "shared": "Shared"
+    },
+    "filters": {
+      "title": "Filters",
+      "minRating": "Minimum rating",
+      "visibility": "Visibility",
+      "all": "All",
+      "showArchived": "Show archived"
+    },
+    "rating": {
+      "clear": "clear"
+    },
+    "field": {
+      "name": "Name",
+      "namePlaceholder": "Chicken breast",
+      "kcal": "Calories",
+      "fat": "Fat",
+      "carb": "Carbs",
+      "protein": "Protein",
+      "rating": "Rating",
+      "visibility": "Visibility",
+      "comment": "Comment"
+    },
+    "portions": {
+      "head": "Named portions",
+      "add": "+ Add",
+      "empty": "No named portions.",
+      "labelPlaceholder": "label (e.g. egg)"
+    },
+    "modal": {
+      "addTitle": "Add a food",
+      "editTitle": "Edit food",
+      "sub": "Macros are per 100 g. Named portions convert a count into grams.",
+      "duplicate": "A food already has this name.",
+      "editNote": "Editing macros affects future meals only — days already logged keep their frozen values."
+    },
+    "confirm": {
+      "title": "Archive this food?",
+      "body": "\"<b>{{name}}</b>\" will disappear from search and this list, but stays in your past meal history and pantry. You can restore it."
+    }
   }
 }
