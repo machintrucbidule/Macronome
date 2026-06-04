@@ -1,0 +1,128 @@
+/* Weight chart (design/components/charts.md). Semantic tokens only — never baked hex,
+   critical for the trend line which must invert with the theme. */
+
+.chart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.chartHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-5);
+}
+
+.svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* layers (back-to-front) */
+.goal {
+  stroke: var(--ok);
+  stroke-width: 1.4;
+  stroke-dasharray: 6 5;
+  opacity: 0.9;
+}
+.traj {
+  fill: none;
+  stroke: var(--traj);
+  stroke-width: 1.8;
+  stroke-dasharray: 5 4;
+  opacity: 0.9;
+}
+.raw {
+  fill: none;
+  stroke: var(--weight);
+  stroke-width: 1;
+  opacity: 0.35;
+}
+.ema {
+  fill: none;
+  stroke: var(--trend);
+  stroke-width: 2.4;
+}
+.pt {
+  fill: var(--weight);
+}
+.waist {
+  fill: none;
+  stroke: var(--waistc);
+  stroke-width: 1.4;
+}
+.waistPt {
+  fill: var(--waistc);
+}
+
+/* waist toggle */
+.waistToggle,
+.waistOn {
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  height: var(--control-h);
+  padding: 0 10px;
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+.waistOn {
+  color: var(--waistc);
+  border-color: var(--waistc);
+}
+
+/* range segmented control */
+.rangeseg {
+  display: inline-flex;
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-pill);
+  overflow: hidden;
+}
+.rangeBtn,
+.rangeOn {
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  height: var(--control-h);
+  padding: 0 12px;
+  border: 0;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+.rangeOn {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* legend */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3) var(--sp-6);
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  color: var(--text-dim);
+}
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.line {
+  width: 16px;
+  border-top: 2px solid currentColor;
+}
+.dash {
+  width: 16px;
+  border-top: 2px dashed currentColor;
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}

@@ -288,6 +288,76 @@
       "forced": "forcé"
     }
   },
+  "weight": {
+    "title": "Poids",
+    "add": "+ Pesée",
+    "empty": "Aucune pesée. Ajoute ta première pesée.",
+    "single": "Une seule pesée : pas encore de période.",
+    "rangeEmpty": "Aucune pesée sur cette plage.",
+    "waistToggle": "Tour de taille",
+    "mode": { "label": "Mode" },
+    "range": { "3m": "3 mois", "6m": "6 mois", "1y": "1 an", "all": "Tout" },
+    "flag": { "in_diet": "En régime", "not_in_diet": "Maintien" },
+    "legend": {
+      "weighed": "Poids pesé",
+      "trend": "Tendance lissée",
+      "trajectory": "Trajectoire cible",
+      "goal": "Objectif",
+      "waist": "Tour de taille"
+    },
+    "cartouche": {
+      "current": "Poids actuel",
+      "vsPrev": "{{delta}} kg vs préc.",
+      "bmi": "IMC",
+      "waist": "Tour de taille",
+      "gap": "Écart à l'objectif",
+      "projection": "Projection"
+    },
+    "projection": {
+      "projected": "≈ atteinte",
+      "estimate": "date estimée",
+      "reached": "Atteint",
+      "flat": "Tendance non baissière",
+      "none": "—"
+    },
+    "bmi": {
+      "underweight": "Maigreur",
+      "normal": "Normal",
+      "overweight": "Surpoids",
+      "obese": "Obésité"
+    },
+    "col": {
+      "period": "Période",
+      "days": "Durée (j)",
+      "weight": "Poids",
+      "trend": "Tendance",
+      "delta": "Δ",
+      "ecart": "Écart traj.",
+      "bmi": "IMC",
+      "waist": "Taille",
+      "intake": "Apport moy.",
+      "estBurn": "Dép. estimée",
+      "empBurn": "Dép. empirique",
+      "deficit": "Déficit/j",
+      "activity": "Activité moy.",
+      "flag": "Régime",
+      "note": "Note"
+    },
+    "field": {
+      "date": "Date",
+      "weight": "Poids",
+      "waist": "Tour de taille",
+      "flag": "Régime de la période",
+      "note": "Note"
+    },
+    "modal": {
+      "addTitle": "Ajouter une pesée",
+      "editTitle": "Modifier la pesée",
+      "occupied": "Une pesée existe déjà au {{date}}. La remplacer ?",
+      "replace": "Remplacer",
+      "error": "Échec de l'opération ({{code}})."
+    }
+  },
   "activity": {
     "sedentary": { "label": "Sédentaire", "description": "Peu ou pas d'exercice" },
     "lightly_active": { "label": "Léger", "description": "Exercice léger 1–3 j/sem" },

@@ -288,6 +288,76 @@
       "forced": "forced"
     }
   },
+  "weight": {
+    "title": "Weight",
+    "add": "+ Weigh-in",
+    "empty": "No weigh-ins yet. Add your first weigh-in.",
+    "single": "Only one weigh-in: no period yet.",
+    "rangeEmpty": "No weigh-ins in this range.",
+    "waistToggle": "Waist",
+    "mode": { "label": "Mode" },
+    "range": { "3m": "3 months", "6m": "6 months", "1y": "1 year", "all": "All" },
+    "flag": { "in_diet": "In diet", "not_in_diet": "Maintenance" },
+    "legend": {
+      "weighed": "Weighed",
+      "trend": "Smoothed trend",
+      "trajectory": "Target trajectory",
+      "goal": "Goal",
+      "waist": "Waist"
+    },
+    "cartouche": {
+      "current": "Current weight",
+      "vsPrev": "{{delta}} kg vs prev.",
+      "bmi": "BMI",
+      "waist": "Waist",
+      "gap": "Gap to goal",
+      "projection": "Projection"
+    },
+    "projection": {
+      "projected": "≈ reached",
+      "estimate": "estimated date",
+      "reached": "Reached",
+      "flat": "Trend not downward",
+      "none": "—"
+    },
+    "bmi": {
+      "underweight": "Underweight",
+      "normal": "Normal",
+      "overweight": "Overweight",
+      "obese": "Obese"
+    },
+    "col": {
+      "period": "Period",
+      "days": "Days",
+      "weight": "Weight",
+      "trend": "Trend",
+      "delta": "Δ",
+      "ecart": "Traj. gap",
+      "bmi": "BMI",
+      "waist": "Waist",
+      "intake": "Avg intake",
+      "estBurn": "Est. burn",
+      "empBurn": "Emp. burn",
+      "deficit": "Deficit/d",
+      "activity": "Avg activity",
+      "flag": "Diet",
+      "note": "Note"
+    },
+    "field": {
+      "date": "Date",
+      "weight": "Weight",
+      "waist": "Waist",
+      "flag": "Period diet flag",
+      "note": "Note"
+    },
+    "modal": {
+      "addTitle": "Add a weigh-in",
+      "editTitle": "Edit weigh-in",
+      "occupied": "A weigh-in already exists on {{date}}. Replace it?",
+      "replace": "Replace",
+      "error": "Operation failed ({{code}})."
+    }
+  },
   "activity": {
     "sedentary": { "label": "Sedentary", "description": "Little or no exercise" },
     "lightly_active": { "label": "Light", "description": "Light exercise 1–3 days/wk" },

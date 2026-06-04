@@ -51,7 +51,14 @@ cartouche), `MetricCard/`, `Form/`, `states/`.
 Chart wrappers and the period table decompose into small components; the EMA/
 trajectory maths live only in `domain/weight` (server), the chart renders results.
 
-## Build split (approved): M4a backend (done) · M4b screen (in progress)
+## Build split (approved): M4a backend (done) · M4b screen (done)
+
+**M4b — Poids screen DONE:** `features/weight/` (page + `WeightBody`, `useWeight` query/mutations,
+`useWeightController` UI state, `format`); shared `components/Chart/` (`WeightChart` SVG +
+`RangeControl` + `ChartLegend` + pure `scale`); `Cartouche` (5 `MetricCard`s), `PeriodTable`/
+`PeriodRow`, `WeighInModal` (+ `WeighInFields`, `FlagToggle`, date-occupied replace), `WeightHeader`
+with the ephemeral Régime/Maintien toggle; route `/weight` + nav (Repas · Journal · **Poids** ·
+Aliments · Cibles); FR+EN i18n. e2e green (weigh-ins → EMA/trajectory/period; date edit re-derives).
 
 ## Deferred (tracked)
 
@@ -67,7 +74,7 @@ trajectory maths live only in `domain/weight` (server), the chart renders result
 - [x] weight_entry table + migration (done in M2) · [x] one-per-day replace rule (M4)
 - [x] domain/weight + neutral oracle tests (EMA, trajectory, BMI, projection, edges)
 - [x] weight service + repo (re-derive on date edit) + route/controller + DTOs
-- [ ] Poids screen: entry, chart, period table, mode toggle
+- [x] Poids screen: entry, chart, period table, mode toggle
 - [x] integration: 409 date-occupied (+existing_id), date-edit re-derive, tenancy 404
-- [ ] e2e: weigh-ins → EMA/trajectory/period; date edit re-derives
-- acceptance: weight neutral oracles + listed integration green (M4a); e2e green (M4b)
+- [x] e2e: weigh-ins → EMA/trajectory/period; date edit re-derives
+- acceptance: weight neutral oracles + listed integration green (M4a); e2e green (M4b) ✓

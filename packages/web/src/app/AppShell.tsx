@@ -20,6 +20,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           <NavLink to="/history" className={({ isActive }) => (isActive ? styles.active : '')}>
             {t('journal.title')}
           </NavLink>
+          <NavLink to="/weight" className={({ isActive }) => (isActive ? styles.active : '')}>
+            {t('weight.title')}
+          </NavLink>
           <NavLink to="/foods" className={({ isActive }) => (isActive ? styles.active : '')}>
             {t('foods.title')}
           </NavLink>

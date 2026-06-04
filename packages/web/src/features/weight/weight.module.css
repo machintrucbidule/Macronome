@@ -1,0 +1,154 @@
+/* Poids screen (specifications/screens/weight.md). Semantic tokens only. */
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-5);
+  margin-bottom: var(--sp-7);
+}
+.head h1 {
+  font-family: var(--font-display);
+  font-size: var(--fs-18);
+  font-weight: var(--fw-bold);
+  margin: 0;
+}
+.headActions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-6);
+}
+.modeLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+  font-size: var(--fs-12);
+  color: var(--text-dim);
+}
+
+.layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-8);
+}
+
+/* cartouche grid (design/components/charts.md §Cartouche) */
+.cartouche {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--sp-5);
+}
+@media (max-width: 900px) {
+  .cartouche {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.rangeEmpty {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  align-items: flex-start;
+}
+
+/* régime / maintien toggle (shared by header + modal) */
+.flagToggle {
+  display: inline-flex;
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-pill);
+  overflow: hidden;
+}
+.flagBtn,
+.flagOn {
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  height: var(--control-h);
+  padding: 0 12px;
+  border: 0;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+.flagOn {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* period table */
+.tableWrap {
+  overflow-x: auto;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-12);
+  white-space: nowrap;
+}
+.colHead {
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-caps);
+  color: var(--text-faint);
+  text-align: left;
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: var(--bw) solid var(--border);
+}
+.periodRow {
+  cursor: pointer;
+  border-bottom: var(--bw) solid var(--border);
+}
+.periodRow:hover {
+  background: var(--bg-elev);
+}
+.periodRow td {
+  padding: var(--sp-3) var(--sp-4);
+}
+.num {
+  text-align: right;
+  font-family: var(--font-num);
+}
+
+/* weigh-in modal */
+.modalBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  padding: var(--sp-6);
+}
+.modalActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-5);
+  padding: var(--sp-5) var(--sp-6);
+  border-top: var(--bw) solid var(--border);
+}
+.modalActionsRight {
+  display: flex;
+  gap: var(--sp-4);
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.fieldLabel {
+  font-size: var(--fs-12);
+  color: var(--text-dim);
+}
+.dateInput {
+  height: var(--control-h-md);
+  background: var(--bg-field);
+  border: var(--bw) solid var(--border-strong);
+  border-radius: var(--r-md);
+  color: var(--text);
+  padding: 0 10px;
+  font-family: var(--font-body);
+  font-size: var(--fs-13);
+}
+.error {
+  font-size: var(--fs-12);
+  color: var(--nok);
+  margin: 0;
+}

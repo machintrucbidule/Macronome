@@ -4,6 +4,7 @@ import { FoodsPage } from '../features/foods/FoodsPage';
 import { CiblesPage } from '../features/targets/CiblesPage';
 import { JournalPage } from '../features/journal/JournalPage';
 import { MealsPage } from '../features/meals/MealsPage';
+import { WeightPage } from '../features/weight/WeightPage';
 import { AppShell } from './AppShell';
 import { HealthStatus } from './HealthStatus';
 
@@ -17,6 +18,7 @@ export function AppRouter() {
         <Route path="/" element={<MealsPage />} />
         <Route path="/day/:date" element={<MealsPage />} />
         <Route path="/history" element={<JournalPage />} />
+        <Route path="/weight" element={<WeightPage />} />
         <Route path="/foods" element={<FoodsPage />} />
         <Route path="/cibles" element={<CiblesPage />} />
         <Route
