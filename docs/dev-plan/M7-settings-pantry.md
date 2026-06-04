@@ -18,6 +18,17 @@ Depends-on: M1 (foods to pin), M3 (day pre-fill semantics).
 > pantry_item pre-fill (qty 0)** and add the **pin/unpin endpoints**
 > (`POST /meals/:mealId/entries/:id/pin` · `/unpin`, future-day effect only).
 
+> **Carried in from M4 (tracked):** the Weight screen's **current mode (Régime/Maintien)**
+> is **ephemeral / client-side in M4** — `GET /weight` returns `current_mode` (default = the
+> latest period's `diet_flag`) and the screen toggles it in React state. **Persistence was
+> deferred here** because the API contract defines **no write endpoint** for it: neither
+> `/weight` nor the `/settings` DTO (`{locale, theme, llm_endpoint?}`) lists `current_mode`.
+> M7 must take a **contract decision** (extend `/settings` to carry `current_mode`, or add a
+> dedicated setter) then persist it on **`app_user.settings`** — which is already a
+> `Json @default("{}")` column, so **no migration** is needed, only the endpoint. The
+> projection's Maintien gate is applied client-side in M4 and should move server-side once
+> the mode is persisted.
+
 - Pantry editor (Gap 8): pinned foods ordered by insertion; no duplicate pin per
   `(meal_slot_name, food_id)`; **unpinning affects future-day pre-fill only** —
   today's/past lines untouched. Same op as the Repas 📌 toggle, seen from settings.
@@ -54,5 +65,8 @@ Each settings sub-screen is its own small feature folder; no god-settings page.
 - [ ] meal_slot_template + pantry_item + container tables + migration; locked "Rien"
 - [ ] pantry/settings services + repos + routes/controllers + DTOs
 - [ ] Settings/Containers/Account screens; profile; language/theme; reserved llm_endpoint
+- [ ] persist Weight screen `current_mode` on `app_user.settings` (deferred from M4; needs a
+      contract decision on the write endpoint — see the M4 carry-in note above); then move the
+      projection's Maintien gate server-side
 - [ ] integration: pin idempotency, future-only unpin, container-delete history safety, tenancy 404
 - acceptance: listed integration cases green; future-only pre-fill e2e green

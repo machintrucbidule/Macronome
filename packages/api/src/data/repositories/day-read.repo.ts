@@ -105,4 +105,13 @@ export const dayReadRepo = {
     });
     return aggregateFor(dayLogs);
   },
+
+  /** Logged days in [from, to] (inclusive), oldest first — per-period intake stats (M4). */
+  async readRange(userId: string, from: string, to: string): Promise<DayAggregate[]> {
+    const dayLogs = await prisma.dayLog.findMany({
+      where: { userId, date: { gte: toDate(from), lte: toDate(to) } },
+      orderBy: [{ date: 'asc' }],
+    });
+    return aggregateFor(dayLogs);
+  },
 };

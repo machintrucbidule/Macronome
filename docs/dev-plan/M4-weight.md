@@ -51,12 +51,23 @@ cartouche), `MetricCard/`, `Form/`, `states/`.
 Chart wrappers and the period table decompose into small components; the EMA/
 trajectory maths live only in `domain/weight` (server), the chart renders results.
 
+## Build split (approved): M4a backend (done) · M4b screen (in progress)
+
+## Deferred (tracked)
+
+- **Current mode (Régime/Maintien) is ephemeral / client-side in M4.** `GET /weight`
+  returns `current_mode` (default = latest period's `diet_flag`); the screen toggles it in
+  React state and applies the projection's Maintien gate locally. **Persistence → M7**: the
+  API contract defines no write endpoint for `current_mode` (neither `/weight` nor the
+  `/settings` DTO lists it). `app_user.settings` is already a `Json` column, so M7 needs only
+  an endpoint (a contract decision), no migration. See `M7-settings-pantry.md` carry-in note.
+
 ## Checklist
 
-- [x] weight_entry table + migration (done in M2) · [ ] one-per-day replace rule (M4)
-- [ ] domain/weight + neutral oracle tests (EMA, trajectory, BMI, projection, edges)
-- [ ] weight service + repo (re-derive on date edit) + route/controller + DTOs
+- [x] weight_entry table + migration (done in M2) · [x] one-per-day replace rule (M4)
+- [x] domain/weight + neutral oracle tests (EMA, trajectory, BMI, projection, edges)
+- [x] weight service + repo (re-derive on date edit) + route/controller + DTOs
 - [ ] Poids screen: entry, chart, period table, mode toggle
-- [ ] integration: 409 date-occupied (+existing_id), date-edit re-derive, tenancy 404
+- [x] integration: 409 date-occupied (+existing_id), date-edit re-derive, tenancy 404
 - [ ] e2e: weigh-ins → EMA/trajectory/period; date edit re-derives
-- acceptance: weight neutral oracles + listed integration/e2e green
+- acceptance: weight neutral oracles + listed integration green (M4a); e2e green (M4b)

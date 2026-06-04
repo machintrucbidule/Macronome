@@ -8,7 +8,11 @@ export {
   DEFAULT_ACTIVITY_LEVEL,
 } from './constants/activity.js';
 export type { ActivityLevel } from './constants/activity.js';
-export { SUGGEST_RANGE_HALF_WIDTH_KCAL, RECENT_ACTIVITY_WINDOW_DAYS } from './constants/tuning.js';
+export {
+  SUGGEST_RANGE_HALF_WIDTH_KCAL,
+  RECENT_ACTIVITY_WINDOW_DAYS,
+  EMA_ALPHA,
+} from './constants/tuning.js';
 export {
   RATING_GRADES,
   RATING_LABEL_KEYS,
@@ -22,3 +26,4 @@ export * from './dto/food.js';
 export * from './dto/profile.js';
 export * from './dto/target.js';
 export * from './dto/day.js';
+export * from './dto/weight.js';

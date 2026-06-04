@@ -15,6 +15,7 @@ import leftoverRoutes from './http/routes/leftover.js';
 import mealsRoutes from './http/routes/meals.js';
 import profileRoutes from './http/routes/profile.js';
 import targetRoutes from './http/routes/target.js';
+import weightRoutes from './http/routes/weight.js';
 import { logger } from './observability/logger.js';
 
 // Fixed middleware order (ARCHITECTURE.md §3): trust-proxy → session → CSRF →
@@ -34,6 +35,7 @@ export function createApp(): Express {
   app.use('/api/v1/auth', authRoutes);
   app.use('/api/v1/foods', foodsRoutes);
   app.use('/api/v1/target', targetRoutes);
+  app.use('/api/v1/weight', weightRoutes);
   app.use('/api/v1/profile', profileRoutes);
   app.use('/api/v1/days', daysRoutes);
   app.use('/api/v1/meals', mealsRoutes);

@@ -90,10 +90,19 @@ serving}` with neutral oracles; days/meals/entries/leftover/journal services + r
       pantry/meal_slot_template/pin-unpin + template seeding → **M7** (`is_pinned` column
       created but inert, days seed `DEFAULT_MEAL_SLOTS`); Cook mode → **M9**. New pure module
       `domain/serving` (ml→g 1:1). `check-schema.mjs` heading parser widened (tooling).
-- [ ] **M4 — Weight & variable periods** → `docs/dev-plan/M4-weight.md`
-      _depends-on: M2 (BMR), M3 (logged-day intake for period stats)._
-      **Note:** the `weight_entry` table + migration already exist (created in M2);
-      M4 adds the periods/EMA/trajectory/screen on top — no table DDL needed.
+- [~] **M4 — Weight & variable periods** → `docs/dev-plan/M4-weight.md`
+  _depends-on: M2 (BMR), M3 (logged-day intake for period stats)._
+  **Note:** the `weight_entry` table + migration already exist (created in M2);
+  M4 adds the periods/EMA/trajectory/screen on top — no table DDL needed.
+  **Split (approved): M4a backend DONE** — `domain/weight` (EMA, trajectory, BMI,
+  projection, periods) with neutral oracles; weigh-in CRUD (one-per-day 409
+  `weigh_in_date_occupied`+existing_id, date-edit re-derives periods); per-period stats
+  reuse `domain/metabolic`; `GET/POST/PATCH/DELETE /weight`; DTOs + `EMA_ALPHA`.
+  Acceptance green: weight oracles + integration (409, date-edit re-derive, tenancy 404,
+  422). **M4b — Poids screen: in progress.**
+  **Deferred (tracked):** Weight-screen `current_mode` is **ephemeral/client-side** in
+  M4; **persistence → M7** (no contract write endpoint today; `app_user.settings` ready,
+  no migration). See `M4-weight.md` + `M7-settings-pantry.md`.
 - [ ] **M5 — Recipes & derived food** → `docs/dev-plan/M5-recipes.md`
       _depends-on: M1._ Recipes build a derived Food that M3 can log.
 - [ ] **M6 — Stats & adherence** → `docs/dev-plan/M6-stats.md`
