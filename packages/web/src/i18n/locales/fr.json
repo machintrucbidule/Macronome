@@ -26,7 +26,8 @@
     "save": "Enregistrer",
     "cancel": "Annuler",
     "remove": "Supprimer",
-    "optional": "(optionnel)"
+    "optional": "(optionnel)",
+    "loading": "Chargement…"
   },
   "foods": {
     "title": "Aliments",
@@ -89,6 +90,60 @@
     "confirm": {
       "title": "Archiver l'aliment ?",
       "body": "« <b>{{name}}</b> » disparaîtra des recherches et de cette liste, mais restera dans l'historique de tes repas passés et dans ton garde-manger. Tu pourras le restaurer."
+    }
+  },
+  "recipes": {
+    "title": "Recettes",
+    "count": "{{count}} affichée",
+    "count_other": "{{count}} affichées",
+    "searchPlaceholder": "Rechercher (insensible aux accents)…",
+    "add": "+ Ajouter une recette",
+    "archive": "Archiver",
+    "restore": "Restaurer",
+    "empty": "Aucune recette. Ajoute ta première recette.",
+    "badge": "recette",
+    "col": {
+      "name": "Nom",
+      "kcal": "kcal/100g",
+      "fat": "L",
+      "carb": "G",
+      "protein": "P",
+      "batch": "Lot (g)",
+      "servings": "Portions",
+      "weightPerPortion": "g/portion"
+    },
+    "field": {
+      "name": "Nom",
+      "namePlaceholder": "Gâteau aux pommes",
+      "instructions": "Instructions",
+      "instructionsPlaceholder": "Étapes de préparation (optionnel)…"
+    },
+    "modal": {
+      "addTitle": "Ajouter une recette",
+      "editTitle": "Modifier la recette"
+    },
+    "builder": {
+      "ingredient": "Ingrédient",
+      "qtyUnit": "Qté / unité",
+      "noIngredients": "Aucun ingrédient. Ajoute-en un.",
+      "addIngredient": "+ Ajouter un ingrédient",
+      "recipeTag": "recette",
+      "searchEmpty": "Aucun aliment ni recette trouvé",
+      "searchPlaceholder": "Rechercher un aliment ou une recette…",
+      "quantity": "Quantité",
+      "yieldTitle": "Rendement & portions",
+      "batch": "Poids du lot",
+      "resetBatch": "réinitialiser (somme des ingrédients)",
+      "servings": "Portions",
+      "weightPerPortion": "Poids / portion",
+      "kcalPerPortion": "kcal / portion",
+      "computedNote": "Valeurs calculées par le serveur, mises à jour à l'enregistrement.",
+      "cycleError": "⚠ Cet ingrédient créerait un cycle entre recettes : rien n'a été enregistré.",
+      "saveError": "⚠ Échec de l'enregistrement ({{code}})."
+    },
+    "confirm": {
+      "title": "Archiver la recette ?",
+      "body": "« <b>{{name}}</b> » disparaîtra des recherches et de cette liste, mais restera dans l'historique des repas qui l'ont utilisée. Tu pourras la restaurer."
     }
   },
   "cibles": {
@@ -221,7 +276,8 @@
       "pinSoon": "Garde-manger (à venir)"
     },
     "tag": {
-      "portion": "portion"
+      "portion": "portion",
+      "recipe": "recette"
     },
     "search": {
       "placeholder": "Rechercher un aliment…",

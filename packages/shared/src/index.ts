@@ -23,6 +23,7 @@ export type { Rating } from './constants/rating.js';
 export { ErrorCode } from './errors.js';
 export * from './dto/auth.js';
 export * from './dto/food.js';
+export * from './dto/recipe.js';
 export * from './dto/profile.js';
 export * from './dto/target.js';
 export * from './dto/day.js';

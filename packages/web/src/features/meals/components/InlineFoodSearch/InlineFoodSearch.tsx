@@ -6,11 +6,11 @@ import {
 } from '../../../../components/Form/Autocomplete/Autocomplete';
 import { useMeals } from '../../MealsContext';
 import { useFoodSearch } from '../../hooks/useFoodLookup';
-import { r0 } from '../../format';
 
-// Inline food picker shown in the name cell while editing a line. Searches the foods catalog
-// (server-side; `/search/loggable` with recipes arrives in M5), maps results to the shared
-// Autocomplete, and routes a pick → add/replace entry, "+ Valeurs manuelles" → CustomFoodModal.
+// Inline food picker shown in the name cell while editing a line. Searches foods ∪ recipes
+// (server-side `/search/loggable`), maps results to the shared Autocomplete, and routes a
+// pick → add/replace entry, "+ Valeurs manuelles" → CustomFoodModal. The per-100 g kcal meta
+// is not shown here (the combined search omits macros by contract); restore in M9 polish.
 interface InlineFoodSearchProps {
   mealId: string;
   mealIndex: number;
@@ -42,11 +42,14 @@ export function InlineFoodSearch({
 
   const items: AutocompleteItem[] = useMemo(
     () =>
-      (search.data?.data ?? []).map((f) => ({
-        id: f.id,
-        name: f.name,
-        meta: `${r0(f.kcal_per_100g)} kcal /100g`,
-        ...(f.named_portions.length ? { tag: t('meals.tag.portion') } : {}),
+      (search.data?.data ?? []).map((item) => ({
+        id: item.id,
+        name: item.name,
+        ...(item.kind === 'recipe'
+          ? { tag: t('meals.tag.recipe') }
+          : item.named_portions.length
+            ? { tag: t('meals.tag.portion') }
+            : {}),
       })),
     [search.data, t],
   );

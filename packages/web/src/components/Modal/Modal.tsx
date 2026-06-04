@@ -6,7 +6,7 @@ import styles from './Modal.module.css';
 // confirm) compose this shell with their own body + actions.
 interface ModalProps {
   title: ReactNode;
-  size?: 'md' | 'confirm';
+  size?: 'md' | 'confirm' | 'wide';
   onClose: () => void;
   children: ReactNode;
 }

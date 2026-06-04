@@ -106,8 +106,18 @@ serving}` with neutral oracles; days/meals/entries/leftover/journal services + r
     **Deferred (tracked):** Weight-screen `current_mode` is **ephemeral/client-side** in
     M4; **persistence → M7** (no contract write endpoint today; `app_user.settings` ready,
     no migration). See `M4-weight.md` + `M7-settings-pantry.md`.
-- [ ] **M5 — Recipes & derived food** → `docs/dev-plan/M5-recipes.md`
-      _depends-on: M1._ Recipes build a derived Food that M3 can log.
+- [x] **M5 — Recipes & derived food** → `docs/dev-plan/M5-recipes.md`
+      _depends-on: M1._ Done: recipe + recipe_ingredient tables + migration (ref XOR + self-ref
+      CHECKs, GIN trigram, `food.recipe_id` FK); `domain/recipes` (aggregate/per100/perPortion +
+      buildDerivedFood + transitive `wouldCreateCycle`) with neutral "Sample bake" oracles;
+      recipes service (rebuilds the derived food + auto "portion", forward-only + parent cascade) + scoped repo + routes; `GET /search/loggable` (food ∪ recipe-derived) now feeding the Repas
+      search; Recettes screen (builder: ingredient block + yield panel + instructions, nav tab,
+      FR+EN). Acceptance green: recipe oracles + integration (422 would_create_cycle incl.
+      transitive, derived rebuild + "portion", forward cascade with frozen meal_entry, tenancy
+      404, loggable) + e2e (build → save → log 1 portion).
+      **Deferred (tracked):** builder live-while-typing recompute + client-side transitive
+      cycle-disable + daily-log dropdown kcal meta + `/recipes/:id` deep-link routes → M9. See
+      `M5-recipes.md` §Deviations.
 - [ ] **M6 — Stats & adherence** → `docs/dev-plan/M6-stats.md`
       _depends-on: M3 (verdicts/day_kcal)._ Read-only over frozen history.
 - [ ] **M7 — Settings & pantry** → `docs/dev-plan/M7-settings-pantry.md`

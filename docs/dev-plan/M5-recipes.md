@@ -47,19 +47,34 @@ only in `domain/recipes`.
 
 ## Checklist
 
-- [ ] recipe + recipe_ingredient tables + migration
-- [ ] domain/recipes + neutral oracle tests (per100/perPortion, batch invariance, cycle)
-- [ ] recipes service (builds derived food, forward-only recompute) + repo + route
-- [ ] Recettes screen: builder with cycle-disabled adds, batch/servings, preview
-- [ ] integration: 422 would_create_cycle, derived-food rebuild, tenancy 404
-- acceptance: recipes neutral oracles + listed integration cases green
+- [x] recipe + recipe_ingredient tables + migration (`20260604100000_recipes`; CHECKs incl.
+      ref XOR + `ref_recipe_id <> recipe_id`, GIN trigram, owner/recipe FKs)
+- [x] domain/recipes + neutral oracle tests (per100/perPortion, batch invariance, transitive cycle)
+- [x] recipes service (builds derived food, forward-only recompute + parent cascade) + repo + route
+- [x] Recettes screen: builder (ingredient block, yield panel, instructions), nav tab, FR+EN i18n
+- [x] integration: 422 would_create_cycle (incl. transitive), derived-food rebuild + "portion",
+      forward cascade with frozen meal_entry, tenancy 404, `/search/loggable`
+- [x] acceptance: recipes neutral oracles + listed integration cases + e2e (build → save → log
+      1 portion) green
 
-### Carried over from M1 (build here, now that the recipe table exists)
+### Carried over from M1 (built here)
 
-- [ ] **`GET /search/loggable`** — diacritic-insensitive autocomplete over food ∪
-      recipe-derived food (`spec/api/foods-recipes.md` §"Combined log search"); excludes
-      archived; returns `{id,name,kind:'food'|'recipe',named_portions}`. Add the web client
-      `packages/web/src/api/loggableSearch.ts`. Deferred from M1 (no recipe table then).
-- [ ] **`food.recipe_id` FK** — add the foreign key to `recipe(id)` (the column already
-      exists as a plain nullable Uuid from M1; add the FK in this milestone's migration SQL,
-      set when `source='recipe'`).
+- [x] **`GET /search/loggable`** — food ∪ recipe-derived food, excludes archived, returns
+      `{id,name,kind,recipe_id,named_portions}` (`recipe_id` added so the picker can reference a
+      nested recipe). Web client `api/loggableSearch.ts`. The Repas daily-log search now uses it.
+- [x] **`food.recipe_id` FK** — `food.recipe_id → recipe(id)` added in the M5 migration; set when
+      `source='recipe'`. `GET /foods` now excludes `source='recipe'` (browse foods only).
+
+### Deviations / deferrals (tracked)
+
+- **Builder live recompute → M9.** Per-line / per-portion / per-100 g figures are computed
+  server-side and shown from the loaded recipe + on save (CLAUDE.md rule 2). Live-while-typing
+  recompute is deferred to M9 (same precedent as the M2 Cibles tiles).
+- **Cycle-disable in the picker is self-only (client); transitive enforced server-side** (422 →
+  banner). Full client-side transitive disabling → M9.
+- **Daily-log dropdown lost the `kcal/100g` meta** when it switched to `/search/loggable`
+  (loggable omits macros by contract). Restore in M9 polish.
+- **Recipe sort** limited to name/batch/servings (recipe-native). Derived macro columns are
+  display-only (live on the derived food), like foods' "Portion NOT sortable".
+- **No `/recipes/:id` / `/recipes/new` routes** — the builder uses modal state like the Foods
+  screen; deep-link routes → M9 if wanted. Modal gained a shared `wide` size.

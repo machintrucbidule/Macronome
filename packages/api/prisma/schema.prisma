@@ -70,6 +70,46 @@ model FoodPortion {
   @@map("food_portion")
 }
 
+/// Recipe (spec/schema/tables-catalog.md → recipe). Assembles ingredients (foods or
+/// other recipes) into a derived food. Per-100 g & per-portion macros are NOT stored
+/// here — they live on the derived `food` row (source='recipe', food.recipe_id → this).
+/// `total_batch_grams` defaults to Σ ingredient grams but is overridable to the measured
+/// cooked weight. Soft delete via archived_at (history of meals that logged it is frozen).
+/// CHECKs (servings ≥ 1, total_batch_grams > 0) and the owner FK live in migration SQL.
+model Recipe {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId         String    @map("owner_id") @db.Uuid
+  name            String
+  normalizedName  String    @map("normalized_name")
+  instructions    String?
+  totalBatchGrams Decimal   @map("total_batch_grams") @db.Decimal
+  servings        Int       @default(1)
+  archivedAt      DateTime? @map("archived_at") @db.Timestamptz()
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@map("recipe")
+}
+
+/// A recipe ingredient (spec/schema/tables-catalog.md → recipe_ingredient). References a
+/// food OR another recipe (ref_type + the matching ref_*_id; XOR enforced by CHECK in
+/// migration SQL). `quantity`+`unit` resolve to grams (portion_id set when unit='portion').
+/// No timestamps in the contract. The recipe FK (ON DELETE CASCADE), the XOR CHECK and the
+/// `ref_recipe_id <> recipe_id` self-ref CHECK all live in migration SQL.
+model RecipeIngredient {
+  id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recipeId     String  @map("recipe_id") @db.Uuid
+  refType      String  @map("ref_type")
+  refFoodId    String? @map("ref_food_id") @db.Uuid
+  refRecipeId  String? @map("ref_recipe_id") @db.Uuid
+  quantity     Decimal @db.Decimal
+  unit         String
+  portionId    String? @map("portion_id") @db.Uuid
+  orderIndex   Int     @map("order_index")
+
+  @@map("recipe_ingredient")
+}
+
 /// Manual calorie/macro target (spec/schema/tables-weight-targets.md → target).
 /// Carbs are never stored (derived remainder); the gram floors/ceiling are computed
 /// on current weight, not persisted here. Saving inserts a new row per effective_from

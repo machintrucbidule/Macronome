@@ -34,7 +34,9 @@ const SORT_COLUMN: Record<FoodListQuery['sort'], keyof FoodModel> = {
 };
 
 function buildWhere(userId: string, q: ListQuery): Prisma.FoodWhereInput {
-  const where: Prisma.FoodWhereInput = { ownerId: userId };
+  // Browse foods only — recipe-derived foods (source='recipe') live on the Recettes
+  // screen and the combined /search/loggable, not the Aliments catalog (spec/api §Foods).
+  const where: Prisma.FoodWhereInput = { ownerId: userId, source: { not: 'recipe' } };
   if (!q.include_archived) where.archivedAt = null;
   if (q.visibility) where.visibility = q.visibility;
   if (q.min_rating) where.rating = { gte: q.min_rating }; // excludes Bof(0) and unrated(null)

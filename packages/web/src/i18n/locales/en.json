@@ -26,7 +26,8 @@
     "save": "Save",
     "cancel": "Cancel",
     "remove": "Remove",
-    "optional": "(optional)"
+    "optional": "(optional)",
+    "loading": "Loading…"
   },
   "foods": {
     "title": "Foods",
@@ -89,6 +90,60 @@
     "confirm": {
       "title": "Archive this food?",
       "body": "\"<b>{{name}}</b>\" will disappear from search and this list, but stays in your past meal history and pantry. You can restore it."
+    }
+  },
+  "recipes": {
+    "title": "Recipes",
+    "count": "{{count}} shown",
+    "count_other": "{{count}} shown",
+    "searchPlaceholder": "Search (accent-insensitive)…",
+    "add": "+ Add a recipe",
+    "archive": "Archive",
+    "restore": "Restore",
+    "empty": "No recipes. Add your first recipe.",
+    "badge": "recipe",
+    "col": {
+      "name": "Name",
+      "kcal": "kcal/100g",
+      "fat": "F",
+      "carb": "C",
+      "protein": "P",
+      "batch": "Batch (g)",
+      "servings": "Servings",
+      "weightPerPortion": "g/portion"
+    },
+    "field": {
+      "name": "Name",
+      "namePlaceholder": "Apple cake",
+      "instructions": "Instructions",
+      "instructionsPlaceholder": "Preparation steps (optional)…"
+    },
+    "modal": {
+      "addTitle": "Add a recipe",
+      "editTitle": "Edit recipe"
+    },
+    "builder": {
+      "ingredient": "Ingredient",
+      "qtyUnit": "Qty / unit",
+      "noIngredients": "No ingredients yet. Add one.",
+      "addIngredient": "+ Add an ingredient",
+      "recipeTag": "recipe",
+      "searchEmpty": "No food or recipe found",
+      "searchPlaceholder": "Search a food or recipe…",
+      "quantity": "Quantity",
+      "yieldTitle": "Yield & servings",
+      "batch": "Batch weight",
+      "resetBatch": "reset (sum of ingredients)",
+      "servings": "Servings",
+      "weightPerPortion": "Weight / portion",
+      "kcalPerPortion": "kcal / portion",
+      "computedNote": "Values are computed by the server and refresh on save.",
+      "cycleError": "⚠ This ingredient would create a cycle between recipes: nothing was saved.",
+      "saveError": "⚠ Save failed ({{code}})."
+    },
+    "confirm": {
+      "title": "Archive recipe?",
+      "body": "“<b>{{name}}</b>” will leave search and this list, but stays in the history of meals that used it. You can restore it."
     }
   },
   "cibles": {
@@ -221,7 +276,8 @@
       "pinSoon": "Pantry (coming soon)"
     },
     "tag": {
-      "portion": "portion"
+      "portion": "portion",
+      "recipe": "recipe"
     },
     "search": {
       "placeholder": "Search a food…",
