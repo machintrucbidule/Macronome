@@ -7,8 +7,12 @@ import { sessionMiddleware } from './http/middleware/session.js';
 import { tenantContext } from './http/middleware/tenant.js';
 import { applyTrustProxy } from './http/middleware/trustProxy.js';
 import authRoutes from './http/routes/auth.js';
+import daysRoutes from './http/routes/days.js';
 import foodsRoutes from './http/routes/foods.js';
 import healthRoutes from './http/routes/health.js';
+import journalRoutes from './http/routes/journal.js';
+import leftoverRoutes from './http/routes/leftover.js';
+import mealsRoutes from './http/routes/meals.js';
 import profileRoutes from './http/routes/profile.js';
 import targetRoutes from './http/routes/target.js';
 import { logger } from './observability/logger.js';
@@ -31,6 +35,10 @@ export function createApp(): Express {
   app.use('/api/v1/foods', foodsRoutes);
   app.use('/api/v1/target', targetRoutes);
   app.use('/api/v1/profile', profileRoutes);
+  app.use('/api/v1/days', daysRoutes);
+  app.use('/api/v1/meals', mealsRoutes);
+  app.use('/api/v1/leftover', leftoverRoutes);
+  app.use('/api/v1/journal', journalRoutes);
 
   app.use(errorHandler);
   return app;

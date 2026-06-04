@@ -1,0 +1,111 @@
+import type { DayLog as DayLogModel, Meal as MealModel, Prisma } from '@prisma/client';
+import { prisma } from '../prisma.js';
+import { toDate } from './day-read.repo.js';
+
+// Writes for the day aggregate root: day_log (lazy create + day-level patch) and its
+// meals (per-day structure, never the template). Reads live in day-read.repo.ts; the
+// 300-line rule (modularity.md §1) splits the aggregate across read/write/entry/leftover
+// files. Every method is user-scoped (CLAUDE.md rule 3) — sub-entity ownership is
+// verified by walking meal → day_log.user_id (the schema has no Prisma relations).
+
+export interface CreateDayData {
+  date: string;
+  kind: 'detailed' | 'summary';
+  summaryKcal?: number | null;
+  verdictAuto?: 'OK' | 'NOK' | null;
+  targetSnapshot: Prisma.InputJsonValue;
+  meals: { slotName: string; orderIndex: number }[];
+}
+
+export interface UpdateDayData {
+  activityLevel?: string | null;
+  comment?: string | null;
+  verdictOverride?: 'OK' | 'NOK' | null;
+  verdictAuto?: 'OK' | 'NOK' | null;
+  summaryKcal?: number | null;
+  targetSnapshot?: Prisma.InputJsonValue;
+}
+
+export const dayRepo = {
+  findDay(userId: string, date: string): Promise<DayLogModel | null> {
+    return prisma.dayLog.findFirst({ where: { userId, date: toDate(date) } });
+  },
+
+  /** Materialize a day_log + seed its meals in one transaction. */
+  createDay(userId: string, data: CreateDayData): Promise<DayLogModel> {
+    return prisma.$transaction(async (tx) => {
+      const day = await tx.dayLog.create({
+        data: {
+          userId,
+          date: toDate(data.date),
+          kind: data.kind,
+          summaryKcal: data.summaryKcal ?? null,
+          verdictAuto: data.verdictAuto ?? null,
+          targetSnapshot: data.targetSnapshot,
+        },
+      });
+      if (data.meals.length > 0) {
+        await tx.meal.createMany({
+          data: data.meals.map((m) => ({
+            dayLogId: day.id,
+            slotName: m.slotName,
+            orderIndex: m.orderIndex,
+          })),
+        });
+      }
+      return day;
+    });
+  },
+
+  /** Patch day-level fields (scoped). Returns the updated row, or null if not owned. */
+  async updateDay(userId: string, date: string, data: UpdateDayData): Promise<DayLogModel | null> {
+    const result = await prisma.dayLog.updateMany({
+      where: { userId, date: toDate(date) },
+      data: {
+        ...(data.activityLevel !== undefined ? { activityLevel: data.activityLevel } : {}),
+        ...(data.comment !== undefined ? { comment: data.comment } : {}),
+        ...(data.verdictOverride !== undefined ? { verdictOverride: data.verdictOverride } : {}),
+        ...(data.verdictAuto !== undefined ? { verdictAuto: data.verdictAuto } : {}),
+        ...(data.summaryKcal !== undefined ? { summaryKcal: data.summaryKcal } : {}),
+        ...(data.targetSnapshot !== undefined ? { targetSnapshot: data.targetSnapshot } : {}),
+      },
+    });
+    return result.count > 0 ? this.findDay(userId, date) : null;
+  },
+
+  /** The meal if it belongs to the user (walks meal → day_log.user_id), else null. */
+  async ownedMeal(userId: string, mealId: string): Promise<MealModel | null> {
+    const meal = await prisma.meal.findUnique({ where: { id: mealId } });
+    if (!meal) return null;
+    const day = await prisma.dayLog.findFirst({
+      where: { id: meal.dayLogId, userId },
+      select: { id: true },
+    });
+    return day ? meal : null;
+  },
+
+  createMeal(dayLogId: string, slotName: string, orderIndex: number): Promise<MealModel> {
+    return prisma.meal.create({ data: { dayLogId, slotName, orderIndex } });
+  },
+
+  async updateMeal(
+    userId: string,
+    mealId: string,
+    data: { slotName?: string; orderIndex?: number },
+  ): Promise<MealModel | null> {
+    if (!(await this.ownedMeal(userId, mealId))) return null;
+    return prisma.meal.update({
+      where: { id: mealId },
+      data: {
+        ...(data.slotName !== undefined ? { slotName: data.slotName } : {}),
+        ...(data.orderIndex !== undefined ? { orderIndex: data.orderIndex } : {}),
+      },
+    });
+  },
+
+  async deleteMeal(userId: string, mealId: string): Promise<boolean> {
+    if (!(await this.ownedMeal(userId, mealId))) return false;
+    await prisma.meal.delete({ where: { id: mealId } });
+    return true;
+  },
+};

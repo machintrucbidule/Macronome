@@ -21,3 +21,4 @@ export * from './dto/auth.js';
 export * from './dto/food.js';
 export * from './dto/profile.js';
 export * from './dto/target.js';
+export * from './dto/day.js';

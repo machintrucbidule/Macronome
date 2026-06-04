@@ -8,13 +8,23 @@ Depends-on: M1 (foods to pin), M3 (day pre-fill semantics).
 
 - `meal_slot_template`, `pantry_item` (`spec/schema/tables-logging.md`); `container`
   (`tables-catalog.md`) + built-in locked "Rien" (0 g).
+
+> **Carried in from M3a (tracked):** the `container` table + a read-only `container.repo`
+> already exist (M3a needed them for the leftover endpoint); M7 adds the **Contenants
+> CRUD/screen**, the locked built-in **"Rien" seeding**, and `container.repo` writes — not
+> the table DDL. The `meal_entry.is_pinned` column exists but is **inert** until M7 wires
+> pantry pins. M3a materializes new days with a **default** slot set (`DEFAULT_MEAL_SLOTS`
+> in `services/days.ts`); M7 must replace that with **meal_slot_template seeding +
+> pantry_item pre-fill (qty 0)** and add the **pin/unpin endpoints**
+> (`POST /meals/:mealId/entries/:id/pin` · `/unpin`, future-day effect only).
+
 - Pantry editor (Gap 8): pinned foods ordered by insertion; no duplicate pin per
   `(meal_slot_name, food_id)`; **unpinning affects future-day pre-fill only** —
   today's/past lines untouched. Same op as the Repas 📌 toggle, seen from settings.
 - Containers screen: CRUD; deletion is free (leftover history froze name+tare as a
   value, `DECISIONS.md` Gap 13) — "Rien" stays locked.
 - Settings/profile/account screens (`specifications/screens/{settings,containers,
-  account}.md` + mockups): profile (sex, birthdate, height), language (i18n), theme,
+account}.md` + mockups): profile (sex, birthdate, height), language (i18n), theme,
   password change, and the reserved `User.settings.llm_endpoint` field (stored,
   unused — Gap 14a).
 

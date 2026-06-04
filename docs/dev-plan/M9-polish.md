@@ -42,6 +42,16 @@ Polish touches many files but adds no large ones; state components live under
 - [ ] perf check on large data; indexes verified
 - acceptance: state/i18n/a11y checks green; critical-flow e2e still green
 
+### Carried over from M3 (deferred here, tracked)
+
+- [ ] **Cook mode (CookModeModal)** — the near-fullscreen, keyboard-free kitchen-tablet
+      adjustment UI for Repas (`specifications/screens/meals.md` §Cook mode). Decompose per
+      `modularity.md` §2: `features/meals/modals/CookModeModal/` = `CookModeModal.tsx`
+      (frame) · `CookRow.tsx` · `NumPad.tsx` · `AzKeyboard.tsx` · `useCookSession.ts`
+      (working-copy state) · `useFontAutosize.ts`. Reuses the meal-screen food-search + unit
+      menu; edits are in-memory until Valider. (Deferred from M3 to keep M3b's blast radius
+      small; the core daily log + leftover + custom ship in M3b.)
+
 ### Carried over from M1 (finish the visual contract)
 
 - [ ] **Sticky app bar + table-header offset:** make the AppShell appbar sticky so the

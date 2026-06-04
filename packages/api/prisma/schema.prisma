@@ -92,6 +92,26 @@ model Target {
   @@map("target")
 }
 
+/// Tare container (spec/schema/tables-catalog.md → container). Leftover proration
+/// reads it to freeze container_name + tare_g at apply time; deleting the catalog row
+/// never affects frozen history (OPEN_GAPS #13). M3 adds the table + a read-only repo
+/// for the leftover endpoint and seeds the locked built-in "Rien" (0 g); the full
+/// Contenants CRUD/screen is built in M7. CHECKs, UNIQUE(owner_id,normalized_name) and
+/// the owner FK live in migration SQL (column-faithful schema mirrors the DDL gate).
+model Container {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId        String   @map("owner_id") @db.Uuid
+  name           String
+  normalizedName String   @map("normalized_name")
+  emptyWeightG   Decimal  @map("empty_weight_g") @db.Decimal
+  isBuiltin      Boolean  @default(false) @map("is_builtin")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@unique([ownerId, normalizedName])
+  @@map("container")
+}
+
 /// Body weigh-in (spec/schema/tables-weight-targets.md → weight_entry). Consecutive
 /// entries define variable-length periods; per-period stats are derived, not stored.
 /// Introduced in M2 so the metabolic engine can read the current weight; the periods,
@@ -110,4 +130,97 @@ model WeightEntry {
 
   @@unique([userId, date])
   @@map("weight_entry")
+}
+
+/// One logged calendar day (spec/schema/tables-logging.md → day_log). Created lazily
+/// on first interaction. `target_snapshot` freezes that date's effective calorie range
+/// + macro thresholds (OPEN_GAPS #1): live while date==today, frozen once date<today.
+/// `verdict_auto` is calorie-only and persisted (cache); the source of truth is the
+/// computation. CHECKs (kind, summary⇔summary_kcal, verdict IN), UNIQUE(user_id,date)
+/// and the owner FK live in migration SQL.
+model DayLog {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
+  date            DateTime @db.Date
+  kind            String
+  summaryKcal     Decimal? @map("summary_kcal") @db.Decimal
+  activityLevel   String?  @map("activity_level")
+  comment         String?
+  verdictAuto     String?  @map("verdict_auto")
+  verdictOverride String?  @map("verdict_override")
+  targetSnapshot  Json     @map("target_snapshot")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@unique([userId, date])
+  @@map("day_log")
+}
+
+/// A meal slot of one day (spec/schema/tables-logging.md → meal). Seeded from the
+/// template on day creation but per-day editable; editing it never edits the template.
+/// Only on detailed days. The day_log FK (ON DELETE CASCADE) lives in migration SQL.
+model Meal {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  dayLogId  String   @map("day_log_id") @db.Uuid
+  slotName  String   @map("slot_name")
+  orderIndex Int     @map("order_index")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@map("meal")
+}
+
+/// A logged food line (spec/schema/tables-logging.md → meal_entry). Stores the served
+/// quantity + a macro snapshot frozen at write time (history immune to later food/
+/// recipe edits). Consumed grams & scaled macros are derived = snapshot × consumed/
+/// served (leftover-proration.md). `is_pinned` mirrors a pantry_item — created here but
+/// inert until M7 wires the pantry. The XOR(referenced⇔food_id, custom⇔custom_name),
+/// CHECKs and the meal FK (ON DELETE CASCADE) live in migration SQL.
+model MealEntry {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  mealId          String   @map("meal_id") @db.Uuid
+  kind            String
+  foodId          String?  @map("food_id") @db.Uuid
+  customName      String?  @map("custom_name")
+  servedQuantity  Decimal  @default(0) @map("served_quantity") @db.Decimal
+  unit            String
+  portionId       String?  @map("portion_id") @db.Uuid
+  servedGrams     Decimal? @map("served_grams") @db.Decimal
+  snapKcal        Decimal  @map("snap_kcal") @db.Decimal
+  snapFat         Decimal  @map("snap_fat") @db.Decimal
+  snapCarb        Decimal  @map("snap_carb") @db.Decimal
+  snapProtein     Decimal  @map("snap_protein") @db.Decimal
+  isPinned        Boolean  @default(false) @map("is_pinned")
+  orderIndex      Int      @map("order_index")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@map("meal_entry")
+}
+
+/// A shared-plate leftover group (spec/schema/tables-logging.md → leftover_group). The
+/// container is frozen as a value (container_name + tare_g), NOT a FK, so editing/
+/// deleting the catalog container never alters history (OPEN_GAPS #13). Re-editable.
+/// CHECKs (tare_g/gross_grams ≥ 0) and the meal FK (ON DELETE CASCADE) live in SQL.
+model LeftoverGroup {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  mealId        String   @map("meal_id") @db.Uuid
+  containerName String   @map("container_name")
+  tareG         Decimal  @map("tare_g") @db.Decimal
+  grossGrams    Decimal  @map("gross_grams") @db.Decimal
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@map("leftover_group")
+}
+
+/// The prorated subset of entries in a leftover group (spec/schema/tables-logging.md →
+/// leftover_group_entry). Composite PK; both FKs ON DELETE CASCADE (migration SQL). An
+/// entry belongs to at most one group per meal (enforced in app).
+model LeftoverGroupEntry {
+  leftoverGroupId String @map("leftover_group_id") @db.Uuid
+  mealEntryId     String @map("meal_entry_id") @db.Uuid
+
+  @@id([leftoverGroupId, mealEntryId])
+  @@map("leftover_group_entry")
 }

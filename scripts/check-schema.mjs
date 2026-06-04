@@ -28,7 +28,10 @@ function parseContract() {
     const lines = readFileSync(join(SCHEMA_DIR, file), 'utf8').split(/\r?\n/);
     let current = null;
     for (const line of lines) {
-      const heading = line.match(/^##\s+([a-z][a-z0-9_]*)\s*$/);
+      // A table heading is a lowercase snake_case name, optionally followed by a
+      // parenthetical note (e.g. "## leftover_group  (OPEN_GAPS #13)"). Prose section
+      // headings start uppercase or contain spaces, so they never match.
+      const heading = line.match(/^##\s+([a-z][a-z0-9_]*)\s*(?:\(.*\))?\s*$/);
       if (heading) {
         current = heading[1];
         if (!tables.has(current)) tables.set(current, new Map());
