@@ -262,6 +262,32 @@
       "serverError": "⚠ Déduction refusée : rien n'a été enregistré."
     }
   },
+  "journal": {
+    "title": "Journal",
+    "empty": "Aucun jour enregistré pour cette année.",
+    "dayCount": "{{count}} jour",
+    "dayCount_other": "{{count}} jours",
+    "prevYear": "Année précédente",
+    "nextYear": "Année suivante",
+    "activityNone": "Non définie",
+    "commentPlaceholder": "Ajouter un commentaire…",
+    "col": {
+      "day": "Jour",
+      "calories": "Calories",
+      "macros": "Macros (L·G·P)",
+      "verdict": "Verdict",
+      "activity": "Activité",
+      "comment": "Commentaire"
+    },
+    "verdict": {
+      "forceOk": "Forcer OK",
+      "forceNok": "Forcer NOK",
+      "autoCalc": "Calcul auto",
+      "autoCalcWith": "Calcul auto ({{v}})",
+      "auto": "auto",
+      "forced": "forcé"
+    }
+  },
   "activity": {
     "sedentary": { "label": "Sédentaire", "description": "Peu ou pas d'exercice" },
     "lightly_active": { "label": "Léger", "description": "Exercice léger 1–3 j/sem" },

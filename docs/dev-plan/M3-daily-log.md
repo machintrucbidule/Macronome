@@ -66,8 +66,12 @@ M3 is delivered in three commits, each CI-green before the next:
   `web/src/features/meals/` + shared `Autocomplete`/`VerdictBadge`/`CalorieCard`/`MacroCard`;
   Repas is the home route (`/`, `/day/:date`), nav link added. e2e green (entry + leftover
   apply + leftover block). See M3b deviations below.
-- **M3c — Journal screen** (read view + pill) + e2e. _Not started._ (The journal **API**
-  ships in M3a; only the screen is M3c.)
+- **M3c — Journal screen** (view + inline edits + pill) + e2e. **DONE** (this commit).
+  Full `features/journal/` (page + header + table + row + comment cell + `useJournal`),
+  route `/history`, nav link after Repas. Reuses `VerdictBadge`, `DataTable` classes,
+  `EmptyState`/`SkeletonRows`. e2e green (logged day shows with calories + OK pill; force
+  NOK via pill; comment persists; day click opens Repas). See M3c deviations below.
+  (The journal **API** shipped in M3a; only the screen is M3c.)
 
 ## Checklist
 
@@ -79,7 +83,7 @@ M3 is delivered in three commits, each CI-green before the next:
 - [x] services days/meals/entries/leftover/journal + routes/controllers + DTOs
 - [x] Repas screen decomposed per modularity §2 + 2 feature modals (LeftoverModal,
       CustomFoodModal); **CookModeModal deferred → M9** (see M3a scope notes)
-- [ ] Journal read view + pill → **M3c** (journal API done in M3a)
+- [x] Journal view + inline edits (verdict/activity/comment) + pill → **M3c** (journal API done in M3a)
 - [x] integration: leftover 409s (nothing written), tenancy 404, frozen-past stability
 - [x] e2e: daily-log entry + leftover (apply + block)
 - acceptance (M3a): day-verdict/leftover/serving neutral oracles + listed integration green;
@@ -134,3 +138,16 @@ forms-inputs.md` §"Autocomplete dropdown") for the entry/food picker — keyboa
 - **Scaffold add flow:** `materializeRaw` (no invalidation) then `createEntry` (single refetch)
   avoids a scaffold flash; meal columns key by `id || s<order_index>` so the scaffold→materialized
   transition reconciles (scaffold meals share an empty id).
+
+## M3c deviations (tracked)
+
+- **Year selector = stepper (◀ year ▶) + count, defaulting to the current year.** The
+  mockup builds a segment of "all years present in data", but the journal API is per-year
+  (`GET /journal?year=`) and there is no endpoint listing which years have data. A stepper
+  is the faithful adaptation (the contract only requires "a year selector scopes the list").
+- **Comment saved on blur** (one PATCH per edited field), not per keystroke. `CommentCell`
+  keeps a local draft and emits only when the value actually changed.
+- **Activity = `<select>`** (same control as Repas' `VerdictCluster`) rather than a popup
+  menu; the verdict pill keeps the contract menu via the reused `VerdictBadge`.
+- **Feature folder `features/journal/`, route `/history`** (folder per module-map.md,
+  route per the screen contract). Nav link inserted after Repas (contract tab order).

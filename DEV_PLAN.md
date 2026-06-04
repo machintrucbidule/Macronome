@@ -72,20 +72,24 @@ typecheck + lint (`docs/architecture/testing.md` §6). Tick the box only then.
       **Deferred (tracked):** real recent-avg activity (≈30-day mean) + `empirical_burn`
       wiring → M3 (need `day_log`; M2 ships pure fns + sedentary fallback/null + flags);
       live-while-typing tile recompute + BMI tile + account-menu placement of Cibles → M9.
-- [~] **M3 — Daily log (meals, entries, leftover)** → `docs/dev-plan/M3-daily-log.md`
-  _depends-on: M1, M2._ The core daily loop; snapshots + proration + verdict.
-  **Split into 3 sub-passes (approved, too large for one pass).** **M3a — backend
-  DONE:** day aggregate tables + hand-written migration; `domain/{day-verdict,leftover,
-  serving}` with neutral oracles; days/meals/entries/leftover/journal services + routes + DTOs; integration green (leftover 409s write nothing, tenancy 404, frozen-past
-  stability). **M3b — Repas screen DONE:** full `features/meals/` decomposition + shared
-  `Autocomplete`/`VerdictBadge`/`CalorieCard`/`MacroCard`; LeftoverModal + CustomFoodModal;
-  Repas is the home route; e2e green (entry + leftover apply/block). CookModeModal → M9.
-  See `M3-daily-log.md` §"M3b deviations". **Remaining: M3c** (Journal screen + e2e).
-  **Scope changes (tracked):** `container` table added
-  early (leftover needs a tare; full Contenants CRUD/screen + "Rien" seeding → M7);
-  pantry/meal_slot_template/pin-unpin + template seeding → **M7** (`is_pinned` column
-  created but inert, days seed `DEFAULT_MEAL_SLOTS`); Cook mode → **M9**. New pure module
-  `domain/serving` (ml→g 1:1). `check-schema.mjs` heading parser widened (tooling).
+- [x] **M3 — Daily log (meals, entries, leftover)** → `docs/dev-plan/M3-daily-log.md`
+      _depends-on: M1, M2._ The core daily loop; snapshots + proration + verdict.
+      **Split into 3 sub-passes (approved, too large for one pass).** **M3a — backend
+      DONE:** day aggregate tables + hand-written migration; `domain/{day-verdict,leftover,
+serving}` with neutral oracles; days/meals/entries/leftover/journal services + routes + DTOs; integration green (leftover 409s write nothing, tenancy 404, frozen-past
+      stability). **M3b — Repas screen DONE:** full `features/meals/` decomposition + shared
+      `Autocomplete`/`VerdictBadge`/`CalorieCard`/`MacroCard`; LeftoverModal + CustomFoodModal;
+      Repas is the home route; e2e green (entry + leftover apply/block). CookModeModal → M9.
+      **M3c — Journal screen DONE:** `features/journal/` (page + header + table + row + comment
+      cell), route `/history`, nav after Repas; reuses `VerdictBadge`/`DataTable`/states;
+      verdict-pill menu + activity select + inline comment via `PATCH /days/:date`; e2e green
+      (calories + OK pill, force NOK, comment persists, day→Repas). See `M3-daily-log.md`
+      §"M3b/M3c deviations".
+      **Scope changes (tracked):** `container` table added
+      early (leftover needs a tare; full Contenants CRUD/screen + "Rien" seeding → M7);
+      pantry/meal_slot_template/pin-unpin + template seeding → **M7** (`is_pinned` column
+      created but inert, days seed `DEFAULT_MEAL_SLOTS`); Cook mode → **M9**. New pure module
+      `domain/serving` (ml→g 1:1). `check-schema.mjs` heading parser widened (tooling).
 - [ ] **M4 — Weight & variable periods** → `docs/dev-plan/M4-weight.md`
       _depends-on: M2 (BMR), M3 (logged-day intake for period stats)._
       **Note:** the `weight_entry` table + migration already exist (created in M2);

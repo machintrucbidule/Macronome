@@ -1,0 +1,117 @@
+/* Journal page (mockup history.html): a dense day table with a year selector. Table
+   chrome is shared (DataTable.module.css); these are the page header + cell-specific
+   styles. Semantic tokens only (CLAUDE.md rule 6). */
+
+/* ---- Header ---- */
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-6);
+  margin-bottom: var(--sp-7);
+  flex-wrap: wrap;
+}
+.title {
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-20);
+  margin: 0;
+}
+.yearNav {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.yearNav button {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border);
+  background: var(--bg-elev);
+  color: var(--text);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-size: var(--fs-11);
+}
+.yearNav button:hover:not(:disabled) {
+  border-color: var(--border-strong);
+}
+.yearNav button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.year {
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-15);
+  min-width: 56px;
+  text-align: center;
+}
+.count {
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  color: var(--text-faint);
+  margin-left: auto;
+}
+
+/* ---- Cells ---- */
+.dow {
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  color: var(--text-faint);
+  text-transform: uppercase;
+}
+
+.mFat {
+  color: var(--c-fat);
+}
+.mCarb {
+  color: var(--c-carb);
+}
+.mProt {
+  color: var(--c-prot);
+}
+
+.activity {
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  padding: 4px 7px;
+  cursor: pointer;
+}
+.activity:focus {
+  outline: none;
+  border-color: var(--focus);
+}
+
+.commentCell {
+  width: 32%;
+}
+.comment {
+  width: 100%;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--fs-12);
+  padding: 5px 8px;
+}
+.comment::placeholder {
+  color: var(--text-faint);
+}
+.comment:hover {
+  border-color: var(--border);
+}
+.comment:focus {
+  outline: none;
+  border-color: var(--focus);
+  background: var(--bg-field);
+}
+
+@media (max-width: 640px) {
+  .commentCell {
+    max-width: 32vw;
+  }
+}
