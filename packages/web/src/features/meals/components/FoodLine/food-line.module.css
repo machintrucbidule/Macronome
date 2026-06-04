@@ -1,0 +1,186 @@
+/* Meal line grid + cells (design/components/data-tables.md §meal column grid; mockup meals.html).
+   The 9-column template is shared by the sub-header, each line, and the footer total via
+   `composes: row`. Used across FoodLine, QtyCell, UnitMenu, LineHeader, MealFooter. */
+.row {
+  display: grid;
+  grid-template-columns: 7px 1fr 74px 34px 26px 26px 26px 15px 15px;
+  gap: 4px;
+  align-items: center;
+  padding: 0 10px;
+}
+
+.lhead {
+  composes: row;
+  font-family: var(--font-num);
+  font-size: var(--fs-9);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  border-bottom: 1px solid var(--border);
+  height: 24px;
+}
+.lhead .r {
+  text-align: right;
+}
+
+.line {
+  composes: row;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
+  min-height: 32px;
+  position: relative;
+}
+.line:hover {
+  background: color-mix(in srgb, var(--bg-elev-2) 70%, transparent);
+}
+.zero .nm {
+  color: var(--text-dim);
+}
+.zero .v {
+  color: var(--text-faint);
+}
+.empty {
+  cursor: text;
+}
+.empty .nm {
+  color: var(--text-faint);
+  font-style: italic;
+}
+.editing {
+  background: var(--bg-field);
+}
+
+.grip {
+  color: var(--text-faint);
+  font-size: 11px;
+}
+
+.nm {
+  font-size: 12.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: text;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.pen {
+  color: var(--text-faint);
+  font-size: var(--fs-10);
+  flex: none;
+}
+
+.search {
+  grid-column: 2 / span 6;
+  position: relative;
+}
+
+.qtyCell {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 3px;
+  position: relative;
+}
+.qty {
+  font-family: var(--font-num);
+  font-size: var(--fs-12);
+  text-align: right;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  width: 36px;
+  color: var(--text);
+  padding: 3px 2px;
+}
+.qty:hover {
+  border-color: var(--border);
+}
+.qty:focus {
+  outline: none;
+  border-color: var(--focus);
+  background: var(--bg-field);
+}
+.unit {
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  color: var(--text-faint);
+  cursor: pointer;
+  padding: 2px 3px;
+  border-radius: var(--r-sm);
+  min-width: 18px;
+  max-width: 54px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.unit:hover {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+.qtyCustom {
+  display: flex;
+  justify-content: flex-end;
+  color: var(--text-faint);
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  padding-right: 3px;
+}
+
+.v {
+  font-family: var(--font-num);
+  font-size: 11.5px;
+  text-align: right;
+}
+
+.pin {
+  color: var(--text-faint);
+  font-size: 11px;
+  opacity: 0.55;
+  text-align: center;
+}
+.del {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 0;
+  line-height: 1;
+  color: var(--text-faint);
+  opacity: 0.65;
+}
+.del:hover {
+  color: var(--nok);
+  opacity: 1;
+}
+
+.unitMenu {
+  position: absolute;
+  top: calc(100% + 3px);
+  right: 0;
+  z-index: var(--z-menu);
+  overflow: hidden;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow);
+}
+.unitMenu button {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-num);
+  font-size: var(--fs-12);
+  padding: 7px 18px;
+  cursor: pointer;
+  text-align: left;
+  white-space: nowrap;
+}
+.unitMenu button:hover {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+.unitMenu button.cur {
+  color: var(--accent);
+}

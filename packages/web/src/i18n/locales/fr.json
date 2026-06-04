@@ -148,5 +148,128 @@
       "apply": "Appliquer",
       "noWeight": "Pas de pesée : impossible d'estimer la dépense."
     }
+  },
+  "meals": {
+    "title": "Repas",
+    "today": "Aujourd'hui",
+    "hint": "Clique une ligne pour choisir l'aliment · Tab / flèches pour naviguer",
+    "addMeal": "+ Repas",
+    "total": "Total",
+    "commentTitle": "Note du jour",
+    "commentPlaceholder": "Note du jour…",
+    "error": "Échec de l'opération ({{code}}).",
+    "cookSoon": "Mode cuisine (à venir)",
+    "dayType": {
+      "detailed": "Jour détaillé",
+      "summary": "Résumé (importé)"
+    },
+    "nav": {
+      "prev": "Jour précédent",
+      "next": "Jour suivant",
+      "calendar": "Calendrier"
+    },
+    "calendar": {
+      "dow": ["L", "M", "M", "J", "V", "S", "D"],
+      "full": "complet",
+      "partial": "résumé (importé)"
+    },
+    "card": {
+      "calories": "Calories",
+      "fat": "Lipides",
+      "carb": "Glucides",
+      "protein": "Protéines",
+      "calorieTarget": "cible {{min}}–{{max}}",
+      "min": "min. {{n}} g",
+      "max": "max. {{n}} g"
+    },
+    "status": {
+      "inBand": "Dans la cible",
+      "sous": "Sous",
+      "over": "Au-dessus",
+      "ok": "OK",
+      "depasse": "Dépassé"
+    },
+    "activity": {
+      "label": "Activité du jour",
+      "none": "Non définie"
+    },
+    "verdict": {
+      "forceOk": "Forcer OK",
+      "forceNok": "Forcer NOK",
+      "autoCalc": "Calcul auto",
+      "autoCalcWith": "Calcul auto ({{v}})",
+      "auto": "auto",
+      "forced": "forcé"
+    },
+    "constat": {
+      "burn": "Dépense",
+      "deficit": "déficit",
+      "surplus": "surplus",
+      "kgPerWeek": "kg/sem"
+    },
+    "col": {
+      "food": "Aliment",
+      "qty": "Qté",
+      "kcal": "kcal",
+      "fat": "L",
+      "carb": "G",
+      "protein": "P"
+    },
+    "line": {
+      "addFood": "+ aliment",
+      "manual": "Saisie manuelle",
+      "pinSoon": "Garde-manger (à venir)"
+    },
+    "tag": {
+      "portion": "portion"
+    },
+    "search": {
+      "placeholder": "Rechercher un aliment…",
+      "empty": "Aucun aliment trouvé",
+      "custom": "+ Valeurs manuelles (custom)…"
+    },
+    "meal": {
+      "rename": "Renommer",
+      "moveLeft": "← Déplacer à gauche",
+      "moveRight": "Déplacer à droite →",
+      "delete": "Supprimer le repas",
+      "renamePrompt": "Nom du repas :",
+      "deletePrompt": "Supprimer le repas « {{name}} » de ce jour ?",
+      "addPrompt": "Nom du nouveau repas :"
+    },
+    "custom": {
+      "addTitle": "Aliment custom",
+      "editTitle": "Modifier la saisie manuelle",
+      "sub": "Valeurs totales de ce que tu as mangé (pas par 100 g). Non enregistré dans la base. Le poids servi est optionnel : renseigne-le si tu veux pouvoir déduire un reste de cette ligne.",
+      "name": "Nom",
+      "weight": "Poids servi",
+      "defaultName": "Custom"
+    },
+    "leftover": {
+      "button": "Restes",
+      "title": "Déduire un reste",
+      "sub": "Coche les lignes qui partageaient le plat, pèse l'assiette avec le reste, choisis le contenant. Macronome proratise le reste net sur les lignes cochées.",
+      "linesHead": "Lignes du repas (poids > 0) — coche celles du plat",
+      "noLines": "Aucune ligne pesée dans ce repas.",
+      "selection": "Sélection : {{count}} ligne(s) · poids servi cumulé",
+      "gross": "Poids brut pesé (g)",
+      "container": "Contenant (tare)",
+      "none": "Rien (0 g)",
+      "net": "Reste net = brut − tare =",
+      "apply": "Appliquer",
+      "warnBelowTare": "⚠ Le poids brut est inférieur à la tare : le reste serait négatif.",
+      "warnExceeds": "⚠ Le reste net dépasse le poids servi des lignes cochées.",
+      "serverError": "⚠ Déduction refusée : rien n'a été enregistré."
+    }
+  },
+  "activity": {
+    "sedentary": { "label": "Sédentaire", "description": "Peu ou pas d'exercice" },
+    "lightly_active": { "label": "Léger", "description": "Exercice léger 1–3 j/sem" },
+    "moderately_active": { "label": "Modéré", "description": "Exercice modéré 3–5 j/sem" },
+    "very_active": { "label": "Intense", "description": "Exercice intense 6–7 j/sem" },
+    "extremely_active": {
+      "label": "Très intense",
+      "description": "Exercice très intense / travail physique"
+    }
   }
 }

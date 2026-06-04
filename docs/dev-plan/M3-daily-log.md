@@ -60,9 +60,12 @@ feature-local folders, not inline.
 
 M3 is delivered in three commits, each CI-green before the next:
 
-- **M3a — backend** (DB + domain + API + integration tests). **DONE** (this commit).
+- **M3a — backend** (DB + domain + API + integration tests). **DONE**.
 - **M3b — Repas screen** (page + components + LeftoverModal + CustomFoodModal +
-  Autocomplete) + e2e entry/leftover. _Not started._
+  Autocomplete) + e2e entry/leftover. **DONE** (this commit). Full decomposition under
+  `web/src/features/meals/` + shared `Autocomplete`/`VerdictBadge`/`CalorieCard`/`MacroCard`;
+  Repas is the home route (`/`, `/day/:date`), nav link added. e2e green (entry + leftover
+  apply + leftover block). See M3b deviations below.
 - **M3c — Journal screen** (read view + pill) + e2e. _Not started._ (The journal **API**
   ships in M3a; only the screen is M3c.)
 
@@ -74,10 +77,11 @@ M3 is delivered in three commits, each CI-green before the next:
 - [x] domain/leftover + neutral oracle tests (plate + both blocks + re-edit)
 - [x] domain/serving (quantity→grams + macro snapshot) + neutral oracle tests
 - [x] services days/meals/entries/leftover/journal + routes/controllers + DTOs
-- [ ] Repas screen decomposed per modularity §2 + the three feature modals → **M3b**
+- [x] Repas screen decomposed per modularity §2 + 2 feature modals (LeftoverModal,
+      CustomFoodModal); **CookModeModal deferred → M9** (see M3a scope notes)
 - [ ] Journal read view + pill → **M3c** (journal API done in M3a)
 - [x] integration: leftover 409s (nothing written), tenancy 404, frozen-past stability
-- [ ] e2e: daily-log entry + leftover (apply + block) → **M3b**
+- [x] e2e: daily-log entry + leftover (apply + block)
 - acceptance (M3a): day-verdict/leftover/serving neutral oracles + listed integration green;
   typecheck + lint + check:schema clean
 
@@ -106,8 +110,27 @@ M3 is delivered in three commits, each CI-green before the next:
 
 ### Carried over from M1 (build here)
 
-- [ ] **Autocomplete dropdown** (`components/Form/Autocomplete`, `design/components/
-forms-inputs.md` §"Autocomplete dropdown") for the entry/food picker — the Daily-log
-      consumer of `GET /search/loggable`. M1 built only the table SearchField; the dropdown
-      with keyboard nav, match highlight, portion/recipe tags, and the custom-food option is
-      built here where it is first used.
+- [x] **Autocomplete dropdown** (`components/Form/Autocomplete`, `design/components/
+forms-inputs.md` §"Autocomplete dropdown") for the entry/food picker — keyboard nav,
+      diacritic-insensitive match highlight, portion tag, custom-food option. Backed by
+      `GET /foods?q=` (the combined `GET /search/loggable` arrives in M5).
+
+## M3b deviations (tracked)
+
+- **Leftover preview via API, not client proration.** There is no dry-run endpoint and the web
+  must not compute proration (CLAUDE.md #2). The modal shows the selection + net (gross−tare,
+  trivial) and applies via `POST .../leftover`; the day refetches and the consumed values update.
+  Block-and-warn is a client guard (disabled Appliquer + inline warning when gross<tare or
+  net>served) backed by the server 409. Files: `LeftoverModal` + `LineSelector` (the planned
+  `PreviewList`/`useLeftoverPreview` were not built — no preview endpoint).
+- **Toast → reused `Banner`.** `toasts-warnings.md` prefers inline warnings; the block-and-warn
+  is an inline `Banner` in the modal, so no separate global Toast component was added.
+- **Container picker = built-in "Rien" only** (tare 0); the Containers catalog/list is **M7**.
+- **PinToggle inert** (📌 shown, no action) — pantry endpoints are **M7**.
+- **Referenced line names + portions** resolved via `GET /foods/:id` (per-line, react-query
+  cached): the `MealEntry` DTO carries `food_id` but no name (fixed contract).
+- **Home route moved.** Repas is `/` and `/day/:date`; the M0 health round-trip moved to
+  `/health` (and its e2e updated).
+- **Scaffold add flow:** `materializeRaw` (no invalidation) then `createEntry` (single refetch)
+  avoids a scaffold flash; meal columns key by `id || s<order_index>` so the scaffold→materialized
+  transition reconciles (scaffold meals share an empty id).

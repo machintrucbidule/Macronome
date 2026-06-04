@@ -1,0 +1,147 @@
+/* Leftover + custom-food modal bodies (mockup meals.html). The shell (scrim/panel/header/
+   actions) is the shared Modal component; these are the body layouts. */
+
+.sub {
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: var(--lh-snug);
+}
+
+/* ---- Custom food modal ---- */
+.cuGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-6);
+}
+.full {
+  grid-column: 1 / -1;
+}
+.cuField label {
+  display: block;
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: var(--sp-3);
+}
+.cuField .opt {
+  color: var(--text-faint);
+  text-transform: none;
+  letter-spacing: 0;
+}
+.cuField input {
+  width: 100%;
+  height: var(--tap);
+  background: var(--bg-field);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  color: var(--text);
+  font-size: 14px;
+  padding: 0 11px;
+  font-family: var(--font-body);
+}
+.cuField input:focus {
+  outline: none;
+  border-color: var(--focus);
+}
+
+/* ---- Leftover modal ---- */
+.loLines {
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+.loHead {
+  font-family: var(--font-num);
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  padding: 7px 12px;
+  background: var(--bg-elev-2);
+  border-bottom: 1px solid var(--border);
+}
+.loEmpty {
+  padding: 12px;
+  color: var(--text-faint);
+  font-size: var(--fs-12);
+}
+.loRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+  padding: 8px 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+  cursor: pointer;
+}
+.loRow:last-child {
+  border-bottom: 0;
+}
+.loRow:hover {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+.loRow input {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--accent);
+}
+.loName {
+  flex: 1;
+  font-size: 13px;
+}
+.loG {
+  font-family: var(--font-num);
+  font-size: var(--fs-12);
+  color: var(--text-dim);
+}
+
+.loSel {
+  font-family: var(--font-num);
+  font-size: var(--fs-12);
+  color: var(--text-dim);
+}
+.loSel b {
+  color: var(--text);
+}
+
+.loGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-6);
+}
+.loField label {
+  display: block;
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: var(--sp-3);
+}
+.loField input,
+.loField select {
+  width: 100%;
+  height: var(--tap);
+  background: var(--bg-field);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  color: var(--text);
+  font-family: var(--font-num);
+  font-size: 14px;
+  padding: 0 11px;
+}
+.loField input:focus,
+.loField select:focus {
+  outline: none;
+  border-color: var(--focus);
+}
+
+.loNet {
+  font-family: var(--font-num);
+  font-size: 13px;
+}
+.loNet b {
+  color: var(--accent);
+  font-size: 15px;
+}

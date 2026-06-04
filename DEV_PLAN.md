@@ -76,9 +76,12 @@ typecheck + lint (`docs/architecture/testing.md` §6). Tick the box only then.
   _depends-on: M1, M2._ The core daily loop; snapshots + proration + verdict.
   **Split into 3 sub-passes (approved, too large for one pass).** **M3a — backend
   DONE:** day aggregate tables + hand-written migration; `domain/{day-verdict,leftover,
-    serving}` with neutral oracles; days/meals/entries/leftover/journal services + routes + DTOs; integration green (leftover 409s write nothing, tenancy 404, frozen-past
-  stability). **Remaining: M3b** (Repas screen + 3 modals + Autocomplete + e2e),
-  **M3c** (Journal screen + e2e). **Scope changes (tracked):** `container` table added
+  serving}` with neutral oracles; days/meals/entries/leftover/journal services + routes + DTOs; integration green (leftover 409s write nothing, tenancy 404, frozen-past
+  stability). **M3b — Repas screen DONE:** full `features/meals/` decomposition + shared
+  `Autocomplete`/`VerdictBadge`/`CalorieCard`/`MacroCard`; LeftoverModal + CustomFoodModal;
+  Repas is the home route; e2e green (entry + leftover apply/block). CookModeModal → M9.
+  See `M3-daily-log.md` §"M3b deviations". **Remaining: M3c** (Journal screen + e2e).
+  **Scope changes (tracked):** `container` table added
   early (leftover needs a tare; full Contenants CRUD/screen + "Rien" seeding → M7);
   pantry/meal_slot_template/pin-unpin + template seeding → **M7** (`is_pinned` column
   created but inert, days seed `DEFAULT_MEAL_SLOTS`); Cook mode → **M9**. New pure module

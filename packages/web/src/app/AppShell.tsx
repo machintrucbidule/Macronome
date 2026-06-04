@@ -14,6 +14,9 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className={styles.appbar}>
         <span className={styles.wordmark}>{t('app.title')}</span>
         <nav className={styles.nav}>
+          <NavLink to="/" end className={({ isActive }) => (isActive ? styles.active : '')}>
+            {t('meals.title')}
+          </NavLink>
           <NavLink to="/foods" className={({ isActive }) => (isActive ? styles.active : '')}>
             {t('foods.title')}
           </NavLink>

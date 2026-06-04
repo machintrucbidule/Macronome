@@ -1,0 +1,89 @@
+/* Calorie band + macro floor/ceiling cards (design/components/metric-cards.md §Card anatomy).
+   Shared by CalorieCard and MacroCard; the simple Cibles tile keeps MetricCard.module.css. */
+.card {
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--bg-elev);
+  padding: 9px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.kcal {
+  background: var(--bg-elev-2);
+  border-color: var(--border-strong);
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.label {
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+.thr {
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  color: var(--text-faint);
+}
+
+.bar {
+  height: 9px;
+  border-radius: var(--r-pill);
+  position: relative;
+  overflow: hidden;
+}
+.fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: var(--r-pill);
+  transition: width var(--dur-bar) var(--ease);
+}
+.tick {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 2px;
+  background: var(--text);
+}
+
+.bot {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-4);
+}
+.val {
+  font-family: var(--font-num);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-16);
+}
+.kcal .val {
+  font-size: var(--fs-24);
+}
+.status {
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-left: auto;
+}
+
+.good .status {
+  color: var(--ok);
+}
+.bad .status,
+.bad .val {
+  color: var(--nok);
+}
+.kcal.under .status,
+.kcal.under .val {
+  color: var(--under);
+}

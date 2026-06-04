@@ -1,0 +1,372 @@
+/* Repas page layout (mockup meals.html): sticky day header, totals, calendar, controls,
+   scroller chrome. Line/column/modal styles live in their own co-located modules. */
+
+/* ---- Sticky day header ---- */
+.sticky {
+  position: sticky;
+  top: var(--appbar-h);
+  z-index: var(--z-sticky-sub);
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 11px var(--page-gutter);
+  box-shadow: 0 6px 16px -10px rgba(0, 0, 0, 0.45);
+}
+.daybar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-6);
+  margin-bottom: var(--sp-6);
+  flex-wrap: wrap;
+}
+.dateNav {
+  display: flex;
+  gap: var(--sp-2);
+  position: relative;
+}
+.dateNav button {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  background: var(--bg-elev);
+  color: var(--text);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-size: var(--fs-14);
+}
+.dateNav button:hover {
+  border-color: var(--border-strong);
+}
+.dateLabel {
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-16);
+}
+.dateLabel small {
+  font-family: var(--font-num);
+  font-weight: var(--fw-regular);
+  font-size: var(--fs-11);
+  color: var(--text-faint);
+  margin-left: var(--sp-4);
+}
+.dayTag {
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border-strong);
+  color: var(--text-dim);
+}
+.dayComment {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-6);
+}
+.dcIcon {
+  color: var(--text-faint);
+  font-size: var(--fs-12);
+}
+.dayComment input {
+  flex: 1;
+  background: var(--bg-field);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  color: var(--text);
+  font-size: var(--fs-13);
+  padding: 7px 11px;
+  font-family: var(--font-body);
+}
+.dayComment input:focus {
+  outline: none;
+  border-color: var(--focus);
+}
+
+/* ---- Calendar popover ---- */
+.cal {
+  position: absolute;
+  top: 36px;
+  left: 0;
+  z-index: var(--z-popover);
+  width: 262px;
+  padding: 12px;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow);
+}
+.calHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--sp-4);
+}
+.calHead span {
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-13);
+  text-transform: capitalize;
+}
+.calHead button {
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--border);
+  background: var(--bg-elev);
+  color: var(--text);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+}
+.calGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+.dow {
+  font-family: var(--font-num);
+  font-size: var(--fs-9);
+  color: var(--text-faint);
+  text-align: center;
+  padding-bottom: 3px;
+}
+.day {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  position: relative;
+  border: 1px solid transparent;
+}
+.day:hover {
+  border-color: var(--border-strong);
+}
+.today {
+  outline: 1.5px solid var(--accent);
+}
+.sel {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.future {
+  color: var(--text-faint);
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.dot {
+  position: absolute;
+  bottom: 2px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+.full {
+  background: var(--ok);
+}
+.partial {
+  background: var(--accent);
+}
+.legend {
+  display: flex;
+  gap: var(--sp-6);
+  margin-top: var(--sp-5);
+  flex-wrap: wrap;
+}
+.legend span {
+  font-family: var(--font-num);
+  font-size: 9.5px;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.legend i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* ---- Totals + verdict cluster ---- */
+.totals {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr auto;
+  gap: var(--sp-5);
+  align-items: stretch;
+}
+.verdict {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 7px;
+  min-width: 150px;
+  align-self: center;
+}
+.actWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+}
+.actLabel {
+  font-family: var(--font-num);
+  font-size: var(--fs-9);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.actSelect {
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  padding: 5px 8px;
+  cursor: pointer;
+}
+.actSelect:focus {
+  outline: none;
+  border-color: var(--focus);
+}
+.constat {
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  color: var(--text-faint);
+  text-align: right;
+  line-height: var(--lh-normal);
+}
+.constat b {
+  color: var(--text-dim);
+}
+.def {
+  font-weight: var(--fw-bold);
+}
+.neg {
+  color: var(--ok);
+}
+.pos {
+  color: var(--nok);
+}
+
+/* ---- Controls + scroller ---- */
+.controls {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+  padding: var(--sp-5) var(--page-gutter) 2px;
+}
+.hint {
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  color: var(--text-faint);
+  flex: 1;
+}
+.addMeal {
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-elev-2);
+  color: var(--text);
+  border-radius: var(--r-md);
+  padding: 7px 12px;
+  cursor: pointer;
+}
+.addMeal:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.scrollerWrap {
+  position: relative;
+  padding: var(--sp-2) var(--page-gutter) var(--sp-6);
+}
+.scroller {
+  display: flex;
+  overflow-x: auto;
+  overflow-y: visible;
+  scrollbar-width: none;
+}
+.scroller::-webkit-scrollbar {
+  height: 0;
+}
+.navArrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 60px;
+  border: 1px solid var(--border-strong);
+  background: color-mix(in srgb, var(--bg-elev) 92%, transparent);
+  color: var(--text);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  font-size: var(--fs-20);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.navArrow:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.left {
+  left: 22px;
+}
+.right {
+  right: 22px;
+}
+.hbar {
+  position: sticky;
+  bottom: 8px;
+  height: 14px;
+  margin: 8px 0 0;
+  background: var(--bg-field);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  z-index: 25;
+}
+.hthumb {
+  position: absolute;
+  top: 1px;
+  bottom: 1px;
+  background: var(--scrollbar);
+  border-radius: var(--r-pill);
+  cursor: grab;
+  min-width: 40px;
+}
+.hthumb:hover {
+  background: var(--border-strong);
+}
+.hthumb:active {
+  cursor: grabbing;
+}
+
+@media (max-width: 900px) {
+  .totals {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+  .verdict {
+    grid-column: 1 / -1;
+    align-items: flex-start;
+  }
+}
+@media (max-width: 760px) {
+  .scroller {
+    flex-direction: column;
+    overflow-x: visible;
+  }
+  .navArrow,
+  .hbar {
+    display: none !important;
+  }
+}
+@media (max-width: 520px) {
+  .totals {
+    grid-template-columns: 1fr 1fr;
+  }
+}

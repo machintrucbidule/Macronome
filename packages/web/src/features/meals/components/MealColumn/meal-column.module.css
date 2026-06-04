@@ -1,0 +1,148 @@
+/* Meal column shell (mockup meals.html .meal). The line grid itself lives in
+   food-line.module.css; here: column frame, header, footer total row. */
+.col {
+  flex: 0 0 auto;
+  border-right: 1px solid var(--border);
+  background: var(--bg-elev);
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+}
+.col:first-child {
+  border-left: 1px solid var(--border);
+  border-top-left-radius: var(--r-lg);
+  border-bottom-left-radius: var(--r-lg);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-elev);
+}
+.name {
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-14);
+  flex: 1;
+}
+.cookBtn {
+  border: 1px solid var(--border);
+  background: var(--bg-elev-2);
+  color: var(--text-faint);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-14);
+  line-height: 1;
+  padding: 5px 8px;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.menuWrap {
+  position: relative;
+}
+.menuBtn {
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--border);
+  background: var(--bg-elev-2);
+  color: var(--text-dim);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+}
+.menuBtn:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+.popmenu {
+  position: absolute;
+  right: 0;
+  top: 30px;
+  z-index: var(--z-menu);
+  min-width: 200px;
+  overflow: hidden;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow);
+}
+.popmenu button {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 12.5px;
+  padding: 9px 13px;
+  cursor: pointer;
+  text-align: left;
+}
+.popmenu button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+.popmenu button:disabled {
+  color: var(--text-faint);
+  cursor: not-allowed;
+}
+.popmenu .danger {
+  color: var(--nok);
+  border-top: 1px solid var(--border);
+}
+
+.lines {
+  display: flex;
+  flex-direction: column;
+}
+
+.foot {
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+  background: var(--bg-elev-2);
+}
+.totalRow {
+  composes: row from '../FoodLine/food-line.module.css';
+  padding: 9px 10px;
+}
+.restes {
+  grid-column: 1 / span 2;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+}
+.rbtn {
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-elev);
+  color: var(--text-dim);
+  border-radius: var(--r-sm);
+  padding: 3px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.rbtn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.tlabel {
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.wt {
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  font-weight: var(--fw-bold);
+  text-align: right;
+  color: var(--text-dim);
+}
+.footV {
+  font-family: var(--font-num);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-bold);
+  text-align: right;
+}

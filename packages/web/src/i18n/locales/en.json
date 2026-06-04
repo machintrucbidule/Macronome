@@ -148,5 +148,128 @@
       "apply": "Apply",
       "noWeight": "No weigh-in: cannot estimate the burn."
     }
+  },
+  "meals": {
+    "title": "Meals",
+    "today": "Today",
+    "hint": "Click a line to choose the food · Tab / arrows to navigate",
+    "addMeal": "+ Meal",
+    "total": "Total",
+    "commentTitle": "Day note",
+    "commentPlaceholder": "Day note…",
+    "error": "Operation failed ({{code}}).",
+    "cookSoon": "Cook mode (coming soon)",
+    "dayType": {
+      "detailed": "Detailed day",
+      "summary": "Summary (imported)"
+    },
+    "nav": {
+      "prev": "Previous day",
+      "next": "Next day",
+      "calendar": "Calendar"
+    },
+    "calendar": {
+      "dow": ["M", "T", "W", "T", "F", "S", "S"],
+      "full": "complete",
+      "partial": "summary (imported)"
+    },
+    "card": {
+      "calories": "Calories",
+      "fat": "Fat",
+      "carb": "Carbs",
+      "protein": "Protein",
+      "calorieTarget": "target {{min}}–{{max}}",
+      "min": "min. {{n}} g",
+      "max": "max. {{n}} g"
+    },
+    "status": {
+      "inBand": "In target",
+      "sous": "Under",
+      "over": "Over",
+      "ok": "OK",
+      "depasse": "Over"
+    },
+    "activity": {
+      "label": "Day activity",
+      "none": "Not set"
+    },
+    "verdict": {
+      "forceOk": "Force OK",
+      "forceNok": "Force NOK",
+      "autoCalc": "Auto",
+      "autoCalcWith": "Auto ({{v}})",
+      "auto": "auto",
+      "forced": "forced"
+    },
+    "constat": {
+      "burn": "Burn",
+      "deficit": "deficit",
+      "surplus": "surplus",
+      "kgPerWeek": "kg/week"
+    },
+    "col": {
+      "food": "Food",
+      "qty": "Qty",
+      "kcal": "kcal",
+      "fat": "F",
+      "carb": "C",
+      "protein": "P"
+    },
+    "line": {
+      "addFood": "+ food",
+      "manual": "Manual entry",
+      "pinSoon": "Pantry (coming soon)"
+    },
+    "tag": {
+      "portion": "portion"
+    },
+    "search": {
+      "placeholder": "Search a food…",
+      "empty": "No food found",
+      "custom": "+ Manual values (custom)…"
+    },
+    "meal": {
+      "rename": "Rename",
+      "moveLeft": "← Move left",
+      "moveRight": "Move right →",
+      "delete": "Delete meal",
+      "renamePrompt": "Meal name:",
+      "deletePrompt": "Delete the meal \"{{name}}\" from this day?",
+      "addPrompt": "New meal name:"
+    },
+    "custom": {
+      "addTitle": "Custom food",
+      "editTitle": "Edit manual entry",
+      "sub": "Total values of what you ate (not per 100 g). Not stored in the catalog. Served weight is optional: set it if you want to deduct a leftover from this line.",
+      "name": "Name",
+      "weight": "Served weight",
+      "defaultName": "Custom"
+    },
+    "leftover": {
+      "button": "Leftover",
+      "title": "Deduct a leftover",
+      "sub": "Check the lines that shared the plate, weigh the plate with the leftover, pick the container. Macronome prorates the net leftover across the checked lines.",
+      "linesHead": "Meal lines (weight > 0) — check the plate's",
+      "noLines": "No weighed line in this meal.",
+      "selection": "Selection: {{count}} line(s) · total served weight",
+      "gross": "Gross weight (g)",
+      "container": "Container (tare)",
+      "none": "None (0 g)",
+      "net": "Net leftover = gross − tare =",
+      "apply": "Apply",
+      "warnBelowTare": "⚠ Gross weight is below the tare: the leftover would be negative.",
+      "warnExceeds": "⚠ Net leftover exceeds the served weight of the checked lines.",
+      "serverError": "⚠ Deduction refused: nothing was saved."
+    }
+  },
+  "activity": {
+    "sedentary": { "label": "Sedentary", "description": "Little or no exercise" },
+    "lightly_active": { "label": "Light", "description": "Light exercise 1–3 days/wk" },
+    "moderately_active": { "label": "Moderate", "description": "Moderate exercise 3–5 days/wk" },
+    "very_active": { "label": "Intense", "description": "Hard exercise 6–7 days/wk" },
+    "extremely_active": {
+      "label": "Very intense",
+      "description": "Very hard exercise / physical job"
+    }
   }
 }
