@@ -11,6 +11,7 @@ import { DayHeader } from './components/DayHeader/DayHeader';
 import { MealScroller } from './components/MealScroller/MealScroller';
 import { LeftoverModal } from './modals/LeftoverModal/LeftoverModal';
 import { CustomFoodModal } from './modals/CustomFoodModal/CustomFoodModal';
+import { CookModeModal } from './modals/CookModeModal/CookModeModal';
 import { todayIso } from './format';
 import styles from './meals.module.css';
 
@@ -38,6 +39,7 @@ export function MealsPage() {
   }, [ctl.customTarget, ctl.day]);
 
   const leftoverMeal = ctl.day?.meals.find((m) => m.id === ctl.leftoverMealId) ?? null;
+  const cookMeal = ctl.day?.meals.find((m) => m.id === ctl.cookMealId) ?? null;
 
   return (
     <AppShell>
@@ -73,6 +75,7 @@ export function MealsPage() {
         )}
 
         {leftoverMeal && <LeftoverModal meal={leftoverMeal} />}
+        {cookMeal && <CookModeModal key={cookMeal.id} meal={cookMeal} />}
         {ctl.customTarget && <CustomFoodModal target={ctl.customTarget} initial={customInitial} />}
       </MealsProvider>
     </AppShell>

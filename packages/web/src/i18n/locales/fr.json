@@ -240,7 +240,20 @@
     "commentTitle": "Note du jour",
     "commentPlaceholder": "Note du jour…",
     "error": "Échec de l'opération ({{code}}).",
-    "cookSoon": "Mode cuisine (à venir)",
+    "cook": {
+      "open": "Mode cuisine",
+      "subtitle": "ajuster les poids réels",
+      "close": "Fermer",
+      "validate": "Valider",
+      "cancel": "Annuler",
+      "hintIdle": "Touchez une quantité pour la modifier",
+      "hintQty": "Quantité : {{qty}} {{unit}}",
+      "hintName": "Choisir un aliment — tapez, puis touchez un résultat",
+      "searchPlaceholder": "Tapez le nom…",
+      "space": "espace",
+      "empty": "Aucun aliment dans ce repas.",
+      "noFoods": "Aucun aliment"
+    },
     "dayType": {
       "detailed": "Jour détaillé",
       "summary": "Résumé (importé)"

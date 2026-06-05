@@ -43,6 +43,7 @@ export function MealColumn({ meal, index, meals, width }: MealColumnProps) {
         name={meal.slot_name}
         canMoveLeft={index > 0}
         canMoveRight={index < meals.length - 1}
+        onCook={() => actions.openCook(meal.id)}
         onRename={() => {
           const next = window.prompt(t('meals.meal.renamePrompt'), meal.slot_name);
           if (next) void actions.renameMeal(meal.id, next);

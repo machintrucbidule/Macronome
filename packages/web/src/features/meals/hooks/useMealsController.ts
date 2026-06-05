@@ -13,6 +13,7 @@ export function useMealsController(date: string) {
   const [editing, setEditing] = useState<EditTarget | null>(null);
   const [customTarget, setCustomTarget] = useState<CustomTarget | null>(null);
   const [leftoverMealId, setLeftoverMealId] = useState<string | null>(null);
+  const [cookMealId, setCookMealId] = useState<string | null>(null);
   const [pendingFocus, setPendingFocus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,6 +22,7 @@ export function useMealsController(date: string) {
     setEditing,
     setCustomTarget,
     setLeftoverMealId,
+    setCookMealId,
     setPendingFocus,
     setError,
   });
@@ -34,6 +36,7 @@ export function useMealsController(date: string) {
     editing,
     customTarget,
     leftoverMealId,
+    cookMealId,
     pendingFocus,
     error,
     actions,

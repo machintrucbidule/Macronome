@@ -240,7 +240,20 @@
     "commentTitle": "Day note",
     "commentPlaceholder": "Day note…",
     "error": "Operation failed ({{code}}).",
-    "cookSoon": "Cook mode (coming soon)",
+    "cook": {
+      "open": "Cook mode",
+      "subtitle": "adjust the real weights",
+      "close": "Close",
+      "validate": "Apply",
+      "cancel": "Cancel",
+      "hintIdle": "Tap a quantity to edit it",
+      "hintQty": "Quantity: {{qty}} {{unit}}",
+      "hintName": "Pick a food — type, then tap a result",
+      "searchPlaceholder": "Type a name…",
+      "space": "space",
+      "empty": "No food in this meal.",
+      "noFoods": "No food"
+    },
     "dayType": {
       "detailed": "Detailed day",
       "summary": "Summary (imported)"

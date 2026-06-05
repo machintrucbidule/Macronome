@@ -2,12 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import styles from './meal-column.module.css';
 
-// Meal column header: name + the ⋯ menu (rename / move / delete — this day's slot only, never
-// the template). The 🍳 cook button is shown disabled; Cook mode ships in M9.
+// Meal column header: the 🍳 cook-mode button, name + the ⋯ menu (rename / move / delete — this
+// day's slot only, never the template).
 interface MealHeaderProps {
   name: string;
   canMoveLeft: boolean;
   canMoveRight: boolean;
+  onCook: () => void;
   onRename: () => void;
   onMoveLeft: () => void;
   onMoveRight: () => void;
@@ -18,6 +19,7 @@ export function MealHeader({
   name,
   canMoveLeft,
   canMoveRight,
+  onCook,
   onRename,
   onMoveLeft,
   onMoveRight,
@@ -44,7 +46,13 @@ export function MealHeader({
   return (
     <div className={styles.head}>
       <span className={styles.name}>{name}</span>
-      <button type="button" className={styles.cookBtn} disabled title={t('meals.cookSoon')}>
+      <button
+        type="button"
+        className={styles.cookBtn}
+        title={t('meals.cook.open')}
+        aria-label={t('meals.cook.open')}
+        onClick={onCook}
+      >
         🍳
       </button>
       <div className={styles.menuWrap} ref={ref}>

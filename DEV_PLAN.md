@@ -182,8 +182,14 @@ serving}` with neutral oracles; days/meals/entries/leftover/journal services + r
     diagnostic UI — is gated; only `/login`/`/setup` are public (the `/api/v1/health` readiness
     endpoint stays public for Docker/CI but exposes no user data). Acceptance green: typecheck +
     lint + `check:i18n` + web build + unit (65) + full e2e (18, incl. new RequireAuth redirect
-    test; the health smoke now logs in). **Remaining:** M9c (Cook mode, carried from M3),
-    M9d (perf on large data). See `M9-polish.md`.
+    test; the health smoke now logs in). **M9c — Cook mode DONE:** near-fullscreen, keyboard-free
+    kitchen-tablet adjustment modal for Repas (`features/meals/modals/CookModeModal/` — frame +
+    `CookList`/`CookRow`/`CookNameCell`/`CookUnitCell`/`CookPad`/`NumPad`/`AzKeyboard` +
+    `useCookSession` working copy + `useFontAutosize`; pure `logic/{fontAutosize,cookDiff}` with
+    oracles); the 🍳 meal-header button is live; edits batch through the existing `updateEntry`
+    mutation on Valider (web-only, no backend/schema change). Acceptance green: typecheck + lint +
+    `check:i18n` + web build + unit (71) + e2e meals (5, incl. cook qty write-back).
+    **Remaining:** M9d (perf on large data). See `M9-polish.md`.
 - [ ] **M10 — Reserved AI-advisor hook (NOT built)** → `docs/dev-plan/M10-ai-advisor-hook.md`
       _depends-on: M0 (route), M6 (payload shape)._ Inert config + 501 route only.
 

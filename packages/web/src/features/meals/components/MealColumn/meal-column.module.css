@@ -31,13 +31,16 @@
 .cookBtn {
   border: 1px solid var(--border);
   background: var(--bg-elev-2);
-  color: var(--text-faint);
+  color: var(--text-dim);
   border-radius: var(--r-sm);
   font-size: var(--fs-14);
   line-height: 1;
   padding: 5px 8px;
-  cursor: not-allowed;
-  opacity: 0.5;
+  cursor: pointer;
+}
+.cookBtn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
 }
 
 .menuWrap {

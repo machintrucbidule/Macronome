@@ -42,7 +42,8 @@ M9 is too large for one safe pass, so it is built in sub-passes (DEV_PLAN allows
 - **M9b — A11y & layout — DONE.** focus trap / focus ring / labelled inputs / keyboard-operable
   sort headers; sticky appbar + `thead` offset + `.tblscroll` (M1 carried); `RequireAuth` →
   `/login` + global 401 handler. See §"M9b delivered / deviations" below.
-- **M9c — Cook mode** (next; carried from M3, below).
+- **M9c — Cook mode — DONE.** Near-fullscreen, keyboard-free kitchen-tablet adjustment modal for
+  Repas. See §"M9c delivered / deviations" below.
 - **M9d — Perf**: large-seed checks on Stats + Foods search; indexes verified.
 
 ## Checklist
@@ -65,6 +66,34 @@ M9 is too large for one safe pass, so it is built in sub-passes (DEV_PLAN allows
   typecheck + lint + web build; `e2e/login.spec.ts` (bad-creds banner, lockout countdown)._
   _M9b acceptance green: typecheck + lint (0 errors) + `check:i18n` + web build + unit (65) +
   full e2e (18, incl. the new RequireAuth redirect test in `e2e/login.spec.ts`)._
+
+## M9c delivered / deviations
+
+- **CookModeModal** (`features/meals/modals/CookModeModal/`): the 🍳 button in each `MealHeader`
+  (previously disabled, `meals.cookSoon`) now opens a near-fullscreen modal — large-type meal lines
+  on the left (font auto-sized to fill the height, no scroll), a numeric keypad on the right
+  (greyed until a quantity is tapped). Tapping a unit opens the shared `UnitMenu`; tapping a
+  referenced food name swaps the keypad for a virtual A–Z keyboard + a results list and a pick sets
+  the food. **Valider** writes back; **Annuler** discards.
+- **Working copy + batched write-back**: `useCookSession` holds an in-memory clone of the meal's
+  entries; `apply()` (pure `logic/cookDiff.ts`) diffs vs the originals and yields one entry patch
+  per changed referenced line (only the changed fields). The controller's new
+  `actions.applyCookEdits(mealId, edits)` loops the **existing** `updateEntry` mutation inside the
+  shared `run` error wrapper. **Web-only — no backend, schema, or contract change.**
+- **Reuse**: meal-screen food search (`useFoodSearch`), the `FoodLine` `UnitMenu`, and the shared
+  `Modal`'s `useFocusTrap` (cook mode uses its own fullscreen frame, not the centered `Modal`
+  shell, but reuses the focus-trap + Escape-close behaviour).
+- **Decomposition** (modularity §2): the modal is split into frame + `CookList` + `CookRow` +
+  `CookNameCell` + `CookUnitCell` + `CookPad` + `NumPad` + `AzKeyboard`, plus the `useCookSession`
+  /`useFontAutosize` hooks and `logic/{fontAutosize,cookDiff}` pure helpers — every file warning-
+  free under the 80-line/complexity soft limits and far under the 300-line cap.
+- **Deviation (UI)**: the food-search results render as a list **in the pad** (above the A–Z
+  keyboard) rather than as a floating dropdown anchored under the row input (mockup `.cook-ac`).
+  Same intent ("pick a result sets the food"), more robust on a shared tablet, no fixed
+  positioning. Custom lines are read-only here (weight managed in the custom editor), per spec.
+- **Acceptance green**: typecheck + lint (0 errors) + `check:i18n` (462 keys) + web build + unit
+  (71, incl. `fontAutosize.test.ts` clamp oracle + `cookDiff.test.ts`) + e2e `meals.spec.ts` (5,
+  incl. the new cook-mode qty write-back: open 🍳 → tap qty → keypad 100 → Valider → 200 kcal).
 
 ## M9b delivered / deviations
 
@@ -115,13 +144,13 @@ z-index:var(--z-appbar)`, so the dense tables' `thead { top:var(--appbar-h) }` o
 
 ### Carried over from M3 (deferred here, tracked)
 
-- [ ] **Cook mode (CookModeModal)** — the near-fullscreen, keyboard-free kitchen-tablet
-      adjustment UI for Repas (`specifications/screens/meals.md` §Cook mode). Decompose per
-      `modularity.md` §2: `features/meals/modals/CookModeModal/` = `CookModeModal.tsx`
-      (frame) · `CookRow.tsx` · `NumPad.tsx` · `AzKeyboard.tsx` · `useCookSession.ts`
-      (working-copy state) · `useFontAutosize.ts`. Reuses the meal-screen food-search + unit
-      menu; edits are in-memory until Valider. (Deferred from M3 to keep M3b's blast radius
-      small; the core daily log + leftover + custom ship in M3b.)
+- [x] **Cook mode (CookModeModal)** — DONE in M9c. The near-fullscreen, keyboard-free kitchen-
+      tablet adjustment UI for Repas (`specifications/screens/meals.md` §Cook mode). Decomposed per
+      `modularity.md` §2 under `features/meals/modals/CookModeModal/`: `CookModeModal.tsx` (frame) ·
+      `CookList.tsx` · `CookRow.tsx` · `CookNameCell.tsx` · `CookUnitCell.tsx` · `CookPad.tsx` ·
+      `NumPad.tsx` · `AzKeyboard.tsx` · `useCookSession.ts` (working copy) · `useFontAutosize.ts` ·
+      `cook-mode.module.css`. Reuses the meal-screen food search (`useFoodSearch`) + the shared
+      `UnitMenu` + `useFocusTrap`; edits are in-memory until Valider. See §"M9c delivered" below.
 
 ### Carried over from M1 (finish the visual contract)
 

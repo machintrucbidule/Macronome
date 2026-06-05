@@ -139,3 +139,25 @@ test('leftover block warns and writes nothing', async ({ page, playwright }) => 
   await page.getByRole('button', { name: 'Annuler' }).click();
   await expect(page.getByText('400 kcal')).toBeVisible();
 });
+
+test('cook mode adjusts a quantity and writes it back', async ({ page, playwright }) => {
+  await login(page, playwright);
+  const date = daysAgoIso(13);
+  await logFood(page, date, '200');
+  await expect(page.getByText('400 kcal')).toBeVisible();
+
+  // Open the near-fullscreen cook modal on the first meal.
+  await page.getByRole('button', { name: 'Mode cuisine' }).first().click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toBeVisible();
+
+  // Tap the quantity (200) to enable the keypad, then type 100.
+  await dialog.getByRole('button', { name: '200', exact: true }).click();
+  await dialog.getByRole('button', { name: '1', exact: true }).click();
+  await dialog.getByRole('button', { name: '0', exact: true }).click();
+  await dialog.getByRole('button', { name: '0', exact: true }).click();
+  await dialog.getByRole('button', { name: 'Valider' }).click();
+
+  // 200 kcal/100g × 100 g = 200 kcal, recomputed by the server after the write-back.
+  await expect(page.getByText('200 kcal')).toBeVisible();
+});

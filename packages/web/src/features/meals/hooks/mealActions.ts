@@ -1,4 +1,10 @@
-import type { ActivityLevel, EntryUnit, MacroSnap, Verdict } from '@macronome/shared';
+import type {
+  ActivityLevel,
+  EntryUnit,
+  MacroSnap,
+  UpdateMealEntryRequest,
+  Verdict,
+} from '@macronome/shared';
 import { ApiError } from '../../../api/client';
 import type { UseDay } from './useDay';
 
@@ -30,8 +36,15 @@ export interface MealActionDeps {
   setEditing: (t: EditTarget | null) => void;
   setCustomTarget: (t: CustomTarget | null) => void;
   setLeftoverMealId: (id: string | null) => void;
+  setCookMealId: (id: string | null) => void;
   setPendingFocus: (id: string | null) => void;
   setError: (code: string | null) => void;
+}
+
+/** A single cook-mode adjustment: the entry id + the changed fields (qty/unit/food). */
+export interface CookEdit {
+  id: string;
+  body: UpdateMealEntryRequest;
 }
 
 type Run = (p: Promise<unknown>) => Promise<void>;
@@ -134,6 +147,17 @@ function dayActions(d: MealActionDeps, run: Run) {
       run(d.day.patchDay.mutateAsync({ verdict_override })),
     openLeftover: (mealId: string) => d.setLeftoverMealId(mealId),
     closeLeftover: () => d.setLeftoverMealId(null),
+    openCook: (mealId: string) => d.setCookMealId(mealId),
+    closeCook: () => d.setCookMealId(null),
+    // Cook mode edits a working copy; Valider writes the diffed entry patches back, then closes.
+    applyCookEdits: (mealId: string, edits: CookEdit[]) =>
+      run(
+        (async () => {
+          d.setCookMealId(null);
+          for (const e of edits)
+            await d.day.updateEntry.mutateAsync({ mealId, id: e.id, body: e.body });
+        })(),
+      ),
     clearFocus: () => d.setPendingFocus(null),
     dismissError: () => d.setError(null),
   };
