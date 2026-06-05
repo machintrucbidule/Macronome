@@ -44,7 +44,9 @@ M9 is too large for one safe pass, so it is built in sub-passes (DEV_PLAN allows
   `/login` + global 401 handler. See §"M9b delivered / deviations" below.
 - **M9c — Cook mode — DONE.** Near-fullscreen, keyboard-free kitchen-tablet adjustment modal for
   Repas. See §"M9c delivered / deviations" below.
-- **M9d — Perf**: large-seed checks on Stats + Foods search; indexes verified.
+- **M9d — Perf — DONE.** On-demand large-seed perf check (Stats + Foods search), index
+  usage verified, and a lightweight stats read that fixed a measured Stats slowdown. See
+  §"M9d delivered / deviations" below.
 
 ## Checklist
 
@@ -60,12 +62,49 @@ M9 is too large for one safe pass, so it is built in sub-passes (DEV_PLAN allows
 - [x] keyboard nav + focus management + modal focus trap — _M9b: `useFocusTrap` (focus-on-open,
       Tab trap, restore) + `aria-labelledby` on `Modal`; global `:focus-visible` ring; keyboard-
       operable `SortableTh`. Repas serpentine nav already shipped (M3)._
-- [ ] perf check on large data; indexes verified → M9d
+- [x] perf check on large data; indexes verified — _M9d: on-demand `perf:check` script
+      (seed → measure → EXPLAIN → verify indexes → teardown); all contract indexes present;
+      Foods search ~5 ms; Stats fixed from 3–5 s to <0.4 s via a lightweight read._
 - acceptance: state/i18n/a11y checks green; critical-flow e2e still green
   _M9a acceptance green: `number.test.ts` (FR comma / EN dot / half-up) + `check:i18n` +
   typecheck + lint + web build; `e2e/login.spec.ts` (bad-creds banner, lockout countdown)._
   _M9b acceptance green: typecheck + lint (0 errors) + `check:i18n` + web build + unit (65) +
   full e2e (18, incl. the new RequireAuth redirect test in `e2e/login.spec.ts`)._
+
+## M9d delivered / deviations
+
+- **On-demand perf script** (`packages/api/scripts/perf-check.ts` + `scripts/perf/*`): wired as
+  `npm run perf:check -w @macronome/api [-- <years>]`. It seeds a throwaway user (`__perf_seed__`)
+  with a large **synthetic** dataset (5 000 foods + ~5 years of detailed day logs ≈ 22 k entries),
+  measures the hot read paths at the service layer (Foods/loggable search, Stats rolling +
+  adherence), runs `EXPLAIN (ANALYZE, BUFFERS)` on the trigram + day-range queries, verifies
+  every contract index (`spec/schema/indexes.md`) via `pg_indexes`, then tears the data down.
+  **On-demand only — NOT a CI gate** (no timing-threshold flakiness); synthetic-only, safe to
+  commit. Decomposed under the modularity limits (config / seed-large / measure / explain /
+  check-indexes / cleanup).
+- **Findings — search & indexes are healthy.** Foods/loggable search ≈ 4–6 ms; the food trigram
+  index is used (`Bitmap Index Scan on idx_food_normname_trgm`); the `day_log` year-range scan
+  uses the `(user_id, date)` index; the full-history `day_log` scan is a seq scan (expected, low
+  selectivity over one user). All 14 checked contract indexes present.
+  - _Naming deviation (left as-is):_ the spec names `idx_daylog_user_date (user_id, date DESC)`;
+    M3 shipped it as `idx_day_log_owner_date (user_id, date)`. No perf impact (btree scans both
+    directions), `check:schema` is green, and renaming would be migration churn for zero gain.
+- **Measured problem → fixed (the contingent optimization).** At 5 years the **Stats** reads
+  were slow — `stats.rolling` ≈ 4.9 s, `stats.adherence` ≈ 3.3 s — despite sub-ms SQL. The cost
+  was hydrating the full `DayAggregate` (≈ 22 k `meal_entry` rows + DTO assembly) when stats only
+  needs per-day kcal + verdict. Fix (resolves the M6 "full-history read narrowing" TODO):
+  - **`getRolling` narrowed** to a trailing `[latest − 366 d, latest]` range (the widest window
+    is 365), anchored on `dayStatRepo.latestDate` — correct because rolling only ever looks back
+    ≤ 365 days from the latest logged day.
+  - **New lightweight read** `data/repositories/day-stat.repo.ts` (`readLightweight` +
+    `latestDate`): narrow column projections (no full rows / DTOs). `services/day-stat.ts`
+    rewritten to compute per-day kcal from it, **reusing the domain proration** (`netLeftover`/
+    `prorateConsumed`/`scaleMacros`) so the figure is identical to the full day-assembler path.
+    `getAdherence` keeps full history (needed for overall-ok-rate / best-month) but reads it
+    lightweight. The dead `dayReadRepo.readAll` was removed.
+  - **Result:** `stats.rolling` 4.9 s → ~0.1 s (~50×); `stats.adherence` 3.3 s → ~0.4 s (~8×) —
+    both well within budget. **No schema/contract/DTO change**; all stats oracles + the 6 stats
+    integration cases (and the full 52-case integration suite + 71 unit) stay green.
 
 ## M9c delivered / deviations
 

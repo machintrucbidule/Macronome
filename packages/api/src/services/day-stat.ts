@@ -1,45 +1,54 @@
-import type { DayAggregate } from '../data/repositories/day-read.repo.js';
-import {
-  autoVerdict,
-  effectiveVerdict,
-  type ResolvedSnapshot,
-} from '../domain/day-verdict/index.js';
+import { autoVerdict, effectiveVerdict } from '../domain/day-verdict/index.js';
 import type { Verdict } from '../domain/day-verdict/index.js';
+import { netLeftover, prorateConsumed, scaleMacros } from '../domain/leftover/index.js';
 import type { DayStat } from '../domain/stats/index.js';
-import { computeDayTotals } from './day-assembler.js';
+import type { LightDay, LightEntry, LightGroup } from '../data/repositories/day-stat.repo.js';
 
-// Maps a day aggregate to the lightweight DayStat the stats domain consumes, or null when
-// the day is NOT logged (spec/logic/stats-adherence.md §1): a summary day without
-// summary_kcal, or a detailed day with no entries (comment/activity-only) carries no
-// calorie value and is excluded everywhere. Verdicts use the STORED snapshot (frozen
-// history — the journal pattern), so later target/weight edits never move a past figure.
+// Maps the lightweight stats read (day-stat.repo.ts) to the DayStat the stats domain consumes,
+// or null when the day is NOT logged (spec/logic/stats-adherence.md §1): a summary day without
+// summary_kcal, or a detailed day with no entries, carries no calorie value and is excluded.
+// The per-day kcal reuses the domain leftover proration so the figure matches the full
+// day-assembler path; verdicts use the STORED snapshot (frozen history — the journal pattern).
 
-const num = (d: { toString(): string }): number => Number(d.toString());
-
-/** Whether a detailed day has at least one logged entry across its meals. */
-function hasEntries(aggregate: DayAggregate): boolean {
-  return aggregate.meals.some((m) => m.entries.length > 0);
+/** Consumed kcal over a detailed day's entries, applying leftover proration (domain reuse). */
+function consumedKcal(entries: LightEntry[], groups: LightGroup[]): number {
+  if (groups.length === 0) return entries.reduce((sum, e) => sum + e.snapKcal, 0);
+  const servedById = new Map(entries.map((e) => [e.id, e.servedGrams ?? 0]));
+  const ctx = new Map<string, { net: number; servedTotal: number }>();
+  for (const g of groups) {
+    const servedTotal = g.entryIds.reduce((sum, id) => sum + (servedById.get(id) ?? 0), 0);
+    const net = netLeftover(g.grossGrams, g.tareG);
+    for (const id of g.entryIds) ctx.set(id, { net, servedTotal });
+  }
+  let total = 0;
+  for (const e of entries) {
+    const c = ctx.get(e.id);
+    if (c && e.servedGrams !== null) {
+      const grams = prorateConsumed(e.servedGrams, c.net, c.servedTotal);
+      total += scaleMacros(
+        { kcal: e.snapKcal, fat: 0, carb: 0, protein: 0 },
+        grams,
+        e.servedGrams,
+      ).kcal;
+    } else {
+      total += e.snapKcal;
+    }
+  }
+  return total;
 }
 
 /** DayStat for a logged day, or null when the day carries no calorie value. */
-export function dayStat(aggregate: DayAggregate): DayStat | null {
-  const { dayLog } = aggregate;
-  const isSummary = dayLog.kind === 'summary';
-  const logged = isSummary ? dayLog.summaryKcal !== null : hasEntries(aggregate);
+export function dayStat(day: LightDay): DayStat | null {
+  const isSummary = day.kind === 'summary';
+  const logged = isSummary ? day.summaryKcal !== null : day.entries.length > 0;
   if (!logged) return null;
-
-  const snapshot = dayLog.targetSnapshot as unknown as ResolvedSnapshot;
-  const kcal = isSummary ? num(dayLog.summaryKcal!) : computeDayTotals(aggregate).kcal;
-  const auto = autoVerdict(kcal, snapshot.cal_min, snapshot.cal_max);
-  const override = (dayLog.verdictOverride ?? null) as Verdict | null;
-  return {
-    date: dayLog.date.toISOString().slice(0, 10),
-    kcal,
-    verdict: effectiveVerdict(override, auto) as Verdict,
-  };
+  const kcal = isSummary ? day.summaryKcal! : consumedKcal(day.entries, day.groups);
+  const auto = autoVerdict(kcal, day.snapshot.cal_min, day.snapshot.cal_max);
+  const override = (day.verdictOverride ?? null) as Verdict | null;
+  return { date: day.date, kcal, verdict: effectiveVerdict(override, auto) as Verdict };
 }
 
-/** Map a list of aggregates to DayStat, dropping not-logged days. */
-export function toDayStats(aggregates: DayAggregate[]): DayStat[] {
-  return aggregates.map(dayStat).filter((s): s is DayStat => s !== null);
+/** Map a list of light day records to DayStat, dropping not-logged days. */
+export function toDayStats(days: LightDay[]): DayStat[] {
+  return days.map(dayStat).filter((s): s is DayStat => s !== null);
 }

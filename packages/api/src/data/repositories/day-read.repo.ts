@@ -114,14 +114,4 @@ export const dayReadRepo = {
     });
     return aggregateFor(dayLogs);
   },
-
-  /** Every day_log of the user, oldest first, with aggregates — full-history stats (M6).
-   * Single-user scale keeps this cheap; narrow it if history ever grows unbounded. */
-  async readAll(userId: string): Promise<DayAggregate[]> {
-    const dayLogs = await prisma.dayLog.findMany({
-      where: { userId },
-      orderBy: [{ date: 'asc' }],
-    });
-    return aggregateFor(dayLogs);
-  },
 };

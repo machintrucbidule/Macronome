@@ -161,20 +161,20 @@ serving}` with neutral oracles; days/meals/entries/leftover/journal services + r
       `/login`) + login polish (lockout/a11y) + full Empty/Skeleton visual contract → M9.
       e2e isolation via a `first-run` Playwright project the `app` project depends on. See
       `M8-first-run.md` §Deviations.
-- [~] **M9 — Polish** → `docs/dev-plan/M9-polish.md`
-  _depends-on: M1–M7._ Remaining screen states, i18n completeness, a11y, perf.
-  **Split into sub-passes (approved; too large for one pass).** **M9a — States, login &
-  i18n DONE:** full login state card (`features/login/` — idle/loading/error/lockout/
-  success, live lockout countdown, `stay_signed_in`; `ApiError.retryAfterS`); locale-aware
-  numbers via `lib/format/number.ts` (Intl, grouping off → only the decimal mark localises;
-  per-feature `format.ts` delegate); Foods load-error banner (Repas already had one); i18n
-  key-coverage CI gate (`scripts/check-i18n.mjs` + `check:i18n` step). **No backend change**
-  — the login lockout (`rateLimit.ts`/`TRUSTED_PROXY`) was already built + tested. Acceptance
-  green: `number.test.ts` + `check:i18n` + typecheck + lint + web build; `e2e/login.spec.ts`.
-  **M9b — A11y & layout DONE:** sticky appbar (offset now lines up the dense-table sticky
-  `thead`) + `aria-label`/`aria-current` nav; `.tblscroll` long-table variant (Poids period
-  table scrolls with a sticky header); global `:focus-visible` ring (`:where()`, zero-
-  specificity) + keyboard-operable `SortableTh`; shared `Modal` focus trap (`useFocusTrap.ts`)
+- [x] **M9 — Polish** → `docs/dev-plan/M9-polish.md`
+      _depends-on: M1–M7._ Remaining screen states, i18n completeness, a11y, perf.
+      **Split into sub-passes (approved; too large for one pass).** **M9a — States, login &
+      i18n DONE:** full login state card (`features/login/` — idle/loading/error/lockout/
+      success, live lockout countdown, `stay_signed_in`; `ApiError.retryAfterS`); locale-aware
+      numbers via `lib/format/number.ts` (Intl, grouping off → only the decimal mark localises;
+      per-feature `format.ts` delegate); Foods load-error banner (Repas already had one); i18n
+      key-coverage CI gate (`scripts/check-i18n.mjs` + `check:i18n` step). **No backend change**
+      — the login lockout (`rateLimit.ts`/`TRUSTED_PROXY`) was already built + tested. Acceptance
+      green: `number.test.ts` + `check:i18n` + typecheck + lint + web build; `e2e/login.spec.ts`.
+      **M9b — A11y & layout DONE:** sticky appbar (offset now lines up the dense-table sticky
+      `thead`) + `aria-label`/`aria-current` nav; `.tblscroll` long-table variant (Poids period
+      table scrolls with a sticky header); global `:focus-visible` ring (`:where()`, zero-
+      specificity) + keyboard-operable `SortableTh`; shared `Modal` focus trap (`useFocusTrap.ts`)
   - focus-on-open/restore + `aria-labelledby`; labelled inputs (`Autocomplete` combobox/listbox
     ARIA; `htmlFor`/`id` on Custom/Leftover modals); `RequireAuth`→`/login` guard wrapping every
     app route + a global 401→`/login` handler in `api/client.ts` (skips `/auth/*` + public pages
@@ -189,7 +189,11 @@ serving}` with neutral oracles; days/meals/entries/leftover/journal services + r
     oracles); the 🍳 meal-header button is live; edits batch through the existing `updateEntry`
     mutation on Valider (web-only, no backend/schema change). Acceptance green: typecheck + lint +
     `check:i18n` + web build + unit (71) + e2e meals (5, incl. cook qty write-back).
-    **Remaining:** M9d (perf on large data). See `M9-polish.md`.
+    **M9d — Perf DONE:** on-demand `perf:check` script (seed large synthetic data → measure
+    Stats + Foods search → `EXPLAIN` → verify contract indexes → teardown; not a CI gate). Search
+    ~5 ms + all indexes confirmed; a measured Stats slowdown (3–5 s over 5 years) fixed by a
+    lightweight stats read + trailing-window narrowing for rolling (`day-stat.repo.ts`, no schema
+    change) → <0.4 s, all oracles + integration green. **M9 complete.** See `M9-polish.md`.
 - [ ] **M10 — Reserved AI-advisor hook (NOT built)** → `docs/dev-plan/M10-ai-advisor-hook.md`
       _depends-on: M0 (route), M6 (payload shape)._ Inert config + 501 route only.
 

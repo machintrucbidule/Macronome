@@ -6,7 +6,7 @@ import {
   type RollingResponse,
   type TargetZone,
 } from '@macronome/shared';
-import { dayReadRepo } from '../data/repositories/day-read.repo.js';
+import { dayStatRepo, type DateRange } from '../data/repositories/day-stat.repo.js';
 import { targetRepo } from '../data/repositories/target.repo.js';
 import {
   bestMonth,
@@ -33,16 +33,35 @@ async function currentZone(userId: string): Promise<TargetZone | null> {
   return { cal_min: num(target.calorieMin), cal_max: num(target.calorieMax) };
 }
 
-/** GET /stats/rolling — 7/14/30/365 windows as of the latest logged day. */
-export async function getRolling(userId: string): Promise<RollingResponse> {
-  const [aggregates, zone] = await Promise.all([dayReadRepo.readAll(userId), currentZone(userId)]);
-  return rolling(toDayStats(aggregates), STATS_ROLLING_WINDOWS, zone);
+// Rolling only looks back the widest window from the latest logged day, so the read is
+// narrowed to that trailing range (+1 day margin) instead of the full history (M9d perf).
+const ROLLING_LOOKBACK_DAYS = Math.max(...STATS_ROLLING_WINDOWS) + 1;
+
+/** Trailing [latest − lookback, latest] range covering every rolling window. */
+function rollingRange(latest: Date): DateRange {
+  const from = new Date(latest);
+  from.setUTCDate(from.getUTCDate() - ROLLING_LOOKBACK_DAYS);
+  return { from, to: latest };
 }
 
-/** GET /stats/adherence?year=YYYY — heatmap + monthly pivots + key figures + signals. */
+/** GET /stats/rolling — 7/14/30/365 windows as of the latest logged day. */
+export async function getRolling(userId: string): Promise<RollingResponse> {
+  const latest = await dayStatRepo.latestDate(userId);
+  const [days, zone] = await Promise.all([
+    dayStatRepo.readLightweight(userId, latest ? rollingRange(latest) : undefined),
+    currentZone(userId),
+  ]);
+  return rolling(toDayStats(days), STATS_ROLLING_WINDOWS, zone);
+}
+
+/** GET /stats/adherence?year=YYYY — heatmap + monthly pivots + key figures + signals.
+ * Needs full history (overall ok-rate, best month), read lightweight (M9d perf). */
 export async function getAdherence(userId: string, year: number): Promise<AdherenceResponse> {
-  const [aggregates, zone] = await Promise.all([dayReadRepo.readAll(userId), currentZone(userId)]);
-  const logged = toDayStats(aggregates);
+  const [days, zone] = await Promise.all([
+    dayStatRepo.readLightweight(userId),
+    currentZone(userId),
+  ]);
+  const logged = toDayStats(days);
   const inYear = (s: DayStat): boolean => s.date.startsWith(`${year}-`);
   const yearLogged = logged.filter(inYear);
   return {
