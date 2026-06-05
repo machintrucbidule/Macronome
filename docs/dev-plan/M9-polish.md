@@ -85,15 +85,15 @@ z-index:var(--z-appbar)`, so the dense tables' `thead { top:var(--appbar-h) }` o
 - **Labelled inputs**: `Autocomplete` input is a `role=combobox` with `aria-label` +
   `aria-controls`/`aria-activedescendant` over a `role=listbox`/`option` list; the Custom-food and
   Leftover modal fields got `htmlFor`/`id` (their `<label>`/control were previously unassociated).
-- **RequireAuth** (`RequireAuth.tsx` + `router.tsx`): every app route is wrapped; logged-out →
-  `/login` (via `useSession`, 401 not retried). `/login`, `/setup`, `/health` stay public.
+- **RequireAuth** (`RequireAuth.tsx` + `router.tsx`): every app route is wrapped, including the
+  `/health` diagnostic UI; logged-out → `/login` (via `useSession`, 401 not retried). Only
+  `/login` and `/setup` are public. The underlying `GET /api/v1/health` readiness endpoint stays
+  public (Docker/CI probe) but returns no user data — only the UI page is gated. The M0 health
+  smoke (`e2e/health.spec.ts`) now seeds an owner and logs in before visiting `/health`.
 - **Global 401 → /login** (`api/client.ts`): a 401 on a non-`/auth/*` call while on a protected
   page hard-redirects to `/login` (session expired mid-use). It **skips** `/auth/*` (their 401s
-  are normal) and the public pages, so `SettingsSync`'s logged-out `/settings` probe stays silent
-  per its contract.
-- **Deviation (tracked):** `/health` is **public** (not behind `RequireAuth`). Its underlying
-  `GET /api/v1/health` endpoint is public (it's Playwright's readiness URL); gating the page would
-  break the long-standing M0 round-trip smoke for no security gain.
+  are normal) and the public pages (`/login`, `/setup`), so `SettingsSync`'s logged-out
+  `/settings` probe stays silent per its contract.
 
 ## M9a delivered / deviations
 

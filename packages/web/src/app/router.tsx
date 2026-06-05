@@ -20,8 +20,8 @@ import { HealthStatus } from './HealthStatus';
 // Routes → features (module-map.md §2). Repas is the default landing screen (M3b); the
 // M0 health round-trip moved to /health when Repas took the home route. AppGate forces the
 // first-run wizard while no owner account exists (M8); RequireAuth then redirects logged-out
-// visitors of any app route to /login (M9b). /login, /setup and the /health diagnostic
-// (whose API endpoint is itself public) stay public.
+// visitors of any app route to /login (M9b). Only /login and /setup are public; the /health
+// diagnostic UI is gated too (the underlying /api/v1/health readiness endpoint stays public).
 const PROTECTED: ReadonlyArray<[string, ReactElement]> = [
   ['/', <MealsPage />],
   ['/day/:date', <MealsPage />],
@@ -34,6 +34,12 @@ const PROTECTED: ReadonlyArray<[string, ReactElement]> = [
   ['/parametres', <SettingsPage />],
   ['/containers', <ContainersPage />],
   ['/account', <AccountPage />],
+  [
+    '/health',
+    <AppShell>
+      <HealthStatus />
+    </AppShell>,
+  ],
 ];
 
 export function AppRouter() {
@@ -43,14 +49,6 @@ export function AppRouter() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/setup" element={<SetupWizard />} />
-          <Route
-            path="/health"
-            element={
-              <AppShell>
-                <HealthStatus />
-              </AppShell>
-            }
-          />
           {PROTECTED.map(([path, element]) => (
             <Route key={path} path={path} element={<RequireAuth>{element}</RequireAuth>} />
           ))}

@@ -22,7 +22,7 @@ function readCsrfToken(): string | null {
 
 // Pages reachable without a session — a background 401 here (e.g. SettingsSync probing
 // /settings) is expected and must stay silent, never redirect.
-const PUBLIC_PATHS = new Set(['/login', '/setup', '/health']);
+const PUBLIC_PATHS = new Set(['/login', '/setup']);
 
 // Global session-expiry handling: a 401 on a non-auth call while on a protected page means
 // the session lapsed mid-use — bounce to /login (mirrors the logout flow). Auth probes

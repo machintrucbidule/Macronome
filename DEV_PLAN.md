@@ -178,10 +178,11 @@ serving}` with neutral oracles; days/meals/entries/leftover/journal services + r
   - focus-on-open/restore + `aria-labelledby`; labelled inputs (`Autocomplete` combobox/listbox
     ARIA; `htmlFor`/`id` on Custom/Leftover modals); `RequireAuth`→`/login` guard wrapping every
     app route + a global 401→`/login` handler in `api/client.ts` (skips `/auth/*` + public pages
-    so SettingsSync's logged-out probe stays silent). Acceptance green: typecheck + lint +
-    `check:i18n` + web build + unit (65) + full e2e (18, incl. new RequireAuth redirect test).
-    **Deviation (tracked):** `/health` kept **public** (its API endpoint is public; protecting the
-    page would break the M0 round-trip smoke). **Remaining:** M9c (Cook mode, carried from M3),
+    so SettingsSync's logged-out probe stays silent). Every app route — including the `/health`
+    diagnostic UI — is gated; only `/login`/`/setup` are public (the `/api/v1/health` readiness
+    endpoint stays public for Docker/CI but exposes no user data). Acceptance green: typecheck +
+    lint + `check:i18n` + web build + unit (65) + full e2e (18, incl. new RequireAuth redirect
+    test; the health smoke now logs in). **Remaining:** M9c (Cook mode, carried from M3),
     M9d (perf on large data). See `M9-polish.md`.
 - [ ] **M10 — Reserved AI-advisor hook (NOT built)** → `docs/dev-plan/M10-ai-advisor-hook.md`
       _depends-on: M0 (route), M6 (payload shape)._ Inert config + 501 route only.
