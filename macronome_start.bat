@@ -47,13 +47,13 @@ start "Macronome Web" cmd /k "npm run dev:web"
 echo.
 echo ============================================================
 echo  [Macronome] Dev environment starting.
-echo  Open: http://localhost:5173   (opening automatically)
+echo  Open: http://127.0.0.1:5173   (opening automatically)
 echo  Two windows opened: "Macronome API" and "Macronome Web".
 echo  Stop with:     macronome_stop.bat
 echo  Reset the DB:  macronome_clean_db.bat
 echo ============================================================
 timeout /t 5 >nul
-start "" http://localhost:5173
+start "" http://127.0.0.1:5173
 exit /b 0
 
 :fail
