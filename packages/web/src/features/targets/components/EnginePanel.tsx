@@ -8,14 +8,14 @@ import {
 import { MetricCard } from '../../../components/MetricCard/MetricCard';
 import { Banner } from '../../../components/Banner/Banner';
 import { ProfileForm } from './ProfileForm';
-import { grams1, kcal, multiplier2, rate2, signedKcal } from '../format';
+import { grams1, kcal, macroG, multiplier2, rate2, signedKcal } from '../format';
 import styles from '../cibles.module.css';
 
 // Right column — "Moteur métabolique" (computed). Every figure comes from GET /target;
 // the web only rounds for display. Weight-dependent tiles read "—" until there is a
 // weigh-in; empirical burn needs logged days (M3) and stays "—" in M2.
 const DASH = '—';
-const showG = (n: number | null): string => (n === null ? DASH : grams1(n));
+const showG = (n: number | null): string => (n === null ? DASH : macroG(n));
 const showKcal = (n: number | null): string => (n === null ? DASH : kcal(n));
 
 interface EnginePanelProps {

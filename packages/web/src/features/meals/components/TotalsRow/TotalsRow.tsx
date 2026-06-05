@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import type { DayDetail } from '@macronome/shared';
 import { CalorieCard } from '../../../../components/MetricCard/CalorieCard';
 import { MacroCard } from '../../../../components/MetricCard/MacroCard';
+import { formatInt } from '../../../../lib/format/number';
 import { VerdictCluster } from './VerdictCluster';
 import styles from '../../meals.module.css';
 
@@ -36,7 +37,9 @@ export function TotalsRow({ day }: TotalsRowProps) {
         value={day.totals.fat}
         threshold={s.fat_floor_g}
         mode="floor"
-        thresholdText={s.fat_floor_g === null ? '—' : t('meals.card.min', { n: s.fat_floor_g })}
+        thresholdText={
+          s.fat_floor_g === null ? '—' : t('meals.card.min', { n: formatInt(s.fat_floor_g) })
+        }
         status={macroStatus}
         unit="g"
       />
@@ -46,7 +49,7 @@ export function TotalsRow({ day }: TotalsRowProps) {
         threshold={s.carb_ceiling_g}
         mode="ceiling"
         thresholdText={
-          s.carb_ceiling_g === null ? '—' : t('meals.card.max', { n: s.carb_ceiling_g })
+          s.carb_ceiling_g === null ? '—' : t('meals.card.max', { n: formatInt(s.carb_ceiling_g) })
         }
         status={{ ok: t('meals.status.ok'), bad: t('meals.status.depasse') }}
         unit="g"
@@ -57,7 +60,9 @@ export function TotalsRow({ day }: TotalsRowProps) {
         threshold={s.protein_floor_g}
         mode="floor"
         thresholdText={
-          s.protein_floor_g === null ? '—' : t('meals.card.min', { n: s.protein_floor_g })
+          s.protein_floor_g === null
+            ? '—'
+            : t('meals.card.min', { n: formatInt(s.protein_floor_g) })
         }
         status={macroStatus}
         unit="g"

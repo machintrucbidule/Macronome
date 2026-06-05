@@ -15,6 +15,9 @@ export const signedKcal = (n: number): string => {
 
 export const grams1 = (n: number): string => formatFixed(n, 1);
 
+/** Macro grams as an amount/target floor (integer per 00-conventions.md §Rounding). */
+export const macroG = (n: number): string => formatInt(n);
+
 export const ratio2 = (n: number): string => formatFixed(n, 2);
 
 export const rate2 = (n: number): string => formatFixed(n, 2);

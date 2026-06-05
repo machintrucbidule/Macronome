@@ -224,3 +224,23 @@ a fixed contract and reshapes the milestone plan.
 a real login + a first-run account creation + usable empty screens deliver that. The
 historical import is decoupled so it can wait until the app is bug-free, targeting a
 stable schema.
+
+---
+
+## B-019 — Macro-gram display rounding split — RESOLVED (author)
+
+Post-v1 backlog triage. The macro-gram display rule in `spec/logic/00-conventions.md`
+§Rounding was a single "macro grams: 1 decimal". The author chose **integer** display for
+macro grams, but only where it reads as an amount; per-100 g reference composition keeps
+its precision.
+
+- **Consumed/aggregate macro amounts** (meal & day totals, journal) and **target
+  floors/ceilings** → **integer** (round half-up).
+- **Per-100 g food/recipe composition** and **per-portion recipe macros** → **1 decimal**.
+
+**Rationale:** integers read cleaner for the amounts the user pilots day to day and for the
+Cibles engine floors/ceilings, and removing the trailing decimal also fixes the raw-float
+threshold (`max. 135.29999999999998 g`). Per-100 g values are reference densities where
+0.5 g is meaningful, so they stay at 1 decimal. Display-only — storage keeps full precision
+(CLAUDE.md rule 2). `design/components/metric-cards.md` already shows integer threshold
+examples (`min. 50 g`, `max. 150 g`) and is unchanged.

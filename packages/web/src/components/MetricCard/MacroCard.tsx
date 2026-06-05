@@ -1,3 +1,4 @@
+import { formatInt } from '../../lib/format/number';
 import styles from './BandCard.module.css';
 
 // Macro card with a directional threshold bar (design/components/metric-cards.md):
@@ -55,7 +56,7 @@ export function MacroCard({
       )}
       <div className={styles.bot}>
         <span className={styles.val}>
-          {Math.round(value)} {unit}
+          {formatInt(value)} {unit}
         </span>
         <span className={styles.status}>{ok ? status.ok : status.bad}</span>
       </div>
