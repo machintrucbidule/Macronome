@@ -1,11 +1,13 @@
 import express, { type Express } from 'express';
-import helmet from 'helmet';
 import { pinoHttp } from 'pino-http';
+import { env } from './config/env.js';
 import { csrf } from './http/middleware/csrf.js';
 import { errorHandler } from './http/middleware/errorHandler.js';
+import { securityHeaders } from './http/middleware/securityHeaders.js';
 import { sessionMiddleware } from './http/middleware/session.js';
 import { tenantContext } from './http/middleware/tenant.js';
 import { applyTrustProxy } from './http/middleware/trustProxy.js';
+import { serveSpa } from './http/spa.js';
 import authRoutes from './http/routes/auth.js';
 import containersRoutes from './http/routes/containers.js';
 import daysRoutes from './http/routes/days.js';
@@ -31,7 +33,7 @@ export function createApp(): Express {
   const app = express();
 
   applyTrustProxy(app);
-  app.use(helmet());
+  app.use(securityHeaders());
   app.use(pinoHttp({ logger }));
   app.use(express.json());
   app.use(sessionMiddleware);
@@ -55,6 +57,9 @@ export function createApp(): Express {
   app.use('/api/v1/containers', containersRoutes);
   app.use('/api/v1/meal-template', mealTemplateRoutes);
   app.use('/api/v1/pantry', pantryRoutes);
+
+  // Serve the built SPA from the same origin in prod (ADR-0001); inert in dev.
+  if (env.WEB_DIST) serveSpa(app, env.WEB_DIST);
 
   app.use(errorHandler);
   return app;

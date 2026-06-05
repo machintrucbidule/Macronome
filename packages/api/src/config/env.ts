@@ -13,6 +13,9 @@ const EnvSchema = z.object({
     .default('false')
     .transform((v) => v === 'true'),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  // Absolute path to the built SPA (packages/web/dist) the API serves in prod.
+  // Set in the Docker image; absent in dev where Vite serves the SPA (ADR-0001).
+  WEB_DIST: z.string().optional(),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

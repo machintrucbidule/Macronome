@@ -90,6 +90,15 @@ Run from the repo root.
 Create a migration: `npm run prisma:dev -w @macronome/api -- --name <change>`
 (after editing `packages/api/prisma/schema.prisma` to match `spec/schema/*`).
 
+**Deployment (ADR-0001 — authoritative).** Production ships as a **single prebuilt
+image on GHCR** (`ghcr.io/machintrucbidule/macronome`, published by
+`.github/workflows/release.yml`): the API process serves **both** the static SPA and
+`/api/v1` on one port. `compose.yml` is **image-based** (no `build:`), two services
+(`macronome` + `postgres`), Postgres on a **bind-mount** (`DATA_PATH`); the operator
+fronts the exposed port with their own reverse proxy / TLS. **Do not** reintroduce a
+build-from-source compose, a host-side web build, or a bundled Caddy proxy — see
+`docs/architecture/decisions/0001-prebuilt-image-deployment.md`.
+
 First user (no open/public sign-up): on a fresh install the **first-run setup wizard**
 creates the single owner account (`POST /auth/setup`, gated to zero users, then
 disabled — built in M8). The `create-user` script in `packages/api` (argon2id hash)

@@ -1,51 +1,36 @@
-# Production stack (deployment-agnostic; import into Portainer or any Docker host).
-# The `proxy` service is the default, replaceable frontal — drop it to front the
-# stack with a tunnel / external load balancer. See docs/architecture/ops.md.
+# Production stack (ADR-0001) — pulls prebuilt images; deploy as-is in Portainer or any
+# Docker host. The `macronome` image serves the SPA and /api/v1 on one port; front it
+# with your own reverse proxy / TLS (set TRUSTED_PROXY to that proxy). See ops.md.
 services:
+  macronome:
+    image: ghcr.io/machintrucbidule/macronome:${MACRONOME_TAG:-latest}
+    restart: unless-stopped
+    ports:
+      - '${APP_PORT:-3000}:3000'
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      SESSION_SECRET: ${SESSION_SECRET}
+      TRUSTED_PROXY: ${TRUSTED_PROXY:-loopback}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # The image entrypoint runs `prisma migrate deploy` then starts the server.
+    # Recommended: dump the DB before deploy (see ops.md §5).
+
   postgres:
     image: postgres:17
+    restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      # Bind-mount: the only critical state lives at a host path you choose (DATA_PATH).
+      - '${DATA_PATH:-./data}/db:/var/lib/postgresql/data'
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER}']
       interval: 10s
       retries: 5
-
-  api:
-    build:
-      context: .
-      dockerfile: packages/api/Dockerfile
-    environment:
-      DATABASE_URL: ${DATABASE_URL}
-      SESSION_SECRET: ${SESSION_SECRET}
-      TRUSTED_PROXY: ${TRUSTED_PROXY}
-      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL}
-      COOKIE_SECURE: 'true'
-      NODE_ENV: production
-    depends_on:
-      postgres:
-        condition: service_healthy
-    # The image entrypoint runs `prisma migrate deploy` then `node dist/src/server.js`.
-    # Recommended: dump the DB before deploy (see ops.md §5).
-
-  proxy:
-    image: caddy:2
-    ports:
-      - '80:80'
-      - '443:443'
-    environment:
-      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL}
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - ./packages/web/dist:/srv/web:ro
-      - caddy_data:/data
-    depends_on:
-      - api
-
-volumes:
-  pgdata:
-  caddy_data:

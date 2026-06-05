@@ -5,36 +5,39 @@ Caddyfile, env) are in `appendices/config-docker.md`.
 
 ---
 
-## 1. Production topology (Docker Compose)
+## 1. Production topology (Docker Compose) — ADR-0001
 
-Three services, one critical volume:
+Two services, one critical bind-mount; **prebuilt image pulled from GHCR** (no
+build-from-source). See `decisions/0001-prebuilt-image-deployment.md`.
 
 ```
 compose.yml
-├─ proxy      (Caddy)      :80/:443  → serves SPA build, proxies /api → api
-├─ api        (Node/TS)    internal  → Express; runs migrate on start, then listens
-└─ postgres   (PostgreSQL) internal  → volume: pgdata  ← the only critical state
+├─ macronome  (Node/TS)    :<APP_PORT>  → serves the SPA build AND /api/v1;
+│                                          runs migrate on start, then listens
+└─ postgres   (PostgreSQL) internal     → bind-mount: ${DATA_PATH}/db  ← only critical state
 ```
 
-- The SPA is built (`vite build`) to static assets and served by the proxy; the API
-  serves JSON only. No app state lives outside Postgres (the v1 contract has no user
-  uploads/files), so the DB volume is the entire backup surface.
-- **The proxy is replaceable.** Open a port and Caddy serves it directly (auto-TLS
-  if a domain is set); or front it with any tunnel / load balancer / nginx and point
-  that at the `api` + static build. Nothing in the app assumes a specific frontal.
-- **Trusted proxy.** The API sets `trust proxy` to the proxy's address/CIDR so the
-  real client IP (for login rate-limiting) is read from forwarded headers **only
-  when they come from the known proxy** — see `security.md`.
+- The image builds `shared` + `api` + `web`; the **API process serves both the static
+  SPA and `/api/v1`** on one port (not SSR — the SPA is a pure same-origin client).
+  No app state lives outside Postgres (the v1 contract has no user uploads/files), so
+  the DB bind-mount is the entire backup surface.
+- **No bundled proxy.** The single port is fronted by the operator's own reverse proxy
+  / tunnel / load balancer (TLS there), or exposed directly. Nothing in the app assumes
+  a specific frontal.
+- **Trusted proxy.** When fronted, set `TRUSTED_PROXY` to the proxy's address/CIDR so
+  the real client IP (for login rate-limiting) and the `secure` cookie are read from
+  forwarded headers **only when they come from the known proxy** — see `security.md`.
+  The Docker default `loopback` does **not** trust a separate proxy container.
 
 ---
 
-## 2. Reverse proxy + HTTPS
+## 2. Reverse proxy + HTTPS (operator-provided)
 
-TLS terminates at the reverse proxy (the bundled Caddy, or whatever frontal the
-operator puts in front). Caddy obtains/renews Let's Encrypt certs automatically when
-given a domain and reachable ports; behind a tunnel, TLS is handled upstream and
-Caddy speaks plain HTTP locally. Either way the app is unchanged. HSTS and the
-security headers are set at the proxy (config in the appendix).
+There is **no proxy in the stack**. TLS terminates at whatever frontal the operator
+puts in front of the exposed port (Nginx Proxy Manager, Traefik, Caddy, a Cloudflare
+tunnel, …), which forwards plain HTTP to the app locally. The app is unchanged either
+way. **Security headers (HSTS, CSP, nosniff, Referrer-Policy) are emitted by the app**
+via `helmet` (`http/middleware/securityHeaders.ts`) — not by a proxy.
 
 ---
 
@@ -48,11 +51,12 @@ security headers are set at the proxy (config in the appendix).
 - Web: `npm run dev -w @macronome/web` (Vite dev server; proxies `/api` → local API).
 - The full `compose.yml` is **prod-only**; do not run it as the dev loop.
 
-**Prod (any Docker host, incl. Proxmox):**
+**Prod (any Docker host, incl. Proxmox; Portainer "deploy stack"):**
 
-- `docker compose up -d --build`. The `api` service runs `prisma migrate deploy`
-  (one-shot) before listening; the `web` build is produced at image-build time and
-  served by `proxy`.
+- Set the env vars (see §4), then `docker compose up -d` — it **pulls** the prebuilt
+  `macronome` image from GHCR (no `--build`, no repo or Node toolchain on the host).
+  The `macronome` service runs `prisma migrate deploy` (one-shot) before listening,
+  then serves the SPA + `/api/v1`. The `web` build ships inside the image.
 
 ---
 
@@ -62,12 +66,18 @@ security headers are set at the proxy (config in the appendix).
 
 - Versioned template: `.env.example` (keys only).
 - Dev: `.env` (gitignored).
-- Prod: env injected by compose / Docker secrets.
+- Prod: env injected by compose / Portainer stack vars / Docker secrets.
 
-Keys (v1): `DATABASE_URL`, `SESSION_SECRET` (long random), `TRUSTED_PROXY`
-(address/CIDR or `loopback`), `PUBLIC_BASE_URL`, `NODE_ENV`, `COOKIE_SECURE`
-(true in prod), and the reserved-but-unused `LLM_ENDPOINT_URL` / `LLM_ENDPOINT_KEY`.
-Secrets are never logged (see `security.md`).
+Deploy/host keys (compose.yml): `MACRONOME_TAG` (image tag, e.g. `latest` / `vX.Y.Z`),
+`APP_PORT` (host port), `DATA_PATH` (host path for the Postgres bind-mount),
+`POSTGRES_DB` / `POSTGRES_USER` / `POSTGRES_PASSWORD` (`DATABASE_URL` is derived from
+these in compose.yml).
+
+App keys (v1): `DATABASE_URL`, `SESSION_SECRET` (long random), `TRUSTED_PROXY`
+(address/CIDR, or `loopback`; set to the front proxy when fronted), `PUBLIC_BASE_URL`,
+`NODE_ENV`, `COOKIE_SECURE` (true in prod), `WEB_DIST` (SPA build path; set inside the
+image, unset in dev), and the reserved-but-unused `LLM_ENDPOINT_URL` /
+`LLM_ENDPOINT_KEY`. Secrets are never logged (see `security.md`).
 
 ---
 
@@ -95,8 +105,9 @@ schedule, retention, destination, and any extra safety nets are the operator's.
 
 Guaranteed by design:
 
-- **All critical state is in one Postgres database, one volume.** No critical local
-  disk state to coordinate. Therefore a single logical dump is a complete backup.
+- **All critical state is in one Postgres database, one bind-mount** (`${DATA_PATH}/db`).
+  No critical local disk state to coordinate. Therefore a single logical dump is a
+  complete backup (and the bind-mount path itself can be snapshotted/copied if desired).
 - **Standard tools work, no app-specific tooling:**
   - backup: `pg_dump` (custom or plain format), e.g.
     `docker compose exec postgres pg_dump -U <user> -Fc <db> > macronome-YYYYMMDD.dump`

@@ -46,7 +46,10 @@ typecheck + lint (`docs/architecture/testing.md` §6). Tick the box only then.
       layers + Prisma↔DDL check + typecheck + lint + pre-commit, Windows dev loop
       verified. **Deferred to production setup** (per user decision — local-only this
       session): executing the Docker deploy + the pg_dump/pg_restore drill. The Docker
-      config artifacts (compose, Caddyfile, Dockerfile, .env.example) are delivered.
+      config artifacts (image-based `compose.yml`, combined `Dockerfile`, `.env.example`,
+      GHCR publish workflow) are delivered. **Deployment model reworked to a prebuilt
+      GHCR image — see `docs/architecture/decisions/0001-prebuilt-image-deployment.md`
+      (ADR-0001); the old build-from-source compose + Caddyfile are removed.**
 - [x] **M1 — Foods (catalog + search)** → `docs/dev-plan/M1-foods.md`
       _depends-on: M0._ The first vertical slice; everything loggable starts here.
       Done: food/food_portion + migration (GIN trigram, CHECKs, FKs in SQL); foods

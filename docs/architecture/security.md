@@ -97,6 +97,8 @@ Choices favour boring, proven mechanisms over novelty.
 - **Minimal PII**: only what the user enters (body metrics, food logs). No
   third-party analytics, no external calls in v1 (the advisor endpoint is off).
 - Security headers (HSTS, X-Content-Type-Options, Referrer-Policy, a conservative
-  CSP for the SPA) set at the proxy; CSP details in `appendices/config-docker.md`.
+  CSP for the SPA) emitted by the **app** via `helmet`
+  (`http/middleware/securityHeaders.ts`) — the app serves the SPA itself (ADR-0001),
+  so headers are not delegated to a proxy. The operator's frontal only terminates TLS.
 - The reserved `POST /advisor/query` returns **501** until explicitly built; it
   cannot leak data while inert.

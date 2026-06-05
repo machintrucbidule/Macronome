@@ -1,57 +1,49 @@
 # Appendix — Docker, proxy & env (specification)
 
-Specifications only — not scaffolding. Adjust image tags/ports at build time.
+Specifications only. The authoritative deployment model is **ADR-0001**
+(`docs/architecture/decisions/0001-prebuilt-image-deployment.md`): a single prebuilt
+GHCR image serving SPA + `/api/v1`, no bundled proxy, bind-mount Postgres.
 
 ---
 
-## `compose.yml` (production)
+## `compose.yml` (production — image-based)
 
 ```yaml
 services:
+  macronome:
+    image: ghcr.io/machintrucbidule/macronome:${MACRONOME_TAG:-latest}
+    restart: unless-stopped
+    ports: ['${APP_PORT:-3000}:3000']
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      SESSION_SECRET: ${SESSION_SECRET}
+      TRUSTED_PROXY: ${TRUSTED_PROXY:-loopback} # set to your front proxy's CIDR when fronted
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      NODE_ENV: production
+    depends_on:
+      postgres: { condition: service_healthy }
+    # image entrypoint runs `prisma migrate deploy` then starts the server
+    # (recommended: dump the DB before migrate — see ops.md §5)
+
   postgres:
     image: postgres:17
+    restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    volumes:
-      - pgdata:/var/lib/postgresql/data
+    volumes: ['${DATA_PATH:-./data}/db:/var/lib/postgresql/data']
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER}']
       interval: 10s
       retries: 5
-
-  api:
-    build: { context: ., dockerfile: packages/api/Dockerfile }
-    environment:
-      DATABASE_URL: ${DATABASE_URL}
-      SESSION_SECRET: ${SESSION_SECRET}
-      TRUSTED_PROXY: ${TRUSTED_PROXY}        # e.g. the proxy container CIDR / "loopback"
-      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL}
-      COOKIE_SECURE: "true"
-      NODE_ENV: production
-    depends_on:
-      postgres: { condition: service_healthy }
-    # entrypoint runs `prisma migrate deploy` then `node dist/server.js`
-    # (recommended: dump the DB before migrate — see ops.md §5)
-
-  proxy:
-    image: caddy:2
-    ports: ["80:80", "443:443"]
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - ./packages/web/dist:/srv/web:ro      # SPA static build
-      - caddy_data:/data
-    depends_on: [api]
-
-volumes:
-  pgdata:
-  caddy_data:
 ```
 
-The `proxy` service is the **default, replaceable** frontal. To run behind a tunnel
-or external load balancer, drop `proxy` (or leave it on plain HTTP) and point the
-external frontal at the SPA build + the `api` service.
+No `build:` and no bundled proxy: `docker compose up -d` **pulls** the image. Front the
+exposed port with your own reverse proxy / TLS (Nginx Proxy Manager, Traefik, Caddy, a
+Cloudflare tunnel, …), or expose it directly. The image is published by
+`.github/workflows/release.yml` (`:latest` on `main`, `:vX.Y.Z` on `v*` tags).
 
 ---
 
@@ -65,8 +57,8 @@ services:
       POSTGRES_DB: macronome_test
       POSTGRES_USER: macronome
       POSTGRES_PASSWORD: test
-    ports: ["5433:5432"]      # non-default port to avoid clashing with a local PG
-    tmpfs: ["/var/lib/postgresql/data"]   # ephemeral: fast, wiped on restart
+    ports: ['5433:5432'] # non-default port to avoid clashing with a local PG
+    tmpfs: ['/var/lib/postgresql/data'] # ephemeral: fast, wiped on restart
 ```
 
 `unaccent` / `pg_trgm` are enabled by the Prisma migrations, so the test DB gets
@@ -74,47 +66,28 @@ them on `migrate deploy` in the test setup.
 
 ---
 
-## `Caddyfile` (default reverse proxy)
+## Reverse proxy (operator-provided, not shipped)
 
-```caddyfile
-{$PUBLIC_BASE_URL} {
-    encode zstd gzip
-
-    # API
-    handle /api/* {
-        reverse_proxy api:3000
-    }
-
-    # SPA (history fallback to index.html)
-    handle {
-        root * /srv/web
-        try_files {path} /index.html
-        file_server
-    }
-
-    header {
-        Strict-Transport-Security "max-age=31536000; includeSubDomains"
-        X-Content-Type-Options "nosniff"
-        Referrer-Policy "strict-origin-when-cross-origin"
-        # CSP: SPA self-hosted; tighten script/style/connect to self
-        Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; connect-src 'self'"
-    }
-}
-```
-
-Caddy auto-provisions TLS when `PUBLIC_BASE_URL` is a real domain with reachable
-ports; behind a tunnel it can serve plain HTTP locally (TLS terminated upstream).
+No proxy ships in the stack (ADR-0001). Point any frontal at the single exposed port;
+it serves both the SPA and `/api/v1`. The app emits its own security headers (HSTS,
+CSP, nosniff, Referrer-Policy) via `helmet` (`http/middleware/securityHeaders.ts`), so
+the proxy only needs to terminate TLS and forward — set `TRUSTED_PROXY` to the proxy's
+address/CIDR and have it send the usual `X-Forwarded-*` headers.
 
 ---
 
 ## `.env.example` (versioned; keys only)
 
 ```dotenv
-# --- database ---
+# --- image & host ---
+MACRONOME_TAG=latest
+APP_PORT=3000
+DATA_PATH=./data
+
+# --- database (DATABASE_URL is derived from these in compose.yml) ---
 POSTGRES_DB=macronome
 POSTGRES_USER=macronome
 POSTGRES_PASSWORD=
-DATABASE_URL=postgresql://macronome:@postgres:5432/macronome
 
 # --- app ---
 SESSION_SECRET=
@@ -128,6 +101,6 @@ LLM_ENDPOINT_URL=
 LLM_ENDPOINT_KEY=
 ```
 
-`packages/api/Dockerfile` is a multi-stage build (install workspace deps → build
-`shared` + `api` → run `prisma generate` → slim runtime image). Its exact content is
-a 3b build artifact.
+`packages/api/Dockerfile` is a multi-stage build that compiles `shared` + `api` + `web`,
+runs `prisma generate`, and produces a slim runtime image whose API process serves both
+the SPA (`WEB_DIST=/app/packages/web/dist`) and `/api/v1`.

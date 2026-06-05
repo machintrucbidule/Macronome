@@ -32,9 +32,8 @@ Macronome/                       # repo root (git-synced)
 ├─ eslint.config.js          # flat config incl. the file-size rule              (created M0)
 ├─ .prettierrc                                                                  # (created M0)
 ├─ .env.example              # versioned template (no secrets)                  (created M0)
-├─ compose.yml               # prod: proxy + api + postgres                     (created M0)
+├─ compose.yml               # prod: macronome (image, serves SPA+API) + postgres (ADR-0001)
 ├─ compose.test.yml          # test Postgres only                              (created M0)
-├─ Caddyfile                 # default reverse proxy (replaceable)             (created M0)
 ├─ e2e/                      # Playwright specs (drive the running stack)       (created M0+)
 ├─ packages/                 # created by milestone M0 — not scaffolded yet
 │  ├─ shared/
@@ -59,7 +58,7 @@ Macronome/                       # repo root (git-synced)
 
 ---
 
-## packages/shared  (types + constants ONLY — no runtime logic)
+## packages/shared (types + constants ONLY — no runtime logic)
 
 ```
 packages/shared/
@@ -86,7 +85,7 @@ It holds the magic numbers the oracles depend on, written once, imported by `api
 
 ---
 
-## packages/api  (Express + Prisma; the only place logic lives)
+## packages/api (Express + Prisma; the only place logic lives)
 
 ```
 packages/api/
@@ -122,7 +121,7 @@ each domain area unit-testable against its spec oracle in isolation.
 
 ---
 
-## packages/web  (React + Vite SPA — renders, never computes)
+## packages/web (React + Vite SPA — renders, never computes)
 
 ```
 packages/web/
@@ -152,7 +151,7 @@ worked example of the file-size discipline — see `modularity.md`.
 
 ---
 
-## packages/etl  (one-shot Excel → DB; not in the API runtime)
+## packages/etl (one-shot Excel → DB; not in the API runtime)
 
 ```
 packages/etl/
