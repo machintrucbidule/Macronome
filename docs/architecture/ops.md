@@ -52,6 +52,14 @@ via `helmet` (`http/middleware/securityHeaders.ts`) — not by a proxy.
 - Web: `npm run dev -w @macronome/web` (Vite dev server; proxies `/api` → local API).
 - The full `compose.yml` is **prod-only**; do not run it as the dev loop.
 
+**One-command local app run (Windows):** `macronome_start.bat` brings up a **persistent**
+dev DB (`compose.dev.yml`, named volume `devdata`, port 5434) + API (watch) + Web (Vite)
+and opens `http://localhost:5173`; `macronome_stop.bat` stops it (data kept);
+`macronome_clean_db.bat` wipes the DB (→ first-run wizard). These point at the dev DB via
+an inline `DATABASE_URL`, leaving `.env` untouched. _Distinct from the test gate:_
+`test-db-*.bat` + `verify.bat` use the **ephemeral** tmpfs test DB (`compose.test.yml`,
+port 5433) for the automated suites.
+
 **Prod (any Docker host, incl. Proxmox; Portainer "deploy stack"):**
 
 - `docker compose up -d` with **no env to set** (§4 — zero-config) — it **pulls** the

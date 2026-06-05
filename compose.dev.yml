@@ -1,0 +1,17 @@
+# Local app-run database (PERSISTENT, named volume) for the macronome_*.bat dev scripts.
+# Distinct from compose.test.yml (the ephemeral tmpfs DB used by the test suites): this
+# one keeps your data across stop/start, on its own port so both can run at once.
+services:
+  postgres-dev:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: macronome
+      POSTGRES_USER: macronome
+      POSTGRES_PASSWORD: dev
+    ports:
+      - '5434:5432' # host 5434 → avoids 5433 (test DB) and a possible local 5432
+    volumes:
+      - 'devdata:/var/lib/postgresql/data'
+
+volumes:
+  devdata:
