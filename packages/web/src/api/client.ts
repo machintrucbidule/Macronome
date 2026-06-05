@@ -1,3 +1,5 @@
+import { PUBLIC_PATHS } from '../app/public-paths';
+
 // Typed fetch wrapper: cookie session, the double-submit CSRF header, and the
 // contract error envelope (spec/api/00-conventions.md). One source for every
 // resource module under api/. The web app reads computed values; it never computes.
@@ -19,10 +21,6 @@ function readCsrfToken(): string | null {
   const match = document.cookie.match(/(?:^|;\s*)macronome\.csrf=([^;]+)/);
   return match?.[1] ? decodeURIComponent(match[1]) : null;
 }
-
-// Pages reachable without a session — a background 401 here (e.g. SettingsSync probing
-// /settings) is expected and must stay silent, never redirect.
-const PUBLIC_PATHS = new Set(['/login', '/setup']);
 
 // Global session-expiry handling: a 401 on a non-auth call while on a protected page means
 // the session lapsed mid-use — bounce to /login (mirrors the logout flow). Auth probes

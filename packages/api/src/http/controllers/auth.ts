@@ -13,6 +13,30 @@ import { ApiError, zodDetails } from '../errors.js';
 // no SQL (docs/architecture/context-files/api-CLAUDE.md).
 const STAY_SIGNED_IN_MS = 1000 * 60 * 60 * 24 * 90; // 90 days
 
+// Promisify an express-session node-style callback, normalising the error to an Error.
+function fromCallback(fn: (cb: (err?: unknown) => void) => void): Promise<void> {
+  return new Promise<void>((resolve, reject) =>
+    fn((err) =>
+      err ? reject(err instanceof Error ? err : new Error('session operation failed')) : resolve(),
+    ),
+  );
+}
+
+// Privilege elevation regenerates the session id (anti-fixation; security.md §1/§4). It also
+// makes the authenticated session a fresh row written last in the auth response, hardening the
+// setup→reload handoff (B-022). The CSRF token is carried forward so the SPA's double-submit
+// header keeps matching without an extra round-trip; userId is then set by the caller.
+async function elevateSession(req: Request, userId: string): Promise<void> {
+  const csrfToken = req.session.csrfToken;
+  await fromCallback((cb) => req.session.regenerate(cb));
+  if (csrfToken !== undefined) req.session.csrfToken = csrfToken;
+  req.session.userId = userId;
+}
+
+function saveSession(req: Request): Promise<void> {
+  return fromCallback((cb) => req.session.save(cb));
+}
+
 export async function login(req: Request, res: Response): Promise<void> {
   const parsed = LoginRequestSchema.safeParse(req.body);
   if (!parsed.success) throw new ApiError(422, ErrorCode.ValidationError, zodDetails(parsed.error));
@@ -20,8 +44,9 @@ export async function login(req: Request, res: Response): Promise<void> {
   const user = await authService.authenticate(parsed.data.username, parsed.data.password);
   if (!user) throw new ApiError(401, ErrorCode.InvalidCredentials);
 
-  req.session.userId = user.id;
+  await elevateSession(req, user.id);
   if (parsed.data.stay_signed_in) req.session.cookie.maxAge = STAY_SIGNED_IN_MS;
+  await saveSession(req);
   res.status(200).json({ user });
 }
 
@@ -36,7 +61,8 @@ export async function setup(req: Request, res: Response): Promise<void> {
   const user = await setupService.setupOwner(parsed.data);
   if (!user) throw new ApiError(409, ErrorCode.SetupAlreadyCompleted);
 
-  req.session.userId = user.id;
+  await elevateSession(req, user.id);
+  await saveSession(req);
   res.status(200).json({ user });
 }
 

@@ -6,8 +6,13 @@ import { settingsApi } from '../../api/settings';
 // (same key) so a patch refreshes both the Paramètres controls and the live theme/locale.
 export const SETTINGS_KEY = ['settings'] as const;
 
-export function useSettingsQuery() {
-  return useQuery({ queryKey: SETTINGS_KEY, queryFn: () => settingsApi.get(), retry: false });
+export function useSettingsQuery(options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: SETTINGS_KEY,
+    queryFn: () => settingsApi.get(),
+    retry: false,
+    enabled: options?.enabled ?? true,
+  });
 }
 
 export function useSettingsMutation() {

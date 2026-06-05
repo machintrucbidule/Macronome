@@ -15,6 +15,7 @@ import { AccountPage } from '../features/account/AccountPage';
 import { AppShell } from './AppShell';
 import { AppGate } from './AppGate';
 import { RequireAuth } from './RequireAuth';
+import { SettingsSync } from './SettingsSync';
 import { HealthStatus } from './HealthStatus';
 
 // Routes → features (module-map.md §2). Repas is the default landing screen (M3b); the
@@ -45,15 +46,17 @@ const PROTECTED: ReadonlyArray<[string, ReactElement]> = [
 export function AppRouter() {
   return (
     <BrowserRouter>
-      <AppGate>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/setup" element={<SetupWizard />} />
-          {PROTECTED.map(([path, element]) => (
-            <Route key={path} path={path} element={<RequireAuth>{element}</RequireAuth>} />
-          ))}
-        </Routes>
-      </AppGate>
+      <SettingsSync>
+        <AppGate>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/setup" element={<SetupWizard />} />
+            {PROTECTED.map(([path, element]) => (
+              <Route key={path} path={path} element={<RequireAuth>{element}</RequireAuth>} />
+            ))}
+          </Routes>
+        </AppGate>
+      </SettingsSync>
     </BrowserRouter>
   );
 }

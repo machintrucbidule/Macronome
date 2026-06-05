@@ -32,11 +32,20 @@ async function seedUser(username: string, password: string): Promise<void> {
   });
 }
 
-/** A cookie-persisting agent primed with a CSRF token (from a first GET). */
-async function csrfAgent(): Promise<{ agent: ReturnType<typeof request.agent>; csrf: string }> {
+/** A cookie-persisting agent primed with a CSRF token (from a first GET). `sid` is the
+ *  anonymous session id minted by that first GET (used to assert regeneration on auth). */
+async function csrfAgent(): Promise<{
+  agent: ReturnType<typeof request.agent>;
+  csrf: string;
+  sid: string;
+}> {
   const agent = request.agent(app);
   const pre = await agent.get('/api/v1/auth/session');
-  return { agent, csrf: getCookie(pre, 'macronome.csrf') ?? '' };
+  return {
+    agent,
+    csrf: getCookie(pre, 'macronome.csrf') ?? '',
+    sid: getCookie(pre, 'macronome.sid') ?? '',
+  };
 }
 
 beforeEach(async () => {
@@ -85,6 +94,27 @@ describe('auth', () => {
     expect(login.body.user).toMatchObject({ username: 'alice', locale: 'fr', theme: 'dark' });
     expect(getCookie(login, 'macronome.sid')).toBeTruthy();
 
+    const session = await agent.get('/api/v1/auth/session');
+    expect(session.status).toBe(200);
+    expect(session.body.user.username).toBe('alice');
+  });
+
+  it('regenerates the session id on login and keeps the session usable (B-022)', async () => {
+    await seedUser('alice', 'correct-horse');
+    const { agent, csrf, sid } = await csrfAgent();
+    expect(sid).toBeTruthy();
+
+    const login = await agent
+      .post('/api/v1/auth/login')
+      .set('x-csrf-token', csrf)
+      .send({ username: 'alice', password: 'correct-horse' });
+
+    expect(login.status).toBe(200);
+    const newSid = getCookie(login, 'macronome.sid');
+    expect(newSid).toBeTruthy();
+    expect(newSid).not.toBe(sid); // anti-fixation: a fresh id replaces the anonymous one
+
+    // The carried-forward CSRF token still authorises a state-changing request (no 403).
     const session = await agent.get('/api/v1/auth/session');
     expect(session.status).toBe(200);
     expect(session.body.user.username).toBe('alice');
@@ -152,6 +182,21 @@ describe('auth setup (first-run)', () => {
     expect(slots).toBeGreaterThan(0);
     const rien = await prisma.container.findFirst({ where: { ownerId: user!.id, name: 'Rien' } });
     expect(rien).not.toBeNull();
+
+    const session = await agent.get('/api/v1/auth/session');
+    expect(session.status).toBe(200);
+    expect(session.body.user.username).toBe('owner');
+  });
+
+  it('regenerates the session id on setup so the reload handoff is stable (B-022)', async () => {
+    const { agent, csrf, sid } = await csrfAgent();
+    expect(sid).toBeTruthy();
+
+    const res = await agent.post('/api/v1/auth/setup').set('x-csrf-token', csrf).send(VALID_SETUP);
+    expect(res.status).toBe(200);
+    const newSid = getCookie(res, 'macronome.sid');
+    expect(newSid).toBeTruthy();
+    expect(newSid).not.toBe(sid); // the authenticated session is a fresh id, written last
 
     const session = await agent.get('/api/v1/auth/session');
     expect(session.status).toBe(200);
