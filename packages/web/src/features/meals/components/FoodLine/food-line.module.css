@@ -134,10 +134,28 @@
 }
 
 .pin {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  line-height: 1;
+  cursor: pointer;
   color: var(--text-faint);
   font-size: 11px;
-  opacity: 0.55;
+  opacity: 0.4;
   text-align: center;
+  filter: grayscale(1);
+}
+.pin:hover {
+  opacity: 0.85;
+}
+.pinOn {
+  opacity: 1;
+  filter: none;
+}
+
+/* Pinned (garde-manger) line: accent left-border via inset shadow (no layout shift). */
+.pinned {
+  box-shadow: inset 2px 0 0 var(--accent);
 }
 .del {
   border: 0;

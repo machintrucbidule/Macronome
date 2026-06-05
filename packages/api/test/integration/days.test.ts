@@ -68,6 +68,28 @@ describe('daily log — entry flow', () => {
   });
 });
 
+describe('daily log — default activity & deficit readout (B-033/B-038)', () => {
+  it('a never-touched day defaults to sedentary with a computed deficit readout', async () => {
+    const { agent, userId } = await authedAgent(app, 'alice');
+    await seedTarget(userId, '2026-01-01');
+    await seedWeight(userId, '2026-01-01', 80);
+
+    const scaffold = await agent.get(`/api/v1/days/${TODAY}`);
+    expect(scaffold.status).toBe(200);
+    expect(scaffold.body.activity_level).toBe('sedentary'); // never null / "unset"
+    expect(scaffold.body.constat.estimated_burn).toBeGreaterThan(0); // computed by default
+  });
+
+  it('the readout is null only when the account has no body weight yet', async () => {
+    const { agent, userId } = await authedAgent(app, 'bob');
+    await seedTarget(userId, '2026-01-01'); // no weigh-in
+
+    const scaffold = await agent.get(`/api/v1/days/${TODAY}`);
+    expect(scaffold.body.activity_level).toBe('sedentary');
+    expect(scaffold.body.constat.estimated_burn).toBeNull(); // placeholder path
+  });
+});
+
 describe('daily log — tenancy', () => {
   it("returns 404 on another user's meal / entry (no cross-tenant access)", async () => {
     const alice = await authedAgent(app, 'alice');

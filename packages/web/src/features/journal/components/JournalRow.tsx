@@ -72,14 +72,13 @@ export function JournalRow({ row, onPatch }: JournalRowProps) {
       <td>
         <select
           className={styles.activity}
-          value={row.activity_level ?? ''}
+          value={row.activity_level}
           onChange={(e) =>
             onPatch(row.date, {
-              activity_level: (e.target.value || null) as ActivityLevel | null,
+              activity_level: e.target.value as ActivityLevel,
             })
           }
         >
-          <option value="">{t('journal.activityNone')}</option>
           {ACTIVITY_LEVELS.map((lvl) => (
             <option key={lvl} value={lvl}>
               {t(ACTIVITY_LABEL_KEYS[lvl].label)}

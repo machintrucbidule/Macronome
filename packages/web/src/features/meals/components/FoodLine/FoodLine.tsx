@@ -4,6 +4,7 @@ import { useMeals } from '../../MealsContext';
 import { useFood } from '../../hooks/useFoodLookup';
 import { r0 } from '../../format';
 import { QtyCell } from './QtyCell';
+import { PinCell } from './PinCell';
 import { InlineFoodSearch } from '../InlineFoodSearch/InlineFoodSearch';
 import styles from './food-line.module.css';
 
@@ -49,9 +50,14 @@ function EntryRow({
   const name = isCustom ? (entry.custom_name ?? '') : (food.data?.data.name ?? '…');
   const isZero = !isCustom && entry.served_quantity === 0;
   const c = entry.consumed;
+  // A pinned line is a garde-manger food: accent left-border + filled pin. Pantry is food-based,
+  // so the pin only shows on referenced lines (custom lines have no food_id; see PinCell).
+  const showPin = !isCustom;
 
   return (
-    <div className={`${styles.line} ${isZero ? styles.zero : ''}`}>
+    <div
+      className={`${styles.line} ${isZero ? styles.zero : ''} ${entry.is_pinned ? styles.pinned : ''}`}
+    >
       <span className={styles.grip} />
       <div
         className={styles.nm}
@@ -82,9 +88,7 @@ function EntryRow({
       <span className={`${styles.v} num`}>{r0(c.fat)}</span>
       <span className={`${styles.v} num`}>{r0(c.carb)}</span>
       <span className={`${styles.v} num`}>{r0(c.protein)}</span>
-      <span className={styles.pin} title={t('meals.line.pinSoon')}>
-        📌
-      </span>
+      <PinCell mealId={mealId} entryId={entry.id} isPinned={entry.is_pinned} show={showPin} />
       <button
         type="button"
         className={styles.del}

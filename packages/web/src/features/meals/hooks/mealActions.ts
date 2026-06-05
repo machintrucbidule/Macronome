@@ -107,6 +107,9 @@ function lineActions(d: MealActionDeps, run: Run) {
     setUnit: (mealId: string, id: string, unit: EntryUnit, portion_id: string | null) =>
       run(d.day.updateEntry.mutateAsync({ mealId, id, body: { unit, portion_id } })),
     deleteEntry: (mealId: string, id: string) => run(d.day.removeEntry.mutateAsync({ mealId, id })),
+    // Pin/unpin a referenced line as garde-manger (future-day prefill); persisted lines only.
+    togglePin: (mealId: string, id: string, pinned: boolean) =>
+      run((pinned ? d.day.unpinEntry : d.day.pinEntry).mutateAsync({ mealId, id })),
 
     openCustom: (mealId: string, mealIndex: number, entryId: string | null) => {
       d.setEditing(null);
@@ -140,8 +143,8 @@ function dayActions(d: MealActionDeps, run: Run) {
     renameMeal: (mealId: string, slot_name: string) =>
       run(d.day.patchMeal.mutateAsync({ mealId, body: { slot_name } })),
     deleteMeal: (mealId: string) => run(d.day.removeMeal.mutateAsync(mealId)),
-    setActivity: (level: string | null) =>
-      run(d.day.patchDay.mutateAsync({ activity_level: level as ActivityLevel | null })),
+    setActivity: (level: ActivityLevel) =>
+      run(d.day.patchDay.mutateAsync({ activity_level: level })),
     setComment: (comment: string) => run(d.day.patchDay.mutateAsync({ comment })),
     setVerdict: (verdict_override: Verdict | null) =>
       run(d.day.patchDay.mutateAsync({ verdict_override })),

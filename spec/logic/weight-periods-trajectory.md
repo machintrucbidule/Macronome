@@ -4,6 +4,7 @@ Covers §3.7, RECONCILIATION_LOG §B2/§E3, OPEN_GAPS #9 (EMA), §G2/§G4.
 See `00-conventions.md`, `metabolic-engine.md`.
 
 ## 1. Weigh-ins & periods
+
 - A `WeightEntry` = `date` (editable), `weight_kg`, `waist_cm?`, `diet_flag`
   (in_diet | not_in_diet — describes the period **ending** at this weigh-in),
   `note?`. **Activity is NOT stored here.**
@@ -15,9 +16,12 @@ See `00-conventions.md`, `metabolic-engine.md`.
 - Editing a weigh-in's date re-sorts and **re-derives the adjacent periods**.
 
 ## 2. Per-period stats (each over its exact span)
+
 - `avg_intake` = mean `day_kcal` over the **logged** days in the span.
 - `period_activity_multiplier` = mean of the span's daily activity multipliers
-  (days with a `DayLog.activity_level`); if none, fall back to sedentary + flag.
+  (every logged day carries an activity level — at least `sedentary`, never unset —
+  so all logged days in the span count); only when the span has **no** logged day at
+  all does it fall back to sedentary + flag.
 - `estimated_burn_per_day = BMR(weight_end) × period_activity_multiplier`.
 - `empirical_burn_per_day  = avg_intake + lost_kg × 7700 / days`
   (`lost_kg = weight_start − weight_end`).
@@ -26,21 +30,26 @@ See `00-conventions.md`, `metabolic-engine.md`.
 - All per-day (RECONCILIATION_LOG §B2). See `metabolic-engine.md` for oracles.
 
 ## 3. EMA trend (OPEN_GAPS #9)
+
 Over the **ordered weigh-in series** (each weigh-in is one point; no daily
 resampling). Seeded at the first weigh-in's real weight; `α = 0.35` (named
 constant).
+
 ```
 ema[0] = weight[0]
 ema[i] = α × weight[i] + (1 − α) × ema[i−1]
 ```
+
 - **Worked example** (oracle): `weights = [80.0, 79.0, 78.0], α=0.35`
   `ema[0]=80.0`
   `ema[1]=0.35×79.0 + 0.65×80.0 = 79.65 ≈ 79.7`
   `ema[2]=0.35×78.0 + 0.65×79.65 = 79.0725 ≈ 79.1`
 
 ## 4. Target trajectory — broken line (§3.7, §G4)
+
 Driven by each period's `diet_flag`. **Anchored on the first weigh-in's real
 weight.** Built forward, period by period, in date order:
+
 ```
 traj[0] = weight[0]                         (anchor = real first weigh-in)
 for each period i ending at weigh-in i (days_i, flag_i):
@@ -50,6 +59,7 @@ for each period i ending at weigh-in i (days_i, flag_i):
   else:  # not_in_diet
       traj[i] = traj[i−1]                              (flat)
 ```
+
 - `rate_kg_per_week` and `goal_weight` come from the Target. If no goal weight,
   the cap is omitted (no floor).
 - `écart_à_la_trajectoire = real_weight − traj` at each weigh-in.
@@ -61,12 +71,15 @@ for each period i ending at weigh-in i (days_i, flag_i):
   if real at P3 = 78.0 → écart = 78.0 − 77.0 = +1.0 kg (behind plan).
 
 ## 5. BMI
+
 `BMI = weight_kg / (height_cm/100)²`
+
 - **Worked example:** `weight=80, height_cm=180 → 80/1.80² = 24.7`.
 - Category labels (display): <18.5 underweight · 18.5–24.9 normal · 25–29.9
   overweight · ≥30 obese.
 
 ## 6. Projection (opt-in; only if goal weight set)
+
 - Fit a line to the **recent EMA** (default: last 4 weigh-ins, ≥ 2 required) of
   `ema` vs `date`; let `slope` be kg/day.
 - If `slope ≥ 0` (not downward) → show "tendance non baissière" (no date).
@@ -78,11 +91,13 @@ for each period i ending at weigh-in i (days_i, flag_i):
   `→ days_to_goal = 8.0/0.05 = 160 → ~160 days out.`
 
 ## 7. Current mode (Régime / Maintien) — Weight screen only
+
 - Defaults to the latest period's `diet_flag`; editable.
 - Effects are **local to the Weight screen**: pre-selects the diet flag on a new
   weigh-in, and gates the projection. Does not touch the calorie target, the
   Daily-log verdict, or anything else.
 
 ## 8. Empty / single weigh-in (§G2)
+
 - No weigh-ins → empty state, prompt to add one; engine reports "no weight".
 - Single weigh-in → no period yet (table dashes); BMI computable, no Δ, no burns.

@@ -144,11 +144,12 @@ export interface ConstatInput {
   profile: ProfileRow;
   weightKg: number | null;
   ageOnDay: number;
-  activityLevel: string | null;
+  activityLevel: string;
   dayKcal: number;
 }
 
-/** Per-day burn/deficit constat (null without the day's weight or activity level). */
+/** Per-day burn/deficit readout (null only without the day's body weight; activity is
+ * always set — default sedentary). */
 export function buildConstat({
   profile,
   weightKg,
@@ -156,7 +157,7 @@ export function buildConstat({
   activityLevel,
   dayKcal,
 }: ConstatInput): DayConstat {
-  if (weightKg === null || activityLevel === null) {
+  if (weightKg === null) {
     return { estimated_burn: null, deficit: null, kg_per_week: null };
   }
   const bmr = mifflinStJeor({

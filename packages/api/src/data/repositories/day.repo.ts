@@ -24,7 +24,7 @@ export interface CreateDayData {
 }
 
 export interface UpdateDayData {
-  activityLevel?: string | null;
+  activityLevel?: string;
   comment?: string | null;
   verdictOverride?: 'OK' | 'NOK' | null;
   verdictAuto?: 'OK' | 'NOK' | null;

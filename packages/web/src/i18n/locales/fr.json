@@ -285,8 +285,7 @@
       "depasse": "Dépassé"
     },
     "activity": {
-      "label": "Activité du jour",
-      "none": "Non définie"
+      "label": "Activité du jour"
     },
     "verdict": {
       "forceOk": "Forcer OK",
@@ -300,7 +299,8 @@
       "burn": "Dépense",
       "deficit": "déficit",
       "surplus": "surplus",
-      "kgPerWeek": "kg/sem"
+      "kgPerWeek": "kg/sem",
+      "noWeight": "Ajoute une pesée pour estimer ta dépense"
     },
     "col": {
       "food": "Aliment",
@@ -313,7 +313,8 @@
     "line": {
       "addFood": "+ aliment",
       "manual": "Saisie manuelle",
-      "pinSoon": "Garde-manger (à venir)"
+      "pin": "Épingler au garde-manger (préremplit les nouveaux jours)",
+      "unpin": "Retirer du garde-manger"
     },
     "tag": {
       "portion": "portion",
@@ -365,7 +366,6 @@
     "dayCount_other": "{{count}} jours",
     "prevYear": "Année précédente",
     "nextYear": "Année suivante",
-    "activityNone": "Non définie",
     "commentPlaceholder": "Ajouter un commentaire…",
     "col": {
       "day": "Jour",

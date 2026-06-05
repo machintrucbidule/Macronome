@@ -219,7 +219,7 @@ model DayLog {
   date            DateTime @db.Date
   kind            String
   summaryKcal     Decimal? @map("summary_kcal") @db.Decimal
-  activityLevel   String?  @map("activity_level")
+  activityLevel   String   @default("sedentary") @map("activity_level")
   comment         String?
   verdictAuto     String?  @map("verdict_auto")
   verdictOverride String?  @map("verdict_override")

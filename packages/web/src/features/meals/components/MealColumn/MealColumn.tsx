@@ -59,7 +59,7 @@ export function MealColumn({ meal, index, meals, width }: MealColumnProps) {
         <LineHeader />
         {meal.entries.map((entry) => (
           <FoodLine
-            key={entry.id}
+            key={entry.id || `pin-${entry.food_id}`}
             mealId={meal.id}
             mealIndex={meal.order_index}
             entry={entry}

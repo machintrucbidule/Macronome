@@ -285,8 +285,7 @@
       "depasse": "Over"
     },
     "activity": {
-      "label": "Day activity",
-      "none": "Not set"
+      "label": "Day activity"
     },
     "verdict": {
       "forceOk": "Force OK",
@@ -300,7 +299,8 @@
       "burn": "Burn",
       "deficit": "deficit",
       "surplus": "surplus",
-      "kgPerWeek": "kg/week"
+      "kgPerWeek": "kg/week",
+      "noWeight": "Add a weigh-in to estimate your burn"
     },
     "col": {
       "food": "Food",
@@ -313,7 +313,8 @@
     "line": {
       "addFood": "+ food",
       "manual": "Manual entry",
-      "pinSoon": "Pantry (coming soon)"
+      "pin": "Pin to pantry (prefills new days)",
+      "unpin": "Unpin from pantry"
     },
     "tag": {
       "portion": "portion",
@@ -365,7 +366,6 @@
     "dayCount_other": "{{count}} days",
     "prevYear": "Previous year",
     "nextYear": "Next year",
-    "activityNone": "Not set",
     "commentPlaceholder": "Add a comment…",
     "col": {
       "day": "Day",

@@ -23,6 +23,7 @@ set in this folder, not any single mockup.
 ## Decisions requiring author input
 
 ### 1. Appbar global controls (theme / language) — [CONFIRMED → A]
+
 - **Divergence:** `login.html` top-bar = FR/EN + theme and claims "mandatory on
   every screen"; app screens = theme toggle only, no language; `settings.html`
   and `account.html` = no theme toggle in the appbar at all.
@@ -32,6 +33,7 @@ set in this folder, not any single mockup.
 - See `components/top-nav.md`, `theming.md`.
 
 ### 2. OK/NOK soft fills — [CONFIRMED → A]
+
 - **Divergence (dark / light):**
   `--ok-soft` login `#12281d`/`#e2f1e8` vs app `#15301f`/`#dcefe3`;
   `--nok-soft` login `#2b1512`/`#f7e3de` vs app `#341812`/`#f5ddd6`.
@@ -40,12 +42,14 @@ set in this folder, not any single mockup.
   badge on Repas, OK/NOK pills on Journal) over login's single rare alert.
 
 ### 3. Touch target `--tap` — [CONFIRMED → C]
+
 - **Divergence:** login `44px` vs meals/food-db `40px`.
 - **Canonical = two values:** `--tap: 40px` by default (desktop/mouse density),
   raised to `44px` at the mobile breakpoint (`<= 760px`) for at-the-table use.
   Implemented in `tokens.css` via a media override.
 
 ### 4. Active nav-tab hover — [CONFIRMED → A]
+
 - **Divergence:** variant A (`.nav a:not(.active):hover`, meals/recipe/food-db)
   leaves the active tab inert on hover; variant B (`.nav a:hover` then
   `.nav a.active`, 7 files) lets the active tab also take the grey hover fill
@@ -53,13 +57,22 @@ set in this folder, not any single mockup.
 - **Canonical = variant A.** The accent-filled active tab does not react to
   hover. Classed as bug-fix, not redesign.
 
+### 5. Repas deficit readout "constat" caption — [CONFIRMED → A] (B-038)
+
+- **Divergence:** `meals.html` ends the burn/deficit readout with a faint literal
+  word "constat"; the shipped app omits it.
+- **Canonical = no caption.** The readout shows burn + deficit/surplus + kg/week
+  only; the literal "constat" label is intentionally dropped (author: the word is
+  mockup jargon). The block is **always rendered** (placeholder only when there is
+  no body weight yet). See `DECISIONS.md` B-033/B-038, `components/metric-cards.md`.
+
 ---
 
 ## Auto-normalised (trivial) — [AUTO], no veto received
 
 1. **Account menu.** `meals.html` used a `.popmenu` button with
-   *Paramètres / Compte / Déconnexion*; 9 files use `details/.acct-pop` with
-   *Compte · Cibles · Contenants · Paramètres · Déconnexion*.
+   _Paramètres / Compte / Déconnexion_; 9 files use `details/.acct-pop` with
+   _Compte · Cibles · Contenants · Paramètres · Déconnexion_.
    → Canonical = `acct-pop` set (majority + fixed by masterplan v1.9). meals
    realigned. See `components/top-nav.md`.
 2. **`.btn` base font-size.** 13px (meals/recipe/food-db) vs 12.5px (6 files).

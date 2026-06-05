@@ -244,3 +244,34 @@ threshold (`max. 135.29999999999998 g`). Per-100 g values are reference densitie
 0.5 g is meaningful, so they stay at 1 decimal. Display-only — storage keeps full precision
 (CLAUDE.md rule 2). `design/components/metric-cards.md` already shows integer threshold
 examples (`min. 50 g`, `max. 150 g`) and is unchanged.
+
+---
+
+## B-033 / B-038 — Day activity always set (no "unset"); deficit readout always shown — RESOLVED (author)
+
+Post-v1 backlog triage (BF-2 + B-033). The schema previously allowed
+`day_log.activity_level` to be NULL, surfaced in the UI as "Non définie"; the burn/deficit
+readout beside the verdict was hidden whenever activity was unset, so on a default day it
+was absent (B-038). The author decided the "unset" activity state must **not exist anywhere**.
+
+- **No unset activity, ever.** `day_log.activity_level` becomes **NOT NULL DEFAULT
+  'sedentary'** (1.20). The "Non définie" option is removed from the Repas activity select,
+  the DTO/`PATCH` no longer accept null, and existing NULL rows are backfilled to
+  `sedentary` by migration. There is no display, DB, or request path where activity is
+  null. _(Author: "par défaut c'est sédentaire et point barre.")_
+- **Deficit readout always rendered.** The burn/deficit block (kept next to the OK/NOK
+  verdict) is always shown and populated; since every day now has an activity, it computes
+  on any day that has a body weight. It falls back to a short placeholder only when the
+  account has **no weigh-in yet** (no weight → no BMR). _(Author.)_
+- **No "constat" caption.** The mockup's faint literal label "constat" is **intentionally
+  omitted** from the UI (author preference — the word is mockup jargon). The readout shows
+  the burn + deficit/surplus + kg/week only. Recorded in `design/NORMALIZATION_LOG.md`
+  (mockup vs shipped divergence, author-approved).
+
+**Consequence (accepted):** recent-average activity (Cibles) and per-period activity
+multiplier (Poids) now include **every** logged day (each ≥ sedentary); the prior behaviour
+that excluded null-activity days no longer applies — the sedentary fallback fires only when
+there is no logged day at all. Specs updated: `spec/schema/tables-logging.md`,
+`spec/api/days-meals-leftover.md`, `spec/logic/day-snapshot-verdict.md` §7,
+`spec/logic/metabolic-engine.md` §3, `spec/logic/weight-periods-trajectory.md`,
+`specifications/screens/meals.md`.

@@ -62,6 +62,14 @@ export function useDay(date: string) {
     mutationFn: (v: { mealId: string; id: string }) => entriesApi.remove(v.mealId, v.id),
     onSuccess,
   });
+  const pinEntry = useMutation({
+    mutationFn: (v: { mealId: string; id: string }) => entriesApi.pin(v.mealId, v.id),
+    onSuccess,
+  });
+  const unpinEntry = useMutation({
+    mutationFn: (v: { mealId: string; id: string }) => entriesApi.unpin(v.mealId, v.id),
+    onSuccess,
+  });
 
   const createLeftover = useMutation({
     mutationFn: (v: { mealId: string; body: LeftoverRequest }) =>
@@ -88,6 +96,8 @@ export function useDay(date: string) {
     createEntry,
     updateEntry,
     removeEntry,
+    pinEntry,
+    unpinEntry,
     createLeftover,
     updateLeftover,
     removeLeftover,

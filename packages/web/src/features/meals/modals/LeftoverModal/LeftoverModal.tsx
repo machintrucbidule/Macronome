@@ -1,4 +1,4 @@
-import { useId, useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Meal } from '@macronome/shared';
 import { ApiError } from '../../../../api/client';
@@ -9,6 +9,7 @@ import { useMeals } from '../../MealsContext';
 import { r0 } from '../../format';
 import { LineSelector } from './LineSelector';
 import { LeftoverFields } from './LeftoverFields';
+import { useLeftoverForm } from './useLeftoverForm';
 import styles from '../modals.module.css';
 
 // Leftover (plate-deduction) modal. Lists the meal's weighed lines, takes the gross weight and
@@ -16,7 +17,8 @@ import styles from '../modals.module.css';
 // Proration is NEVER computed here; on apply the day refetches and the consumed values update.
 // Block-and-warn: a client guard disables Appliquer when gross < tare or net > served (the server
 // also enforces 409 gross_below_tare / leftover_exceeds_served, writing nothing). The container
-// catalog is M7 — only the built-in "Rien" (tare 0) is offered for now.
+// picker lists the user's tare catalog (incl. the locked built-in "Rien", 0 g); the chosen tare
+// drives the net preview and is frozen server-side on apply.
 interface LeftoverModalProps {
   meal: Meal;
 }
@@ -24,10 +26,11 @@ interface LeftoverModalProps {
 interface ApplyArgs {
   mealId: string;
   grossNum: number;
+  containerId: string | null;
   entryIds: string[];
   create: (v: {
     mealId: string;
-    body: { container_id: null; gross_grams: number; entry_ids: string[] };
+    body: { container_id: string | null; gross_grams: number; entry_ids: string[] };
   }) => Promise<unknown>;
   onDone: () => void;
   onError: (code: string) => void;
@@ -36,6 +39,7 @@ interface ApplyArgs {
 async function applyLeftover({
   mealId,
   grossNum,
+  containerId,
   entryIds,
   create,
   onDone,
@@ -44,7 +48,7 @@ async function applyLeftover({
   try {
     await create({
       mealId,
-      body: { container_id: null, gross_grams: grossNum, entry_ids: entryIds },
+      body: { container_id: containerId, gross_grams: grossNum, entry_ids: entryIds },
     });
     onDone();
   } catch (e) {
@@ -55,43 +59,30 @@ async function applyLeftover({
 export function LeftoverModal({ meal }: LeftoverModalProps) {
   const { t } = useTranslation();
   const { actions, mutations } = useMeals();
-  const fieldId = useId();
-  const eligible = useMemo(
-    () => meal.entries.filter((e) => (e.served_grams ?? 0) > 0),
-    [meal.entries],
-  );
-  const [selected, setSelected] = useState<Set<string>>(() => new Set(eligible.map((e) => e.id)));
-  const [gross, setGross] = useState('');
   const [serverError, setServerError] = useState<string | null>(null);
+  const form = useLeftoverForm(meal);
+  const {
+    fieldId,
+    containers,
+    eligible,
+    selected,
+    toggle,
+    gross,
+    setGross,
+    selectedId,
+    setContainerId,
+    net,
+    servedTotal,
+    blocked,
+    warning,
+  } = form;
 
-  const tare = 0; // built-in "Rien"; the Containers catalog (tares) ships in M7.
   const grossNum = Number(gross.replace(',', '.')) || 0;
-  const net = grossNum - tare;
-  const servedTotal = eligible
-    .filter((e) => selected.has(e.id))
-    .reduce((sum, e) => sum + (e.served_grams ?? 0), 0);
-  const exceedsServed = net > servedTotal;
-  const blocked = selected.size === 0 || grossNum <= 0 || grossNum < tare || exceedsServed;
-  const warning =
-    grossNum < tare
-      ? t('meals.leftover.warnBelowTare')
-      : exceedsServed
-        ? t('meals.leftover.warnExceeds')
-        : null;
-
-  const toggle = (id: string, on: boolean): void => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (on) next.add(id);
-      else next.delete(id);
-      return next;
-    });
-  };
-
   const apply = (): Promise<void> =>
     applyLeftover({
       mealId: meal.id,
       grossNum,
+      containerId: selectedId,
       entryIds: [...selected],
       create: mutations.createLeftover.mutateAsync,
       onDone: actions.closeLeftover,
@@ -109,7 +100,15 @@ export function LeftoverModal({ meal }: LeftoverModalProps) {
         <div className={styles.loSel}>
           {t('meals.leftover.selection', { count: selected.size })} · <b>{r0(servedTotal)}</b> g
         </div>
-        <LeftoverFields fieldId={fieldId} gross={gross} onGross={setGross} net={net} />
+        <LeftoverFields
+          fieldId={fieldId}
+          gross={gross}
+          onGross={setGross}
+          net={net}
+          containers={containers}
+          containerId={selectedId}
+          onContainer={setContainerId}
+        />
         {warning && <Banner tone="warning">{warning}</Banner>}
         {serverError && <Banner tone="warning">{t('meals.leftover.serverError')}</Banner>}
       </div>

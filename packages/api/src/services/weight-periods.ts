@@ -26,7 +26,7 @@ const num = (d: { toString(): string }): number => Number(d.toString());
 export interface LoggedDay {
   date: string;
   kcal: number;
-  activityLevel: string | null;
+  activityLevel: string;
 }
 
 /** kcal + activity of one logged day (summary days use their stored summary_kcal). */
@@ -54,9 +54,10 @@ function mean(values: number[]): number | null {
 }
 
 /** Intake/burn/deficit over a period's logged days. The span is (start, end]; estimated
- * burn always uses weight_end + the period's mean activity (sedentary fallback + no flag
- * when no day in the span carries an activity level). Intake-derived figures are null when
- * the span has no logged day. */
+ * burn always uses weight_end + the period's mean activity. Every logged day carries an
+ * activity level (≥ sedentary, never unset), so all logged days in the span count; the
+ * sedentary fallback fires only when the span has no logged day at all. Intake-derived
+ * figures are null when the span has no logged day. */
 export function periodMetabolics(
   period: RawPeriod,
   loggedDays: LoggedDay[],
@@ -65,9 +66,7 @@ export function periodMetabolics(
   const inSpan = loggedDays.filter((d) => d.date > period.startDate && d.date <= period.endDate);
   const avgIntake = mean(inSpan.map((d) => d.kcal));
   const avgActivity = mean(
-    inSpan
-      .filter((d) => d.activityLevel !== null)
-      .map((d) => ACTIVITY_MULTIPLIERS[d.activityLevel as ActivityLevel]),
+    inSpan.map((d) => ACTIVITY_MULTIPLIERS[d.activityLevel as ActivityLevel]),
   );
   const burnMultiplier = avgActivity ?? ACTIVITY_MULTIPLIERS[DEFAULT_ACTIVITY_LEVEL];
   const bmr = mifflinStJeor({

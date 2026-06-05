@@ -88,7 +88,7 @@ export interface DayConstat {
 export interface DayDetail {
   date: string;
   kind: 'detailed' | 'summary';
-  activity_level: string | null;
+  activity_level: string;
   comment: string | null;
   verdict_auto: Verdict | null;
   verdict_override: Verdict | null;
@@ -105,7 +105,7 @@ export interface DayDetail {
 /** PATCH /days/:date — day-level fields. verdict_override null = revert to auto. */
 export const PatchDaySchema = z
   .object({
-    activity_level: z.enum(ACTIVITY_LEVELS).nullish(),
+    activity_level: z.enum(ACTIVITY_LEVELS).optional(),
     comment: z.string().max(2000).nullish(),
     verdict_override: VerdictSchema.nullish(),
     summary_kcal: z.number().nonnegative().nullish(),
@@ -197,7 +197,7 @@ export interface JournalRow {
   verdict_auto: Verdict | null;
   verdict_override: Verdict | null;
   effective_verdict: Verdict | null;
-  activity_level: string | null;
+  activity_level: string;
   comment: string | null;
   kind: 'detailed' | 'summary';
 }

@@ -1,5 +1,5 @@
 import type { DayDetail, PatchDayRequest } from '@macronome/shared';
-import { ErrorCode } from '@macronome/shared';
+import { DEFAULT_ACTIVITY_LEVEL, ErrorCode } from '@macronome/shared';
 import type { Prisma } from '@prisma/client';
 import { dayReadRepo } from '../data/repositories/day-read.repo.js';
 import { dayRepo } from '../data/repositories/day.repo.js';
@@ -31,14 +31,14 @@ function scaffold(
   return {
     date,
     kind: 'detailed',
-    activity_level: null,
+    activity_level: DEFAULT_ACTIVITY_LEVEL,
     comment: null,
     verdict_auto: auto,
     verdict_override: null,
     effective_verdict: auto,
     target_snapshot: snapshot,
     totals: { kcal: 0, fat: 0, carb: 0, protein: 0, weight_g: 0 },
-    constat: buildConstat({ ...ctx, activityLevel: null, dayKcal: 0 }),
+    constat: buildConstat({ ...ctx, activityLevel: DEFAULT_ACTIVITY_LEVEL, dayKcal: 0 }),
     meals: seed.slots.map((slot, order_index) => ({
       id: '',
       slot_name: slot.name,

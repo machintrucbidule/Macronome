@@ -10,4 +10,7 @@ export const entriesApi = {
   update: (mealId: string, id: string, body: UpdateMealEntryRequest) =>
     api.patch<MealEntry>(`/meals/${mealId}/entries/${id}`, body),
   remove: (mealId: string, id: string) => api.del<void>(`/meals/${mealId}/entries/${id}`),
+  pin: (mealId: string, id: string) => api.post<MealEntry>(`/meals/${mealId}/entries/${id}/pin`),
+  unpin: (mealId: string, id: string) =>
+    api.post<MealEntry>(`/meals/${mealId}/entries/${id}/unpin`),
 };
