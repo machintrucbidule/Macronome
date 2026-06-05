@@ -60,13 +60,55 @@ pantry}.ts`, components `Form/`, `DataTable/`, `Modal/`, `states/`.
 
 Each settings sub-screen is its own small feature folder; no god-settings page.
 
+## Split (approved): M7a backend, then M7b web
+
+Too large for one pass (300-line rule), split like M3/M4/M5.
+
+**M7a — backend DONE.** meal_slot_template + pantry_item tables + hand-written migration
+(`20260605120000_settings_pantry`; container search index added here too); locked built-in
+"Rien" seeded as owner data via `services/user-bootstrap.ts` (called by create-user + the
+integration helper). Services/repos/routes/DTOs for settings, meal-template, pantry,
+containers; the Repas 📌 `pin`/`unpin` endpoints (`services/pantry.ts`); day
+scaffold/materialize rewired to seed from `meal_slot_template` + qty-0 garde-manger prefill
+(`services/day-prefill.ts`, fallback to default slots). `current_mode` persisted on
+`app_user.settings` and the projection's Maintien gate moved server-side
+(`services/weight-view.ts`). Acceptance green: 10 integration cases (settings round-trip +
+partial merge, current_mode→Weight view, meal-template CRUD, pantry dedup 409 + pin
+idempotency + future-only prefill/unpin, container built-in lock + dup 409 + delete history
+safety, tenancy 404) + typecheck + lint + check:schema (15 tables) + full unit/integration.
+
+**M7b — web DONE.** `api/{settings,containers,mealTemplate,pantry,auth}.ts`; account-menu
+dropdown in `AppShell` (Compte · Cibles · Contenants · Paramètres · logout; Cibles removed
+from primary nav); `SettingsSync` applies persisted theme + locale on load (`applySettings`).
+Screens: **Paramètres** (`features/settings/`: appearance theme tri-state + language, default
+meal-template editor with reorder/rename/delete/add + per-meal garde-manger picker reusing
+`Autocomplete`, inert AI placeholder), **Contenants** (`features/containers/`: toolbar +
+sortable table with locked built-in first + add/edit modal + delete confirm), **Compte**
+(`features/account/`: credentials card + password-change modal + logout). FR+EN i18n.
+e2e green (`e2e/settings.spec.ts`): pin a food in Paramètres → it pre-fills a new day; unpin
+→ future days no longer pre-fill. Acceptance green: typecheck + lint + web build + e2e.
+
+### Deviations (M7a)
+
+- **`current_mode` added to the `/settings` DTO** + stored on `app_user.settings`
+  (user-approved deviation from the documented `{locale, theme, llm_endpoint?}`). Reuses the
+  weigh-in `DietFlag`; `not_in_diet` is the Maintien mode that gates the projection. The spec
+  is **not** edited (FIXED-contract rule); this note is the record. See `m4-current-mode-deferred`.
+- **New error code `pantry_duplicate`** (`shared/errors.ts`) for the `POST /pantry` dedup; the
+  📌 toggle is idempotent (no error). Container duplicate name → generic `conflict` (409);
+  locked built-in edit/delete → `forbidden` (403).
+- **`container` search index** (`idx_container_normname_trgm`) shipped in the M7 migration (the
+  table predates M7; the index is needed by the Contenants search planned in M7b).
+
 ## Checklist
 
-- [ ] meal_slot_template + pantry_item + container tables + migration; locked "Rien"
-- [ ] pantry/settings services + repos + routes/controllers + DTOs
-- [ ] Settings/Containers/Account screens; profile; language/theme; reserved llm_endpoint
-- [ ] persist Weight screen `current_mode` on `app_user.settings` (deferred from M4; needs a
-      contract decision on the write endpoint — see the M4 carry-in note above); then move the
-      projection's Maintien gate server-side
-- [ ] integration: pin idempotency, future-only unpin, container-delete history safety, tenancy 404
-- acceptance: listed integration cases green; future-only pre-fill e2e green
+- [x] meal_slot_template + pantry_item tables + migration; locked "Rien" seeded (M7a)
+- [x] pantry/settings/meal-template/containers services + repos + routes/controllers + DTOs (M7a)
+- [x] Settings/Containers/Account screens; language/theme; reserved llm_endpoint; account menu (M7b)
+- [x] persist Weight screen `current_mode` on `app_user.settings` + Maintien gate server-side (M7a)
+- [x] integration: pin idempotency, future-only unpin, container-delete history safety, tenancy 404 (M7a)
+- [x] acceptance: M7a integration cases green; future-only pre-fill e2e green (M7b)
+
+> Note: profile (sex/birthdate/height) is **not** on Paramètres — it lives on Cibles
+> (M2, `GET/PATCH /profile`), per `screens/account.md` v2.2. The reserved `llm_endpoint`
+> round-trips through `/settings` (stored, unused); its UI is the inert AI placeholder.

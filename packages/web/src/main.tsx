@@ -2,6 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryProvider } from './app/providers/QueryProvider';
 import { ThemeProvider } from './app/providers/ThemeProvider';
+import { SettingsSync } from './app/SettingsSync';
 import { AppRouter } from './app/router';
 import './i18n/config';
 import './styles/tokens.css';
@@ -14,7 +15,9 @@ createRoot(container).render(
   <StrictMode>
     <ThemeProvider>
       <QueryProvider>
-        <AppRouter />
+        <SettingsSync>
+          <AppRouter />
+        </SettingsSync>
       </QueryProvider>
     </ThemeProvider>
   </StrictMode>,

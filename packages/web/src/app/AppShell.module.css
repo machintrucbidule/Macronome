@@ -39,3 +39,73 @@
 .page {
   padding: var(--sp-9) var(--page-gutter);
 }
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+}
+
+/* Account menu (top-right avatar dropdown). */
+.acct {
+  position: relative;
+}
+.acctSummary {
+  list-style: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-pill);
+  border: var(--bw) solid var(--border);
+  background: var(--bg-elev-2);
+  color: var(--text);
+  cursor: pointer;
+  font-family: var(--font-num);
+  font-size: var(--fs-12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.acctSummary::-webkit-details-marker {
+  display: none;
+}
+.acct[open] > .acctSummary {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.acctPop {
+  position: absolute;
+  right: 0;
+  top: 38px;
+  background: var(--bg-elev-2);
+  border: var(--bw) solid var(--border-strong);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow);
+  min-width: 172px;
+  padding: var(--sp-1);
+  z-index: 80;
+}
+.acctItem {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: var(--sp-3) var(--sp-5);
+  color: var(--text);
+  text-decoration: none;
+  font-family: var(--font-body);
+  font-size: var(--fs-13);
+  border: 0;
+  background: transparent;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+}
+.acctItem:hover {
+  background: var(--bg-elev);
+}
+.acctSep {
+  height: var(--bw);
+  background: var(--border);
+  margin: var(--sp-1) 0;
+}
+.logout {
+  color: var(--nok);
+}

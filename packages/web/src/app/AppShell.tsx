@@ -1,12 +1,13 @@
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink } from 'react-router-dom';
+import { AccountMenu } from './AccountMenu';
 import { ThemeToggle } from './ThemeToggle';
 import styles from './AppShell.module.css';
 
-// In-app frame: appbar (wordmark + primary nav + theme toggle) + page body. The nav
-// grows screen by screen (M1 adds Aliments); the account menu and remaining tabs
-// arrive with their milestones.
+// In-app frame: appbar (wordmark + primary nav + theme toggle + account menu) + page body.
+// Cibles / Contenants / Paramètres / Compte live in the account menu (top-right avatar),
+// not the primary nav (specifications/screens/settings.md).
 export function AppShell({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
   return (
@@ -32,14 +33,12 @@ export function AppShell({ children }: { children: ReactNode }) {
           <NavLink to="/stats" className={({ isActive }) => (isActive ? styles.active : '')}>
             {t('stats.title')}
           </NavLink>
-          {/* Cibles belongs in the account menu (specifications/screens/targets.md);
-              shown in primary nav until the menu lands in M9. */}
-          <NavLink to="/cibles" className={({ isActive }) => (isActive ? styles.active : '')}>
-            {t('cibles.title')}
-          </NavLink>
         </nav>
         <span className={styles.spacer} />
-        <ThemeToggle />
+        <div className={styles.right}>
+          <ThemeToggle />
+          <AccountMenu />
+        </div>
       </header>
       <main className={styles.page}>{children}</main>
     </div>

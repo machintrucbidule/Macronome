@@ -463,5 +463,108 @@
       "label": "Very intense",
       "description": "Very hard exercise / physical job"
     }
+  },
+  "menu": {
+    "account": "Account",
+    "logout": "Log out"
+  },
+  "settings": {
+    "title": "Settings",
+    "lead": "Appearance, language and your default day structure.",
+    "appearance": {
+      "title": "Appearance & language",
+      "theme": "Theme",
+      "themeSystem": "System",
+      "themeLight": "Light",
+      "themeDark": "Dark",
+      "language": "Language",
+      "fr": "Français",
+      "en": "English",
+      "units": "Units",
+      "unitsNote": "Metric only, never imperial.",
+      "unitsValue": "g · ml · kg"
+    },
+    "template": {
+      "title": "Default day structure",
+      "meta": "meals of a new day",
+      "meals": "Meals",
+      "note": "A new day starts with these meals, in this order. Editing a specific day in the Journal does not change this template.",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "rename": "Rename",
+      "renamePrompt": "Meal name:",
+      "delete": "Delete",
+      "deletePrompt": "Remove “{{name}}” from the template?",
+      "addPlaceholder": "New meal (e.g. Snack)",
+      "add": "+ Add"
+    },
+    "pantry": {
+      "title": "Pantry",
+      "note": "“Pinned” foods pre-filled at 0 g on every new day. Removing a food affects future days only.",
+      "empty": "No pinned foods.",
+      "add": "+ Food",
+      "searchPlaceholder": "Search a food…",
+      "searchEmpty": "No food found",
+      "duplicate": "This food is already pinned on this meal."
+    },
+    "ai": {
+      "title": "AI assistant",
+      "soon": "soon",
+      "label": "AI advice & analysis",
+      "note": "Optional, isolated module — not available in v1. The app works fully without it.",
+      "configure": "Configure"
+    }
+  },
+  "containers": {
+    "title": "Containers",
+    "crumb": "Settings › Containers",
+    "lead": "The empty weight is used to compute leftovers (gross − container) on the Journal. Food entry itself is always net.",
+    "count": "{{count}} container",
+    "count_other": "{{count}} containers",
+    "searchPlaceholder": "Search…",
+    "add": "+ Add",
+    "empty": "No containers.",
+    "builtin": "default",
+    "locked": "locked",
+    "duplicate": "A container already has this name.",
+    "col": {
+      "name": "Name",
+      "weight": "Empty weight"
+    },
+    "field": {
+      "name": "Name",
+      "namePlaceholder": "e.g. Green bowl",
+      "weight": "Empty weight"
+    },
+    "modal": {
+      "addTitle": "Add a container",
+      "editTitle": "Edit container",
+      "hint": "Weigh the empty container once; reusable for all leftovers."
+    },
+    "confirm": {
+      "title": "Delete container?",
+      "body": "“<b>{{name}}</b>” will be deleted. Leftover history keeps its frozen value and is unaffected."
+    }
+  },
+  "account": {
+    "title": "Account",
+    "lead": "Your credentials and session.",
+    "credentials": "Credentials",
+    "username": "Username",
+    "password": "Password",
+    "passwordNote": "For your security, changes go through a dedicated flow.",
+    "changePassword": "Change password",
+    "session": "Session",
+    "logout": "Log out",
+    "modal": {
+      "title": "Change password",
+      "current": "Current password",
+      "new": "New password",
+      "confirm": "Confirm new password",
+      "mismatch": "Passwords do not match.",
+      "tooShort": "At least 8 characters.",
+      "wrong": "Current password is incorrect.",
+      "success": "Password changed."
+    }
   }
 }

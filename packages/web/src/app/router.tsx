@@ -7,6 +7,9 @@ import { JournalPage } from '../features/journal/JournalPage';
 import { MealsPage } from '../features/meals/MealsPage';
 import { StatsPage } from '../features/stats/StatsPage';
 import { WeightPage } from '../features/weight/WeightPage';
+import { SettingsPage } from '../features/settings/SettingsPage';
+import { ContainersPage } from '../features/containers/ContainersPage';
+import { AccountPage } from '../features/account/AccountPage';
 import { AppShell } from './AppShell';
 import { HealthStatus } from './HealthStatus';
 
@@ -25,6 +28,9 @@ export function AppRouter() {
         <Route path="/recipes" element={<RecipesPage />} />
         <Route path="/stats" element={<StatsPage />} />
         <Route path="/cibles" element={<CiblesPage />} />
+        <Route path="/parametres" element={<SettingsPage />} />
+        <Route path="/containers" element={<ContainersPage />} />
+        <Route path="/account" element={<AccountPage />} />
         <Route
           path="/health"
           element={

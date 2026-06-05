@@ -128,8 +128,22 @@ serving}` with neutral oracles; days/meals/entries/leftover/journal services + r
       colour, tenancy isolation, 422/401) + e2e (cards + heatmap render; empty state).
       **Deferred (tracked):** heatmap per-day kcal tooltip (not in the `HeatmapCell`
       contract); full-history read narrowing → M9. See `M6-stats.md` §Deviations.
-- [ ] **M7 — Settings & pantry** → `docs/dev-plan/M7-settings-pantry.md`
+- [x] **M7 — Settings & pantry** → `docs/dev-plan/M7-settings-pantry.md`
       _depends-on: M1, M3._ Pantry pins, meal-slot templates, profile, account.
+      **Split (approved). M7a backend DONE** — meal_slot_template + pantry_item tables +
+      migration (`20260605120000_settings_pantry`) + locked built-in "Rien" seeded via
+      `user-bootstrap`; settings/meal-template/pantry/containers services + repos + routes +
+      DTOs; Repas 📌 `pin`/`unpin`; day scaffold/materialize seed from template + qty-0
+      garde-manger prefill (`day-prefill.ts`); `current_mode` persisted on `app_user.settings` + Maintien projection gate moved server-side. **M7b web DONE** —
+      `api/{settings,containers,mealTemplate,pantry,auth}`; account-menu dropdown in AppShell
+      (Cibles moved off primary nav); `SettingsSync` applies persisted theme+locale on load;
+      Paramètres (appearance + meal-template editor + per-meal garde-manger), Contenants
+      (table + modal + delete confirm, locked "Rien"), Compte (credentials + password modal +
+      logout); FR+EN. Acceptance green: 10 integration cases + e2e (`e2e/settings.spec.ts`
+      pin → prefill → unpin future-only) + typecheck + lint + web build + check:schema.
+      **Deviations (tracked):** `current_mode` added to the `/settings` DTO (user-approved;
+      spec unedited); new error code `pantry_duplicate`; `idx_container_normname_trgm` shipped
+      early. See `M7-settings-pantry.md` §Deviations.
 - [ ] **M8 — Migration ETL (late, stable schema)** → `docs/dev-plan/M8-migration.md`
       _depends-on: M1–M7 (schema stable)._ Run against the real workbook; validation
       is **local-only** and re-runnable.

@@ -1,0 +1,19 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { PatchSettingsRequest } from '@macronome/shared';
+import { settingsApi } from '../../api/settings';
+
+// Settings data hooks (spec/api §Settings). The query is shared with the app-load sync
+// (same key) so a patch refreshes both the Paramètres controls and the live theme/locale.
+export const SETTINGS_KEY = ['settings'] as const;
+
+export function useSettingsQuery() {
+  return useQuery({ queryKey: SETTINGS_KEY, queryFn: () => settingsApi.get(), retry: false });
+}
+
+export function useSettingsMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: PatchSettingsRequest) => settingsApi.patch(body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: SETTINGS_KEY }),
+  });
+}

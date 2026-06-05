@@ -463,5 +463,108 @@
       "label": "Très intense",
       "description": "Exercice très intense / travail physique"
     }
+  },
+  "menu": {
+    "account": "Compte",
+    "logout": "Se déconnecter"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "lead": "Apparence, langue et structure par défaut de tes journées.",
+    "appearance": {
+      "title": "Apparence & langue",
+      "theme": "Thème",
+      "themeSystem": "Système",
+      "themeLight": "Clair",
+      "themeDark": "Sombre",
+      "language": "Langue",
+      "fr": "Français",
+      "en": "English",
+      "units": "Unités",
+      "unitsNote": "Métriques uniquement, jamais impériales.",
+      "unitsValue": "g · ml · kg"
+    },
+    "template": {
+      "title": "Structure de journée par défaut",
+      "meta": "repas d'un nouveau jour",
+      "meals": "Repas",
+      "note": "Un nouveau jour démarre avec ces repas, dans cet ordre. Modifier un jour précis dans le Journal ne change pas ce modèle.",
+      "moveUp": "Monter",
+      "moveDown": "Descendre",
+      "rename": "Renommer",
+      "renamePrompt": "Nom du repas :",
+      "delete": "Supprimer",
+      "deletePrompt": "Retirer « {{name}} » du modèle ?",
+      "addPlaceholder": "Nouveau repas (ex. Collation)",
+      "add": "+ Ajouter"
+    },
+    "pantry": {
+      "title": "Garde-manger",
+      "note": "Aliments « épinglés » pré-remplis à 0 g sur chaque nouveau jour. Retirer un aliment n'affecte que les prochains jours.",
+      "empty": "Aucun aliment épinglé.",
+      "add": "+ Aliment",
+      "searchPlaceholder": "Rechercher un aliment…",
+      "searchEmpty": "Aucun aliment trouvé",
+      "duplicate": "Cet aliment est déjà épinglé sur ce repas."
+    },
+    "ai": {
+      "title": "Assistant IA",
+      "soon": "bientôt",
+      "label": "Conseils & analyses par IA",
+      "note": "Module optionnel et isolé, non disponible en v1. L'app fonctionne entièrement sans.",
+      "configure": "Configurer"
+    }
+  },
+  "containers": {
+    "title": "Contenants",
+    "crumb": "Réglages › Contenants",
+    "lead": "Le poids à vide sert au calcul des restes (poids brut − contenant) sur le Journal. La saisie d'un aliment, elle, est toujours en poids net.",
+    "count": "{{count}} contenant",
+    "count_other": "{{count}} contenants",
+    "searchPlaceholder": "Rechercher…",
+    "add": "+ Ajouter",
+    "empty": "Aucun contenant.",
+    "builtin": "par défaut",
+    "locked": "verrouillé",
+    "duplicate": "Un contenant porte déjà ce nom.",
+    "col": {
+      "name": "Nom",
+      "weight": "Poids à vide"
+    },
+    "field": {
+      "name": "Nom",
+      "namePlaceholder": "ex. Saladier vert",
+      "weight": "Poids à vide"
+    },
+    "modal": {
+      "addTitle": "Ajouter un contenant",
+      "editTitle": "Modifier le contenant",
+      "hint": "Pesez le contenant vide une fois ; réutilisable pour tous les restes."
+    },
+    "confirm": {
+      "title": "Supprimer le contenant ?",
+      "body": "« <b>{{name}}</b> » sera supprimé. L'historique des restes garde sa valeur figée et n'est pas affecté."
+    }
+  },
+  "account": {
+    "title": "Compte",
+    "lead": "Tes identifiants et ta session.",
+    "credentials": "Identifiants",
+    "username": "Nom d'utilisateur",
+    "password": "Mot de passe",
+    "passwordNote": "Pour ta sécurité, la modification passe par un flux dédié.",
+    "changePassword": "Changer le mot de passe",
+    "session": "Session",
+    "logout": "Se déconnecter",
+    "modal": {
+      "title": "Changer le mot de passe",
+      "current": "Mot de passe actuel",
+      "new": "Nouveau mot de passe",
+      "confirm": "Confirmer le nouveau mot de passe",
+      "mismatch": "Les mots de passe ne correspondent pas.",
+      "tooShort": "Au moins 8 caractères.",
+      "wrong": "Mot de passe actuel incorrect.",
+      "success": "Mot de passe modifié."
+    }
   }
 }
