@@ -1,16 +1,25 @@
-# M8 — Migration ETL (late; stable schema)
+# O1 — Excel migration (Excel → DB) — **NOT part of the dev plan**
 
-**Goal:** the one-shot Excel→DB migration. Built **late, on purpose** — it runs
-against a stable schema so it never chases moving tables. Validation is **local-only**
-and the run is **re-runnable**. Depends-on: M1–M7 (schema must be stable).
+> **This is NOT a development milestone.** It does **not** carry an `M` number, it is
+> **not** a build gate, and it is **not** required for v1. It is the one-shot import of
+> the author's personal Excel workbook into the DB, **run on the author's decision
+> only**, once the application is judged mature / bug-free. It is documented here so the
+> information is ready when the author chooses to run it. The dev plan ends at M10; the
+> app is fully usable before this step (the first user is created by M8's first-run
+> wizard, **not** by this import).
 
-## Why late
+**Goal:** the one-shot Excel→DB migration. Built/run **late, on purpose** — against a
+stable schema so it never chases moving tables. Validation is **local-only** and the run
+is **re-runnable**. Depends-on: a stable schema (post-M8 feature set).
 
-The ETL is the bridge from the years-old workbook to the new DB; if the schema is
-still moving, the ETL rots. Sequencing it after the feature slices means it targets
-final tables once.
+## Why out of the dev plan
 
-## Scope (`spec/logic/migration-etl.md`)
+The ETL is the bridge from the years-old workbook to the new DB; if the schema is still
+moving, the ETL rots. More importantly, the author wants to import real data only when
+the app is mature — so this work is deliberately kept out of the build sequence and run
+on demand. It targets final tables once.
+
+## Scope (`spec/logic/migration-etl.md` — fixed contract, unchanged)
 
 - Standalone `packages/etl` (not in API runtime), reusing `shared` constants + the
   Prisma layer. Entry `src/run.ts` (reads xlsx path → writes DB), `extract/`,
@@ -56,7 +65,7 @@ Transforms mirror `spec/logic/migration-etl.md`. Real-workbook validation:
 `extract/transform/load/report` split into small modules per concern; no single
 transform file approaches 300 lines.
 
-## Checklist
+## Checklist (executed only when the author triggers O1)
 
 - [ ] etl package wired (reuses shared + Prisma); run.ts CLI
 - [ ] extract/transform/load/report modules per spec

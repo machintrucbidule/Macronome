@@ -70,7 +70,7 @@ module + its neutral `*.test.ts`.
 `packages/web/`: `src/main.tsx`, `src/app/{router.tsx,AppShell.tsx,providers/*}`,
 `src/styles/{tokens.css,global.css}`, `src/i18n/{config.ts,locales/{fr,en}.json}`,
 `src/api/client.ts`, `src/features/login/` (minimal).
-`packages/etl/`: `package.json` + `src/run.ts` stub only (built in M8).
+`packages/etl/`: `package.json` + `src/run.ts` stub only (built in O1, out of the dev plan).
 `e2e/`: `health.spec.ts`.
 
 ## Acceptance criteria

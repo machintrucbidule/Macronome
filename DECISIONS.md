@@ -11,21 +11,21 @@ Convention: "Gap N" refers to the numbered point in `specifications/OPEN_GAPS.md
 ## Gap 1 — Day target reference & snapshot timing (DOMAIN) — RESOLVED
 
 A past day is always fully editable, exactly like the current day; every
-dependent figure recomputes afterwards. The reference *targets* a day is judged
+dependent figure recomputes afterwards. The reference _targets_ a day is judged
 against are pinned to that day's own date, not to today.
 
 - **1a — Calorie target of a past day:** the target **in effect on that date**
   (the `Target` row whose `effective_from` is the latest one ≤ the day). Changing
-  today's calorie target never rewrites past verdicts. *(Author: A.)*
+  today's calorie target never rewrites past verdicts. _(Author: A.)_
 - **1b — Protein/fat floors of a past day:** computed on the **body weight in
   effect on that date** (the most recent weigh-in dated ≤ the day). These floors
   are display-only — they never enter the OK/NOK verdict, which is calorie-only.
-  *(Author: A.)*
+  _(Author: A.)_
 - **1c — Freeze timing:** while a day's date == today it tracks live edits
   (changing the target or weighing in updates the day); once date < today the
   day's snapshot is frozen and later target/weigh-in changes never alter it.
   Re-opening a past day to enter data uses the values of that day's own date.
-  *(Author: A.)*
+  _(Author: A.)_
 
 **Rationale:** keeps the OK/NOK history stable and interpretable (one target
 change can't repaint months of verdicts or distort the Stats OK-rate), while
@@ -49,13 +49,13 @@ Clarified fact: the workbook holds full meal detail only for the current day
 
 - **3a:** all imported history arrives as **summary** days (total calories +
   OK/NOK + comment, read-only archive). **No detailed day is imported at all** —
-  detailed days are created exclusively in the app from go-live onward. *(Author.)*
+  detailed days are created exclusively in the app from go-live onward. _(Author.)_
 - **3c:** import **only genuinely filled days** (those with a calorie total), up
   to the present. Future pre-traced rows and empty rows in `Archive cal`, and the
-  forward-projected rows in `Suivi`, are skipped. *(Author: A.)*
+  forward-projected rows in `Suivi`, are skipped. _(Author: A.)_
 
-**Scope note (author-raised, accepted):** the migration *cutoff date* and
-*duplicate-date resolution* are ETL-script runtime details, not app-design
+**Scope note (author-raised, accepted):** the migration _cutoff date_ and
+_duplicate-date resolution_ are ETL-script runtime details, not app-design
 decisions, and do not affect the schema or runtime logic. They are pinned in
 `spec/logic/migration-etl.md` without further arbitration; the only schema-level
 fact is the already-settled `DayLog.kind ∈ {summary, detailed}` with summary
@@ -92,7 +92,7 @@ Workbook-grounded rules:
 - **2a:** a window of N = the **last N calendar days** ending at the latest
   logged day; the average is over the **logged days inside** that span (a 7-day
   average of a week with 5 logged days = mean of those 5). Not "the last N logged
-  days". *(Author: A.)*
+  days". _(Author: A.)_
 
 **Rationale:** an "N-day average" must denote a real wall-clock span (matches the
 workbook and human reading); the logged-days variant would let a "7-day" figure
@@ -105,9 +105,9 @@ OK-rate rule (denominator = logged days within the same calendar window).
 
 - **6a:** migrated foods populate the **shared common catalog**
   (`visibility = shared`); foods the user creates by hand default to
-  **private**. *(Author: B.)*
+  **private**. _(Author: B.)_
 - **6b:** the private/shared tag is **shown and editable** in v1 (keep the tag,
-  the filter, and the visibility toggle on the Foods screen). *(Author: C.)*
+  the filter, and the visibility toggle on the Foods screen). _(Author: C.)_
 
 **Modeling resolution (author-confirmed by default):** `Food.visibility`
 (`private | shared`) is an editable flag, **independent of `Food.owner_id`**
@@ -128,7 +128,7 @@ New-food default = private; migration default = shared.
   `MealEntry` keeps its **served** quantity; **consumed = served − this entry's
   share of the net leftover** is derived, so a past day's leftover can be
   reopened and adjusted like anything else (consistent with Gap 1: edit the past
-  freely). *(Author: B.)*
+  freely). _(Author: B.)_
 
 **Container-history resolution:** the `LeftoverGroup` **freezes the container as a
 value** at apply time — it stores `container_name` + `tare_g` (a snapshot),
@@ -148,7 +148,7 @@ are derived from served and the entry's leftover share.
 ## Gap 5 — "Deficit at target" reference intake (DOMAIN) — RESOLVED
 
 - **5:** the reference intake for the Cibles "déficit à la cible" constat is the
-  **midpoint of the calorie range** `(calorie_min + calorie_max)/2`. *(Author: A.)*
+  **midpoint of the calorie range** `(calorie_min + calorie_max)/2`. _(Author: A.)_
 
 **Rationale:** neutral centre of the piloted range; max/min would bias the
 constat; a separate user-set figure adds a field for a purely informational
@@ -157,6 +157,7 @@ number. Confirms G7.
 ---
 
 # Domain-logic gaps (#1–6, #13): ALL RESOLVED.
+
 # UX/implementation gaps (#7–12, #14): batched below.
 
 ---
@@ -191,3 +192,35 @@ number. Confirms G7.
   online or local), stored, unused in v1; (b) API: a reserved route documented
   "not implemented in v1" that, once enabled, receives a curated payload (recent
   intake, macro adherence, weight trend, deficit). No work in v1.
+
+---
+
+# Build-plan decisions (not OPEN_GAPS gaps)
+
+## First-run wizard + Excel migration moved out of the dev plan — RESOLVED (author)
+
+Decided during the build (not from `OPEN_GAPS.md`); recorded here because it amends
+a fixed contract and reshapes the milestone plan.
+
+- **First-run bootstrap → web wizard.** On a fresh install (no user yet) the single
+  owner account is created by a one-shot, **zero-user-gated setup wizard**
+  (`POST /api/v1/auth/setup`, disabled the instant the owner exists); the `create-user`
+  CLI stays as an admin fallback. Built in **M8** (the milestone repurposed from "Excel
+  ETL" to "First-run & usability"). _(Author.)_
+- **Authorized contract amendment.** The author **explicitly authorized** amending the
+  fixed contract `spec/api/00-conventions.md`: "No public sign-up in v1" → "no
+  _open/public_ sign-up; account creation is limited to the one-shot, zero-user-gated
+  first-run setup". The gated/one-shot wizard is **not** open public registration, so
+  the spirit of contract §7 (no open registration, single owner) is preserved.
+  `security.md` §1 and `ops.md` §7 updated to match. _(Author authorization.)_
+- **Excel migration is out of the dev plan (O1).** The one-shot Excel→DB import of the
+  personal workbook is **not** a build milestone, carries **no `M` number**, and is
+  **not** required for v1. It is run at the author's discretion once the app is mature,
+  and is traced in `docs/dev-plan/O1-excel-migration.md`. Its logic contract
+  `spec/logic/migration-etl.md` is **unchanged**. The ETL is **no longer** a first-user
+  bootstrap path (that role is now M8's wizard). _(Author.)_
+
+**Rationale:** the app must be genuinely usable after M10 without importing Excel data —
+a real login + a first-run account creation + usable empty screens deliver that. The
+historical import is decoupled so it can wait until the app is bug-free, targeting a
+stable schema.

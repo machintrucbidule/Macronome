@@ -144,9 +144,15 @@ serving}` with neutral oracles; days/meals/entries/leftover/journal services + r
       **Deviations (tracked):** `current_mode` added to the `/settings` DTO (user-approved;
       spec unedited); new error code `pantry_duplicate`; `idx_container_normname_trgm` shipped
       early. See `M7-settings-pantry.md` §Deviations.
-- [ ] **M8 — Migration ETL (late, stable schema)** → `docs/dev-plan/M8-migration.md`
-      _depends-on: M1–M7 (schema stable)._ Run against the real workbook; validation
-      is **local-only** and re-runnable.
+- [ ] **M8 — First-run & usability** → `docs/dev-plan/M8-first-run.md`
+      _depends-on: M0 (auth), M1–M7 (screens to render empty)._ Makes the app usable on
+      a fresh install with no data: a one-shot, zero-user-gated **first-run setup wizard**
+      (creates the single owner account, then disabled; `create-user` CLI kept as admin
+      fallback), the **core login submission wiring** (moved here from M9 so first-run is
+      testable end-to-end; M9 keeps the login polish/lockout), and an **empty-data
+      usability pass** across every screen. Amends the auth contract per author
+      authorization (see the milestone file). _The Excel import is **not** here — it is
+      out of the dev plan; see **O1** below._
 - [ ] **M9 — Polish** → `docs/dev-plan/M9-polish.md`
       _depends-on: M1–M7._ Remaining screen states, i18n completeness, a11y, perf.
 - [ ] **M10 — Reserved AI-advisor hook (NOT built)** → `docs/dev-plan/M10-ai-advisor-hook.md`
@@ -160,3 +166,19 @@ serving}` with neutral oracles; days/meals/entries/leftover/journal services + r
 per-milestone files' checklists in sync with the boxes above. When you finish a
 milestone, update both, and record any deferred item as a new sub-bullet rather than
 silently dropping it.
+
+---
+
+## Out of the dev plan (run on demand — NOT a build milestone)
+
+The development plan ends at **M10**; the app is fully usable from M8 onward (first-run
+wizard creates the owner account; no Excel data is required). The item below is **not**
+part of the dev plan, carries **no `M` number**, and is **not** a gate for v1. It is
+documented here only so the information is ready when the author decides to run it.
+
+- **O1 — Excel migration (NOT part of the dev plan)** → `docs/dev-plan/O1-excel-migration.md`
+  The one-shot Excel→DB import of the author's personal workbook. Built and run
+  **only when the author decides** the app is mature / bug-free — at their
+  discretion, never as a build step. Targets the stable schema; implements the
+  **fixed, unchanged** contract `spec/logic/migration-etl.md`. It is **not** a
+  first-user bootstrap path (that role belongs to M8's first-run wizard).

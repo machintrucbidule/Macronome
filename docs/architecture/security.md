@@ -8,8 +8,10 @@ Choices favour boring, proven mechanisms over novelty.
 
 ## 1. Authentication & session
 
-- **Local accounts only**, no public sign-up, no OAuth (contract §7). The v1 user is
-  bootstrapped (see `ops.md` §7).
+- **Local accounts only**, no open/public sign-up, no OAuth (contract §7). The single
+  owner account is created by a one-shot, zero-user-gated first-run setup wizard
+  (disabled once the owner exists), with the `create-user` CLI as an admin fallback —
+  bootstrap details in `ops.md` §7.
 - **Server-side opaque sessions**, stored in PostgreSQL: `express-session` +
   `connect-pg-simple`. The cookie carries only an opaque session id; no claims, no
   user data. "Stay signed in" = a long-lived session row with a long/sliding expiry;

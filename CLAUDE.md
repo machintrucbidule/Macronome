@@ -54,7 +54,8 @@ Architecture docs (how it's built) are in `ARCHITECTURE.md` + `docs/architecture
   (orchestration), `data/repositories/*` (Prisma, always user-scoped), `http/*`.
 - `packages/web` — React + Vite SPA. **Renders, never computes.** One folder per
   screen under `features/`, design components under `components/`.
-- `packages/etl` — one-shot Excel → DB migration script.
+- `packages/etl` — one-shot Excel → DB migration script. **Built in O1, which is _out
+  of the dev plan_** (run on the author's decision; see `docs/dev-plan/O1-excel-migration.md`).
 
 The precise mapping (logic spec → module, screen → feature, component → file) is in
 `docs/architecture/module-map.md`. Use it to locate where a change belongs.
@@ -89,8 +90,10 @@ Run from the repo root.
 Create a migration: `npm run prisma:dev -w @macronome/api -- --name <change>`
 (after editing `packages/api/prisma/schema.prisma` to match `spec/schema/*`).
 
-First user (no public sign-up): run the ETL, or the `create-user` script in
-`packages/api` (argon2id hash). See `docs/architecture/ops.md` §7.
+First user (no open/public sign-up): on a fresh install the **first-run setup wizard**
+creates the single owner account (`POST /auth/setup`, gated to zero users, then
+disabled — built in M8). The `create-user` script in `packages/api` (argon2id hash)
+remains an admin fallback. See `docs/architecture/ops.md` §7.
 
 ---
 

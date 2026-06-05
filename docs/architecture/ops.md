@@ -41,6 +41,7 @@ security headers are set at the proxy (config in the appendix).
 ## 3. Dev workflow (Windows 11) vs prod (Proxmox/any host)
 
 **Dev (fast inner loop):**
+
 - Postgres via Docker Desktop: `docker compose -f compose.test.yml up -d` (or a dev
   compose with the same image) — the only container needed locally.
 - API: `npm run dev -w @macronome/api` (ts watch, auto-reload).
@@ -48,6 +49,7 @@ security headers are set at the proxy (config in the appendix).
 - The full `compose.yml` is **prod-only**; do not run it as the dev loop.
 
 **Prod (any Docker host, incl. Proxmox):**
+
 - `docker compose up -d --build`. The `api` service runs `prisma migrate deploy`
   (one-shot) before listening; the `web` build is produced at image-build time and
   served by `proxy`.
@@ -57,6 +59,7 @@ security headers are set at the proxy (config in the appendix).
 ## 4. Environment & secrets
 
 12-factor: all config via env vars; nothing secret in the repo.
+
 - Versioned template: `.env.example` (keys only).
 - Dev: `.env` (gitignored).
 - Prod: env injected by compose / Docker secrets.
@@ -91,6 +94,7 @@ The architecture's job here is to make backup **trivial and standard**; the
 schedule, retention, destination, and any extra safety nets are the operator's.
 
 Guaranteed by design:
+
 - **All critical state is in one Postgres database, one volume.** No critical local
   disk state to coordinate. Therefore a single logical dump is a complete backup.
 - **Standard tools work, no app-specific tooling:**
@@ -112,6 +116,11 @@ single-user daily tracker. (Recommended-but-not-required: a dump before each
 
 ## 7. Bootstrap (first user)
 
-There is no public sign-up (contract §7). The single v1 user is created by the **ETL
-run** (which sets `owner_id`/credentials) or a tiny one-off `create-user` script in
-`packages/api` (argon2id hash, no API surface). Documented in the root `CLAUDE.md`.
+There is no open/public sign-up (contract §7). The single owner account is created by a
+one-shot, **zero-user-gated first-run setup wizard** (`POST /api/v1/auth/setup`, allowed
+only while no user exists, then permanently disabled — built in M8). A tiny one-off
+`create-user` script in `packages/api` (argon2id hash, no API surface) is kept as an
+**admin / headless fallback**. Documented in the root `CLAUDE.md`.
+
+(The Excel migration — `docs/dev-plan/O1-excel-migration.md`, out of the dev plan — is
+**not** a bootstrap path; it imports historical data into an already-bootstrapped DB.)
