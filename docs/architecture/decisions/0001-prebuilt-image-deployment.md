@@ -39,19 +39,22 @@ target ops model is the opposite — a single published image pulled by Portaine
    Cloudflare tunnel, …). Security headers (HSTS, CSP, nosniff, Referrer-Policy),
    previously set by Caddy, are now emitted by the app via `helmet`
    (`http/middleware/securityHeaders.ts`).
-3. **Postgres** stays a separate `postgres:17` service, persisted to a **bind-mount at
-   a configurable host path** (`DATA_PATH`), not a named volume — so the data location
-   is explicit for backups.
+3. **Postgres** stays a separate `postgres:17` service, persisted to a **named Docker
+   volume** (`pgdata`); the session secret uses a second named volume (`appdata`).
+   Named volumes (not a bind-mount) so a non-expert operator can reset the data with a
+   click in Portainer (Volumes → Remove) and there is no host path to choose; backups
+   use `pg_dump` regardless of the storage type, so nothing is lost by not having a
+   visible folder.
 4. **`compose.yml` is image-based** (no `build:`), Portainer-friendly: images + ports +
-   bind-mount + env vars. `DATABASE_URL` is derived from `POSTGRES_*`.
+   named volumes + env vars (all defaulted). `DATABASE_URL` is derived from `POSTGRES_*`.
 5. **Publishing**: `.github/workflows/release.yml` pushes `:latest` on every push to
    `main` and `:vX.Y.Z` / `:vX.Y` on `v*` tags. The existing `ci.yml` (verify) is
    unchanged.
 6. **Zero-config by default.** The stack runs with **no env vars to set** (the
    Uptime-Kuma experience). Every compose variable has a default; Postgres is
    internal-only (no published port) so its default credentials are safe; the one real
-   secret, `SESSION_SECRET`, is **auto-generated and persisted** on first boot to the app
-   volume (`config/session-secret.ts`, `${DATA_PATH}/app/session_secret`) and reused
+   secret, `SESSION_SECRET`, is **auto-generated and persisted** on first boot to the
+   `appdata` volume (`config/session-secret.ts`, `/data/session_secret`) and reused
    across restarts. `PUBLIC_BASE_URL` is dropped (it was validated but never used).
    `COOKIE_SECURE` defaults to **false** so login works out of the box behind the
    operator's HTTPS proxy; the stricter posture (Secure cookies) is opt-in.
@@ -74,9 +77,12 @@ target ops model is the opposite — a single published image pulled by Portaine
   proxy container). Documented in `ops.md` §4.
 - The SPA build dir is provided to the API via `WEB_DIST` (set in the image); when
   unset (dev), static serving is inert and Vite serves the SPA.
-- Removed/obsolete: `Caddyfile`, the `proxy` service, the host-side web build, the
-  named `pgdata`/`caddy_data` volumes, the `PUBLIC_BASE_URL` env (unused), and the
-  requirement to provide `SESSION_SECRET` / DB credentials by hand.
+- Data lives in two Docker-managed named volumes: `pgdata` (the database) and `appdata`
+  (the session secret). Reset = remove the volume(s) (Portainer → Volumes, or
+  `docker compose down -v`); see the ops runbook (`ops.md`).
+- Removed/obsolete: `Caddyfile`, the `proxy` service + its `caddy_data` volume, the
+  host-side web build, the `PUBLIC_BASE_URL` env (unused), the `DATA_PATH` host path, and
+  the requirement to provide `SESSION_SECRET` / DB credentials by hand.
 
 ## Superseded artifacts
 

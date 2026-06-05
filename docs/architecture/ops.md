@@ -7,20 +7,21 @@ Caddyfile, env) are in `appendices/config-docker.md`.
 
 ## 1. Production topology (Docker Compose) — ADR-0001
 
-Two services, one critical bind-mount; **prebuilt image pulled from GHCR** (no
+Two services, one critical named volume; **prebuilt image pulled from GHCR** (no
 build-from-source). See `decisions/0001-prebuilt-image-deployment.md`.
 
 ```
 compose.yml
 ├─ macronome  (Node/TS)    :<APP_PORT>  → serves the SPA build AND /api/v1;
 │                                          runs migrate on start, then listens
-└─ postgres   (PostgreSQL) internal     → bind-mount: ${DATA_PATH}/db  ← only critical state
+│                                          (named volume: appdata → session secret)
+└─ postgres   (PostgreSQL) internal     → named volume: pgdata  ← only critical state
 ```
 
 - The image builds `shared` + `api` + `web`; the **API process serves both the static
   SPA and `/api/v1`** on one port (not SSR — the SPA is a pure same-origin client).
   No app state lives outside Postgres (the v1 contract has no user uploads/files), so
-  the DB bind-mount is the entire backup surface.
+  the `pgdata` volume is the entire backup surface.
 - **No bundled proxy.** The single port is fronted by the operator's own reverse proxy
   / tunnel / load balancer (TLS there), or exposed directly. Nothing in the app assumes
   a specific frontal.
@@ -70,14 +71,14 @@ everything is env-overridable — but every key has a safe default, so `.env` is
 - Prod: nothing required; override via compose / Portainer stack vars / Docker secrets.
 
 Optional deploy/host overrides (compose.yml): `MACRONOME_TAG` (image tag; default
-`latest`), `APP_PORT` (default `3000`), `DATA_PATH` (host path for the DB bind-mount +
-the app secret; default `./data`), `POSTGRES_DB` / `POSTGRES_USER` / `POSTGRES_PASSWORD`
-(default `macronome`; Postgres is internal-only, no published port, so defaults are
-safe; `DATABASE_URL` is derived from them).
+`latest`), `APP_PORT` (default `3000`), `POSTGRES_DB` / `POSTGRES_USER` /
+`POSTGRES_PASSWORD` (default `macronome`; Postgres is internal-only, no published port,
+so defaults are safe; `DATABASE_URL` is derived from them). Data lives in Docker-managed
+named volumes (`pgdata`, `appdata`) — no host path to configure.
 
 App keys: `SESSION_SECRET` — **auto-generated and persisted** on first boot when unset
-(`config/session-secret.ts` → `${DATA_PATH}/app/session_secret`), reused across restarts;
-set it only to manage it yourself. `COOKIE_SECURE` defaults **false** (login works behind
+(`config/session-secret.ts` → `appdata` volume, `/data/session_secret`), reused across
+restarts; set it only to manage it yourself. `COOKIE_SECURE` defaults **false** (login works behind
 your HTTPS proxy with no extra setup); to use `Secure` cookies set it `true` **and**
 `TRUSTED_PROXY` to the proxy's address/CIDR. `WEB_DIST` (SPA build path) is set inside the
 image, unset in dev. `LLM_ENDPOINT_URL` / `LLM_ENDPOINT_KEY` are reserved/unused. Secrets
@@ -110,11 +111,10 @@ schedule, retention, destination, and any extra safety nets are the operator's.
 
 Guaranteed by design:
 
-- **All critical state is in one Postgres database, one bind-mount** (`${DATA_PATH}/db`).
+- **All critical state is in one Postgres database, one named volume** (`pgdata`).
   No critical local disk state to coordinate. Therefore a single logical dump is a
-  complete backup (and the bind-mount path itself can be snapshotted/copied if desired).
-  The only other persisted file is the auto-generated session secret
-  (`${DATA_PATH}/app/session_secret`); it is **not critical** — if lost it is
+  complete backup. The only other persisted file is the auto-generated session secret
+  (the `appdata` volume, `/data/session_secret`); it is **not critical** — if lost it is
   regenerated and users simply re-login.
 - **Standard tools work, no app-specific tooling:**
   - backup: `pg_dump` (custom or plain format), e.g.
@@ -130,6 +130,34 @@ Explicitly the **operator's** choice, out of architecture scope: backup schedule
 archiving. None are needed by the app; standard dumps cover the data-loss risk for a
 single-user daily tracker. (Recommended-but-not-required: a dump before each
 `migrate deploy`, per §5.)
+
+---
+
+## 6b. Operations runbook (plain steps)
+
+Everyday operations, both from Portainer (click) and the CLI. The two named volumes are
+shown prefixed by the stack name (e.g. `macronome_pgdata`, `macronome_appdata`).
+
+**Update to a new version (keeps all data).**
+
+- Portainer: open the stack → **Update the stack**, tick **Re-pull image** → redeploy.
+  Containers are recreated; the volumes (your data) are untouched; new DB migrations
+  apply automatically on start.
+- CLI (in the compose dir): `docker compose pull && docker compose up -d`.
+- _Recommended first:_ take a backup (below) — a bad migration is the only real risk.
+
+**Reset the database (start fresh — DELETES all data).**
+
+- Portainer: stop/remove the stack → **Volumes** → remove `…_pgdata` (and `…_appdata`
+  too if you also want a new login secret) → redeploy the stack. You get an empty DB and
+  the first-run wizard again.
+- CLI: `docker compose down -v` (removes the named volumes) then `docker compose up -d`.
+  _Note:_ `down` **without** `-v` keeps the data; only `-v` deletes the volumes.
+
+**Backup / restore.**
+
+- Backup: `docker compose exec postgres pg_dump -U macronome -Fc macronome > macronome-YYYYMMDD.dump`
+- Restore: `docker compose exec -T postgres pg_restore -U macronome -d macronome --clean --if-exists < macronome-YYYYMMDD.dump`
 
 ---
 

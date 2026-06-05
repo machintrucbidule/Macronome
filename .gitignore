@@ -39,9 +39,6 @@ test-results/
 # ...but Prisma migration SQL is part of the schema contract and MUST be tracked.
 !packages/*/prisma/migrations/**/*.sql
 
-# --- local Postgres bind-mount (compose.yml DATA_PATH default) ---
-/data/
-
 # --- misc ---
 .DS_Store
 *.log

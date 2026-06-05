@@ -26,7 +26,7 @@ the same `/api/v1` contract.
                            └───────────────┬──────────────────────┘   │
                                            │              ┌────────────▼──┐
                                            └─────────────►│  PostgreSQL    │
-                                                          │  (1 bind-mount)│
+                                                          │ (1 named vol.) │
                                                           │  unaccent,     │
                                                           │  pg_trgm       │
    (future) React Native ── same /api/v1 contract ───────►└────────────────┘

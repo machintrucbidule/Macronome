@@ -94,7 +94,7 @@ Create a migration: `npm run prisma:dev -w @macronome/api -- --name <change>`
 image on GHCR** (`ghcr.io/machintrucbidule/macronome`, published by
 `.github/workflows/release.yml`): the API process serves **both** the static SPA and
 `/api/v1` on one port. `compose.yml` is **image-based** (no `build:`), two services
-(`macronome` + `postgres`), Postgres on a **bind-mount** (`DATA_PATH`); the operator
+(`macronome` + `postgres`), Postgres on a **named Docker volume** (`pgdata`); the operator
 fronts the exposed port with their own reverse proxy / TLS. It is **zero-config**: every
 var has a default, `SESSION_SECRET` is **auto-generated & persisted** on first boot
 (`config/session-secret.ts`), `COOKIE_SECURE` defaults `false`, and there is no

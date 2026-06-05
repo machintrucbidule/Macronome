@@ -2,6 +2,7 @@
 # vars to set. Deploy as-is in Portainer ("deploy stack") or any Docker host. The
 # `macronome` image serves the SPA and /api/v1 on one port; front it with your own
 # reverse proxy / TLS. Everything below has a default; override only if you want to.
+# Data lives in Docker-managed named volumes (delete from Portainer > Volumes to reset).
 # See docs/architecture/ops.md and decisions/0001-prebuilt-image-deployment.md.
 services:
   macronome:
@@ -18,7 +19,7 @@ services:
       NODE_ENV: production
     volumes:
       # Persists the auto-generated session secret (so logins survive restarts).
-      - '${DATA_PATH:-./data}/app:/data'
+      - 'appdata:/data'
     depends_on:
       postgres:
         condition: service_healthy
@@ -33,10 +34,14 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-macronome}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-macronome}
     volumes:
-      # Bind-mount: the only critical state lives at a host path you choose (DATA_PATH).
-      # Postgres is internal-only (no published port), so the default credentials are fine.
-      - '${DATA_PATH:-./data}/db:/var/lib/postgresql/data'
+      # Named volume: the only critical state. Postgres is internal-only (no published
+      # port), so the default credentials are fine.
+      - 'pgdata:/var/lib/postgresql/data'
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-macronome}']
       interval: 10s
       retries: 5
+
+volumes:
+  pgdata:
+  appdata:

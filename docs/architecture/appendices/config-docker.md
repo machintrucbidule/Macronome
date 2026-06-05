@@ -2,7 +2,7 @@
 
 Specifications only. The authoritative deployment model is **ADR-0001**
 (`docs/architecture/decisions/0001-prebuilt-image-deployment.md`): a single prebuilt
-GHCR image serving SPA + `/api/v1`, no bundled proxy, bind-mount Postgres.
+GHCR image serving SPA + `/api/v1`, no bundled proxy, Postgres on a named volume.
 
 ---
 
@@ -22,7 +22,7 @@ services:
       TRUSTED_PROXY: ${TRUSTED_PROXY:-loopback}
       COOKIE_SECURE: ${COOKIE_SECURE:-false} # set true only together with TRUSTED_PROXY
       NODE_ENV: production
-    volumes: ['${DATA_PATH:-./data}/app:/data'] # persists the session secret
+    volumes: ['appdata:/data'] # persists the session secret
     depends_on:
       postgres: { condition: service_healthy }
     # image entrypoint runs `prisma migrate deploy` then starts the server
@@ -35,11 +35,15 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-macronome}
       POSTGRES_USER: ${POSTGRES_USER:-macronome}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-macronome} # internal-only; default is safe
-    volumes: ['${DATA_PATH:-./data}/db:/var/lib/postgresql/data']
+    volumes: ['pgdata:/var/lib/postgresql/data']
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-macronome}']
       interval: 10s
       retries: 5
+
+volumes:
+  pgdata:
+  appdata:
 ```
 
 No `build:` and no bundled proxy: `docker compose up -d` **pulls** the image and runs
@@ -89,7 +93,7 @@ The stack runs with no `.env`. Every key is a commented override:
 # --- image & host ---
 # MACRONOME_TAG=latest
 # APP_PORT=3000
-# DATA_PATH=./data            # DB data + the app session secret
+# (data lives in Docker-managed named volumes — nothing to configure here)
 
 # --- database (internal only, not exposed; defaults are fine) ---
 # POSTGRES_DB=macronome

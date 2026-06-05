@@ -19,7 +19,7 @@ Scaffold the monorepo exactly as specified (no feature logic):
    (`web`↛`api`, `domain`↛`data`/`http`, `controllers`↛Prisma) + exemption globs;
    `.prettierrc`.
 3. **Containers** (from `appendices/config-docker.md`): image-based `compose.yml`
-   (`macronome` + `postgres`, DB bind-mount), `compose.test.yml` (test Postgres only),
+   (`macronome` + `postgres`, named DB volume), `compose.test.yml` (test Postgres only),
    `.env.example` (keys only, per `ops.md` §4). _Deployment reworked to a prebuilt GHCR
    image — see ADR-0001; the old proxy/Caddy/`pgdata` shape is removed._
 4. **DB up + first migration:** `packages/api/prisma/schema.prisma` for the M0 tables
