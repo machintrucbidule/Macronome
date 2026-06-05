@@ -10,6 +10,14 @@ export interface UserRow {
   settings: unknown;
 }
 
+export interface NewUser {
+  username: string;
+  passwordHash: string;
+  sex: string;
+  birthdate: Date;
+  heightCm: number;
+}
+
 const SELECT = {
   id: true,
   username: true,
@@ -24,6 +32,25 @@ export const userRepo = {
 
   findById(id: string): Promise<UserRow | null> {
     return prisma.appUser.findUnique({ where: { id }, select: SELECT });
+  },
+
+  /** Total accounts. Drives the first-run gate (setup is allowed only at 0). */
+  count(): Promise<number> {
+    return prisma.appUser.count();
+  },
+
+  /** Create the single owner account (first-run setup); username stored lowercased. */
+  create(user: NewUser): Promise<{ id: string }> {
+    return prisma.appUser.create({
+      data: {
+        username: user.username.toLowerCase(),
+        passwordHash: user.passwordHash,
+        sex: user.sex,
+        birthdate: user.birthdate,
+        heightCm: user.heightCm,
+      },
+      select: { id: true },
+    });
   },
 
   async updatePasswordHash(id: string, passwordHash: string): Promise<void> {

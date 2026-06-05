@@ -1,0 +1,45 @@
+/* First-run setup wizard (M8). Centred single-column card; semantic tokens only. */
+.wizard {
+  max-width: 420px;
+  margin: var(--sp-8) auto;
+  padding: 0 var(--sp-6);
+}
+.intro {
+  color: var(--text-dim);
+  font-size: var(--fs-13);
+  margin-bottom: var(--sp-7);
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+  background: var(--bg-elev);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-7);
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.label {
+  font-size: var(--fs-12);
+  color: var(--text-dim);
+}
+.select {
+  height: var(--control-h-md);
+  background: var(--bg-field);
+  border: var(--bw) solid var(--border-strong);
+  border-radius: var(--r-md);
+  color: var(--text);
+  padding: 0 10px;
+  font-family: var(--font-body);
+  font-size: var(--fs-13);
+}
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-5);
+  margin-top: var(--sp-5);
+}

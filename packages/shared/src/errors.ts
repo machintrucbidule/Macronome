@@ -7,6 +7,7 @@ export enum ErrorCode {
   LockedOut = 'locked_out',
   Unauthorized = 'unauthorized',
   CsrfInvalid = 'csrf_invalid',
+  SetupAlreadyCompleted = 'setup_already_completed',
 
   // generic
   ValidationError = 'validation_error',

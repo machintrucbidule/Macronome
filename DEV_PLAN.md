@@ -144,15 +144,23 @@ serving}` with neutral oracles; days/meals/entries/leftover/journal services + r
       **Deviations (tracked):** `current_mode` added to the `/settings` DTO (user-approved;
       spec unedited); new error code `pantry_duplicate`; `idx_container_normname_trgm` shipped
       early. See `M7-settings-pantry.md` §Deviations.
-- [ ] **M8 — First-run & usability** → `docs/dev-plan/M8-first-run.md`
-      _depends-on: M0 (auth), M1–M7 (screens to render empty)._ Makes the app usable on
-      a fresh install with no data: a one-shot, zero-user-gated **first-run setup wizard**
-      (creates the single owner account, then disabled; `create-user` CLI kept as admin
-      fallback), the **core login submission wiring** (moved here from M9 so first-run is
-      testable end-to-end; M9 keeps the login polish/lockout), and an **empty-data
-      usability pass** across every screen. Amends the auth contract per author
-      authorization (see the milestone file). _The Excel import is **not** here — it is
-      out of the dev plan; see **O1** below._
+- [x] **M8 — First-run & usability** → `docs/dev-plan/M8-first-run.md`
+      _depends-on: M0 (auth), M1–M7 (screens to render empty)._ Done: zero-user-gated
+      **first-run setup wizard** — `POST /auth/setup` (creates the single owner via the
+      reused `seedDefaultsForUser`, opens the session; 409 `setup_already_completed` once an
+      owner exists) + non-enumerating `GET /auth/setup-state`; thin `services/setup.ts` +
+      `userRepo.count/create`; two-step `features/setup/` wizard (credentials → profile)
+      behind a setup-only `AppGate`; **login submission wired** (`useLogin` → session →
+      home, generic `invalid_credentials`); `create-user` CLI kept as admin fallback. The
+      auth contract amendment was already in place (verified, not re-edited). Acceptance
+      green: setup/login integration (empty→200+session+seed, 409, 422, non-enumerating
+      probe) + first-run e2e (wizard → logged-in → empty screens → add first food) +
+      typecheck + lint + check:schema + web build. _The Excel import is **not** here — see
+      **O1** below._
+      **Deferred (tracked):** full unauthenticated route protection (`RequireAuth` →
+      `/login`) + login polish (lockout/a11y) + full Empty/Skeleton visual contract → M9.
+      e2e isolation via a `first-run` Playwright project the `app` project depends on. See
+      `M8-first-run.md` §Deviations.
 - [ ] **M9 — Polish** → `docs/dev-plan/M9-polish.md`
       _depends-on: M1–M7._ Remaining screen states, i18n completeness, a11y, perf.
 - [ ] **M10 — Reserved AI-advisor hook (NOT built)** → `docs/dev-plan/M10-ai-advisor-hook.md`

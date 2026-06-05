@@ -9,6 +9,14 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   use: { baseURL: 'http://localhost:5173', trace: 'on-first-retry' },
+  // The first-run spec needs a zero-user database (the setup endpoint is gated to it). It
+  // truncates app_user, so it must not run concurrently with the other DB-backed specs:
+  // it runs alone in the `first-run` project, which the `app` project depends on, giving a
+  // serial phase before the rest start (each of which seeds its own user).
+  projects: [
+    { name: 'first-run', testMatch: /setup\.spec\.ts$/ },
+    { name: 'app', testIgnore: /setup\.spec\.ts$/, dependencies: ['first-run'] },
+  ],
   webServer: [
     {
       command: 'npm run dev:api',

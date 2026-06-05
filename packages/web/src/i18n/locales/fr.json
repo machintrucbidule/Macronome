@@ -20,7 +20,25 @@
     "title": "Connexion",
     "username": "Identifiant",
     "password": "Mot de passe",
-    "submit": "Se connecter"
+    "submit": "Se connecter",
+    "error": "Identifiant ou mot de passe incorrect."
+  },
+  "setup": {
+    "title": "Bienvenue dans Macronome",
+    "intro": "Créez le compte propriétaire pour démarrer. C'est le seul compte de cette installation.",
+    "username": "Identifiant",
+    "password": "Mot de passe",
+    "passwordHint": "8 caractères minimum.",
+    "sex": "Sexe",
+    "sexPlaceholder": "Sélectionner…",
+    "male": "Homme",
+    "female": "Femme",
+    "birthdate": "Date de naissance",
+    "height": "Taille",
+    "back": "Retour",
+    "next": "Continuer",
+    "create": "Créer le compte",
+    "error": "La création du compte a échoué. Réessayez."
   },
   "common": {
     "save": "Enregistrer",

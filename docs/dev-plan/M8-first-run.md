@@ -92,11 +92,32 @@ approaches 300 lines. The setup service is thin (reuses `user-bootstrap`).
 
 ## Checklist
 
-- [ ] `POST /auth/setup` (gated to zero users) + seeds defaults + opens session
-- [ ] setup-state probe (non-enumerating) driving the web guard
-- [ ] `features/setup/` wizard (credentials + required profile) → logged-in → home
-- [ ] `create-user` CLI confirmed still working as fallback
-- [ ] login form submission wired (LoginPage) → session → redirect
-- [ ] empty-data usability pass across all screens (can add first data)
-- [ ] contract amended (`spec/api/00-conventions.md`) + security.md/ops.md updated + DECISIONS entry
-- acceptance: setup/login integration + first-run e2e green; typecheck + lint + check:schema green
+- [x] `POST /auth/setup` (gated to zero users) + seeds defaults + opens session
+- [x] setup-state probe (non-enumerating) driving the web guard
+- [x] `features/setup/` wizard (credentials + required profile) → logged-in → home
+- [x] `create-user` CLI confirmed still working as fallback (unchanged; same
+      `appUser.create` + `seedDefaultsForUser` path the setup service reuses; typecheck green)
+- [x] login form submission wired (LoginPage) → session → redirect
+- [x] empty-data usability pass across all screens (can add first data)
+- [x] contract amended (`spec/api/00-conventions.md`) + security.md/ops.md updated + DECISIONS entry
+      — **already in place** from the dev-plan restructuring commit; verified consistent, no
+      re-edit needed (no leftover "no public sign-up" / "ETL bootstraps the first user").
+- [x] acceptance: setup/login integration + first-run e2e green; typecheck + lint + check:schema green
+
+## Deviations / deferred (tracked)
+
+- **Router guard scope = setup-only** (author-approved). `AppGate` only forces the wizard
+  while no owner exists, and sends `/setup` visitors home once one exists. **Full
+  unauthenticated route protection** (a session-aware `RequireAuth` redirecting logged-out
+  users on data screens to `/login`) is **deferred to M9** — M8 wires login submission but
+  does not lock down the data routes yet.
+- **Login polish** (lockout countdown, detailed error/empty states, a11y) → **M9** (as
+  originally scoped). M8 surfaces a single generic `invalid_credentials` flag only.
+- **Full Empty/Skeleton/error visual contract** across screens → **M9**. M8's usability
+  pass is "no crash / usable / can add first data" (e2e navigates empty screens + adds a
+  first food); it is not the full visual-state contract.
+- **Wizard is two steps** (credentials → profile), author-approved.
+- **e2e isolation:** the first-run spec needs a zero-user DB, so `playwright.config.ts`
+  runs it alone in a `first-run` project that the `app` project depends on (serial phase
+  before the rest, which each seed their own user). No new error code beyond the
+  contract's `setup_already_completed`.

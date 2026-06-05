@@ -8,6 +8,8 @@ import { loginRateLimit } from '../middleware/rateLimit.js';
 // login is additionally rate-limited / lockout-protected.
 const router = Router();
 
+router.get('/setup-state', asyncHandler(auth.setupState));
+router.post('/setup', loginRateLimit, asyncHandler(auth.setup));
 router.post('/login', loginRateLimit, asyncHandler(auth.login));
 router.post('/logout', asyncHandler(auth.logout));
 router.get('/session', asyncHandler(auth.session));

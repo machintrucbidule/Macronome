@@ -117,3 +117,65 @@ describe('auth', () => {
     expect(res.body.error.code).toBe('csrf_invalid');
   });
 });
+
+const VALID_SETUP = {
+  username: 'owner',
+  password: 'correct-horse',
+  sex: 'male',
+  birthdate: '1990-01-01',
+  height_cm: 180,
+};
+
+describe('auth setup (first-run)', () => {
+  it('reports setup_required when no account exists, false once one does', async () => {
+    const before = await request(app).get('/api/v1/auth/setup-state');
+    expect(before.status).toBe(200);
+    expect(before.body).toEqual({ setup_required: true });
+
+    await seedUser('alice', 'correct-horse');
+
+    const after = await request(app).get('/api/v1/auth/setup-state');
+    expect(after.body).toEqual({ setup_required: false });
+  });
+
+  it('creates the owner, seeds defaults, and opens the session on an empty DB', async () => {
+    const { agent, csrf } = await csrfAgent();
+    const res = await agent.post('/api/v1/auth/setup').set('x-csrf-token', csrf).send(VALID_SETUP);
+
+    expect(res.status).toBe(200);
+    expect(res.body.user).toMatchObject({ username: 'owner', locale: 'fr', theme: 'dark' });
+    expect(getCookie(res, 'macronome.sid')).toBeTruthy();
+
+    const user = await prisma.appUser.findUnique({ where: { username: 'owner' } });
+    expect(user).not.toBeNull();
+    const slots = await prisma.mealSlotTemplate.count({ where: { userId: user!.id } });
+    expect(slots).toBeGreaterThan(0);
+    const rien = await prisma.container.findFirst({ where: { ownerId: user!.id, name: 'Rien' } });
+    expect(rien).not.toBeNull();
+
+    const session = await agent.get('/api/v1/auth/session');
+    expect(session.status).toBe(200);
+    expect(session.body.user.username).toBe('owner');
+  });
+
+  it('returns 409 setup_already_completed and creates nothing when a user exists', async () => {
+    await seedUser('alice', 'correct-horse');
+    const { agent, csrf } = await csrfAgent();
+    const res = await agent.post('/api/v1/auth/setup').set('x-csrf-token', csrf).send(VALID_SETUP);
+
+    expect(res.status).toBe(409);
+    expect(res.body).toEqual({ error: { code: 'setup_already_completed' } });
+    expect(await prisma.appUser.count()).toBe(1);
+  });
+
+  it('rejects an invalid setup body with 422', async () => {
+    const { agent, csrf } = await csrfAgent();
+    const res = await agent
+      .post('/api/v1/auth/setup')
+      .set('x-csrf-token', csrf)
+      .send({ username: 'owner', password: 'short' });
+
+    expect(res.status).toBe(422);
+    expect(res.body.error.code).toBe('validation_error');
+  });
+});

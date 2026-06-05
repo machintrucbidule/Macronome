@@ -1,6 +1,12 @@
 import type { Request, Response } from 'express';
-import { ErrorCode, LoginRequestSchema, PasswordChangeRequestSchema } from '@macronome/shared';
+import {
+  ErrorCode,
+  LoginRequestSchema,
+  PasswordChangeRequestSchema,
+  SetupRequestSchema,
+} from '@macronome/shared';
 import * as authService from '../../services/auth.js';
+import * as setupService from '../../services/setup.js';
 import { ApiError, zodDetails } from '../errors.js';
 
 // THIN controllers: Zod-parse the request → call a service → serialise. No maths,
@@ -16,6 +22,21 @@ export async function login(req: Request, res: Response): Promise<void> {
 
   req.session.userId = user.id;
   if (parsed.data.stay_signed_in) req.session.cookie.maxAge = STAY_SIGNED_IN_MS;
+  res.status(200).json({ user });
+}
+
+export async function setupState(_req: Request, res: Response): Promise<void> {
+  res.status(200).json(await setupService.getSetupState());
+}
+
+export async function setup(req: Request, res: Response): Promise<void> {
+  const parsed = SetupRequestSchema.safeParse(req.body);
+  if (!parsed.success) throw new ApiError(422, ErrorCode.ValidationError, zodDetails(parsed.error));
+
+  const user = await setupService.setupOwner(parsed.data);
+  if (!user) throw new ApiError(409, ErrorCode.SetupAlreadyCompleted);
+
+  req.session.userId = user.id;
   res.status(200).json({ user });
 }
 
