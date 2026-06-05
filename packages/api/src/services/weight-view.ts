@@ -49,12 +49,18 @@ export interface WeightViewInput {
   goalWeight: number | null;
   loggedDays: LoggedDay[];
   range: WeightRange;
+  /** Persisted Régime/Maintien mode (app_user.settings); null = use the latest period flag. */
+  currentMode: DietFlag | null;
 }
 
 /** Project the goal date from the recent EMA window (last ≤4 points, ≥2 required). The
- * Maintien gate is applied client-side (mode is screen-local in M4), so the server always
- * computes the raw projection here. */
-function buildProjection(emaFull: WeightPoint[], goalWeight: number | null): Projection {
+ * Maintien gate is applied server-side (M7): when the effective mode is 'not_in_diet' the
+ * projection is suppressed (logic/weight-periods-trajectory.md §6, §7). */
+function buildProjection(
+  emaFull: WeightPoint[],
+  goalWeight: number | null,
+  maintien: boolean,
+): Projection {
   if (goalWeight === null || emaFull.length < 2)
     return { status: 'no_goal', date: null, days: null };
   const recent = emaFull.slice(-4);
@@ -63,7 +69,7 @@ function buildProjection(emaFull: WeightPoint[], goalWeight: number | null): Pro
     x: (Date.parse(p.date) - origin) / MS_PER_DAY,
     y: p.value,
   }));
-  const result = projectGoalDate({ points, goalWeight, maintien: false });
+  const result = projectGoalDate({ points, goalWeight, maintien });
   const latest = emaFull[emaFull.length - 1]!.date;
   const date =
     result.status === 'projected' && result.days !== null ? addDays(latest, result.days) : null;
@@ -80,6 +86,7 @@ function buildCartouche(
   emaFull: WeightPoint[],
   heightCm: number,
   goalWeight: number | null,
+  maintien: boolean,
 ): Cartouche {
   const last = inputs.at(-1) ?? null;
   const prev = inputs.length >= 2 ? inputs[inputs.length - 2]! : null;
@@ -94,7 +101,7 @@ function buildCartouche(
     waist,
     waist_delta: delta(waist, prev ? prev.waistCm : null),
     gap_to_goal: delta(current, goalWeight),
-    projection: buildProjection(emaFull, goalWeight),
+    projection: buildProjection(emaFull, goalWeight, maintien),
   };
 }
 
@@ -111,6 +118,7 @@ export function buildWeightView({
   goalWeight,
   loggedDays,
   range,
+  currentMode,
 }: WeightViewInput): GetWeightResponse {
   const sorted = [...entries].sort((a, b) => a.date.getTime() - b.date.getTime());
   const inputs: WeighInInput[] = sorted.map((e) => ({
@@ -172,12 +180,18 @@ export function buildWeightView({
   const clip = <T extends { date: string }>(arr: T[]): T[] =>
     cutoff ? arr.filter((p) => p.date >= cutoff) : arr;
 
+  // The effective mode prefers the persisted setting, falling back to the latest period's
+  // diet flag (the M4 default). 'not_in_diet' is Maintien — it gates the projection.
+  const latestFlag = inputs.length ? inputs[inputs.length - 1]!.dietFlag : null;
+  const effectiveMode = currentMode ?? latestFlag;
+  const maintien = effectiveMode === 'not_in_diet';
+
   return {
     weigh_ins: clip(weighIns),
     ema: clip(emaFull),
     trajectory: clip(trajFull),
     periods,
-    cartouche: buildCartouche(inputs, emaFull, heightCm, goalWeight),
-    current_mode: inputs.length ? inputs[inputs.length - 1]!.dietFlag : null,
+    cartouche: buildCartouche(inputs, emaFull, heightCm, goalWeight, maintien),
+    current_mode: effectiveMode,
   };
 }

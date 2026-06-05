@@ -1,5 +1,6 @@
 import argon2 from 'argon2';
 import { prisma } from '../src/data/prisma.js';
+import { seedDefaultsForUser } from '../src/services/user-bootstrap.js';
 
 // One-off bootstrap of the single v1 user (no public sign-up — ops.md §7).
 // Usage: npm run create-user -w @macronome/api -- \
@@ -34,6 +35,7 @@ async function main(): Promise<void> {
     },
     select: { id: true, username: true },
   });
+  await seedDefaultsForUser(user.id); // default meal template + locked built-in "Rien"
   console.log(`Created user ${user.username} (${user.id}).`);
 }
 

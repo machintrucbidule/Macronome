@@ -10,6 +10,7 @@ import { profileRepo } from '../data/repositories/profile.repo.js';
 import { targetRepo } from '../data/repositories/target.repo.js';
 import { weightRepo, type WeightWriteData } from '../data/repositories/weight.repo.js';
 import { ApiError } from '../http/errors.js';
+import * as settingsService from './settings.js';
 import { buildWeightView } from './weight-view.js';
 import { loggedDay, type LoggedDay } from './weight-periods.js';
 
@@ -23,10 +24,11 @@ const num = (d: { toString(): string }): number => Number(d.toString());
 
 /** Read + assemble the full Weight view for the user (used by GET and after each write). */
 async function readView(userId: string, range: WeightRange): Promise<GetWeightResponse> {
-  const [entries, profile, target] = await Promise.all([
+  const [entries, profile, target, currentMode] = await Promise.all([
     weightRepo.findAll(userId),
     profileRepo.get(userId),
     targetRepo.currentAsOf(userId, new Date()),
+    settingsService.currentMode(userId),
   ]);
   if (!profile) throw new Error('profile_missing'); // an authed user always has one
   let loggedDays: LoggedDay[] = [];
@@ -42,6 +44,7 @@ async function readView(userId: string, range: WeightRange): Promise<GetWeightRe
     goalWeight: target?.targetWeightKg != null ? num(target.targetWeightKg) : null,
     loggedDays,
     range,
+    currentMode,
   });
 }
 

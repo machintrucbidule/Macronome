@@ -7,21 +7,26 @@ import { autoVerdict, type ResolvedSnapshot } from '../domain/day-verdict/index.
 import { ApiError } from '../http/errors.js';
 import { assembleDayDetail, buildConstat } from './day-assembler.js';
 import { isPast, loadDayContext, resolveSnapshotForDate, type DayContext } from './day-context.js';
+import { loadDaySeed, seedSlotPreview, seedToMeals, type DaySeed } from './day-prefill.js';
 
 // Days service (spec/api/days-meals-leftover.md §Day). Orchestration: lazy read/scaffold,
 // materialize-on-write, and day-level patch. Snapshot freezing (OPEN_GAPS #1): a past
 // day uses its stored snapshot; today recomputes live and re-persists so the value frozen
 // at roll-over reflects the latest target/weight. Verdicts are computed on read (the
 // source of truth); the persisted verdict_auto is a Stats cache, refreshed on each day read.
+// New days are structured from the user's meal_slot_template + garde-manger prefill
+// (day-prefill.ts), falling back to the default slots until a template is seeded.
 
-// Default day structure until M7 wires meal_slot_template + pantry prefill. New days are
-// materialized with these slots (per-day editable, never a template).
-const DEFAULT_MEAL_SLOTS = ['Petit déjeuner', 'Déjeuner', 'Dîner', 'Collation'];
 const asJson = (s: ResolvedSnapshot): Prisma.InputJsonValue =>
   s as unknown as Prisma.InputJsonValue;
 
 /** Unsaved scaffold for a never-touched date (200; nothing written). */
-function scaffold(date: string, snapshot: ResolvedSnapshot, ctx: DayContext): DayDetail {
+function scaffold(
+  date: string,
+  snapshot: ResolvedSnapshot,
+  ctx: DayContext,
+  seed: DaySeed,
+): DayDetail {
   const auto = autoVerdict(0, snapshot.cal_min, snapshot.cal_max);
   return {
     date,
@@ -34,11 +39,11 @@ function scaffold(date: string, snapshot: ResolvedSnapshot, ctx: DayContext): Da
     target_snapshot: snapshot,
     totals: { kcal: 0, fat: 0, carb: 0, protein: 0, weight_g: 0 },
     constat: buildConstat({ ...ctx, activityLevel: null, dayKcal: 0 }),
-    meals: DEFAULT_MEAL_SLOTS.map((slot_name, order_index) => ({
+    meals: seed.slots.map((slot, order_index) => ({
       id: '',
-      slot_name,
+      slot_name: slot.name,
       order_index,
-      entries: [],
+      entries: seedSlotPreview(slot),
       leftover_groups: [],
       totals: { kcal: 0, fat: 0, carb: 0, protein: 0, weight_g: 0 },
     })),
@@ -49,7 +54,10 @@ function scaffold(date: string, snapshot: ResolvedSnapshot, ctx: DayContext): Da
 export async function get(userId: string, date: string): Promise<DayDetail> {
   const ctx = await loadDayContext(userId, date);
   const aggregate = await dayReadRepo.readAggregate(userId, date);
-  if (!aggregate) return scaffold(date, await resolveSnapshotForDate(userId, date), ctx);
+  if (!aggregate) {
+    const seed = await loadDaySeed(userId);
+    return scaffold(date, await resolveSnapshotForDate(userId, date), ctx, seed);
+  }
 
   const past = isPast(date);
   const snapshot = past
@@ -77,13 +85,16 @@ export async function get(userId: string, date: string): Promise<DayDetail> {
 export async function materialize(userId: string, date: string): Promise<DayDetail> {
   const existing = await dayRepo.findDay(userId, date);
   if (!existing) {
-    const snapshot = await resolveSnapshotForDate(userId, date);
+    const [snapshot, seed] = await Promise.all([
+      resolveSnapshotForDate(userId, date),
+      loadDaySeed(userId),
+    ]);
     await dayRepo.createDay(userId, {
       date,
       kind: 'detailed',
       targetSnapshot: asJson(snapshot),
       verdictAuto: autoVerdict(0, snapshot.cal_min, snapshot.cal_max),
-      meals: DEFAULT_MEAL_SLOTS.map((slotName, orderIndex) => ({ slotName, orderIndex })),
+      meals: seedToMeals(seed),
     });
   }
   return get(userId, date);

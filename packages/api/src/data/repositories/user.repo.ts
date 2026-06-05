@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client';
 import { prisma } from '../prisma.js';
 
 // Repository for app_user. Auth lookups (by username / id) are the bootstrap path;
@@ -27,5 +28,10 @@ export const userRepo = {
 
   async updatePasswordHash(id: string, passwordHash: string): Promise<void> {
     await prisma.appUser.update({ where: { id }, data: { passwordHash } });
+  },
+
+  /** Replace the whole settings JSON blob (the service merges before calling). */
+  async updateSettings(id: string, settings: Prisma.InputJsonValue): Promise<void> {
+    await prisma.appUser.update({ where: { id }, data: { settings } });
   },
 };

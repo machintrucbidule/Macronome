@@ -2,6 +2,7 @@ import argon2 from 'argon2';
 import request from 'supertest';
 import type { Express } from 'express';
 import { prisma } from '../../src/data/prisma.js';
+import { seedDefaultsForUser } from '../../src/services/user-bootstrap.js';
 
 // Shared integration helpers (testing.md §2): cookie extraction, an authed cookie-primed
 // agent, and direct row seeders for prerequisites built in earlier milestones (target,
@@ -29,9 +30,11 @@ export interface Authed {
 /** Seed a user, log them in, return a cookie-primed agent + CSRF token + id. */
 export async function authedAgent(app: Express, username: string): Promise<Authed> {
   const passwordHash = await argon2.hash('correct-horse', { type: argon2.argon2id });
-  await prisma.appUser.create({
+  const created = await prisma.appUser.create({
     data: { username, passwordHash, sex: 'male', birthdate: new Date('1986-01-01'), heightCm: 180 },
+    select: { id: true },
   });
+  await seedDefaultsForUser(created.id); // default meal template + locked built-in "Rien"
   const agent = request.agent(app);
   const pre = await agent.get('/api/v1/auth/session');
   const csrf = getCookie(pre, 'macronome.csrf') ?? '';

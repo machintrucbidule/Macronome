@@ -60,6 +60,11 @@ export const entryRepo = {
     return prisma.mealEntry.update({ where: { id: entryId }, data });
   },
 
+  /** Toggle the pin flag (mirrors a pantry_item). Used by the Repas 📌 (M7). */
+  setPinned(entryId: string, isPinned: boolean): Promise<MealEntryModel> {
+    return prisma.mealEntry.update({ where: { id: entryId }, data: { isPinned } });
+  },
+
   async delete(userId: string, entryId: string): Promise<boolean> {
     if (!(await this.ownedEntry(userId, entryId))) return false;
     await prisma.mealEntry.delete({ where: { id: entryId } });

@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import { CreateMealEntrySchema, ErrorCode, UpdateMealEntrySchema } from '@macronome/shared';
 import * as entriesService from '../../services/entries.js';
+import * as pantryService from '../../services/pantry.js';
 import { ApiError, zodDetails } from '../errors.js';
 
 // THIN controllers for meal entries. Ownership (meal/entry → day_log.user_id) is enforced
@@ -32,4 +33,18 @@ export async function remove(req: Request, res: Response): Promise<void> {
   const ok = await entriesService.remove(userId(res), req.params.id as string);
   if (!ok) throw new ApiError(404, ErrorCode.NotFound);
   res.status(204).end();
+}
+
+/** POST /meals/:mealId/entries/:id/pin — pin this line's food (future prefill only). */
+export async function pin(req: Request, res: Response): Promise<void> {
+  const entry = await pantryService.pin(userId(res), req.params.id as string);
+  if (!entry) throw new ApiError(404, ErrorCode.NotFound);
+  res.status(200).json(entry);
+}
+
+/** POST /meals/:mealId/entries/:id/unpin — unpin (future prefill only). */
+export async function unpin(req: Request, res: Response): Promise<void> {
+  const entry = await pantryService.unpin(userId(res), req.params.id as string);
+  if (!entry) throw new ApiError(404, ErrorCode.NotFound);
+  res.status(200).json(entry);
 }

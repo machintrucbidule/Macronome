@@ -172,6 +172,41 @@ model WeightEntry {
   @@map("weight_entry")
 }
 
+/// The user's default day structure (spec/schema/tables-logging.md → meal_slot_template).
+/// Edited in Paramètres; seeds the meals of each new day (the per-day meals are then
+/// independent — editing a day never edits this template). Seeded with the default slots
+/// on user creation (services/user-bootstrap.ts). The owner FK and UNIQUE(user_id,name)
+/// live in migration SQL (column-faithful schema mirrors the DDL gate).
+model MealSlotTemplate {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  name       String
+  orderIndex Int      @map("order_index")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@unique([userId, name])
+  @@map("meal_slot_template")
+}
+
+/// A garde-manger pin (spec/schema/tables-logging.md → pantry_item). Recurring foods
+/// auto-prefilled at quantity 0 on every new day's matching meal slot. Same data as the
+/// Repas 📌 toggle and the Paramètres per-meal editor; unpinning affects FUTURE-day prefill
+/// only (OPEN_GAPS #8). A pin on an archived food is retained but not prefilled. The owner
+/// FK, the food FK, and UNIQUE(user_id,meal_slot_name,food_id) live in migration SQL.
+model PantryItem {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  mealSlotName String   @map("meal_slot_name")
+  foodId       String   @map("food_id") @db.Uuid
+  orderIndex   Int      @map("order_index")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@unique([userId, mealSlotName, foodId])
+  @@map("pantry_item")
+}
+
 /// One logged calendar day (spec/schema/tables-logging.md → day_log). Created lazily
 /// on first interaction. `target_snapshot` freezes that date's effective calorie range
 /// + macro thresholds (OPEN_GAPS #1): live while date==today, frozen once date<today.

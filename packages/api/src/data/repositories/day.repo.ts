@@ -8,13 +8,19 @@ import { toDate } from './day-read.repo.js';
 // files. Every method is user-scoped (CLAUDE.md rule 3) — sub-entity ownership is
 // verified by walking meal → day_log.user_id (the schema has no Prisma relations).
 
+/** A garde-manger pre-fill line materialized with a new day (qty 0, pinned). */
+export interface PrefillEntry {
+  foodId: string;
+  orderIndex: number;
+}
+
 export interface CreateDayData {
   date: string;
   kind: 'detailed' | 'summary';
   summaryKcal?: number | null;
   verdictAuto?: 'OK' | 'NOK' | null;
   targetSnapshot: Prisma.InputJsonValue;
-  meals: { slotName: string; orderIndex: number }[];
+  meals: { slotName: string; orderIndex: number; prefill?: PrefillEntry[] }[];
 }
 
 export interface UpdateDayData {
@@ -44,14 +50,31 @@ export const dayRepo = {
           targetSnapshot: data.targetSnapshot,
         },
       });
-      if (data.meals.length > 0) {
-        await tx.meal.createMany({
-          data: data.meals.map((m) => ({
-            dayLogId: day.id,
-            slotName: m.slotName,
-            orderIndex: m.orderIndex,
-          })),
+      for (const m of data.meals) {
+        const meal = await tx.meal.create({
+          data: { dayLogId: day.id, slotName: m.slotName, orderIndex: m.orderIndex },
         });
+        if (m.prefill && m.prefill.length > 0) {
+          // Garde-manger pre-fill: qty-0 referenced lines, pinned, snapshot 0 (the user
+          // edits the quantity to log). History stays frozen — later unpins never touch
+          // these already-materialized lines (OPEN_GAPS #8).
+          await tx.mealEntry.createMany({
+            data: m.prefill.map((p) => ({
+              mealId: meal.id,
+              kind: 'referenced',
+              foodId: p.foodId,
+              servedQuantity: 0,
+              unit: 'g',
+              servedGrams: 0,
+              snapKcal: 0,
+              snapFat: 0,
+              snapCarb: 0,
+              snapProtein: 0,
+              isPinned: true,
+              orderIndex: p.orderIndex,
+            })),
+          });
+        }
       }
       return day;
     });
