@@ -161,8 +161,18 @@ serving}` with neutral oracles; days/meals/entries/leftover/journal services + r
       `/login`) + login polish (lockout/a11y) + full Empty/Skeleton visual contract → M9.
       e2e isolation via a `first-run` Playwright project the `app` project depends on. See
       `M8-first-run.md` §Deviations.
-- [ ] **M9 — Polish** → `docs/dev-plan/M9-polish.md`
-      _depends-on: M1–M7._ Remaining screen states, i18n completeness, a11y, perf.
+- [~] **M9 — Polish** → `docs/dev-plan/M9-polish.md`
+  _depends-on: M1–M7._ Remaining screen states, i18n completeness, a11y, perf.
+  **Split into sub-passes (approved; too large for one pass).** **M9a — States, login &
+  i18n DONE:** full login state card (`features/login/` — idle/loading/error/lockout/
+  success, live lockout countdown, `stay_signed_in`; `ApiError.retryAfterS`); locale-aware
+  numbers via `lib/format/number.ts` (Intl, grouping off → only the decimal mark localises;
+  per-feature `format.ts` delegate); Foods load-error banner (Repas already had one); i18n
+  key-coverage CI gate (`scripts/check-i18n.mjs` + `check:i18n` step). **No backend change**
+  — the login lockout (`rateLimit.ts`/`TRUSTED_PROXY`) was already built + tested. Acceptance
+  green: `number.test.ts` + `check:i18n` + typecheck + lint + web build; `e2e/login.spec.ts`.
+  **Remaining:** M9b (a11y/focus, sticky appbar + `.tblscroll`, `RequireAuth`→`/login`),
+  M9c (Cook mode, carried from M3), M9d (perf on large data). See `M9-polish.md`.
 - [ ] **M10 — Reserved AI-advisor hook (NOT built)** → `docs/dev-plan/M10-ai-advisor-hook.md`
       _depends-on: M0 (route), M6 (payload shape)._ Inert config + 501 route only.
 

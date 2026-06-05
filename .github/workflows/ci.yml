@@ -44,6 +44,7 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run check:schema
+      - run: npm run check:i18n
 
       # Unit oracles (neutral *.test.ts only)
       - run: npm test

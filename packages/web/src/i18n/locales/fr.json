@@ -21,7 +21,15 @@
     "username": "Identifiant",
     "password": "Mot de passe",
     "submit": "Se connecter",
-    "error": "Identifiant ou mot de passe incorrect."
+    "error": "Identifiant ou mot de passe incorrect.",
+    "tagline": "Journal nutritionnel & suivi corporel",
+    "staySignedIn": "Rester connecté sur cet appareil",
+    "lockout": "Trop de tentatives. Réessayez dans",
+    "seconds": "s",
+    "success": "Connexion réussie.",
+    "redirect": "→ JOURNAL DU JOUR",
+    "host": "Instance auto-hébergée · accès privé",
+    "languageGroup": "Langue"
   },
   "setup": {
     "title": "Bienvenue dans Macronome",
@@ -45,7 +53,8 @@
     "cancel": "Annuler",
     "remove": "Supprimer",
     "optional": "(optionnel)",
-    "loading": "Chargement…"
+    "loading": "Chargement…",
+    "loadError": "Échec du chargement. Affichage des données en cache ; réessayez plus tard."
   },
   "foods": {
     "title": "Aliments",

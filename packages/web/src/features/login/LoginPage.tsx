@@ -1,48 +1,154 @@
 import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useLogin } from './useLogin';
+import i18n from '../../i18n/config';
+import { applyLocale } from '../../app/applySettings';
+import { ThemeToggle } from '../../app/ThemeToggle';
+import { useLogin, type LoginState } from './useLogin';
+import styles from './LoginPage.module.css';
 
-// Minimal pre-auth login screen (own top-bar per theming.md). Submission is wired in M8
-// (session + redirect home); the lockout/countdown and detailed states are M9 polish.
+// Pre-auth login surface (design/components/states.md §Login). A single card whose
+// data-state (idle|loading|error|lockout|success) is driven entirely by the server via
+// useLogin; CSS reveals the matching banner / countdown / success flash. The web renders,
+// never decides. Own top-bar (language + theme) per theming.md.
+
+function LoginTopBar() {
+  const { t } = useTranslation();
+  return (
+    <div className={styles.topbar}>
+      <div className={styles.seg} role="group" aria-label={t('login.languageGroup')}>
+        <button
+          type="button"
+          aria-pressed={i18n.language === 'fr'}
+          onClick={() => applyLocale('fr')}
+        >
+          FR
+        </button>
+        <span className={styles.sep} />
+        <button
+          type="button"
+          aria-pressed={i18n.language === 'en'}
+          onClick={() => applyLocale('en')}
+        >
+          EN
+        </button>
+      </div>
+      <ThemeToggle />
+    </div>
+  );
+}
+
+function StateAlert({ state, lockSeconds }: { state: LoginState; lockSeconds: number }) {
+  const { t } = useTranslation();
+  if (state === 'error')
+    return (
+      <div className={styles.alert} role="alert">
+        {t('login.error')}
+      </div>
+    );
+  if (state === 'lockout')
+    return (
+      <div className={styles.alert} role="alert">
+        {t('login.lockout')} <span className={styles.count}>{lockSeconds}</span>&nbsp;
+        {t('login.seconds')}.
+      </div>
+    );
+  return null;
+}
+
+function SuccessFlash() {
+  const { t } = useTranslation();
+  return (
+    <div className={styles.success} role="status">
+      <div className={styles.ring} aria-hidden="true">
+        ✓
+      </div>
+      <p>{t('login.success')}</p>
+      <div className={styles.go}>{t('login.redirect')}</div>
+    </div>
+  );
+}
+
 export function LoginPage() {
   const { t } = useTranslation();
-  const { submit, pending, failed } = useLogin();
+  const { state, lockSeconds, submit } = useLogin();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [stay, setStay] = useState(false);
+
+  const locked = state === 'lockout';
+  const invalid = state === 'error';
 
   function onSubmit(e: FormEvent): void {
     e.preventDefault();
-    void submit(username, password);
+    if (state === 'loading' || locked) return;
+    void submit(username, password, stay);
   }
 
   return (
-    <main>
-      <h1>{t('login.title')}</h1>
-      <form onSubmit={onSubmit}>
-        <label>
-          {t('login.username')}
-          <input
-            name="username"
-            autoComplete="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-        </label>
-        <label>
-          {t('login.password')}
-          <input
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </label>
-        {failed && <p role="alert">{t('login.error')}</p>}
-        <button type="submit" disabled={pending}>
-          {t('login.submit')}
-        </button>
-      </form>
-    </main>
+    <div className={styles.shell} data-state={state}>
+      <LoginTopBar />
+      <main className={styles.card} aria-labelledby="login-wordmark">
+        <form className={styles.formBody} onSubmit={onSubmit}>
+          <div className={styles.brand}>
+            <span className={styles.tick} aria-hidden="true" />
+            <span className={styles.wordmark} id="login-wordmark">
+              {t('app.title')}
+            </span>
+          </div>
+          <div className={styles.tagline}>{t('login.tagline')}</div>
+
+          <StateAlert state={state} lockSeconds={lockSeconds} />
+
+          <label className={styles.field}>
+            <span className={styles.label}>{t('login.username')}</span>
+            <input
+              name="username"
+              autoComplete="username"
+              value={username}
+              disabled={locked}
+              aria-invalid={invalid}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+          </label>
+
+          <label className={styles.field}>
+            <span className={styles.label}>{t('login.password')}</span>
+            <input
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              disabled={locked}
+              aria-invalid={invalid}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </label>
+
+          <label className={styles.stay}>
+            <input
+              type="checkbox"
+              checked={stay}
+              disabled={locked}
+              onChange={(e) => setStay(e.target.checked)}
+            />
+            <span>{t('login.staySignedIn')}</span>
+          </label>
+
+          {!locked && (
+            <button className={styles.submit} type="submit" disabled={state === 'loading'}>
+              {state === 'loading' ? (
+                <span className={styles.spinner} aria-hidden="true" />
+              ) : (
+                <span>{t('login.submit')}</span>
+              )}
+            </button>
+          )}
+
+          <div className={styles.host}>{t('login.host')}</div>
+        </form>
+
+        {state === 'success' && <SuccessFlash />}
+      </main>
+    </div>
   );
 }

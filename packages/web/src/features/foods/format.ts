@@ -1,15 +1,16 @@
 import type { Food } from '@macronome/shared';
+import { formatInt, formatUpTo } from '../../lib/format/number';
 
 // Display formatting only (spec/logic/00-conventions.md §Rounding). The web rounds
 // for display; it never computes nutrition figures. kcal → integer (round half-up);
-// macro grams → 1 decimal. Locale-aware decimal separators are an M9 polish item.
+// macro grams → up to 1 decimal. Locale decimal mark via lib/format/number.
 
 export function kcalDisplay(n: number): string {
-  return Math.round(n).toString();
+  return formatInt(n);
 }
 
 export function gramsDisplay(n: number): string {
-  return (Math.round(n * 10) / 10).toString();
+  return formatUpTo(n, 1);
 }
 
 /** "label = 15 g · dose = 30 g" or an em-dash when a food has no named portions. */

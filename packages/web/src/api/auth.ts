@@ -12,7 +12,7 @@ import { api } from './client';
 
 export const authApi = {
   session: () => api.get<{ user: SessionUser }>('/auth/session'),
-  login: (body: { username: string; password: string }) =>
+  login: (body: { username: string; password: string; stay_signed_in?: boolean }) =>
     api.post<{ user: SessionUser }>('/auth/login', body),
   logout: () => api.post<void>('/auth/logout'),
   changePassword: (body: PasswordChangeRequest) => api.post<void>('/auth/password', body),

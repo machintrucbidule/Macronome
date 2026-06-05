@@ -21,7 +21,15 @@
     "username": "Username",
     "password": "Password",
     "submit": "Sign in",
-    "error": "Incorrect username or password."
+    "error": "Incorrect username or password.",
+    "tagline": "Nutrition journal & body tracking",
+    "staySignedIn": "Stay signed in on this device",
+    "lockout": "Too many attempts. Try again in",
+    "seconds": "s",
+    "success": "Signed in.",
+    "redirect": "→ TODAY'S JOURNAL",
+    "host": "Self-hosted instance · private access",
+    "languageGroup": "Language"
   },
   "setup": {
     "title": "Welcome to Macronome",
@@ -45,7 +53,8 @@
     "cancel": "Cancel",
     "remove": "Remove",
     "optional": "(optional)",
-    "loading": "Loading…"
+    "loading": "Loading…",
+    "loadError": "Couldn't load. Showing cached data; try again later."
   },
   "foods": {
     "title": "Foods",

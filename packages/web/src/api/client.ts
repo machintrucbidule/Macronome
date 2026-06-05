@@ -8,6 +8,7 @@ export class ApiError extends Error {
     readonly status: number,
     readonly code: string,
     readonly details?: Record<string, string>,
+    readonly retryAfterS?: number,
   ) {
     super(code);
     this.name = 'ApiError';
@@ -34,9 +35,12 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   if (res.status === 204) return undefined as T;
   const data: unknown = await res.json().catch(() => null);
   if (!res.ok) {
-    const err = (data as { error?: { code?: string; details?: Record<string, string> } } | null)
-      ?.error;
-    throw new ApiError(res.status, err?.code ?? 'error', err?.details);
+    const err = (
+      data as {
+        error?: { code?: string; details?: Record<string, string>; retry_after_s?: number };
+      } | null
+    )?.error;
+    throw new ApiError(res.status, err?.code ?? 'error', err?.details, err?.retry_after_s);
   }
   return data as T;
 }

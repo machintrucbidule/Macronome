@@ -68,6 +68,6 @@ test('set an inconsistent target and see the negative carb-ceiling warning', asy
   await page.getByRole('button', { name: 'Enregistrer' }).click();
 
   // The engine returns the real negative value (not clamped) + the inconsistency banner.
-  await expect(page.getByText('-40.0')).toBeVisible();
+  await expect(page.getByText('-40,0')).toBeVisible();
   await expect(page.getByText(/Cibles incohérentes/)).toBeVisible();
 });

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Food } from '@macronome/shared';
 import { AppShell } from '../../app/AppShell';
+import { Banner } from '../../components/Banner/Banner';
 import { EmptyState } from '../../components/states/EmptyState';
 import { SkeletonRows } from '../../components/states/SkeletonRows';
 import { FoodsToolbar } from './components/FoodsToolbar';
@@ -86,6 +87,8 @@ export function FoodsPage() {
         onShowArchived={setShowArchived}
         onAdd={() => setModal({ mode: 'add' })}
       />
+
+      {list.isError && <Banner tone="warning">{t('common.loadError')}</Banner>}
 
       {list.isLoading ? (
         <SkeletonRows />

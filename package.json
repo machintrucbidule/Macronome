@@ -22,6 +22,7 @@
     "db:dev": "docker compose -f compose.test.yml up -d",
     "migrate": "npm run prisma:deploy -w @macronome/api",
     "check:schema": "node scripts/check-schema.mjs",
+    "check:i18n": "node scripts/check-i18n.mjs",
     "prepare": "husky"
   },
   "lint-staged": {

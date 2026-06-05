@@ -8,6 +8,7 @@ import {
 import { useMeals } from '../../MealsContext';
 import { VerdictBadge } from '../../../../components/VerdictBadge/VerdictBadge';
 import { r0 } from '../../format';
+import { formatFixed } from '../../../../lib/format/number';
 import styles from '../../meals.module.css';
 
 // Verdict cluster: per-day activity select + the OK/NOK badge (with override menu) + the
@@ -80,7 +81,7 @@ export function VerdictCluster({
             ? t('meals.constat.deficit')
             : t('meals.constat.surplus')}{' '}
           {(constat.kg_per_week ?? 0) > 0 ? '+' : ''}
-          {(constat.kg_per_week ?? 0).toFixed(2)} {t('meals.constat.kgPerWeek')}
+          {formatFixed(constat.kg_per_week ?? 0, 2)} {t('meals.constat.kgPerWeek')}
         </div>
       )}
     </div>

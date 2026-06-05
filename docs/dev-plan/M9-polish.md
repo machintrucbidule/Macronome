@@ -33,14 +33,50 @@ Depends-on: M1–M7.
 Polish touches many files but adds no large ones; state components live under
 `components/states/` and feature-local `states`.
 
+## Split into sub-passes (approved)
+
+M9 is too large for one safe pass, so it is built in sub-passes (DEV_PLAN allows this).
+
+- **M9a — States, login & i18n — DONE.** Login state card; locale-aware numbers (Intl);
+  i18n key-coverage CI gate. See §"M9a delivered / deviations" below.
+- **M9b — A11y & layout** (next): focus trap / focus ring / labelled inputs / keyboard nav;
+  sticky appbar + `thead` offset + `.tblscroll` (M1 carried); `RequireAuth` → `/login`.
+- **M9c — Cook mode** (carried from M3, below).
+- **M9d — Perf**: large-seed checks on Stats + Foods search; indexes verified.
+
 ## Checklist
 
-- [ ] all screen states (empty/skeleton/error) per design/components/states.md
-- [ ] i18n FR/EN complete; Intl number/date; expansion checked
-- [ ] theming/tokens audit (no raw hex; --tap)
-- [ ] keyboard nav + focus management + modal focus trap
-- [ ] perf check on large data; indexes verified
+- [~] all screen states (empty/skeleton/error) per design/components/states.md
+  _M9a: full login card (idle/loading/error/lockout/success); Foods load-error banner
+  added (Repas already had one). Per-screen Empty/Skeleton were already in place from
+  earlier milestones. Remaining visual-contract polish + a11y states → M9b._
+- [x] i18n FR/EN complete; Intl number/date — _M9a: `check:i18n` CI gate locks FR/EN parity;
+      numbers localised via `lib/format/number` (Intl). FR⇄EN text-expansion visual pass → M9b._
+- [ ] theming/tokens audit (no raw hex; --tap) — _audit: no raw hex outside `tokens.css`
+      (verified M9a); `--tap` responsive override → M9b._
+- [ ] keyboard nav + focus management + modal focus trap → M9b
+- [ ] perf check on large data; indexes verified → M9d
 - acceptance: state/i18n/a11y checks green; critical-flow e2e still green
+  _M9a acceptance green: `number.test.ts` (FR comma / EN dot / half-up) + `check:i18n` +
+  typecheck + lint + web build; `e2e/login.spec.ts` (bad-creds banner, lockout countdown)._
+
+## M9a delivered / deviations
+
+- **Login state card** (`features/login/`): `useLogin` is now a server-driven state machine
+  (idle/loading/error/lockout/success) with a live lockout countdown; `LoginPage` renders the
+  full contracted card (banner `err-creds`, `err-lock` countdown with submit hidden + fields
+  disabled, success flash, `stay_signed_in`, FR/EN + theme top-bar). `ApiError` now carries
+  `retryAfterS`. **No backend change**: the lockout (`rateLimit.ts` → 429 `locked_out`) and
+  `TRUSTED_PROXY` were already implemented + tested in the API; M9a only renders them.
+- **Numbers** (`lib/format/number.ts`): single Intl-based source; per-feature `format.ts`
+  (foods, weight, targets) + `VerdictCluster` delegate to it. **Grouping is OFF** on purpose
+  (dense tabular tables; the FR group separator is a narrow NBSP — a test/copy hazard), so
+  integers stay locale-independent and only the decimal mark localises (FR "," / EN "."). The
+  `cibles` e2e assertion `-40.0` → `-40,0` accordingly. Meals/journal/stats integer helpers
+  are unchanged (no decimals → nothing to localise).
+- **i18n gate**: `scripts/check-i18n.mjs` + root `check:i18n` + a CI step beside `check:schema`.
+- **Already-done found during audit**: full primary nav + account menu (shipped M7/M8) covers
+  the M1-carried "Full primary nav" item; no raw hex outside `tokens.css`.
 
 ### Carried over from M3 (deferred here, tracked)
 
@@ -58,7 +94,7 @@ Polish touches many files but adds no large ones; state components live under
       dense-table `thead` `top: var(--appbar-h)` offset is correct; add the horizontal-scroll
       table variant (`design/components/data-tables.md` `.tblscroll`) without re-introducing
       the sticky-offset overlap (M1 removed `.wrap` overflow to avoid it).
-- [ ] **Full primary nav + account menu** (`design/components/top-nav.md`): M1 added only
-      an Aliments nav link; build `TopNav`/`PrimaryNav`/`AccountMenu` with all tabs.
-- [ ] **Locale-aware number formatting** (Intl) for kcal/macro grams in the foods table
-      and modals (M1 uses plain `toFixed`/`Math.round` with a dot separator).
+- [x] **Full primary nav + account menu** (`design/components/top-nav.md`): shipped in M7/M8
+      — `AppShell` has all six tabs + the `AccountMenu` (Cibles/Contenants/Paramètres/Compte).
+- [x] **Locale-aware number formatting** (Intl) — M9a: `lib/format/number.ts` localises the
+      decimal mark in the foods table/modals and elsewhere (grouping off; see M9a deviations).
