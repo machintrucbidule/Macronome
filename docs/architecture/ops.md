@@ -1,7 +1,7 @@
 # Ops, deployment & backups
 
-The app is a standard, deployment-agnostic web service. Config appendices (compose,
-Caddyfile, env) are in `appendices/config-docker.md`.
+The app is a standard, deployment-agnostic web service. Config appendices (compose, env)
+are in `appendices/config-docker.md`.
 
 ---
 
