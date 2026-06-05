@@ -16,6 +16,7 @@ import mealsRoutes from './http/routes/meals.js';
 import profileRoutes from './http/routes/profile.js';
 import recipesRoutes from './http/routes/recipes.js';
 import searchRoutes from './http/routes/search.js';
+import statsRoutes from './http/routes/stats.js';
 import targetRoutes from './http/routes/target.js';
 import weightRoutes from './http/routes/weight.js';
 import { logger } from './observability/logger.js';
@@ -45,6 +46,7 @@ export function createApp(): Express {
   app.use('/api/v1/meals', mealsRoutes);
   app.use('/api/v1/leftover', leftoverRoutes);
   app.use('/api/v1/journal', journalRoutes);
+  app.use('/api/v1/stats', statsRoutes);
 
   app.use(errorHandler);
   return app;

@@ -118,8 +118,16 @@ serving}` with neutral oracles; days/meals/entries/leftover/journal services + r
       **Deferred (tracked):** builder live-while-typing recompute + client-side transitive
       cycle-disable + daily-log dropdown kcal meta + `/recipes/:id` deep-link routes → M9. See
       `M5-recipes.md` §Deviations.
-- [ ] **M6 — Stats & adherence** → `docs/dev-plan/M6-stats.md`
-      _depends-on: M3 (verdicts/day_kcal)._ Read-only over frozen history.
+- [x] **M6 — Stats & adherence** → `docs/dev-plan/M6-stats.md`
+      _depends-on: M3 (verdicts/day_kcal)._ Read-only over frozen history. Done:
+      `domain/stats` (rolling/heatmap/monthly/streak/best-month/signals) with neutral
+      oracles; `day-stat` logged-day mapper + `dayReadRepo.readAll`; stats service +
+      `GET /stats/rolling` + `GET /stats/adherence?year=`; Stats screen (rolling cards,
+      heatmap, monthly OK/NOK + avg-kcal pivots, key figures, signals, year selector, nav
+      tab, FR+EN). Acceptance green: stats oracles + integration (shapes, summary-day
+      colour, tenancy isolation, 422/401) + e2e (cards + heatmap render; empty state).
+      **Deferred (tracked):** heatmap per-day kcal tooltip (not in the `HeatmapCell`
+      contract); full-history read narrowing → M9. See `M6-stats.md` §Deviations.
 - [ ] **M7 — Settings & pantry** → `docs/dev-plan/M7-settings-pantry.md`
       _depends-on: M1, M3._ Pantry pins, meal-slot templates, profile, account.
 - [ ] **M8 — Migration ETL (late, stable schema)** → `docs/dev-plan/M8-migration.md`

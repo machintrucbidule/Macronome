@@ -1,0 +1,26 @@
+/* Calendar heatmap (design/components/charts.md). Semantic tokens only — the cells must
+   invert with the theme. */
+
+.svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.ok {
+  fill: var(--ok);
+}
+.nok {
+  fill: var(--nok);
+}
+.none {
+  fill: var(--bg-elev-2);
+  stroke: var(--border);
+  stroke-width: 0.5;
+}
+
+.month {
+  fill: var(--text-faint);
+  font-family: var(--font-num);
+  font-size: var(--fs-9);
+}

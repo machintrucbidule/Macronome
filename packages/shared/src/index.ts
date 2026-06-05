@@ -12,6 +12,9 @@ export {
   SUGGEST_RANGE_HALF_WIDTH_KCAL,
   RECENT_ACTIVITY_WINDOW_DAYS,
   EMA_ALPHA,
+  STATS_ROLLING_WINDOWS,
+  BEST_MONTH_MIN_DAYS,
+  NOK_RUN_ALERT,
 } from './constants/tuning.js';
 export {
   RATING_GRADES,
@@ -28,3 +31,4 @@ export * from './dto/profile.js';
 export * from './dto/target.js';
 export * from './dto/day.js';
 export * from './dto/weight.js';
+export * from './dto/stats.js';

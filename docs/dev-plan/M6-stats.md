@@ -47,8 +47,34 @@ streak/bestMonth/signals); chart wrappers small. ≤300 lines each.
 
 ## Checklist
 
-- [ ] domain/stats + neutral oracle tests (rolling, streak, best-month, signals)
-- [ ] stats service (read-only over day aggregates) + route/controller + DTOs
-- [ ] Stats screen: rolling cards, heatmap, pivots, figures, signals, year selector
-- [ ] integration: endpoint shapes, summary-day colour, tenancy 404
-- acceptance: stats neutral oracles + listed integration cases green
+- [x] domain/stats + neutral oracle tests (rolling, streak, best-month, signals)
+- [x] stats service (read-only over day aggregates) + route/controller + DTOs
+- [x] Stats screen: rolling cards, heatmap, pivots, figures, signals, year selector
+- [x] integration: endpoint shapes, summary-day colour, tenancy isolation, 422/401
+- [x] acceptance: stats neutral oracles + listed integration cases + e2e green
+
+## Status — DONE (acceptance green)
+
+Delivered: `packages/shared` tuning constants (`BEST_MONTH_MIN_DAYS`, `NOK_RUN_ALERT`,
+`STATS_ROLLING_WINDOWS`) + `dto/stats.ts`; `domain/stats/` pure functions
+(rolling/heatmap/monthly/streak/best-month/signals) with neutral oracles
+(`stats.test.ts`); `services/day-stat.ts` (logged-day mapper, journal pattern) +
+`dayReadRepo.readAll`; `services/stats.ts`; `GET /stats/rolling` + `GET /stats/adherence`
+(controller/route, mounted in `app.ts`); integration `stats.test.ts`. Web: `api/stats.ts`,
+`features/stats/` (page, hooks, RollingCards/KeyFigures/MonthlyBars/MonthCalorieBars/
+Signals/YearSelector/AdherenceSections), `components/Chart/Heatmap`, `/stats` route + nav
+tab, FR+EN i18n. e2e `e2e/stats.spec.ts` (rolling cards + heatmap render; empty state).
+
+### Deviations / notes
+
+- **`Signal.text`** returned by the API per the fixed contract (English fallback); the web
+  localizes via `stats.signal.<code>` with `{value}` interpolation (FR+EN). No motivational
+  copy (spec §7).
+- **`monthly`** carries both the OK/NOK pivot and the avg-kcal split (one array, only months
+  with logged days).
+- **Tenancy** has no `:id` here → tested as cross-user isolation (a fresh user sees empty).
+- **Heatmap tooltip** shows date + status only; the contract `HeatmapCell` has no per-day
+  kcal, so the screen-spec's kcal-in-tooltip is not wired (out of contract).
+- **`dayReadRepo.readAll`** reads full history per stats call — fine at single-user scale;
+  narrow if history grows (deferrable to M9).
+- **No journal change**: stats uses its own `day-stat.ts` mapper.

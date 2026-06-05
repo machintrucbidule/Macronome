@@ -414,6 +414,46 @@
       "error": "Échec de l'opération ({{code}})."
     }
   },
+  "stats": {
+    "title": "Stats",
+    "asOf": "au {{date}}",
+    "empty": "Aucun jour enregistré. Saisis des repas pour voir tes stats.",
+    "prevYear": "Année précédente",
+    "nextYear": "Année suivante",
+    "section": {
+      "adherence": "Adhérence (OK/NOK)",
+      "monthly": "Par mois",
+      "avgCalories": "Calories moyennes par mois",
+      "signals": "Signaux"
+    },
+    "rolling": {
+      "window": "{{n}} jours",
+      "okRate": "{{rate}} OK"
+    },
+    "vsTarget": {
+      "in": "dans la cible",
+      "above": "au-dessus",
+      "below": "sous"
+    },
+    "key": {
+      "yearOk": "Taux OK (année)",
+      "overallOk": "Taux OK (global)",
+      "streak": "Série OK en cours",
+      "days": "j",
+      "bestMonth": "Meilleur mois",
+      "bestMonthNote": "{{rate}} OK"
+    },
+    "heatmap": { "label": "Calendrier d'adhérence" },
+    "status": { "OK": "OK", "NOK": "NOK", "none": "non saisi" },
+    "monthly": { "tooltip": "{{ok}} OK · {{nok}} NOK" },
+    "signal": {
+      "none": "Aucun signal pour le moment.",
+      "avg30_above_target": "Moyenne 30 j : {{value}} kcal au-dessus de la cible",
+      "avg30_below_target": "Moyenne 30 j : {{value}} kcal sous la cible",
+      "nok_run": "{{value}} jours consécutifs hors cible",
+      "ok_rate_14": "Taux OK sur 14 j : {{value}} %"
+    }
+  },
   "activity": {
     "sedentary": { "label": "Sédentaire", "description": "Peu ou pas d'exercice" },
     "lightly_active": { "label": "Léger", "description": "Exercice léger 1–3 j/sem" },

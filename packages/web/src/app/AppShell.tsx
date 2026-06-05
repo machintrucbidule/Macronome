@@ -29,6 +29,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           <NavLink to="/recipes" className={({ isActive }) => (isActive ? styles.active : '')}>
             {t('recipes.title')}
           </NavLink>
+          <NavLink to="/stats" className={({ isActive }) => (isActive ? styles.active : '')}>
+            {t('stats.title')}
+          </NavLink>
           {/* Cibles belongs in the account menu (specifications/screens/targets.md);
               shown in primary nav until the menu lands in M9. */}
           <NavLink to="/cibles" className={({ isActive }) => (isActive ? styles.active : '')}>

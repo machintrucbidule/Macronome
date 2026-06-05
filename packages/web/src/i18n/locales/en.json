@@ -414,6 +414,46 @@
       "error": "Operation failed ({{code}})."
     }
   },
+  "stats": {
+    "title": "Stats",
+    "asOf": "as of {{date}}",
+    "empty": "No logged days yet. Log meals to see your stats.",
+    "prevYear": "Previous year",
+    "nextYear": "Next year",
+    "section": {
+      "adherence": "Adherence (OK/NOK)",
+      "monthly": "By month",
+      "avgCalories": "Average calories per month",
+      "signals": "Signals"
+    },
+    "rolling": {
+      "window": "{{n}} days",
+      "okRate": "{{rate}} OK"
+    },
+    "vsTarget": {
+      "in": "in target",
+      "above": "above",
+      "below": "below"
+    },
+    "key": {
+      "yearOk": "OK rate (year)",
+      "overallOk": "OK rate (overall)",
+      "streak": "Current OK streak",
+      "days": "d",
+      "bestMonth": "Best month",
+      "bestMonthNote": "{{rate}} OK"
+    },
+    "heatmap": { "label": "Adherence calendar" },
+    "status": { "OK": "OK", "NOK": "NOK", "none": "not logged" },
+    "monthly": { "tooltip": "{{ok}} OK · {{nok}} NOK" },
+    "signal": {
+      "none": "No signals right now.",
+      "avg30_above_target": "30-day average {{value}} kcal above target",
+      "avg30_below_target": "30-day average {{value}} kcal below target",
+      "nok_run": "{{value}} consecutive days off target",
+      "ok_rate_14": "14-day OK rate {{value}}%"
+    }
+  },
   "activity": {
     "sedentary": { "label": "Sedentary", "description": "Little or no exercise" },
     "lightly_active": { "label": "Light", "description": "Light exercise 1–3 days/wk" },
