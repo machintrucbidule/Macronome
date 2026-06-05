@@ -74,9 +74,12 @@
   color: var(--accent-ink);
 }
 
-/* period table */
+/* period table — long table → self-contained scroll box with a sticky header
+   (design/components/data-tables.md .tblscroll: max-height 420px, sticky thead
+   pinned to the box top). */
 .tableWrap {
-  overflow-x: auto;
+  max-height: 420px;
+  overflow: auto;
 }
 .table {
   width: 100%;
@@ -93,6 +96,10 @@
   text-align: left;
   padding: var(--sp-3) var(--sp-4);
   border-bottom: var(--bw) solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: var(--z-popover);
 }
 .periodRow {
   cursor: pointer;

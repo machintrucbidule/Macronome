@@ -39,26 +39,61 @@ M9 is too large for one safe pass, so it is built in sub-passes (DEV_PLAN allows
 
 - **M9a — States, login & i18n — DONE.** Login state card; locale-aware numbers (Intl);
   i18n key-coverage CI gate. See §"M9a delivered / deviations" below.
-- **M9b — A11y & layout** (next): focus trap / focus ring / labelled inputs / keyboard nav;
-  sticky appbar + `thead` offset + `.tblscroll` (M1 carried); `RequireAuth` → `/login`.
-- **M9c — Cook mode** (carried from M3, below).
+- **M9b — A11y & layout — DONE.** focus trap / focus ring / labelled inputs / keyboard-operable
+  sort headers; sticky appbar + `thead` offset + `.tblscroll` (M1 carried); `RequireAuth` →
+  `/login` + global 401 handler. See §"M9b delivered / deviations" below.
+- **M9c — Cook mode** (next; carried from M3, below).
 - **M9d — Perf**: large-seed checks on Stats + Foods search; indexes verified.
 
 ## Checklist
 
-- [~] all screen states (empty/skeleton/error) per design/components/states.md
-  _M9a: full login card (idle/loading/error/lockout/success); Foods load-error banner
-  added (Repas already had one). Per-screen Empty/Skeleton were already in place from
-  earlier milestones. Remaining visual-contract polish + a11y states → M9b._
+- [x] all screen states (empty/skeleton/error) per design/components/states.md
+      _M9a: full login card (idle/loading/error/lockout/success); Foods load-error banner
+      added (Repas already had one). Per-screen Empty/Skeleton were already in place from
+      earlier milestones. M9b: a11y states — modal focus trap + focus ring + labelled inputs._
 - [x] i18n FR/EN complete; Intl number/date — _M9a: `check:i18n` CI gate locks FR/EN parity;
-      numbers localised via `lib/format/number` (Intl). FR⇄EN text-expansion visual pass → M9b._
-- [ ] theming/tokens audit (no raw hex; --tap) — _audit: no raw hex outside `tokens.css`
-      (verified M9a); `--tap` responsive override → M9b._
-- [ ] keyboard nav + focus management + modal focus trap → M9b
+      numbers localised via `lib/format/number` (Intl)._
+- [x] theming/tokens audit (no raw hex; --tap) — _no raw hex outside `tokens.css`
+      (verified M9a); `--tap` responsive override already shipped in `tokens.css` (40px →
+      44px ≤760px) — verified present in M9b, no change needed._
+- [x] keyboard nav + focus management + modal focus trap — _M9b: `useFocusTrap` (focus-on-open,
+      Tab trap, restore) + `aria-labelledby` on `Modal`; global `:focus-visible` ring; keyboard-
+      operable `SortableTh`. Repas serpentine nav already shipped (M3)._
 - [ ] perf check on large data; indexes verified → M9d
 - acceptance: state/i18n/a11y checks green; critical-flow e2e still green
   _M9a acceptance green: `number.test.ts` (FR comma / EN dot / half-up) + `check:i18n` +
   typecheck + lint + web build; `e2e/login.spec.ts` (bad-creds banner, lockout countdown)._
+  _M9b acceptance green: typecheck + lint (0 errors) + `check:i18n` + web build + unit (65) +
+  full e2e (18, incl. the new RequireAuth redirect test in `e2e/login.spec.ts`)._
+
+## M9b delivered / deviations
+
+- **Sticky appbar** (`AppShell.module.css`): `.appbar` is now `position:sticky; top:0;
+z-index:var(--z-appbar)`, so the dense tables' `thead { top:var(--appbar-h) }` offset finally
+  lines up on scroll. Nav got an `aria-label` (NavLink already emits `aria-current="page"`).
+- **`.tblscroll`** (`DataTable.module.css` + Poids `weight.module.css`): the long-table variant
+  (`max-height:420px; overflow:auto`) with the header sticky to the **box** top (`top:0`, since
+  inside an overflow box the offset resolves against the box, not the viewport). Applied to the
+  Poids period table — the contract's named use case.
+- **Focus ring** (`global.css`): one zero-specificity `:where(...):focus-visible` baseline ring
+  (`--focus`, 22% mix) for links/nav/menu items/`role=button`; component rules (buttons, inputs'
+  border-color) still win. `SortableTh` is now a `<button>` inside the `th` → keyboard-operable
+  (Enter/Space) with its own focus ring; `aria-sort` preserved.
+- **Modal a11y** (`Modal.tsx` + new `useFocusTrap.ts`): focus moves into the panel on open, Tab/
+  Shift+Tab is trapped, focus is restored to the trigger on close; `aria-labelledby` wires the
+  header (`useId`). No API change to the 7 feature modals.
+- **Labelled inputs**: `Autocomplete` input is a `role=combobox` with `aria-label` +
+  `aria-controls`/`aria-activedescendant` over a `role=listbox`/`option` list; the Custom-food and
+  Leftover modal fields got `htmlFor`/`id` (their `<label>`/control were previously unassociated).
+- **RequireAuth** (`RequireAuth.tsx` + `router.tsx`): every app route is wrapped; logged-out →
+  `/login` (via `useSession`, 401 not retried). `/login`, `/setup`, `/health` stay public.
+- **Global 401 → /login** (`api/client.ts`): a 401 on a non-`/auth/*` call while on a protected
+  page hard-redirects to `/login` (session expired mid-use). It **skips** `/auth/*` (their 401s
+  are normal) and the public pages, so `SettingsSync`'s logged-out `/settings` probe stays silent
+  per its contract.
+- **Deviation (tracked):** `/health` is **public** (not behind `RequireAuth`). Its underlying
+  `GET /api/v1/health` endpoint is public (it's Playwright's readiness URL); gating the page would
+  break the long-standing M0 round-trip smoke for no security gain.
 
 ## M9a delivered / deviations
 
@@ -90,10 +125,10 @@ M9 is too large for one safe pass, so it is built in sub-passes (DEV_PLAN allows
 
 ### Carried over from M1 (finish the visual contract)
 
-- [ ] **Sticky app bar + table-header offset:** make the AppShell appbar sticky so the
-      dense-table `thead` `top: var(--appbar-h)` offset is correct; add the horizontal-scroll
-      table variant (`design/components/data-tables.md` `.tblscroll`) without re-introducing
-      the sticky-offset overlap (M1 removed `.wrap` overflow to avoid it).
+- [x] **Sticky app bar + table-header offset:** DONE in M9b — the AppShell appbar is sticky so
+      the dense-table `thead top:var(--appbar-h)` offset is correct; the `.tblscroll` scroll
+      variant (`design/components/data-tables.md`) ships for the Poids period table without
+      re-introducing the sticky-offset overlap. See §"M9b delivered / deviations".
 - [x] **Full primary nav + account menu** (`design/components/top-nav.md`): shipped in M7/M8
       — `AppShell` has all six tabs + the `AccountMenu` (Cibles/Contenants/Paramètres/Compte).
 - [x] **Locale-aware number formatting** (Intl) — M9a: `lib/format/number.ts` localises the

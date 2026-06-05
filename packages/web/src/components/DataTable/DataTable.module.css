@@ -1,12 +1,23 @@
 /* Dense data table (design/components/data-tables.md). Shared conventions for the
    Aliments/Recettes/Journal/Poids tables. */
 
-/* No overflow scroll container here: that would make the sticky thead offset
+/* No overflow scroll container on .wrap: that would make the sticky thead offset
    (top: --appbar-h) resolve against this box instead of the viewport and overlap
-   the first row. Narrow screens drop columns responsively; a horizontal-scroll
-   variant for very long tables (e.g. Poids periods) is an M9 polish item. */
+   the first row. Narrow screens drop columns responsively. For very long tables
+   (e.g. Poids periods) opt into the .tblscroll variant below (M9b). */
 .wrap {
   width: 100%;
+}
+
+/* Self-contained scroll container for long tables (design/components/data-tables.md):
+   max-height with its own overflow + a sticky header pinned to the box top (top:0,
+   not --appbar-h, since the offset resolves against this box rather than the viewport). */
+.tblscroll {
+  max-height: 420px;
+  overflow: auto;
+}
+.tblscroll thead th {
+  top: 0;
 }
 
 .table {
@@ -43,8 +54,27 @@
   cursor: pointer;
   user-select: none;
 }
-.sortable:hover {
+/* Keyboard-operable trigger inside the sortable header: a bare button that inherits
+   the cell's typography and carries the focus ring (the th itself is not focusable). */
+.sortBtn {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  text-align: inherit;
+}
+.sortBtn:hover {
   color: var(--text);
+}
+.sortBtn:focus-visible {
+  outline: none;
+  border-radius: var(--r-sm);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 22%, transparent);
 }
 .sorted {
   color: var(--accent);

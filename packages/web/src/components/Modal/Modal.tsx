@@ -1,5 +1,6 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useId, useRef, type ReactNode } from 'react';
 import styles from './Modal.module.css';
+import { useFocusTrap } from './useFocusTrap';
 
 // Shared modal shell (design/components/modals.md): scrim + panel. Click-outside and
 // Escape close non-destructive modals. Feature modals (food add/edit, archive
@@ -12,6 +13,10 @@ interface ModalProps {
 }
 
 export function Modal({ title, size = 'md', onClose, children }: ModalProps) {
+  const panelRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
+  useFocusTrap(panelRef);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
       if (e.key === 'Escape') onClose();
@@ -27,8 +32,17 @@ export function Modal({ title, size = 'md', onClose, children }: ModalProps) {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className={`${styles.modal} ${styles[size]}`} role="dialog" aria-modal="true">
-        <div className={styles.header}>{title}</div>
+      <div
+        ref={panelRef}
+        className={`${styles.modal} ${styles[size]}`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+      >
+        <div id={titleId} className={styles.header}>
+          {title}
+        </div>
         {children}
       </div>
     </div>

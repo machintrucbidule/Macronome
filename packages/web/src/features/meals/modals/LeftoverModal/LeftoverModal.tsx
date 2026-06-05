@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Meal } from '@macronome/shared';
 import { ApiError } from '../../../../api/client';
@@ -8,6 +8,7 @@ import { Banner } from '../../../../components/Banner/Banner';
 import { useMeals } from '../../MealsContext';
 import { r0 } from '../../format';
 import { LineSelector } from './LineSelector';
+import { LeftoverFields } from './LeftoverFields';
 import styles from '../modals.module.css';
 
 // Leftover (plate-deduction) modal. Lists the meal's weighed lines, takes the gross weight and
@@ -54,6 +55,7 @@ async function applyLeftover({
 export function LeftoverModal({ meal }: LeftoverModalProps) {
   const { t } = useTranslation();
   const { actions, mutations } = useMeals();
+  const fieldId = useId();
   const eligible = useMemo(
     () => meal.entries.filter((e) => (e.served_grams ?? 0) > 0),
     [meal.entries],
@@ -107,26 +109,7 @@ export function LeftoverModal({ meal }: LeftoverModalProps) {
         <div className={styles.loSel}>
           {t('meals.leftover.selection', { count: selected.size })} · <b>{r0(servedTotal)}</b> g
         </div>
-        <div className={styles.loGrid}>
-          <div className={styles.loField}>
-            <label>{t('meals.leftover.gross')}</label>
-            <input
-              type="number"
-              data-testid="lo-gross"
-              value={gross}
-              onChange={(e) => setGross(e.target.value)}
-            />
-          </div>
-          <div className={styles.loField}>
-            <label>{t('meals.leftover.container')}</label>
-            <select disabled>
-              <option>{t('meals.leftover.none')}</option>
-            </select>
-          </div>
-        </div>
-        <div className={styles.loNet}>
-          {t('meals.leftover.net')} <b>{r0(net)} g</b>
-        </div>
+        <LeftoverFields fieldId={fieldId} gross={gross} onGross={setGross} net={net} />
         {warning && <Banner tone="warning">{warning}</Banner>}
         {serverError && <Banner tone="warning">{t('meals.leftover.serverError')}</Banner>}
       </div>

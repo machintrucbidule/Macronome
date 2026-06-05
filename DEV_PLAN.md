@@ -171,8 +171,18 @@ serving}` with neutral oracles; days/meals/entries/leftover/journal services + r
   key-coverage CI gate (`scripts/check-i18n.mjs` + `check:i18n` step). **No backend change**
   — the login lockout (`rateLimit.ts`/`TRUSTED_PROXY`) was already built + tested. Acceptance
   green: `number.test.ts` + `check:i18n` + typecheck + lint + web build; `e2e/login.spec.ts`.
-  **Remaining:** M9b (a11y/focus, sticky appbar + `.tblscroll`, `RequireAuth`→`/login`),
-  M9c (Cook mode, carried from M3), M9d (perf on large data). See `M9-polish.md`.
+  **M9b — A11y & layout DONE:** sticky appbar (offset now lines up the dense-table sticky
+  `thead`) + `aria-label`/`aria-current` nav; `.tblscroll` long-table variant (Poids period
+  table scrolls with a sticky header); global `:focus-visible` ring (`:where()`, zero-
+  specificity) + keyboard-operable `SortableTh`; shared `Modal` focus trap (`useFocusTrap.ts`)
+  - focus-on-open/restore + `aria-labelledby`; labelled inputs (`Autocomplete` combobox/listbox
+    ARIA; `htmlFor`/`id` on Custom/Leftover modals); `RequireAuth`→`/login` guard wrapping every
+    app route + a global 401→`/login` handler in `api/client.ts` (skips `/auth/*` + public pages
+    so SettingsSync's logged-out probe stays silent). Acceptance green: typecheck + lint +
+    `check:i18n` + web build + unit (65) + full e2e (18, incl. new RequireAuth redirect test).
+    **Deviation (tracked):** `/health` kept **public** (its API endpoint is public; protecting the
+    page would break the M0 round-trip smoke). **Remaining:** M9c (Cook mode, carried from M3),
+    M9d (perf on large data). See `M9-polish.md`.
 - [ ] **M10 — Reserved AI-advisor hook (NOT built)** → `docs/dev-plan/M10-ai-advisor-hook.md`
       _depends-on: M0 (route), M6 (payload shape)._ Inert config + 501 route only.
 

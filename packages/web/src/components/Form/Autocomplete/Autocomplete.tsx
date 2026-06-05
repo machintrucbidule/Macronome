@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 import { highlightMatch } from './highlight';
 import styles from './Autocomplete.module.css';
 
@@ -34,6 +34,7 @@ interface AutocompleteProps {
 }
 
 interface ListProps {
+  listId: string;
   items: AutocompleteItem[];
   hi: number;
   currentId: string | null | undefined;
@@ -46,6 +47,7 @@ interface ListProps {
 }
 
 function AutocompleteList({
+  listId,
   items,
   hi,
   currentId,
@@ -57,10 +59,14 @@ function AutocompleteList({
   onCustom,
 }: ListProps) {
   return (
-    <div className={styles.ac}>
+    <div className={styles.ac} id={listId} role="listbox">
       {items.map((item, i) => (
         <div
           key={item.id}
+          id={`${listId}-opt-${i}`}
+          role="option"
+          aria-selected={i === hi}
+          aria-disabled={item.disabled}
           className={[
             styles.item,
             i === hi ? styles.hi : '',
@@ -111,6 +117,7 @@ export function Autocomplete({
 }: AutocompleteProps) {
   const [hi, setHi] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
+  const listId = useId();
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -143,12 +150,19 @@ export function Autocomplete({
         className={styles.input}
         value={query}
         placeholder={placeholder}
+        aria-label={placeholder}
+        role="combobox"
+        aria-expanded={items.length > 0}
+        aria-controls={listId}
+        aria-autocomplete="list"
+        aria-activedescendant={hi >= 0 ? `${listId}-opt-${hi}` : undefined}
         autoComplete="off"
         onChange={(e) => onQueryChange(e.target.value)}
         onKeyDown={onKeyDown}
         onClick={(e) => e.stopPropagation()}
       />
       <AutocompleteList
+        listId={listId}
         items={items}
         hi={hi}
         currentId={currentId}

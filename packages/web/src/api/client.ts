@@ -20,6 +20,21 @@ function readCsrfToken(): string | null {
   return match?.[1] ? decodeURIComponent(match[1]) : null;
 }
 
+// Pages reachable without a session — a background 401 here (e.g. SettingsSync probing
+// /settings) is expected and must stay silent, never redirect.
+const PUBLIC_PATHS = new Set(['/login', '/setup', '/health']);
+
+// Global session-expiry handling: a 401 on a non-auth call while on a protected page means
+// the session lapsed mid-use — bounce to /login (mirrors the logout flow). Auth probes
+// (/auth/*) carry their own 401 semantics (RequireAuth, login bad-creds) and never redirect;
+// neither do background calls on a public page (RequireAuth guards route entry instead).
+function handleUnauthorized(path: string): void {
+  if (path.startsWith('/auth/')) return;
+  if (typeof window === 'undefined') return;
+  if (PUBLIC_PATHS.has(window.location.pathname)) return;
+  window.location.assign('/login');
+}
+
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
   const headers: Record<string, string> = {};
   if (body !== undefined) headers['Content-Type'] = 'application/json';
@@ -34,15 +49,18 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
 
   if (res.status === 204) return undefined as T;
   const data: unknown = await res.json().catch(() => null);
-  if (!res.ok) {
-    const err = (
-      data as {
-        error?: { code?: string; details?: Record<string, string>; retry_after_s?: number };
-      } | null
-    )?.error;
-    throw new ApiError(res.status, err?.code ?? 'error', err?.details, err?.retry_after_s);
-  }
+  if (!res.ok) raiseError(res, data, path);
   return data as T;
+}
+
+function raiseError(res: Response, data: unknown, path: string): never {
+  if (res.status === 401) handleUnauthorized(path);
+  const err = (
+    data as {
+      error?: { code?: string; details?: Record<string, string>; retry_after_s?: number };
+    } | null
+  )?.error;
+  throw new ApiError(res.status, err?.code ?? 'error', err?.details, err?.retry_after_s);
 }
 
 export const api = {

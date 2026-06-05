@@ -26,6 +26,17 @@ a {
   color: var(--accent);
 }
 
+/* Baseline keyboard focus ring (design/components/00-foundations.md §Focus ring): one
+   --focus-coloured ring for interactive elements that don't style focus themselves —
+   links, nav links, menu items, role=button. :where() keeps specificity at 0 so any
+   component rule (buttons' own ring, inputs' border-color) always wins; inputs keep
+   their border-color focus and are deliberately excluded to avoid a double ring. */
+:where(a, button, summary, [role='button'], [tabindex]:not([tabindex='-1'])):focus-visible {
+  outline: none;
+  border-radius: var(--r-sm);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 22%, transparent);
+}
+
 #root {
   min-height: 100vh;
 }

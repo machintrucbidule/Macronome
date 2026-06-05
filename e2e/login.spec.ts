@@ -46,6 +46,21 @@ test('shows a generic, non-enumerating error on bad credentials', async ({ page 
   await expect(page.getByLabel('Mot de passe')).toHaveAttribute('aria-invalid', 'true');
 });
 
+test('redirects a logged-out visitor of a protected route to /login (M9b)', async ({ page }) => {
+  await seedUser('e2e_requireauth');
+  // No session cookie in a fresh context → RequireAuth bounces /foods to /login.
+  await page.goto('/foods');
+  await page.waitForURL('**/login');
+  await expect(page.getByRole('button', { name: 'Se connecter' })).toBeVisible();
+
+  // A successful login then lands on the app home (Repas).
+  await page.getByLabel('Identifiant').fill('e2e_requireauth');
+  await page.getByLabel('Mot de passe').fill(PASSWORD);
+  await page.getByRole('button', { name: 'Se connecter' }).click();
+  await page.waitForURL('http://localhost:5173/');
+  await expect(page.getByRole('link', { name: 'Aliments' })).toBeVisible();
+});
+
 test('locks out with a countdown after repeated failures (submit hidden)', async ({ page }) => {
   await seedUser('e2e_login_lock');
   await page.goto('/login');

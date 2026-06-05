@@ -25,10 +25,12 @@ export function SortableTh({
   return (
     <th
       className={`${styles.sortable} ${alignClass} ${active ? styles.sorted : ''}`}
-      onClick={() => onSort(field)}
       aria-sort={active ? (dir === 'asc' ? 'ascending' : 'descending') : 'none'}
     >
-      {children} {active && <span className={styles.arr}>{dir === 'asc' ? '▲' : '▼'}</span>}
+      {/* Button wrapper gives keyboard operability (focus + Enter/Space) for free. */}
+      <button type="button" className={styles.sortBtn} onClick={() => onSort(field)}>
+        {children} {active && <span className={styles.arr}>{dir === 'asc' ? '▲' : '▼'}</span>}
+      </button>
     </th>
   );
 }

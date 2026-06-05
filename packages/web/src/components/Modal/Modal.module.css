@@ -21,6 +21,10 @@
   overflow: auto;
   width: min(560px, 93vw);
 }
+/* The panel takes focus on open (focus trap) as a fallback target; no visible ring. */
+.modal:focus {
+  outline: none;
+}
 .md {
   width: min(560px, 93vw);
 }

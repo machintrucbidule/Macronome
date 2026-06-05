@@ -6,6 +6,11 @@
   padding: 0 var(--page-gutter);
   background: var(--bg-elev);
   border-bottom: var(--bw) solid var(--border);
+  /* Sticky so the dense tables' thead (top: var(--appbar-h)) lines up under it on
+     scroll (design/components/top-nav.md). */
+  position: sticky;
+  top: 0;
+  z-index: var(--z-appbar);
 }
 
 .wordmark {
