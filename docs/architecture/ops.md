@@ -53,31 +53,36 @@ via `helmet` (`http/middleware/securityHeaders.ts`) — not by a proxy.
 
 **Prod (any Docker host, incl. Proxmox; Portainer "deploy stack"):**
 
-- Set the env vars (see §4), then `docker compose up -d` — it **pulls** the prebuilt
-  `macronome` image from GHCR (no `--build`, no repo or Node toolchain on the host).
-  The `macronome` service runs `prisma migrate deploy` (one-shot) before listening,
-  then serves the SPA + `/api/v1`. The `web` build ships inside the image.
+- `docker compose up -d` with **no env to set** (§4 — zero-config) — it **pulls** the
+  prebuilt `macronome` image from GHCR (no `--build`, no repo or Node toolchain on the
+  host). The `macronome` service runs `prisma migrate deploy` (one-shot) before
+  listening, then serves the SPA + `/api/v1`. The `web` build ships inside the image.
 
 ---
 
 ## 4. Environment & secrets
 
-12-factor: all config via env vars; nothing secret in the repo.
+**Zero-config (ADR-0001): the stack runs with no env vars set.** 12-factor still holds —
+everything is env-overridable — but every key has a safe default, so `.env` is optional.
 
-- Versioned template: `.env.example` (keys only).
+- Versioned template: `.env.example` (all keys commented as optional overrides).
 - Dev: `.env` (gitignored).
-- Prod: env injected by compose / Portainer stack vars / Docker secrets.
+- Prod: nothing required; override via compose / Portainer stack vars / Docker secrets.
 
-Deploy/host keys (compose.yml): `MACRONOME_TAG` (image tag, e.g. `latest` / `vX.Y.Z`),
-`APP_PORT` (host port), `DATA_PATH` (host path for the Postgres bind-mount),
-`POSTGRES_DB` / `POSTGRES_USER` / `POSTGRES_PASSWORD` (`DATABASE_URL` is derived from
-these in compose.yml).
+Optional deploy/host overrides (compose.yml): `MACRONOME_TAG` (image tag; default
+`latest`), `APP_PORT` (default `3000`), `DATA_PATH` (host path for the DB bind-mount +
+the app secret; default `./data`), `POSTGRES_DB` / `POSTGRES_USER` / `POSTGRES_PASSWORD`
+(default `macronome`; Postgres is internal-only, no published port, so defaults are
+safe; `DATABASE_URL` is derived from them).
 
-App keys (v1): `DATABASE_URL`, `SESSION_SECRET` (long random), `TRUSTED_PROXY`
-(address/CIDR, or `loopback`; set to the front proxy when fronted), `PUBLIC_BASE_URL`,
-`NODE_ENV`, `COOKIE_SECURE` (true in prod), `WEB_DIST` (SPA build path; set inside the
-image, unset in dev), and the reserved-but-unused `LLM_ENDPOINT_URL` /
-`LLM_ENDPOINT_KEY`. Secrets are never logged (see `security.md`).
+App keys: `SESSION_SECRET` — **auto-generated and persisted** on first boot when unset
+(`config/session-secret.ts` → `${DATA_PATH}/app/session_secret`), reused across restarts;
+set it only to manage it yourself. `COOKIE_SECURE` defaults **false** (login works behind
+your HTTPS proxy with no extra setup); to use `Secure` cookies set it `true` **and**
+`TRUSTED_PROXY` to the proxy's address/CIDR. `WEB_DIST` (SPA build path) is set inside the
+image, unset in dev. `LLM_ENDPOINT_URL` / `LLM_ENDPOINT_KEY` are reserved/unused. Secrets
+are never logged (see `security.md`). _`PUBLIC_BASE_URL` was removed — it was validated
+but never used._
 
 ---
 
@@ -108,6 +113,9 @@ Guaranteed by design:
 - **All critical state is in one Postgres database, one bind-mount** (`${DATA_PATH}/db`).
   No critical local disk state to coordinate. Therefore a single logical dump is a
   complete backup (and the bind-mount path itself can be snapshotted/copied if desired).
+  The only other persisted file is the auto-generated session secret
+  (`${DATA_PATH}/app/session_secret`); it is **not critical** — if lost it is
+  regenerated and users simply re-login.
 - **Standard tools work, no app-specific tooling:**
   - backup: `pg_dump` (custom or plain format), e.g.
     `docker compose exec postgres pg_dump -U <user> -Fc <db> > macronome-YYYYMMDD.dump`

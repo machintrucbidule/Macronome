@@ -1,6 +1,8 @@
-# Production stack (ADR-0001) — pulls prebuilt images; deploy as-is in Portainer or any
-# Docker host. The `macronome` image serves the SPA and /api/v1 on one port; front it
-# with your own reverse proxy / TLS (set TRUSTED_PROXY to that proxy). See ops.md.
+# Production stack (ADR-0001) — ZERO-CONFIG: pulls prebuilt images and runs with NO env
+# vars to set. Deploy as-is in Portainer ("deploy stack") or any Docker host. The
+# `macronome` image serves the SPA and /api/v1 on one port; front it with your own
+# reverse proxy / TLS. Everything below has a default; override only if you want to.
+# See docs/architecture/ops.md and decisions/0001-prebuilt-image-deployment.md.
 services:
   macronome:
     image: ghcr.io/machintrucbidule/macronome:${MACRONOME_TAG:-latest}
@@ -8,12 +10,15 @@ services:
     ports:
       - '${APP_PORT:-3000}:3000'
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-      SESSION_SECRET: ${SESSION_SECRET}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-macronome}:${POSTGRES_PASSWORD:-macronome}@postgres:5432/${POSTGRES_DB:-macronome}
+      # SESSION_SECRET is auto-generated and persisted to the app volume on first boot
+      # when unset (config/session-secret.ts). Set it only to manage it yourself.
       TRUSTED_PROXY: ${TRUSTED_PROXY:-loopback}
-      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL}
-      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
       NODE_ENV: production
+    volumes:
+      # Persists the auto-generated session secret (so logins survive restarts).
+      - '${DATA_PATH:-./data}/app:/data'
     depends_on:
       postgres:
         condition: service_healthy
@@ -24,13 +29,14 @@ services:
     image: postgres:17
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-macronome}
+      POSTGRES_USER: ${POSTGRES_USER:-macronome}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-macronome}
     volumes:
       # Bind-mount: the only critical state lives at a host path you choose (DATA_PATH).
+      # Postgres is internal-only (no published port), so the default credentials are fine.
       - '${DATA_PATH:-./data}/db:/var/lib/postgresql/data'
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER}']
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-macronome}']
       interval: 10s
       retries: 5

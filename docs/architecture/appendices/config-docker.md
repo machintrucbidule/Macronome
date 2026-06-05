@@ -6,7 +6,9 @@ GHCR image serving SPA + `/api/v1`, no bundled proxy, bind-mount Postgres.
 
 ---
 
-## `compose.yml` (production — image-based)
+## `compose.yml` (production — image-based, zero-config)
+
+Every variable has a default → the stack runs with **no env set**.
 
 ```yaml
 services:
@@ -15,12 +17,12 @@ services:
     restart: unless-stopped
     ports: ['${APP_PORT:-3000}:3000']
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-      SESSION_SECRET: ${SESSION_SECRET}
-      TRUSTED_PROXY: ${TRUSTED_PROXY:-loopback} # set to your front proxy's CIDR when fronted
-      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL}
-      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-macronome}:${POSTGRES_PASSWORD:-macronome}@postgres:5432/${POSTGRES_DB:-macronome}
+      # SESSION_SECRET auto-generated & persisted to the app volume on first boot if unset
+      TRUSTED_PROXY: ${TRUSTED_PROXY:-loopback}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false} # set true only together with TRUSTED_PROXY
       NODE_ENV: production
+    volumes: ['${DATA_PATH:-./data}/app:/data'] # persists the session secret
     depends_on:
       postgres: { condition: service_healthy }
     # image entrypoint runs `prisma migrate deploy` then starts the server
@@ -30,20 +32,21 @@ services:
     image: postgres:17
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-macronome}
+      POSTGRES_USER: ${POSTGRES_USER:-macronome}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-macronome} # internal-only; default is safe
     volumes: ['${DATA_PATH:-./data}/db:/var/lib/postgresql/data']
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER}']
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-macronome}']
       interval: 10s
       retries: 5
 ```
 
-No `build:` and no bundled proxy: `docker compose up -d` **pulls** the image. Front the
-exposed port with your own reverse proxy / TLS (Nginx Proxy Manager, Traefik, Caddy, a
-Cloudflare tunnel, …), or expose it directly. The image is published by
-`.github/workflows/release.yml` (`:latest` on `main`, `:vX.Y.Z` on `v*` tags).
+No `build:` and no bundled proxy: `docker compose up -d` **pulls** the image and runs
+with zero configuration. Front the exposed port with your own reverse proxy / TLS (Nginx
+Proxy Manager, Traefik, Caddy, a Cloudflare tunnel, …), or expose it directly. The image
+is published by `.github/workflows/release.yml` (`:latest` on `main`, `:vX.Y.Z` on `v*`
+tags).
 
 ---
 
@@ -71,34 +74,36 @@ them on `migrate deploy` in the test setup.
 No proxy ships in the stack (ADR-0001). Point any frontal at the single exposed port;
 it serves both the SPA and `/api/v1`. The app emits its own security headers (HSTS,
 CSP, nosniff, Referrer-Policy) via `helmet` (`http/middleware/securityHeaders.ts`), so
-the proxy only needs to terminate TLS and forward — set `TRUSTED_PROXY` to the proxy's
-address/CIDR and have it send the usual `X-Forwarded-*` headers.
+the proxy only needs to terminate TLS and forward. Login works out of the box
+(`COOKIE_SECURE=false`); to use `Secure` cookies, set `COOKIE_SECURE=true` **and**
+`TRUSTED_PROXY` to the proxy's address/CIDR (and have it send the usual `X-Forwarded-*`
+headers).
 
 ---
 
-## `.env.example` (versioned; keys only)
+## `.env.example` (versioned; all keys OPTIONAL)
+
+The stack runs with no `.env`. Every key is a commented override:
 
 ```dotenv
 # --- image & host ---
-MACRONOME_TAG=latest
-APP_PORT=3000
-DATA_PATH=./data
+# MACRONOME_TAG=latest
+# APP_PORT=3000
+# DATA_PATH=./data            # DB data + the app session secret
 
-# --- database (DATABASE_URL is derived from these in compose.yml) ---
-POSTGRES_DB=macronome
-POSTGRES_USER=macronome
-POSTGRES_PASSWORD=
+# --- database (internal only, not exposed; defaults are fine) ---
+# POSTGRES_DB=macronome
+# POSTGRES_USER=macronome
+# POSTGRES_PASSWORD=macronome
 
 # --- app ---
-SESSION_SECRET=
-TRUSTED_PROXY=loopback
-PUBLIC_BASE_URL=https://macronome.example.org
-COOKIE_SECURE=true
-NODE_ENV=production
+# SESSION_SECRET=             # leave unset: auto-generated & persisted on first boot
+# COOKIE_SECURE=false         # set true ONLY together with TRUSTED_PROXY
+# TRUSTED_PROXY=loopback      # your reverse proxy's address/CIDR when fronted
 
 # --- reserved (unused in v1) ---
-LLM_ENDPOINT_URL=
-LLM_ENDPOINT_KEY=
+# LLM_ENDPOINT_URL=
+# LLM_ENDPOINT_KEY=
 ```
 
 `packages/api/Dockerfile` is a multi-stage build that compiles `shared` + `api` + `web`,

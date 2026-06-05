@@ -95,9 +95,12 @@ image on GHCR** (`ghcr.io/machintrucbidule/macronome`, published by
 `.github/workflows/release.yml`): the API process serves **both** the static SPA and
 `/api/v1` on one port. `compose.yml` is **image-based** (no `build:`), two services
 (`macronome` + `postgres`), Postgres on a **bind-mount** (`DATA_PATH`); the operator
-fronts the exposed port with their own reverse proxy / TLS. **Do not** reintroduce a
-build-from-source compose, a host-side web build, or a bundled Caddy proxy — see
-`docs/architecture/decisions/0001-prebuilt-image-deployment.md`.
+fronts the exposed port with their own reverse proxy / TLS. It is **zero-config**: every
+var has a default, `SESSION_SECRET` is **auto-generated & persisted** on first boot
+(`config/session-secret.ts`), `COOKIE_SECURE` defaults `false`, and there is no
+`PUBLIC_BASE_URL`. **Do not** reintroduce a build-from-source compose, a host-side web
+build, a bundled Caddy proxy, mandatory env vars, an embedded/SQLite DB, or Postgres in
+the app image — see `docs/architecture/decisions/0001-prebuilt-image-deployment.md`.
 
 First user (no open/public sign-up): on a fresh install the **first-run setup wizard**
 creates the single owner account (`POST /auth/setup`, gated to zero users, then

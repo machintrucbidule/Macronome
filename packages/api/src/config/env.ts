@@ -5,9 +5,10 @@ import { z } from 'zod';
 const EnvSchema = z.object({
   DATABASE_URL: z.string().url(),
   PORT: z.coerce.number().int().positive().default(3000),
-  SESSION_SECRET: z.string().min(16),
+  // Optional: when unset, a secret is auto-generated and persisted on first boot
+  // (config/session-secret.ts) to keep deployment zero-config (ADR-0001).
+  SESSION_SECRET: z.string().min(16).optional(),
   TRUSTED_PROXY: z.string().min(1).default('loopback'),
-  PUBLIC_BASE_URL: z.string().url(),
   COOKIE_SECURE: z
     .enum(['true', 'false'])
     .default('false')

@@ -47,19 +47,36 @@ target ops model is the opposite — a single published image pulled by Portaine
 5. **Publishing**: `.github/workflows/release.yml` pushes `:latest` on every push to
    `main` and `:vX.Y.Z` / `:vX.Y` on `v*` tags. The existing `ci.yml` (verify) is
    unchanged.
+6. **Zero-config by default.** The stack runs with **no env vars to set** (the
+   Uptime-Kuma experience). Every compose variable has a default; Postgres is
+   internal-only (no published port) so its default credentials are safe; the one real
+   secret, `SESSION_SECRET`, is **auto-generated and persisted** on first boot to the app
+   volume (`config/session-secret.ts`, `${DATA_PATH}/app/session_secret`) and reused
+   across restarts. `PUBLIC_BASE_URL` is dropped (it was validated but never used).
+   `COOKIE_SECURE` defaults to **false** so login works out of the box behind the
+   operator's HTTPS proxy; the stricter posture (Secure cookies) is opt-in.
+
+   _Why not go further?_ Postgres stays a separate service because it is a client-server
+   DB (unlike Uptime Kuma's embedded SQLite); switching to SQLite is rejected — search
+   depends on Postgres-only `unaccent` / `pg_trgm` / GIN-trigram features in the schema
+   and migrations. Embedding Postgres into the app image is rejected as a
+   two-processes-per-container anti-pattern; the deploy unit is the compose stack, which
+   Portainer treats as one app anyway.
 
 ## Consequences
 
-- Deploy = set env vars + `docker compose up -d` (or Portainer "deploy stack"); images
-  are pulled, the API runs `prisma migrate deploy` on start, then serves UI + API. No
-  repo, no Node, no host-side web build on the target.
-- **`TRUSTED_PROXY` must be set to the front proxy's address/CIDR** when fronted, so the
-  `secure` cookie and login rate-limit see the real client (the Docker default
-  `loopback` does not trust a proxy container). Documented in `ops.md` §4.
+- Deploy = `docker compose up -d` (or Portainer "deploy stack") with **no env to set**;
+  images are pulled, the API runs `prisma migrate deploy` on start, then serves UI + API.
+  No repo, no Node, no host-side web build on the target.
+- **Hardening (opt-in):** to mark session cookies `Secure`, set `COOKIE_SECURE=true`
+  **and** `TRUSTED_PROXY` to the front proxy's address/CIDR (so the `secure` cookie and
+  login rate-limit see the real client — the Docker default `loopback` does not trust a
+  proxy container). Documented in `ops.md` §4.
 - The SPA build dir is provided to the API via `WEB_DIST` (set in the image); when
   unset (dev), static serving is inert and Vite serves the SPA.
 - Removed/obsolete: `Caddyfile`, the `proxy` service, the host-side web build, the
-  named `pgdata`/`caddy_data` volumes.
+  named `pgdata`/`caddy_data` volumes, the `PUBLIC_BASE_URL` env (unused), and the
+  requirement to provide `SESSION_SECRET` / DB credentials by hand.
 
 ## Superseded artifacts
 
