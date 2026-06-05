@@ -1,7 +1,12 @@
-# M10 — Reserved AI-advisor hook (NOT built)
+# O2 — Reserved AI-advisor hook — **NOT part of the dev plan**
+
+> **This is NOT a development milestone.** It does **not** carry an `M` number, it is
+> **not** a build gate, and it is **not** required for v1. It is an inert seam the author
+> may choose to enable later. Documented here so the information is ready if/when the
+> author decides to build it.
 
 **Goal:** leave the advisor **enabled, not implemented** — no behaviour in v1.
-Depends-on: M0 (route plumbing), M6 (the payload shape it would receive).
+Would depend on: M0 (route plumbing), M6 (the payload shape it would receive).
 
 ## Scope (`DECISIONS.md` Gap 14)
 

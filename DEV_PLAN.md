@@ -194,8 +194,9 @@ serving}` with neutral oracles; days/meals/entries/leftover/journal services + r
     ~5 ms + all indexes confirmed; a measured Stats slowdown (3–5 s over 5 years) fixed by a
     lightweight stats read + trailing-window narrowing for rolling (`day-stat.repo.ts`, no schema
     change) → <0.4 s, all oracles + integration green. **M9 complete.** See `M9-polish.md`.
-- [ ] **M10 — Reserved AI-advisor hook (NOT built)** → `docs/dev-plan/M10-ai-advisor-hook.md`
-      _depends-on: M0 (route), M6 (payload shape)._ Inert config + 501 route only.
+
+> **The dev plan ends at M9.** The reserved AI-advisor hook is **not** a build milestone
+> — it is an optional, on-demand item (**O2**) below, not a gate for v1.
 
 ---
 
@@ -210,10 +211,10 @@ silently dropping it.
 
 ## Out of the dev plan (run on demand — NOT a build milestone)
 
-The development plan ends at **M10**; the app is fully usable from M8 onward (first-run
-wizard creates the owner account; no Excel data is required). The item below is **not**
-part of the dev plan, carries **no `M` number**, and is **not** a gate for v1. It is
-documented here only so the information is ready when the author decides to run it.
+The development plan ends at **M9**; the app is fully usable from M8 onward (first-run
+wizard creates the owner account; no Excel data is required). The items below are **not**
+part of the dev plan, carry **no `M` number**, and are **not** gates for v1. They are
+documented here only so the information is ready when the author decides to run them.
 
 - **O1 — Excel migration (NOT part of the dev plan)** → `docs/dev-plan/O1-excel-migration.md`
   The one-shot Excel→DB import of the author's personal workbook. Built and run
@@ -221,3 +222,9 @@ documented here only so the information is ready when the author decides to run 
   discretion, never as a build step. Targets the stable schema; implements the
   **fixed, unchanged** contract `spec/logic/migration-etl.md`. It is **not** a
   first-user bootstrap path (that role belongs to M8's first-run wizard).
+- **O2 — Reserved AI-advisor hook (NOT part of the dev plan)** → `docs/dev-plan/O2-ai-advisor-hook.md`
+  An inert seam, **not** a v1 feature: the reserved `POST /api/v1/advisor/query` route
+  (returns **501 `not_implemented`**) plus the stored-but-unused `User.settings.llm_endpoint`
+  (the field already ships from M7). No payload assembly, no model call, no UI. Built
+  **only if/when the author decides** to enable an advisor — never as a build step.
+  _Would depend on: M0 (route plumbing), M6 (payload shape)._ See `DECISIONS.md` Gap 14.

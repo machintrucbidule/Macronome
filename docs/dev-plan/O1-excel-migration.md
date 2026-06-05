@@ -4,7 +4,7 @@
 > **not** a build gate, and it is **not** required for v1. It is the one-shot import of
 > the author's personal Excel workbook into the DB, **run on the author's decision
 > only**, once the application is judged mature / bug-free. It is documented here so the
-> information is ready when the author chooses to run it. The dev plan ends at M10; the
+> information is ready when the author chooses to run it. The dev plan ends at M9; the
 > app is fully usable before this step (the first user is created by M8's first-run
 > wizard, **not** by this import).
 
