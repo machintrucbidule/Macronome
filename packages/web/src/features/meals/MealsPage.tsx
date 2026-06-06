@@ -42,7 +42,7 @@ export function MealsPage() {
   const cookMeal = ctl.day?.meals.find((m) => m.id === ctl.cookMealId) ?? null;
 
   return (
-    <AppShell>
+    <AppShell flush>
       <MealsProvider value={ctl}>
         {ctl.error && <Banner tone="warning">{t('meals.error', { code: ctl.error })}</Banner>}
 

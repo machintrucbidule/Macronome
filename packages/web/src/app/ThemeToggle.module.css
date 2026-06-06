@@ -1,0 +1,33 @@
+/* Segmented theme toggle (design/components/00-foundations.md §Segmented control). */
+.seg {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg-elev-2);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  height: var(--control-h);
+}
+.segBtn {
+  border: 0;
+  background: transparent;
+  color: var(--text-dim);
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  padding: 0 9px;
+  height: 100%;
+  cursor: pointer;
+}
+.segBtn:not([aria-pressed='true']):hover {
+  color: var(--text);
+}
+.segBtn[aria-pressed='true'] {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.sep {
+  width: var(--bw);
+  height: 55%;
+  background: var(--border);
+  align-self: center;
+}
