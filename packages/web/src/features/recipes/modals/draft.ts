@@ -1,4 +1,10 @@
-import type { CreateRecipeRequest, RecipeFull, RecipeUnit } from '@macronome/shared';
+import type {
+  CreateRecipeRequest,
+  RecipeFull,
+  RecipeIngredientInput,
+  RecipePreviewRequest,
+  RecipeUnit,
+} from '@macronome/shared';
 
 // Editable form state for the recipe builder. Numeric fields are strings while editing;
 // converted to the request body on save. Derived macros are NOT held here — they are read
@@ -56,21 +62,44 @@ export function initialRecipeDraft(recipe: RecipeFull | null): RecipeDraft {
   };
 }
 
+function ingredientInput(ing: IngredientDraft, index: number): RecipeIngredientInput {
+  return {
+    ref_type: ing.refType,
+    ref_id: ing.refId,
+    quantity: Number(ing.quantity) || 0,
+    unit: ing.unit,
+    ...(ing.unit === 'portion' && ing.portionId ? { portion_id: ing.portionId } : {}),
+    order_index: index,
+  };
+}
+
+const servingsOf = (draft: RecipeDraft): number =>
+  Math.max(1, Math.round(Number(draft.servings) || 1));
+
 /** Convert the draft to a create/update request body. */
 export function draftToBody(draft: RecipeDraft): CreateRecipeRequest {
   const batch = draft.batch.trim();
   return {
     name: draft.name.trim(),
-    servings: Math.max(1, Math.round(Number(draft.servings) || 1)),
+    servings: servingsOf(draft),
     instructions: draft.instructions.trim() || null,
     ...(batch ? { total_batch_grams: Number(batch) } : {}),
-    ingredients: draft.ingredients.map((ing, index) => ({
-      ref_type: ing.refType,
-      ref_id: ing.refId,
-      quantity: Number(ing.quantity) || 0,
-      unit: ing.unit,
-      ...(ing.unit === 'portion' && ing.portionId ? { portion_id: ing.portionId } : {}),
-      order_index: index,
-    })),
+    ingredients: draft.ingredients.map(ingredientInput),
+  };
+}
+
+/**
+ * Build the stateless preview body (no name): only lines ready to compute — a positive
+ * quantity, and a chosen portion when the unit is 'portion' — so half-typed lines don't
+ * trigger a 422 while editing.
+ */
+export function draftToPreviewBody(draft: RecipeDraft): RecipePreviewRequest {
+  const batch = draft.batch.trim();
+  return {
+    servings: servingsOf(draft),
+    ...(batch ? { total_batch_grams: Number(batch) } : {}),
+    ingredients: draft.ingredients
+      .map(ingredientInput)
+      .filter((i) => i.quantity > 0 && (i.unit !== 'portion' || i.portion_id != null)),
   };
 }

@@ -97,6 +97,10 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  cursor: pointer;
+}
+.ingName:hover {
+  color: var(--accent);
 }
 .qtyCell {
   position: relative;
@@ -263,6 +267,13 @@
   display: flex;
   gap: var(--sp-5);
   font-size: var(--fs-12);
+  color: var(--text-faint);
+}
+.ppHead {
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-caps);
   color: var(--text-faint);
 }
 .ppNote {

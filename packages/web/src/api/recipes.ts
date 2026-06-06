@@ -3,6 +3,8 @@ import type {
   RecipeFull,
   RecipeListResponse,
   RecipeMutationResponse,
+  RecipePreviewRequest,
+  RecipePreviewResponse,
   UpdateRecipeRequest,
 } from '@macronome/shared';
 import { api } from './client';
@@ -31,6 +33,8 @@ export const recipesApi = {
   list: (params: RecipeListParams = {}) =>
     api.get<RecipeListResponse>(`/recipes${toQueryString(params)}`),
   get: (id: string) => api.get<{ data: RecipeFull }>(`/recipes/${id}`),
+  preview: (body: RecipePreviewRequest) =>
+    api.post<RecipePreviewResponse>('/recipes/preview', body),
   create: (body: CreateRecipeRequest) => api.post<RecipeMutationResponse>('/recipes', body),
   update: (id: string, body: UpdateRecipeRequest) =>
     api.patch<RecipeMutationResponse>(`/recipes/${id}`, body),

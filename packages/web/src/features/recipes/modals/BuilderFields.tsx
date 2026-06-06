@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import type { RecipeFull } from '@macronome/shared';
+import type { RecipeFull, RecipePreview } from '@macronome/shared';
 import { Banner } from '../../../components/Banner/Banner';
 import { TextInput } from '../../../components/Form/TextInput';
 import { IngredientBlock } from './IngredientBlock';
@@ -13,11 +13,12 @@ import styles from '../recipes.module.css';
 interface BuilderFieldsProps {
   draft: RecipeDraft;
   full: RecipeFull | null;
+  preview: RecipePreview | undefined;
   error: string | null;
   set: (patch: Partial<RecipeDraft>) => void;
 }
 
-export function BuilderFields({ draft, full, error, set }: BuilderFieldsProps) {
+export function BuilderFields({ draft, full, preview, error, set }: BuilderFieldsProps) {
   const { t } = useTranslation();
   return (
     <>
@@ -43,7 +44,7 @@ export function BuilderFields({ draft, full, error, set }: BuilderFieldsProps) {
         <YieldPanel
           servings={draft.servings}
           batch={draft.batch}
-          derived={full}
+          preview={preview}
           onServings={(servings) => set({ servings })}
           onBatch={(batch) => set({ batch })}
         />

@@ -9,6 +9,7 @@ const router = Router();
 
 router.use(requireAuth);
 router.get('/', asyncHandler(recipes.list));
+router.post('/preview', asyncHandler(recipes.preview));
 router.post('/', asyncHandler(recipes.create));
 router.get('/:id', asyncHandler(recipes.get));
 router.patch('/:id', asyncHandler(recipes.update));

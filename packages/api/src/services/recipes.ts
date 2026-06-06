@@ -5,6 +5,8 @@ import type {
   RecipeIngredientInput,
   RecipeListQuery,
   RecipeListResponse,
+  RecipePreview,
+  RecipePreviewRequest,
   RecipeSummary,
   UpdateRecipeRequest,
 } from '@macronome/shared';
@@ -18,6 +20,7 @@ import { ApiError } from '../http/errors.js';
 import {
   buildAndPersistDerived,
   buildFullDto,
+  buildPreviewDto,
   resolveTotals,
   toWriteData,
   type NormIngredient,
@@ -150,6 +153,13 @@ export async function list(userId: string, query: RecipeListQuery): Promise<Reci
 export async function get(userId: string, id: string): Promise<RecipeFull | null> {
   const recipe = await recipeRepo.findById(userId, id);
   return recipe ? buildFullDto(userId, recipe) : null;
+}
+
+/** Stateless live recompute for the builder (an unsaved draft); persists nothing. */
+export async function preview(userId: string, body: RecipePreviewRequest): Promise<RecipePreview> {
+  const ings = normFromInput(body.ingredients);
+  const batch = await resolveBatch(userId, ings, body.total_batch_grams);
+  return buildPreviewDto(userId, ings, body.servings, batch);
 }
 
 export async function create(

@@ -63,6 +63,70 @@ describe('recipes — derived food', () => {
   });
 });
 
+describe('recipes — preview (stateless live recompute)', () => {
+  it('returns derived figures for an unsaved draft without persisting anything', async () => {
+    const { agent, csrf, userId } = await authedAgent(app, 'alice');
+    const a = await seedFood(userId, 'Flour'); // 200 kcal/100 g default
+    const b = await seedFood(userId, 'Sugar', { kcal: 100, fat: 0, carb: 25, protein: 0 });
+
+    const res = await csrfPost(agent, csrf, '/api/v1/recipes/preview', {
+      servings: 2,
+      ingredients: [
+        { ref_type: 'food', ref_id: a.id, quantity: 100, unit: 'g', order_index: 0 },
+        { ref_type: 'food', ref_id: b.id, quantity: 100, unit: 'g', order_index: 1 },
+      ],
+    });
+
+    expect(res.status).toBe(200);
+    const data = res.body.data;
+    // Same maths as a save: 300 kcal over a 200 g default batch → 150 kcal/100 g; 2 servings.
+    expect(data.total_ingredient_grams).toBe(200);
+    expect(data.total_batch_grams).toBe(200);
+    expect(data.kcal_per_100g).toBe(150);
+    expect(data.weight_per_portion_g).toBe(100);
+    expect(data.total_macros.kcal).toBe(300);
+    expect(data.per_portion.kcal).toBe(150);
+    expect(data.ingredients).toHaveLength(2);
+    expect(data.ingredients[0]).toMatchObject({ grams: 100, kcal: 200, ref_name: 'Flour' });
+    // Preview lines carry no persisted id.
+    expect(data.ingredients[0]).not.toHaveProperty('id');
+
+    // Nothing was written.
+    expect(await prisma.recipe.count({ where: { ownerId: userId } })).toBe(0);
+  });
+
+  it('returns zeroed figures for an empty draft', async () => {
+    const { agent, csrf } = await authedAgent(app, 'alice');
+    const res = await csrfPost(agent, csrf, '/api/v1/recipes/preview', {
+      servings: 3,
+      ingredients: [],
+    });
+    expect(res.status).toBe(200);
+    expect(res.body.data).toMatchObject({
+      total_ingredient_grams: 0,
+      total_batch_grams: 0,
+      kcal_per_100g: 0,
+      servings: 3,
+    });
+    expect(res.body.data.total_macros.kcal).toBe(0);
+    expect(res.body.data.ingredients).toHaveLength(0);
+  });
+
+  it("rejects a draft referencing another user's food (user-scoped resolution)", async () => {
+    const alice = await authedAgent(app, 'alice');
+    const flour = await seedFood(alice.userId, 'Flour');
+    const bob = await authedAgent(app, 'bob');
+
+    const res = await csrfPost(bob.agent, bob.csrf, '/api/v1/recipes/preview', {
+      servings: 1,
+      ingredients: [
+        { ref_type: 'food', ref_id: flour.id, quantity: 100, unit: 'g', order_index: 0 },
+      ],
+    });
+    expect(res.status).toBe(422);
+  });
+});
+
 describe('recipes — transitive cycle', () => {
   it('rejects an ingredient that would close a cycle (422 would_create_cycle)', async () => {
     const { agent, csrf, userId } = await authedAgent(app, 'alice');

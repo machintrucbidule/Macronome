@@ -39,6 +39,10 @@ test-results/
 # ...but Prisma migration SQL is part of the schema contract and MUST be tracked.
 !packages/*/prisma/migrations/**/*.sql
 
+# --- triage backlog: references user-created data names, kept local (see intake prompt) ---
+/BACKLOG.md
+/BACKLOG_ARCHIVE.md
+
 # --- misc ---
 .DS_Store
 *.log

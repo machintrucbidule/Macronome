@@ -275,3 +275,33 @@ there is no logged day at all. Specs updated: `spec/schema/tables-logging.md`,
 `spec/api/days-meals-leftover.md`, `spec/logic/day-snapshot-verdict.md` §7,
 `spec/logic/metabolic-engine.md` §3, `spec/logic/weight-periods-trajectory.md`,
 `specifications/screens/meals.md`.
+
+---
+
+## B-035 — Recipe builder live yield panel via a preview endpoint — RESOLVED (author)
+
+Post-v1 backlog triage (batch BF-3). `specifications/screens/recipe.md` mandates that the
+builder's "Rendement & portions" panel (total weight, total macros, servings, weight/portion,
+per-portion macros) **recompute live** as ingredients are added/edited/removed. The shipped
+builder only showed those figures **after save** (read from `GET /recipes/:id`), so the panel
+sat empty while editing — a divergence from the screen contract.
+
+The web app cannot compute the figures itself: the macros need each ingredient's per-100 g
+composition, which the combined-log search (`LoggableItem`) does not expose, and `CLAUDE.md`
+rule 2 forbids the web from computing any nutrition figure. The server already owns the maths
+(`resolveTotals`/`per100`/`perPortion`/`weightPerPortion`) but only over a **persisted** recipe.
+
+- **Decision:** add a **stateless** `POST /recipes/preview` endpoint. The builder posts the
+  current draft (the recipe body minus `name`, debounced) and receives all derived figures for
+  the **unsaved** draft, **without persisting** (no row, no derived-food rebuild, no cycle
+  check — read-only, user-scoped). The yield panel renders them live; after save it keeps
+  reading the persisted figures from `GET /recipes/:id`. _(Author.)_
+
+**Rationale:** keeps the entire nutrition computation on the backend (rule 2) while honouring
+the screen contract's live-recompute requirement — preferred over leaking ingredient macros to
+the client and computing totals there. Reuses the existing derivation maths
+(`spec/logic/recipes-derived-food.md`), so there is no new logic, only a new read-only view of
+it. `screens/recipe.md` is **unchanged** (the code is brought into line with it).
+
+**Spec impact:** `spec/api/foods-recipes.md` §Recipes gains `POST /recipes/preview` + the
+`RecipePreview` payload. No schema change (nothing persisted).

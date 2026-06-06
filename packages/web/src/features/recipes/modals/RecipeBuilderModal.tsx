@@ -6,7 +6,7 @@ import { Button } from '../../../components/Button/Button';
 import { ApiError } from '../../../api/client';
 import { BuilderFields } from './BuilderFields';
 import { draftToBody, emptyRecipeDraft, initialRecipeDraft, type RecipeDraft } from './draft';
-import { useRecipe, useRecipeMutations } from '../useRecipes';
+import { useRecipe, useRecipeMutations, useRecipePreview } from '../useRecipes';
 
 // Recipe builder popup (specifications/screens/recipe.md): name, ingredient block, yield
 // panel, instructions. Derived figures come from the server; the transitive cycle guard is
@@ -27,6 +27,7 @@ export function RecipeBuilderModal({ recipeId, onClose, onArchive }: RecipeBuild
   const [hydrated, setHydrated] = useState(!isEdit);
   const [error, setError] = useState<string | null>(null);
   const { create, update } = useRecipeMutations();
+  const preview = useRecipePreview(draft);
 
   useEffect(() => {
     if (isEdit && full && !hydrated) {
@@ -61,7 +62,7 @@ export function RecipeBuilderModal({ recipeId, onClose, onArchive }: RecipeBuild
   return (
     <Modal title={title} size="wide" onClose={onClose}>
       <div className={modalStyles.body}>
-        <BuilderFields draft={draft} full={full} error={error} set={set} />
+        <BuilderFields draft={draft} full={full} preview={preview.data} error={error} set={set} />
       </div>
 
       <div className={modalStyles.actions}>

@@ -3,6 +3,7 @@ import {
   CreateRecipeSchema,
   ErrorCode,
   RecipeListQuerySchema,
+  RecipePreviewRequestSchema,
   UpdateRecipeSchema,
 } from '@macronome/shared';
 import * as recipesService from '../../services/recipes.js';
@@ -30,6 +31,12 @@ export async function get(req: Request, res: Response): Promise<void> {
   res.status(200).json({ data: recipe });
 }
 
+export async function preview(req: Request, res: Response): Promise<void> {
+  const parsed = RecipePreviewRequestSchema.safeParse(req.body);
+  if (!parsed.success) throw new ApiError(422, ErrorCode.ValidationError, zodDetails(parsed.error));
+  res.status(200).json({ data: await recipesService.preview(userId(res), parsed.data) });
+}
+
 export async function create(req: Request, res: Response): Promise<void> {
   const parsed = CreateRecipeSchema.safeParse(req.body);
   if (!parsed.success) throw new ApiError(422, ErrorCode.ValidationError, zodDetails(parsed.error));
@@ -42,12 +49,10 @@ export async function update(req: Request, res: Response): Promise<void> {
   if (!parsed.success) throw new ApiError(422, ErrorCode.ValidationError, zodDetails(parsed.error));
   const result = await recipesService.update(userId(res), pathId(req), parsed.data);
   if (!result) throw new ApiError(404, ErrorCode.NotFound);
-  res
-    .status(200)
-    .json({
-      data: result.recipe,
-      ...(result.warnings.length ? { warnings: result.warnings } : {}),
-    });
+  res.status(200).json({
+    data: result.recipe,
+    ...(result.warnings.length ? { warnings: result.warnings } : {}),
+  });
 }
 
 export async function archive(req: Request, res: Response): Promise<void> {

@@ -5,16 +5,17 @@ import { UnitMenu } from './UnitMenu';
 import type { IngredientDraft } from './draft';
 import styles from '../recipes.module.css';
 
-// One ingredient row in the builder (specifications/screens/recipe.md): name (read) +
-// quantity + unit chip → menu + delete. Per-line macros are computed server-side and shown
-// after save (live-while-typing recompute is an M9 polish item, like the Cibles tiles).
+// One ingredient row in the builder (specifications/screens/recipe.md): name (click → search
+// to change it, parity with the daily-log inline edit, B-034) + quantity + unit chip → menu +
+// delete. The yield panel shows the live derived figures (B-035).
 interface IngredientLineProps {
   ingredient: IngredientDraft;
   onChange: (patch: Partial<IngredientDraft>) => void;
+  onEdit: () => void;
   onRemove: () => void;
 }
 
-export function IngredientLine({ ingredient, onChange, onRemove }: IngredientLineProps) {
+export function IngredientLine({ ingredient, onChange, onEdit, onRemove }: IngredientLineProps) {
   const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
   const unitLabel =
@@ -29,7 +30,12 @@ export function IngredientLine({ ingredient, onChange, onRemove }: IngredientLin
 
   return (
     <div className={styles.ingLine}>
-      <span className={styles.ingName} title={ingredient.refName}>
+      <span
+        className={styles.ingName}
+        title={ingredient.refName}
+        aria-label={t('recipes.builder.editIngredient')}
+        onClick={onEdit}
+      >
         {ingredient.refName}
       </span>
       <span className={styles.qtyCell}>

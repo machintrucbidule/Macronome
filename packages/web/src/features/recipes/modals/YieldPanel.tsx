@@ -1,25 +1,36 @@
 import { useTranslation } from 'react-i18next';
-import type { RecipeFull } from '@macronome/shared';
+import type { Macros, RecipePreview } from '@macronome/shared';
 import { NumberInput } from '../../../components/Form/NumberInput';
 import { gramsDisplay, kcalDisplay } from '../format';
 import styles from '../recipes.module.css';
 
 // "Rendement & portions" panel (specifications/screens/recipe.md): editable batch weight,
-// servings stepper, and per-portion readout. Per-portion / per-100 g values are read from
-// the server (CLAUDE.md rule 2) and refresh on save; for a new recipe they show — until the
-// first save. Live-while-typing recompute is deferred to M9 (like the Cibles tiles).
+// servings stepper, and a LIVE readout of total / per-100 g / per-portion figures. Per
+// CLAUDE.md rule 2 the web never computes nutrition figures — they are read from the
+// stateless preview endpoint (B-035) and refresh as ingredients/batch/servings change.
+// `—` until the first line is ready to compute.
 interface YieldPanelProps {
   servings: string;
   batch: string;
-  derived: RecipeFull | null;
+  preview: RecipePreview | undefined;
   onServings: (v: string) => void;
   onBatch: (v: string) => void;
 }
 
-export function YieldPanel({ servings, batch, derived, onServings, onBatch }: YieldPanelProps) {
+const DASH = '—';
+
+export function YieldPanel({ servings, batch, preview, onServings, onBatch }: YieldPanelProps) {
   const { t } = useTranslation();
   const n = Math.max(1, Math.round(Number(servings) || 1));
-  const cell = (value: string | null | undefined): string => value ?? '—';
+  const g = (v: number | undefined): string => (v === undefined ? DASH : gramsDisplay(v));
+  const k = (v: number | undefined): string => (v === undefined ? DASH : kcalDisplay(v));
+  const macros = (m: Pick<Macros, 'fat' | 'carb' | 'protein'> | undefined) => (
+    <div className={styles.ppMacros}>
+      <span>L {g(m?.fat)}</span>
+      <span>G {g(m?.carb)}</span>
+      <span>P {g(m?.protein)}</span>
+    </div>
+  );
 
   return (
     <div className={styles.yield}>
@@ -30,7 +41,7 @@ export function YieldPanel({ servings, batch, derived, onServings, onBatch }: Yi
         suffix="g"
         min={0}
         value={batch}
-        placeholder={derived ? gramsDisplay(derived.total_ingredient_grams) : undefined}
+        placeholder={preview ? gramsDisplay(preview.total_ingredient_grams) : undefined}
         onChange={(e) => onBatch(e.target.value)}
       />
       <button type="button" className={styles.resetLink} onClick={() => onBatch('')}>
@@ -51,23 +62,49 @@ export function YieldPanel({ servings, batch, derived, onServings, onBatch }: Yi
       </div>
 
       <div className={styles.perPortion}>
+        <div className={styles.ppHead}>{t('recipes.builder.sectionTotal')}</div>
+        <div className={styles.ppRow}>
+          <span>{t('recipes.builder.totalWeight')}</span>
+          <span className="num">{g(preview?.total_ingredient_grams)} g</span>
+        </div>
+        <div className={styles.ppRow}>
+          <span>{t('recipes.builder.kcal')}</span>
+          <span className="num">{k(preview?.total_macros.kcal)}</span>
+        </div>
+        {macros(preview?.total_macros)}
+      </div>
+
+      <div className={styles.perPortion}>
+        <div className={styles.ppHead}>{t('recipes.builder.sectionPer100')}</div>
+        <div className={styles.ppRow}>
+          <span>{t('recipes.builder.kcal')}</span>
+          <span className="num">{k(preview?.kcal_per_100g)}</span>
+        </div>
+        {macros(
+          preview
+            ? {
+                fat: preview.fat_per_100g,
+                carb: preview.carb_per_100g,
+                protein: preview.protein_per_100g,
+              }
+            : undefined,
+        )}
+      </div>
+
+      <div className={styles.perPortion}>
+        <div className={styles.ppHead}>{t('recipes.builder.sectionPerPortion')}</div>
         <div className={styles.ppRow}>
           <span>{t('recipes.builder.weightPerPortion')}</span>
-          <span className="num">
-            {cell(derived && gramsDisplay(derived.weight_per_portion_g))} g
-          </span>
+          <span className="num">{g(preview?.weight_per_portion_g)} g</span>
         </div>
         <div className={styles.ppRow}>
           <span>{t('recipes.builder.kcalPerPortion')}</span>
-          <span className="num">{cell(derived && kcalDisplay(derived.per_portion.kcal))}</span>
+          <span className="num">{k(preview?.per_portion.kcal)}</span>
         </div>
-        <div className={styles.ppMacros}>
-          <span>L {cell(derived && gramsDisplay(derived.per_portion.fat))}</span>
-          <span>G {cell(derived && gramsDisplay(derived.per_portion.carb))}</span>
-          <span>P {cell(derived && gramsDisplay(derived.per_portion.protein))}</span>
-        </div>
-        <div className={styles.ppNote}>{t('recipes.builder.computedNote')}</div>
+        {macros(preview?.per_portion)}
       </div>
+
+      <div className={styles.ppNote}>{t('recipes.builder.computedNote')}</div>
     </div>
   );
 }

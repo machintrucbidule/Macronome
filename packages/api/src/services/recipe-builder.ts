@@ -1,4 +1,9 @@
-import type { RecipeFull, RecipeIngredient } from '@macronome/shared';
+import type {
+  RecipeFull,
+  RecipeIngredient,
+  RecipePreview,
+  RecipePreviewIngredient,
+} from '@macronome/shared';
 import { ErrorCode } from '@macronome/shared';
 import {
   recipeRepo,
@@ -15,6 +20,7 @@ import {
   per100,
   perPortion,
   weightPerPortion,
+  type AggregateResult,
   type IngredientInput,
 } from '../domain/recipes/index.js';
 import type { ServingUnit } from '../domain/serving/serving.js';
@@ -128,24 +134,17 @@ export async function buildAndPersistDerived(userId: string, recipeId: string): 
   );
 }
 
-/** Build the full builder-view DTO for a persisted recipe. */
-export async function buildFullDto(
-  userId: string,
-  recipe: RecipeWithIngredients,
-): Promise<RecipeFull> {
-  const ings = normFromModels(recipe);
-  const { totalIngredientGrams, totalMacros, foods, inputs } = await resolveTotals(userId, ings);
-  const batch = num(recipe.totalBatchGrams);
-  const p100 = per100(totalMacros, batch);
-  const pp = perPortion(totalMacros, recipe.servings);
-  const aggregated = aggregateMacros(inputs);
-  const derivedId = (await recipeDerivedFoodRepo.derivedFoodIdByRecipeIds(userId, [recipe.id])).get(
-    recipe.id,
-  );
-  const ingredients: RecipeIngredient[] = ings.map((ing, idx) => {
+const ZERO_MACROS = { kcal: 0, fat: 0, carb: 0, protein: 0 };
+
+/** Resolved ingredient lines (grams + macro snapshot), shared by the full + preview DTOs. */
+function toPreviewLines(
+  ings: NormIngredient[],
+  foods: ResolvedFood[],
+  aggregated: AggregateResult,
+): RecipePreviewIngredient[] {
+  return ings.map((ing, idx) => {
     const line = aggregated.lines[idx]!;
     return {
-      id: recipe.ingredients[idx]!.id,
       ref_type: ing.refType,
       ref_id: ing.refId,
       ref_name: foods[idx]!.name,
@@ -165,6 +164,52 @@ export async function buildFullDto(
       })),
     };
   });
+}
+
+/** Stateless derived figures for an unsaved draft (spec/api/foods-recipes.md §preview). */
+export async function buildPreviewDto(
+  userId: string,
+  ings: NormIngredient[],
+  servings: number,
+  batch: number,
+): Promise<RecipePreview> {
+  const { totalIngredientGrams, totalMacros, foods, inputs } = await resolveTotals(userId, ings);
+  const aggregated = aggregateMacros(inputs);
+  // batch is 0 only when there are no ingredients (default = Σ grams) → keep per-100 g zeroed.
+  const p100 = batch > 0 ? per100(totalMacros, batch) : ZERO_MACROS;
+  const pp = perPortion(totalMacros, servings);
+  return {
+    total_ingredient_grams: totalIngredientGrams,
+    total_batch_grams: batch,
+    servings,
+    kcal_per_100g: p100.kcal,
+    fat_per_100g: p100.fat,
+    carb_per_100g: p100.carb,
+    protein_per_100g: p100.protein,
+    weight_per_portion_g: weightPerPortion(batch, servings),
+    total_macros: { ...totalMacros },
+    per_portion: { kcal: pp.kcal, fat: pp.fat, carb: pp.carb, protein: pp.protein },
+    ingredients: toPreviewLines(ings, foods, aggregated),
+  };
+}
+
+/** Build the full builder-view DTO for a persisted recipe. */
+export async function buildFullDto(
+  userId: string,
+  recipe: RecipeWithIngredients,
+): Promise<RecipeFull> {
+  const ings = normFromModels(recipe);
+  const { totalIngredientGrams, totalMacros, foods, inputs } = await resolveTotals(userId, ings);
+  const batch = num(recipe.totalBatchGrams);
+  const p100 = per100(totalMacros, batch);
+  const pp = perPortion(totalMacros, recipe.servings);
+  const aggregated = aggregateMacros(inputs);
+  const derivedId = (await recipeDerivedFoodRepo.derivedFoodIdByRecipeIds(userId, [recipe.id])).get(
+    recipe.id,
+  );
+  const ingredients: RecipeIngredient[] = toPreviewLines(ings, foods, aggregated).map(
+    (line, idx) => ({ id: recipe.ingredients[idx]!.id, ...line }),
+  );
   return {
     id: recipe.id,
     owner_id: recipe.ownerId,

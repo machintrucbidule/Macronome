@@ -107,6 +107,40 @@ export type CreateRecipeRequest = z.infer<typeof CreateRecipeSchema>;
 export const UpdateRecipeSchema = z.object(recipeBody).partial();
 export type UpdateRecipeRequest = z.infer<typeof UpdateRecipeSchema>;
 
+// --- Preview request / response (stateless live recompute) ----------------
+// Same body as create, minus `name` (an unsaved draft needs no name to compute its
+// figures). Read-only: nothing is persisted (spec/api/foods-recipes.md §Recipes), so
+// preview ingredient lines carry no persisted `id`.
+
+export const RecipePreviewRequestSchema = z.object({
+  total_batch_grams: recipeBody.total_batch_grams,
+  servings: recipeBody.servings,
+  ingredients: recipeBody.ingredients,
+});
+export type RecipePreviewRequest = z.infer<typeof RecipePreviewRequestSchema>;
+
+export const RecipePreviewIngredientSchema = RecipeIngredientSchema.omit({ id: true });
+export type RecipePreviewIngredient = z.infer<typeof RecipePreviewIngredientSchema>;
+
+export const RecipePreviewSchema = z.object({
+  total_ingredient_grams: z.number(),
+  total_batch_grams: z.number(),
+  servings: z.number().int(),
+  kcal_per_100g: z.number(),
+  fat_per_100g: z.number(),
+  carb_per_100g: z.number(),
+  protein_per_100g: z.number(),
+  weight_per_portion_g: z.number(),
+  total_macros: MacrosSchema,
+  per_portion: MacrosSchema,
+  ingredients: z.array(RecipePreviewIngredientSchema),
+});
+export type RecipePreview = z.infer<typeof RecipePreviewSchema>;
+
+export interface RecipePreviewResponse {
+  data: RecipePreview;
+}
+
 // --- List / search query --------------------------------------------------
 
 // Recipe-native sort fields only. Derived macro columns live on the derived food row,
