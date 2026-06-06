@@ -100,7 +100,7 @@
   color: var(--over);
 }
 .vBelow {
-  color: var(--accent);
+  color: var(--under);
 }
 .okRate {
   color: var(--text-dim);
@@ -131,8 +131,7 @@
   text-anchor: middle;
 }
 .zone {
-  fill: var(--ok-soft);
-  opacity: 0.6;
+  fill: color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
 /* ---- Signals (design/components/charts.md §Signals: responsive grid of .sig cards

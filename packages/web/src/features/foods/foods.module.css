@@ -107,8 +107,8 @@
   padding: 2px 7px;
 }
 .vistag.shared {
-  color: var(--accent);
-  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  color: var(--c-carb);
+  border-color: color-mix(in srgb, var(--c-carb) 45%, transparent);
 }
 .iconbtn {
   background: none;

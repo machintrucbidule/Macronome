@@ -16,28 +16,33 @@ export function Cartouche({ data }: { data: CartoucheData }) {
   return (
     <div className={styles.cartouche}>
       <MetricCard
+        size="stat"
         label={t('weight.cartouche.current')}
         value={orDash(data.current, kg1)}
         unit="kg"
         note={vsPrev(data.delta_prev)}
       />
       <MetricCard
+        size="stat"
         label={t('weight.cartouche.bmi')}
         value={orDash(data.bmi, bmi1)}
         note={data.bmi_category ? t(bmiCategoryKey(data.bmi_category)) : undefined}
       />
       <MetricCard
+        size="stat"
         label={t('weight.cartouche.waist')}
         value={orDash(data.waist, kg1)}
         unit="cm"
         note={vsPrev(data.waist_delta)}
       />
       <MetricCard
+        size="stat"
         label={t('weight.cartouche.gap')}
         value={data.gap_to_goal === null ? DASH : signed1(data.gap_to_goal)}
         unit="kg"
       />
       <MetricCard
+        size="stat"
         label={t('weight.cartouche.projection')}
         value={proj.date ?? t(proj.key)}
         note={proj.date ? t('weight.projection.estimate') : undefined}

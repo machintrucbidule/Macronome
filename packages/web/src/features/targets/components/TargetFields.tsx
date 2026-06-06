@@ -47,7 +47,7 @@ export function TargetFields({ draft, set, engine }: TargetFieldsProps) {
         </div>
       </div>
 
-      <div className={styles.group}>
+      <div className={`${styles.group} ${styles.groupSep}`}>
         <div className={styles.groupTitle}>{t('cibles.targets.ratios')}</div>
         <div className={styles.grid2}>
           <NumberInput

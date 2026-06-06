@@ -22,6 +22,15 @@
   border-top: 2px solid var(--c-carb);
 }
 
+/* Size variants (mockups: one component, three treatments). 'md' = Cibles tiles (20px);
+   'stat' = the big stat tiles of Stats rolling strip + Poids cartouche (24px on the raised
+   bg-elev surface with the large radius — stats.html .rc / weight.html .stat). */
+.card.stat {
+  background: var(--bg-elev);
+  border-radius: var(--r-lg);
+  padding: var(--sp-6) var(--sp-7);
+}
+
 .label {
   font-family: var(--font-num);
   font-size: var(--fs-10);
@@ -36,8 +45,18 @@
   font-weight: var(--fw-bold);
   color: var(--text);
 }
-.value.warn {
+.md .value {
+  font-size: var(--fs-20);
+}
+.stat .value {
+  font-size: var(--fs-24);
+}
+.value.warn,
+.value.bad {
   color: var(--nok);
+}
+.value.good {
+  color: var(--ok);
 }
 
 .unit {

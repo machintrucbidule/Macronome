@@ -75,8 +75,8 @@
   letter-spacing: 0.04em;
   padding: 1px 4px;
   border-radius: var(--r-pill);
-  border: 1px solid var(--border);
-  color: var(--text-dim);
+  border: 1px solid color-mix(in srgb, var(--recipe) 40%, transparent);
+  color: var(--recipe);
 }
 
 .empty {

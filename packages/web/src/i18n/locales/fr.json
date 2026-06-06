@@ -228,6 +228,14 @@
       "deficitAtTarget": "Déficit à la cible",
       "kgPerWeek": "{{value}} kg/semaine"
     },
+    "deficit": {
+      "intakeLabel": "Apport cible (milieu)",
+      "burnLabel": "Dépense estimée",
+      "kcal": "{{value}} kcal",
+      "synthDeficit": "À ta cible (milieu {{intake}} kcal) et une dépense estimée de {{burn}} kcal, le constat est un déficit d'environ {{deficit}} kcal/j (≈ {{kg}} kg/sem). Ce déficit varie selon ton activité du jour ; ta cible, elle, reste fixe.",
+      "synthSurplus": "Ta cible (milieu {{intake}} kcal) dépasse la dépense estimée ({{burn}} kcal) : surplus d'environ {{surplus}} kcal/j (+{{kg}} kg/sem).",
+      "synthBalance": "Cible et dépense estimée à l'équilibre."
+    },
     "warning": {
       "carb": "⚠ Cibles incohérentes : les planchers protéines + lipides atteignent ou dépassent déjà le maximum calorique. Le plafond de glucides est négatif. L'enregistrement reste possible.",
       "noWeight": "Aucune pesée enregistrée : les planchers, le métabolisme de base et le déficit ne sont pas calculables tant qu'il n'y a pas de poids."

@@ -35,6 +35,7 @@ export function RollingCards({ windows }: { windows: RollingWindow[] }) {
       {windows.map((w) => (
         <MetricCard
           key={w.window}
+          size="stat"
           label={t('stats.rolling.window', { n: w.window })}
           value={r0(w.avg_kcal)}
           unit="kcal"

@@ -228,6 +228,14 @@
       "deficitAtTarget": "Deficit at target",
       "kgPerWeek": "{{value}} kg/week"
     },
+    "deficit": {
+      "intakeLabel": "Target intake (midpoint)",
+      "burnLabel": "Estimated burn",
+      "kcal": "{{value}} kcal",
+      "synthDeficit": "At your target (midpoint {{intake}} kcal) and an estimated burn of {{burn}} kcal, the result is a deficit of about {{deficit}} kcal/day (≈ {{kg}} kg/week). This deficit varies with your daily activity; your target stays fixed.",
+      "synthSurplus": "Your target (midpoint {{intake}} kcal) exceeds the estimated burn ({{burn}} kcal): a surplus of about {{surplus}} kcal/day (+{{kg}} kg/week).",
+      "synthBalance": "Target and estimated burn are balanced."
+    },
     "warning": {
       "carb": "⚠ Inconsistent targets: the protein + fat floors already meet or exceed the calorie maximum. The carb ceiling is negative. You can still save.",
       "noWeight": "No weigh-in yet: floors, BMR and the deficit are not computable until there is a weight."

@@ -28,7 +28,7 @@ function OptionalLabel({ textKey }: { textKey: string }) {
 export function GoalFields({ draft, set, engine }: GoalFieldsProps) {
   const { t } = useTranslation();
   return (
-    <div className={styles.group}>
+    <div className={`${styles.group} ${styles.groupSep}`}>
       <div className={styles.groupTitle}>{t('cibles.targets.goal')}</div>
       <div className={styles.grid2}>
         <NumberInput

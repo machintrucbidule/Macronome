@@ -9,6 +9,7 @@ import { MetricCard } from '../../../components/MetricCard/MetricCard';
 import { Banner } from '../../../components/Banner/Banner';
 import { ProfileForm } from './ProfileForm';
 import { MacroFloorTiles } from './MacroFloorTiles';
+import { DeficitBar } from './DeficitBar';
 import { grams1, kcal, multiplier2, rate2, signedKcal } from '../format';
 import styles from '../cibles.module.css';
 
@@ -65,19 +66,34 @@ export function EnginePanel({ engine, warnings, profile }: EnginePanelProps) {
       {carbWarn && <Banner tone="warning">{t('cibles.warning.carb')}</Banner>}
 
       <div className={styles.tiles2}>
-        <MetricCard label={t('cibles.engine.bmr')} value={showKcal(engine.bmr)} unit="kcal/j" />
         <MetricCard
+          size="md"
+          label={t('cibles.engine.bmr')}
+          value={showKcal(engine.bmr)}
+          unit="kcal/j"
+        />
+        <MetricCard
+          size="md"
           label={t('cibles.engine.estimatedBurn')}
           value={showKcal(engine.estimated_burn)}
           unit="kcal/j"
         />
         <MetricCard
+          size="md"
           label={t('cibles.engine.empiricalBurn')}
           value={showKcal(engine.empirical_burn)}
           unit="kcal/j"
           note={t('cibles.engine.empiricalNote')}
         />
         <MetricCard
+          size="md"
+          tone={
+            engine.deficit_at_target === null
+              ? 'default'
+              : engine.deficit_at_target <= 0
+                ? 'good'
+                : 'bad'
+          }
           label={t('cibles.engine.deficitAtTarget')}
           value={engine.deficit_at_target === null ? DASH : signedKcal(engine.deficit_at_target)}
           unit="kcal/j"
@@ -88,6 +104,8 @@ export function EnginePanel({ engine, warnings, profile }: EnginePanelProps) {
           }
         />
       </div>
+
+      <DeficitBar engine={engine} />
     </section>
   );
 }

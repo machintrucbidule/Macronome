@@ -19,6 +19,7 @@ export function MacroFloorTiles({ engine, carbWarn }: MacroFloorTilesProps) {
   return (
     <div className={styles.tiles3}>
       <MetricCard
+        size="md"
         label={t('cibles.engine.proteinFloor')}
         value={showG(engine.protein_floor_g)}
         unit="g"
@@ -26,12 +27,14 @@ export function MacroFloorTiles({ engine, carbWarn }: MacroFloorTilesProps) {
         accent="prot"
       />
       <MetricCard
+        size="md"
         label={t('cibles.engine.fatFloor')}
         value={showG(engine.fat_floor_g)}
         unit="g"
         accent="fat"
       />
       <MetricCard
+        size="md"
         label={t('cibles.engine.carbCeiling')}
         value={showG(engine.carb_ceiling_g)}
         unit="g"

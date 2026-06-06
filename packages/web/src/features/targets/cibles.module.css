@@ -68,6 +68,12 @@
   letter-spacing: var(--ls-caps);
   color: var(--text-dim);
 }
+/* Dashed section separator above every group after the first (targets mockup .sect.mt). */
+.groupSep {
+  margin-top: var(--sp-5);
+  padding-top: var(--sp-7);
+  border-top: var(--bw) dashed var(--border);
+}
 
 .grid2 {
   display: grid;
@@ -177,4 +183,97 @@
 .error {
   font-size: var(--fs-12);
   color: var(--nok);
+}
+
+/* Dépense & déficit: target-intake vs estimated-burn bar + synthesis (targets mockup
+   .defbar-wrap + .synth). Positioning only; all figures come from the engine readout. */
+.defbarWrap {
+  margin-top: var(--sp-7);
+  background: var(--bg-elev-2);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-md);
+  padding: var(--sp-6);
+}
+.defbarHead {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: var(--sp-4);
+}
+.defbar {
+  position: relative;
+  height: 30px;
+  border-radius: var(--r-sm);
+  background: var(--bg-field);
+  overflow: hidden;
+}
+.defbarBurn,
+.defbarIntake {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+.defbarBurn {
+  background: color-mix(in srgb, var(--text-dim) 22%, transparent);
+  border-right: 2px solid var(--text-dim);
+}
+.defbarIntake {
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+  border-right: 2px solid var(--accent);
+}
+.defbarBurnLbl,
+.defbarIntakeLbl {
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  padding: 0 6px;
+  white-space: nowrap;
+}
+.defbarBurnLbl {
+  color: var(--text-dim);
+}
+.defbarIntakeLbl {
+  color: var(--accent);
+}
+.deflegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-8);
+  margin-top: var(--sp-5);
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  color: var(--text-dim);
+}
+.deflegend i {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+.swIntake {
+  background: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.swBurn {
+  background: color-mix(in srgb, var(--text-dim) 30%, transparent);
+}
+.synth {
+  margin-top: var(--sp-7);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  border: var(--bw) solid color-mix(in srgb, var(--accent) 35%, transparent);
+  border-radius: var(--r-md);
+  padding: var(--sp-6) var(--sp-7);
+}
+.synth p {
+  font-size: var(--fs-13);
+  line-height: var(--lh-normal);
+  color: var(--text);
 }
