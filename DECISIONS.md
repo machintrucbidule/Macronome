@@ -607,3 +607,17 @@ fixes the display + adds the missing UI. Three facets, all decided with the auth
   (preview client), meals `useLeftoverPreview` hook, `QtyCell.tsx`, and the `LeftoverModal`
   (mode router + `LeftoverList` + `LeftoverPreview` + `useLeftoverForm` edit support) + i18n.
   No DB/schema change (consumed stays derived; nothing new persisted).
+
+## B-048 — Recipes list: drop the redundant per-row "recette" badge — RESOLVED (author)
+
+Post-v1 backlog triage (batch BF-8). The Recipes list rendered a "recette" badge on **every**
+row (`features/recipes/components/RecipeRow.tsx`), faithfully matching the mockup
+(`specifications/mockups/recipe.html` list row + `screens/recipe.md`). On a screen where every
+row is by definition a recipe the badge is pure noise. **Decision (author):** remove the badge
+from the **list rows**; **keep** it in the recipe **modal header** (it still labels the open
+record). This is a deliberate, minor **deviation from the visual contract**, so the screen spec
+is annotated rather than the code silently diverging.
+
+**Spec impact:** `specifications/screens/recipe.md` (recipe-list row note). **Code:** removed the
+`<span class=badge>` from `RecipeRow.tsx`, the now-unused `.badge` class in `recipes.module.css`,
+and the `recipes.badge` i18n key (FR+EN). No API/schema change.

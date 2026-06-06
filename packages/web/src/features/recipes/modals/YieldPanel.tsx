@@ -18,19 +18,37 @@ interface YieldPanelProps {
 }
 
 const DASH = '—';
+const grams = (v: number | undefined): string => (v === undefined ? DASH : gramsDisplay(v));
+const kcal = (v: number | undefined): string => (v === undefined ? DASH : kcalDisplay(v));
+
+// B-052: render each macro as a readable labelled block (per the recipe mockup) instead of
+// a cramped "L 15 G 63.9 P 479.9" line.
+function MacroBlocks({ m }: { m: Pick<Macros, 'fat' | 'carb' | 'protein'> | undefined }) {
+  const { t } = useTranslation();
+  return (
+    <div className={styles.ppMacros}>
+      <div className={styles.ppMacro}>
+        <span className="num">{grams(m?.fat)}</span>
+        <span className={styles.ppMacroLabel}>{t('recipes.builder.macroFat')}</span>
+      </div>
+      <div className={styles.ppMacro}>
+        <span className="num">{grams(m?.carb)}</span>
+        <span className={styles.ppMacroLabel}>{t('recipes.builder.macroCarb')}</span>
+      </div>
+      <div className={styles.ppMacro}>
+        <span className="num">{grams(m?.protein)}</span>
+        <span className={styles.ppMacroLabel}>{t('recipes.builder.macroProtein')}</span>
+      </div>
+    </div>
+  );
+}
 
 export function YieldPanel({ servings, batch, preview, onServings, onBatch }: YieldPanelProps) {
   const { t } = useTranslation();
   const n = Math.max(1, Math.round(Number(servings) || 1));
-  const g = (v: number | undefined): string => (v === undefined ? DASH : gramsDisplay(v));
-  const k = (v: number | undefined): string => (v === undefined ? DASH : kcalDisplay(v));
-  const macros = (m: Pick<Macros, 'fat' | 'carb' | 'protein'> | undefined) => (
-    <div className={styles.ppMacros}>
-      <span>L {g(m?.fat)}</span>
-      <span>G {g(m?.carb)}</span>
-      <span>P {g(m?.protein)}</span>
-    </div>
-  );
+  const per100 = preview
+    ? { fat: preview.fat_per_100g, carb: preview.carb_per_100g, protein: preview.protein_per_100g }
+    : undefined;
 
   return (
     <div className={styles.yield}>
@@ -40,8 +58,7 @@ export function YieldPanel({ servings, batch, preview, onServings, onBatch }: Yi
         label={t('recipes.builder.batch')}
         suffix="g"
         min={0}
-        value={batch}
-        placeholder={preview ? gramsDisplay(preview.total_ingredient_grams) : undefined}
+        value={batch !== '' ? batch : preview ? gramsDisplay(preview.total_ingredient_grams) : ''}
         onChange={(e) => onBatch(e.target.value)}
       />
       <button type="button" className={styles.resetLink} onClick={() => onBatch('')}>
@@ -65,46 +82,36 @@ export function YieldPanel({ servings, batch, preview, onServings, onBatch }: Yi
         <div className={styles.ppHead}>{t('recipes.builder.sectionTotal')}</div>
         <div className={styles.ppRow}>
           <span>{t('recipes.builder.totalWeight')}</span>
-          <span className="num">{g(preview?.total_ingredient_grams)} g</span>
+          <span className="num">{grams(preview?.total_ingredient_grams)} g</span>
         </div>
         <div className={styles.ppRow}>
           <span>{t('recipes.builder.kcal')}</span>
-          <span className="num">{k(preview?.total_macros.kcal)}</span>
+          <span className="num">{kcal(preview?.total_macros.kcal)}</span>
         </div>
-        {macros(preview?.total_macros)}
+        <MacroBlocks m={preview?.total_macros} />
       </div>
 
       <div className={styles.perPortion}>
         <div className={styles.ppHead}>{t('recipes.builder.sectionPer100')}</div>
         <div className={styles.ppRow}>
           <span>{t('recipes.builder.kcal')}</span>
-          <span className="num">{k(preview?.kcal_per_100g)}</span>
+          <span className="num">{kcal(preview?.kcal_per_100g)}</span>
         </div>
-        {macros(
-          preview
-            ? {
-                fat: preview.fat_per_100g,
-                carb: preview.carb_per_100g,
-                protein: preview.protein_per_100g,
-              }
-            : undefined,
-        )}
+        <MacroBlocks m={per100} />
       </div>
 
       <div className={styles.perPortion}>
         <div className={styles.ppHead}>{t('recipes.builder.sectionPerPortion')}</div>
         <div className={styles.ppRow}>
           <span>{t('recipes.builder.weightPerPortion')}</span>
-          <span className="num">{g(preview?.weight_per_portion_g)} g</span>
+          <span className="num">{grams(preview?.weight_per_portion_g)} g</span>
         </div>
         <div className={styles.ppRow}>
           <span>{t('recipes.builder.kcalPerPortion')}</span>
-          <span className="num">{k(preview?.per_portion.kcal)}</span>
+          <span className="num">{kcal(preview?.per_portion.kcal)}</span>
         </div>
-        {macros(preview?.per_portion)}
+        <MacroBlocks m={preview?.per_portion} />
       </div>
-
-      <div className={styles.ppNote}>{t('recipes.builder.computedNote')}</div>
     </div>
   );
 }

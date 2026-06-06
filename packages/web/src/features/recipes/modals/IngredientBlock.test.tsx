@@ -37,3 +37,22 @@ describe('IngredientBlock — edit ingredient (B-034)', () => {
     expect(screen.getByRole('combobox')).toBeTruthy();
   });
 });
+
+// B-049: the change-picker must open pre-filled with the current ingredient, and an
+// outside click must cancel the change while keeping the original line.
+describe('IngredientBlock — change picker pre-fill & outside-click (B-049)', () => {
+  it('pre-fills the picker with the current ingredient name', () => {
+    renderBlock([draft]);
+    fireEvent.click(screen.getByText('Flour'));
+    expect(screen.getByRole<HTMLInputElement>('combobox').value).toBe('Flour');
+  });
+
+  it('clicking outside closes the picker and keeps the original ingredient', () => {
+    const { onChange } = renderBlock([draft]);
+    fireEvent.click(screen.getByText('Flour'));
+    expect(screen.getByRole('combobox')).toBeTruthy();
+    fireEvent.mouseDown(document.body);
+    expect(screen.queryByRole('combobox')).toBeNull();
+    expect(onChange).not.toHaveBeenCalled();
+  });
+});

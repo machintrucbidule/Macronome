@@ -130,7 +130,6 @@
     "archive": "Archive",
     "restore": "Restore",
     "empty": "No recipes. Add your first recipe.",
-    "badge": "recipe",
     "col": {
       "name": "Name",
       "kcal": "kcal/100g",
@@ -171,8 +170,10 @@
       "sectionPerPortion": "Per portion",
       "totalWeight": "Total weight",
       "kcal": "kcal",
+      "macroFat": "fat",
+      "macroCarb": "carbs",
+      "macroProtein": "protein",
       "editIngredient": "Click to change the ingredient",
-      "computedNote": "Values are computed by the server and refresh live.",
       "cycleError": "⚠ This ingredient would create a cycle between recipes: nothing was saved.",
       "saveError": "⚠ Save failed ({{code}})."
     },

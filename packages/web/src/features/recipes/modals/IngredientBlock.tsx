@@ -71,6 +71,8 @@ export function IngredientBlock({ ingredients, disabledFoodId, onChange }: Ingre
           <div className={styles.ingSearchRow} key={`edit-${ing.refId}-${i}`}>
             <IngredientSearch
               disabledFoodId={disabledFoodId}
+              initialQuery={ing.refName}
+              currentId={ing.refId}
               onPick={(item) => replace(i, item)}
               onClose={() => setEditingIndex(null)}
             />

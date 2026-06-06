@@ -23,7 +23,6 @@ export function RecipeRow({ recipe, onOpen, onArchive, onRestore }: RecipeRowPro
       onClick={() => onOpen(recipe)}
     >
       <td>
-        <span className={styles.badge}>{t('recipes.badge')}</span>
         <span className={tableStyles.nameLabel} title={recipe.name}>
           {recipe.name}
         </span>

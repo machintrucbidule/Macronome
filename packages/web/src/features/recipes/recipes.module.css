@@ -25,17 +25,6 @@
 }
 
 /* table cells */
-.badge {
-  font-family: var(--font-num);
-  font-size: var(--fs-9);
-  text-transform: uppercase;
-  letter-spacing: var(--ls-caps);
-  color: var(--recipe);
-  border: var(--bw) solid color-mix(in srgb, var(--recipe) 45%, transparent);
-  border-radius: var(--r-pill);
-  padding: 2px 7px;
-  margin-right: var(--sp-4);
-}
 .iconbtn {
   background: none;
   border: none;
@@ -258,15 +247,38 @@
   font-size: var(--fs-12);
   color: var(--text-dim);
 }
-.ppRow .num,
-.ppMacros {
+.ppRow .num {
   font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
 }
+/* B-052: readable per-macro blocks (recipe mockup .pp-cell/.pp-grid) */
 .ppMacros {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-4);
+}
+.ppMacro {
+  background: var(--bg-elev);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-md);
+  padding: 7px;
+  text-align: center;
   display: flex;
-  gap: var(--sp-5);
-  font-size: var(--fs-12);
+  flex-direction: column;
+  gap: 2px;
+}
+.ppMacro .num {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-15);
+  color: var(--text);
+}
+.ppMacroLabel {
+  font-family: var(--font-num);
+  font-size: var(--fs-9);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
   color: var(--text-faint);
 }
 .ppHead {
@@ -275,11 +287,6 @@
   text-transform: uppercase;
   letter-spacing: var(--ls-caps);
   color: var(--accent);
-}
-.ppNote {
-  font-size: var(--fs-10);
-  color: var(--text-faint);
-  line-height: var(--lh-snug);
 }
 
 /* instructions */

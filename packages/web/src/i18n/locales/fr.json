@@ -130,7 +130,6 @@
     "archive": "Archiver",
     "restore": "Restaurer",
     "empty": "Aucune recette. Ajoute ta première recette.",
-    "badge": "recette",
     "col": {
       "name": "Nom",
       "kcal": "kcal/100g",
@@ -171,8 +170,10 @@
       "sectionPerPortion": "Par portion",
       "totalWeight": "Poids total",
       "kcal": "kcal",
+      "macroFat": "lipides",
+      "macroCarb": "glucides",
+      "macroProtein": "protéines",
       "editIngredient": "Cliquer pour changer l'ingrédient",
-      "computedNote": "Valeurs calculées par le serveur, mises à jour en direct.",
       "cycleError": "⚠ Cet ingrédient créerait un cycle entre recettes : rien n'a été enregistré.",
       "saveError": "⚠ Échec de l'enregistrement ({{code}})."
     },
