@@ -82,6 +82,10 @@ export interface DayConstat {
   estimated_burn: number | null;
   deficit: number | null;
   kg_per_week: number | null;
+  /** kcal/day from activity ALONE (above BMR = burn − BMR) for each of the 5 activity
+   *  levels — powers the activity-help legend (B-026). null when the day has no body
+   *  weight (same condition as estimated_burn). */
+  per_level_activity_burn: Record<string, number> | null;
 }
 
 /** Full detailed-day sheet (spec/api/days-meals-leftover.md §Day → DayDetail). */

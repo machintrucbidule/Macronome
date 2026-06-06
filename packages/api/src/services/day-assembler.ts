@@ -8,7 +8,12 @@ import type {
   MealTotals,
   Verdict,
 } from '@macronome/shared';
-import { ACTIVITY_MULTIPLIERS, type ActivityLevel, type Sex } from '@macronome/shared';
+import {
+  ACTIVITY_LEVELS,
+  ACTIVITY_MULTIPLIERS,
+  type ActivityLevel,
+  type Sex,
+} from '@macronome/shared';
 import type {
   LeftoverGroup as LeftoverGroupModel,
   MealEntry as MealEntryModel,
@@ -158,7 +163,12 @@ export function buildConstat({
   dayKcal,
 }: ConstatInput): DayConstat {
   if (weightKg === null) {
-    return { estimated_burn: null, deficit: null, kg_per_week: null };
+    return {
+      estimated_burn: null,
+      deficit: null,
+      kg_per_week: null,
+      per_level_activity_burn: null,
+    };
   }
   const bmr = mifflinStJeor({
     weightKg,
@@ -168,7 +178,16 @@ export function buildConstat({
   });
   const burn = estimatedBurn(bmr, ACTIVITY_MULTIPLIERS[activityLevel as ActivityLevel]);
   const deficit = deficitPerDay(dayKcal, burn);
-  return { estimated_burn: burn, deficit, kg_per_week: kgPerWeek(deficit) };
+  // kcal from activity alone (above BMR) per level — feeds the activity-help legend (B-026).
+  const per_level_activity_burn = Object.fromEntries(
+    ACTIVITY_LEVELS.map((lvl) => [lvl, estimatedBurn(bmr, ACTIVITY_MULTIPLIERS[lvl]) - bmr]),
+  );
+  return {
+    estimated_burn: burn,
+    deficit,
+    kg_per_week: kgPerWeek(deficit),
+    per_level_activity_burn,
+  };
 }
 
 export interface AssembleInput {

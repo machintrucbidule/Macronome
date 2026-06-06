@@ -279,10 +279,22 @@
   display: flex;
   flex-direction: column;
 }
+.actHelpHead {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
 .actHelpName {
   font-size: var(--fs-12);
   font-weight: var(--fw-bold);
   color: var(--text);
+}
+.actHelpKcal {
+  margin-left: auto;
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  color: var(--accent);
+  white-space: nowrap;
 }
 .actHelpDesc {
   font-size: var(--fs-11);

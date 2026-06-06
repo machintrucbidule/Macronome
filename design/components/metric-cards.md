@@ -72,7 +72,11 @@ Three modes:
 `.verdict` column, right-aligned, `min-width:150px`:
 
 - **Activity select** (`.act-wrap` + `.act-select`): a tiny labelled `<select>`
-  (`--font-num; --fs-11; bg-elev-2`), per-day activity multiplier.
+  (`--font-num; --fs-11; bg-elev-2`), per-day activity multiplier. A **"?" help button**
+  beside it opens a legend popover (B-026) listing the five levels, each with a real
+  **daily-activity** example (step counts where relevant) and the per-level **calories from
+  activity alone** (kcal/day above the BMR, from `constat.per_level_activity_burn`); the kcal
+  line is omitted without a weigh-in.
 - **OK/NOK badge** — see `badges-verdict.md`.
 - **Deficit readout** (`.constat`): `--font-num; --fs-10; color:var(--text-faint);
 right-aligned; line-height:1.55`. Burn + deficit/surplus + kg/week; `.def.neg` →

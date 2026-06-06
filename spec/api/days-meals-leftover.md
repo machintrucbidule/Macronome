@@ -24,7 +24,7 @@ verdict_override?}`; meal detail is rejected → 409 `summary_day_readonly`.
   "verdict_auto","verdict_override","effective_verdict",
   "target_snapshot":{"cal_min","cal_max","protein_floor_g","fat_floor_g","carb_ceiling_g"},
   "totals":{"kcal","fat","carb","protein","weight_g"},
-  "constat":{"estimated_burn","deficit","kg_per_week"},
+  "constat":{"estimated_burn","deficit","kg_per_week","per_level_activity_burn"},
   "meals":[ { "id","slot_name","order_index",
     "entries":[ MealEntry ], "leftover_groups":[ LeftoverGroup ],
     "totals":{...} } ] }
@@ -32,7 +32,10 @@ verdict_override?}`; meal detail is rejected → 409 `summary_day_readonly`.
 
 `activity_level` is always one of the 5 canonical keys (never null) here and in the
 journal rows; `constat.estimated_burn`/`deficit`/`kg_per_week` are null only when the
-day has no body weight yet (no weigh-in).
+day has no body weight yet (no weigh-in). `constat.per_level_activity_burn` is a map of the
+**5 activity keys → kcal/day from activity alone** (above BMR, i.e. `BMR×multiplier − BMR`),
+powering the activity-help legend (B-026); the whole map is null under the same no-weigh-in
+condition as `estimated_burn`.
 
 ## Meals (this day only; never edits the template)
 

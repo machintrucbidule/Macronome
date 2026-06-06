@@ -90,6 +90,35 @@ describe('daily log — default activity & deficit readout (B-033/B-038)', () =>
   });
 });
 
+describe('daily log — per-level activity burn (B-026)', () => {
+  it('exposes kcal-from-activity (above BMR) for each of the 5 levels', async () => {
+    const { agent, userId } = await authedAgent(app, 'alice'); // 80 kg, 180 cm, male, age 40
+    await seedTarget(userId, '2026-01-01');
+    await seedWeight(userId, '2026-01-01', 80); // BMR = 1730 → sedentary activity = 1730×0.2
+
+    const day = await agent.get(`/api/v1/days/${TODAY}`);
+    const burns = day.body.constat.per_level_activity_burn as Record<string, number>;
+    expect(burns.sedentary).toBe(346); // 1730 × 1.2 − 1730, activity only (excludes BMR)
+    expect(burns.extremely_active).toBe(1557); // 1730 × 1.9 − 1730
+    const ordered = [
+      burns.sedentary,
+      burns.lightly_active,
+      burns.moderately_active,
+      burns.very_active,
+      burns.extremely_active,
+    ] as number[];
+    for (let i = 1; i < ordered.length; i++)
+      expect(ordered[i] as number).toBeGreaterThan(ordered[i - 1] as number);
+  });
+
+  it('is null when the account has no body weight yet', async () => {
+    const { agent, userId } = await authedAgent(app, 'bob');
+    await seedTarget(userId, '2026-01-01'); // no weigh-in
+    const day = await agent.get(`/api/v1/days/${TODAY}`);
+    expect(day.body.constat.per_level_activity_burn).toBeNull();
+  });
+});
+
 describe('daily log — tenancy', () => {
   it("returns 404 on another user's meal / entry (no cross-tenant access)", async () => {
     const alice = await authedAgent(app, 'alice');

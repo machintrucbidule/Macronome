@@ -48,7 +48,7 @@ export function VerdictCluster({
       <div className={styles.actWrap}>
         <div className={styles.actHead}>
           <span className={styles.actLabel}>{t('meals.activity.label')}</span>
-          <ActivityHelp />
+          <ActivityHelp perLevelBurn={constat.per_level_activity_burn} />
         </div>
         <select
           className={styles.actSelect}

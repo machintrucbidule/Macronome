@@ -38,6 +38,7 @@ describe('VerdictCluster (B-033/B-038)', () => {
       estimated_burn: null,
       deficit: null,
       kg_per_week: null,
+      per_level_activity_burn: null,
     });
     const select = container.querySelector('select') as HTMLSelectElement;
     expect([...select.options].some((o) => o.value === '')).toBe(false);
@@ -50,6 +51,7 @@ describe('VerdictCluster (B-033/B-038)', () => {
       estimated_burn: 2076,
       deficit: -500,
       kg_per_week: -0.45,
+      per_level_activity_burn: null,
     });
     const text = container.textContent ?? '';
     expect(text).toContain('2076');
@@ -62,6 +64,7 @@ describe('VerdictCluster (B-033/B-038)', () => {
       estimated_burn: null,
       deficit: null,
       kg_per_week: null,
+      per_level_activity_burn: null,
     });
     expect(container.textContent ?? '').toContain(i18n.t('meals.constat.noWeight'));
   });

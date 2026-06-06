@@ -451,10 +451,19 @@ improvement and the relevant contract amended first.
 
 - **B-026 — Activity-level help legend.** No affordance explained the five activity
   levels. **Decision:** a "?" button beside the "Activité du jour" selector opens a
-  legend popover (label + short description per level), closing on outside-click/Esc.
-  Copy reuses the existing `activity.*.label/description` i18n strings. _(Author — chose
-  a click popover over hover/inline for keyboard/touch accessibility.)_ **Spec impact:**
-  `specifications/screens/meals.md`. Web-only; no API/schema change.
+  legend popover, closing on outside-click/Esc. **Reworked (same session):** the first pass
+  reused the existing weekly-frequency descriptions ("1–3 j/sem"), useless for choosing a
+  **daily** level. Per the backlog's "propose before developing" requirement, the legend now
+  shows, per level, a **real daily-activity example** (with step counts) **and** the
+  **calories from activity alone** — kcal/day **above** the BMR (`BMR×multiplier − BMR`), an
+  absolute value per level, **not** the TDEE. These are **server-computed** (web never
+  computes nutrition): `DayConstat` gains `per_level_activity_burn` (map of the 5 levels →
+  kcal, null without a weigh-in), built in `services/day-assembler.ts`. The raw
+  multiplier/"PAL" is **not** surfaced. _(Author — wanted activity-attributable calories,
+  absolute per level.)_ **Spec impact:** `specifications/screens/meals.md`,
+  `design/components/metric-cards.md`, `spec/api/days-meals-leftover.md` (constat field). DTO
+  `DayConstat.per_level_activity_burn`; i18n `activity.*.description` rewritten to daily
+  examples + `meals.activity.kcalPerDay`. No DB schema change.
 
 - **B-028 — Clickable, positional empty lines.** Only the first trailing empty line was
   clickable; the rest were inert fillers, and a food could only be appended. **Decision:**

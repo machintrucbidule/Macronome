@@ -311,7 +311,8 @@
     "activity": {
       "label": "Day activity",
       "help": "Help on activity levels",
-      "legendTitle": "Activity levels"
+      "legendTitle": "Activity levels",
+      "kcalPerDay": "~{{n}} kcal/day from activity"
     },
     "verdict": {
       "forceOk": "Force OK",
@@ -522,13 +523,25 @@
     }
   },
   "activity": {
-    "sedentary": { "label": "Sedentary", "description": "Little or no exercise" },
-    "lightly_active": { "label": "Light", "description": "Light exercise 1–3 days/wk" },
-    "moderately_active": { "label": "Moderate", "description": "Moderate exercise 3–5 days/wk" },
-    "very_active": { "label": "Intense", "description": "Hard exercise 6–7 days/wk" },
+    "sedentary": {
+      "label": "Sedentary",
+      "description": "Sitting most of the day (desk, car), < 5,000 steps, no exercise."
+    },
+    "lightly_active": {
+      "label": "Light",
+      "description": "On your feet at times (~5,000–8,000 steps), chores or a 20–30 min walk."
+    },
+    "moderately_active": {
+      "label": "Moderate",
+      "description": "Active day (~8,000–12,000 steps) or ~45 min moderate exercise (brisk walk, cycling)."
+    },
+    "very_active": {
+      "label": "Intense",
+      "description": "Very active (> 12,000 steps) or ~1–1.5 h of sport (running, lifting), or a physical job."
+    },
     "extremely_active": {
       "label": "Very intense",
-      "description": "Very hard exercise / physical job"
+      "description": "Twice-daily training, or heavy physical work all day plus training."
     }
   },
   "menu": {
