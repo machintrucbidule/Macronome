@@ -32,6 +32,13 @@ function seedSummaryDay(userId: string, date: string, kcal: number): Promise<unk
   });
 }
 
+/** A YYYY-MM-DD date offset from today in whole UTC days (matches the service's todayString). */
+function isoOffset(days: number): string {
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
 // The spec §2 worked window: 28 May–2 Jun 2026; 27 & 31 unlogged.
 async function seedWindow7(userId: string): Promise<void> {
   await seedTarget(userId, '2026-01-01', SNAPSHOT.cal_min, SNAPSHOT.cal_max);
@@ -95,6 +102,31 @@ describe('stats — adherence', () => {
     expect(may).toMatchObject({ ok_count: 1, nok_count: 2 });
     expect(res.body.key.overall_ok_rate).toBe(0.6);
     expect(res.body.key.current_ok_streak).toBe(2); // 06-02 OK, 06-01 OK, then 05-30 NOK breaks
+  });
+});
+
+describe('stats — future days excluded (B-016)', () => {
+  it('a planned future day never enters rolling, ok-rate, streak or the heatmap', async () => {
+    const { agent, userId } = await authedAgent(app, 'alice');
+    const year = Number(isoOffset(0).slice(0, 4));
+    const past1 = isoOffset(-3);
+    const past2 = isoOffset(-2);
+    const future = isoOffset(10);
+
+    await seedTarget(userId, `${year}-01-01`, SNAPSHOT.cal_min, SNAPSHOT.cal_max);
+    await seedSummaryDay(userId, past1, 1600); // OK (logged, past)
+    await seedSummaryDay(userId, past2, 1600); // OK (logged, past)
+    await seedSummaryDay(userId, future, 1700); // NOK but in the future → excluded
+
+    // Rolling anchors at the latest logged day ≤ today, never the future day.
+    const rolling = await agent.get('/api/v1/stats/rolling');
+    expect(rolling.body.as_of).toBe(past2);
+
+    const adh = await agent.get(`/api/v1/stats/adherence?year=${year}`);
+    expect(adh.body.key.overall_ok_rate).toBe(1); // future NOK does not dilute the rate
+    expect(adh.body.key.current_ok_streak).toBe(2); // future NOK does not break the streak
+    const heatmap = adh.body.heatmap as { date: string; status: string }[];
+    expect(heatmap.find((c) => c.date === future)!.status).toBe('none'); // grey, not red
   });
 });
 

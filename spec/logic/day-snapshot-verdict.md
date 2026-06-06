@@ -28,6 +28,11 @@ day's own date**:
   weighing in today updates today's tiles and verdict).
 - **Once `day.date < today`:** the snapshot is **frozen**. Later edits to Target
   rows or to weigh-ins never alter it.
+- **While `day.date > today` (a future/planned day):** behaves **like today** — the
+  snapshot recomputes live and an auto verdict is produced, so the Repas screen shows
+  the targets, totals and OK/NOK badge normally (the user plans meals ahead; B-016). It
+  freezes only once its date becomes `< today`. **Future days are nonetheless excluded
+  from every stats aggregate until their date arrives** — see `stats-adherence.md` §1.
 - **Re-opening a past day** to add/edit entries uses the values of **that day's
   own date** (its already-frozen snapshot), not today's.
 - Implementation note: persist the snapshot columns on the row; treat them as

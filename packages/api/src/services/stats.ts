@@ -19,6 +19,8 @@ import {
   type DayStat,
 } from '../domain/stats/index.js';
 import { toDayStats } from './day-stat.js';
+import { todayString } from './day-context.js';
+import { toDate } from '../data/repositories/day-read.repo.js';
 
 // Stats service (spec/api §Stats): reads the frozen day history, maps it to logged-only
 // DayStat[] (day-stat.ts), then delegates every figure to the pure domain. The web only
@@ -46,12 +48,19 @@ function rollingRange(latest: Date): DateRange {
 
 /** GET /stats/rolling — 7/14/30/365 windows as of the latest logged day. */
 export async function getRolling(userId: string): Promise<RollingResponse> {
-  const latest = await dayStatRepo.latestDate(userId);
+  // Future planned days (date > today) are excluded from stats until they arrive
+  // (stats-adherence.md §1): clamp the anchor and the read range to today, then drop
+  // any future day so the internal rolling anchor (latest logged) stays ≤ today.
+  const today = todayString();
+  const latestRaw = await dayStatRepo.latestDate(userId);
+  const cap = toDate(today);
+  const latest = latestRaw && latestRaw > cap ? cap : latestRaw;
   const [days, zone] = await Promise.all([
     dayStatRepo.readLightweight(userId, latest ? rollingRange(latest) : undefined),
     currentZone(userId),
   ]);
-  return rolling(toDayStats(days), STATS_ROLLING_WINDOWS, zone);
+  const logged = toDayStats(days).filter((s) => s.date <= today);
+  return rolling(logged, STATS_ROLLING_WINDOWS, zone);
 }
 
 /** GET /stats/adherence?year=YYYY — heatmap + monthly pivots + key figures + signals.
@@ -61,7 +70,10 @@ export async function getAdherence(userId: string, year: number): Promise<Adhere
     dayStatRepo.readLightweight(userId),
     currentZone(userId),
   ]);
-  const logged = toDayStats(days);
+  // Future planned days (date > today) are excluded from every aggregate until they
+  // arrive (stats-adherence.md §1) — filtering here covers ok-rate, streak, best month,
+  // heatmap, pivots and signals, which all derive from this array.
+  const logged = toDayStats(days).filter((s) => s.date <= todayString());
   const inYear = (s: DayStat): boolean => s.date.startsWith(`${year}-`);
   const yearLogged = logged.filter(inYear);
   return {

@@ -7,7 +7,8 @@ import styles from '../../meals.module.css';
 
 // Month grid with day-state dots (specifications/screens/meals.md §Layout). Dots come from the
 // Journal API (one row per logged day): detailed → full, summary (imported) → partial. Future
-// days are disabled. View-only — picking a day navigates the screen.
+// days are selectable (plan meals ahead, parity with the ‹ › arrows — B-016). View-only —
+// picking a day navigates the screen.
 interface CalendarPopoverProps {
   selected: string;
   onPick: (date: string) => void;
@@ -57,16 +58,14 @@ export function CalendarPopover({ selected, onPick }: CalendarPopoverProps) {
         {Array.from({ length: days }, (_, i) => {
           const d = i + 1;
           const date = iso(year, mo, d);
-          const future = date > today;
           const cls = [
             styles.day,
             date === today ? styles.today : '',
             date === selected ? styles.sel : '',
-            future ? styles.future : '',
           ].join(' ');
           const dot = states.get(date);
           return (
-            <div key={d} className={cls} onClick={() => !future && onPick(date)}>
+            <div key={d} className={cls} onClick={() => onPick(date)}>
               {d}
               {dot && (
                 <span

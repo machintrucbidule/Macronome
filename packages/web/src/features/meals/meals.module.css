@@ -150,11 +150,6 @@
   background: var(--accent);
   color: var(--accent-ink);
 }
-.future {
-  color: var(--text-faint);
-  opacity: 0.45;
-  cursor: not-allowed;
-}
 .dot {
   position: absolute;
   bottom: 2px;

@@ -505,3 +505,19 @@ improvement and the relevant contract amended first.
   `--border-strong` edge), legible over any fill colour. _(Author — picked "encoche".)_
   **Spec impact:** `design/components/metric-cards.md` (Target indicator). CSS-only; reuses
   existing tokens (`--bg-elev`/`--bg-elev-2`/`--border-strong`), no new token, no API/schema.
+
+- **B-016 — Future-day planning.** The ‹ › arrows already let the user view/edit a future
+  day, but the `CalendarPopover` disabled future dates, and the spec was silent on
+  `date > today`. **Decision:** (1) the calendar **allows selecting future days** (parity
+  with the arrows — plan meals ahead); (2) the **Repas screen is unchanged** — a future day
+  behaves like today (live snapshot, OK/NOK badge + Forcer OK/NOK/Auto menu all work);
+  (3) **Stats exclude any day with `date > today`** until its date arrives, so a planned day
+  never lowers the OK rate, breaks the OK streak, skews rolling windows / best month /
+  signals, or shows red on the heatmap (it stays grey "non saisi"). Once `date ≤ today` the
+  same `DayLog` counts normally. _(Author — "le menu OK/NOK/Auto continue à fonctionner tel
+  quel, mais dans les stats tu prends pas en compte tant que dans le futur".)_ **Spec
+  impact:** `spec/logic/stats-adherence.md` §1+§3, `spec/logic/day-snapshot-verdict.md` §3,
+  `specifications/screens/meals.md`, `specifications/screens/stats.md`. **Code:** web
+  `CalendarPopover.tsx` (remove the future guard + unused `.future` style); api
+  `services/stats.ts` (filter `DayStat[]` to `date ≤ today` in `getAdherence`, clamp the
+  rolling anchor/range to today in `getRolling`). No DB/API-contract/`design/` change.

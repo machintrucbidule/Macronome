@@ -4,11 +4,20 @@ Covers §3.8, RECONCILIATION_LOG §E4, OPEN_GAPS #2 (windows) and #12 (best
 month). Calorie/adherence-centric; no macro pivots. See `00-conventions.md`.
 
 ## 1. Logged day
+
 A date is **logged** iff it has a `DayLog` carrying a calorie value (detailed Σ
 entries, or summary `summary_kcal`). Days with a row but no calorie value
 (e.g. comment-only) are **not** logged for stats.
 
+**Future days (date > today) are excluded** from every stats aggregate until their
+date arrives (B-016 — see `day-snapshot-verdict.md`). A day planned ahead may carry a
+`DayLog` and a verdict (it behaves like today on the Repas screen), but stats only ever
+consider dates ≤ today: rolling windows, heatmap, monthly pivots, the key figures
+(year/overall OK rate, current OK streak, best month) and the signals all ignore it.
+Once its date is ≤ today the same `DayLog` counts normally.
+
 ## 2. Rolling averages (7 / 14 / 30 / 365 days) — OPEN_GAPS #2
+
 - Anchor `L` = the latest logged day (shown in the header). Window of `N` =
   calendar dates in `[L − N + 1, L]`.
 - `avg_kcal_N = mean(day_kcal over the LOGGED days within the window)`.
@@ -23,22 +32,29 @@ entries, or summary `summary_kcal`). Days with a row but no calorie value
   `ok_rate_7 = 3/5 = 60%` (27 & 31 excluded).
 
 ## 3. Calendar heatmap
+
 One cell per calendar date in the selected year: green = effective OK,
 red = effective NOK, **grey = not logged** (RECONCILIATION_LOG §E4). Summary
-days carry a verdict and colour normally.
+days carry a verdict and colour normally. A **future date (> today) is grey**
+(not logged) even if a plan exists for it — it only takes its OK/NOK colour once
+its date has arrived (§1, B-016).
 
 ## 4. Monthly OK/NOK pivot
+
 Per month (in the selected year):
+
 - `ok_count`, `nok_count` over **logged** days; `ok_rate = ok_count /
-  (ok_count + nok_count)`.
+(ok_count + nok_count)`.
 - Rendered as stacked bars with the OK% label.
 
 ## 5. Average calories per month, split OK/NOK
+
 Per month: `avg_kcal_ok = mean(day_kcal over OK logged days)`,
 `avg_kcal_nok = mean(day_kcal over NOK logged days)`; grouped bars over the
 shaded target zone `[cal_min, cal_max]`.
 
 ## 6. Key figures
+
 - **Year OK rate** = OK / logged days in the selected year.
 - **Overall OK rate** = OK / logged days across all history.
 - **Current OK streak** = run of consecutive effective-OK days over the **ordered
@@ -49,14 +65,17 @@ shaded target zone `[cal_min, cal_max]`.
   Ties broken by more logged days, then most recent.
 
 ## 7. Signals (rule-based, factual)
+
 Examples (thresholds are named constants):
+
 - 30-day average vs target: if `avg_kcal_30 > cal_max` → "30-day average N kcal
   above target" (`N = avg_kcal_30 − cal_max`); symmetric below `cal_min`.
 - Current NOK run: count of consecutive most-recent logged NOK days; surface if
   ≥ `NOK_RUN_ALERT = 3`.
 - 14-day OK rate readout.
-No motivational messaging.
+  No motivational messaging.
 
 ## 8. Empty / partial
+
 - No logged days → empty state + prompt.
 - Partial year → empty heatmap cells for dates with no data.
