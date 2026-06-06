@@ -203,7 +203,17 @@
       "targetWeight": "Poids cible",
       "rate": "Rythme visé",
       "targetBmi": "IMC cible",
-      "targetBmiHint": "Dérivé du poids cible et de la taille"
+      "targetBmiHint": "Dérivé du poids cible et de la taille",
+      "presets": {
+        "hint": "Cliquez une suggestion pour remplir le champ.",
+        "aria": "Utiliser {{value}} g/kg",
+        "proteinSedentary": "Sédentaire — activité physique faible ou nulle",
+        "proteinActive": "Actif / en déficit — sport régulier ou perte de poids (préserve les muscles)",
+        "proteinAthlete": "Sportif intensif — sèche ou prise de muscle",
+        "fatMin": "Minimum — plancher hormonal, ne pas descendre en dessous",
+        "fatNormal": "Courant — apport équilibré pour la plupart des gens",
+        "fatHigh": "Élevé — meilleure satiété, régime plus riche en lipides"
+      }
     },
     "profile": {
       "sex": "Sexe",

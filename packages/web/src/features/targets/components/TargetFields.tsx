@@ -3,6 +3,7 @@ import type { EngineReadout } from '@macronome/shared';
 import { NumberInput } from '../../../components/Form/NumberInput';
 import { DerivedRow } from './DerivedRow';
 import { GoalFields } from './GoalFields';
+import { RatioPresets, PROTEIN_PRESETS, FAT_PRESETS } from './RatioPresets';
 import { macroG } from '../format';
 import type { TargetDraft } from '../draft';
 import styles from '../cibles.module.css';
@@ -50,24 +51,30 @@ export function TargetFields({ draft, set, engine }: TargetFieldsProps) {
       <div className={`${styles.group} ${styles.groupSep}`}>
         <div className={styles.groupTitle}>{t('cibles.targets.ratios')}</div>
         <div className={styles.grid2}>
-          <NumberInput
-            label={t('cibles.targets.proteinRatio')}
-            suffix="g/kg"
-            wrapperClassName={styles.inpW}
-            min={0}
-            step={0.01}
-            value={draft.proteinGPerKg}
-            onChange={(e) => set({ proteinGPerKg: e.target.value })}
-          />
-          <NumberInput
-            label={t('cibles.targets.fatRatio')}
-            suffix="g/kg"
-            wrapperClassName={styles.inpW}
-            min={0}
-            step={0.01}
-            value={draft.fatGPerKg}
-            onChange={(e) => set({ fatGPerKg: e.target.value })}
-          />
+          <div className={styles.ratioField}>
+            <NumberInput
+              label={t('cibles.targets.proteinRatio')}
+              suffix="g/kg"
+              wrapperClassName={styles.inpW}
+              min={0}
+              step={0.01}
+              value={draft.proteinGPerKg}
+              onChange={(e) => set({ proteinGPerKg: e.target.value })}
+            />
+            <RatioPresets presets={PROTEIN_PRESETS} onPick={(v) => set({ proteinGPerKg: v })} />
+          </div>
+          <div className={styles.ratioField}>
+            <NumberInput
+              label={t('cibles.targets.fatRatio')}
+              suffix="g/kg"
+              wrapperClassName={styles.inpW}
+              min={0}
+              step={0.01}
+              value={draft.fatGPerKg}
+              onChange={(e) => set({ fatGPerKg: e.target.value })}
+            />
+            <RatioPresets presets={FAT_PRESETS} onPick={(v) => set({ fatGPerKg: v })} />
+          </div>
         </div>
         <DerivedRow label={t('cibles.targets.carbLabel')} value={carbText} />
         <div className="hint">{t('cibles.targets.carbNote')}</div>

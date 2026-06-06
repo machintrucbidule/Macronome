@@ -203,7 +203,17 @@
       "targetWeight": "Target weight",
       "rate": "Desired rate",
       "targetBmi": "Target BMI",
-      "targetBmiHint": "Derived from target weight and height"
+      "targetBmiHint": "Derived from target weight and height",
+      "presets": {
+        "hint": "Click a suggestion to fill the field.",
+        "aria": "Use {{value}} g/kg",
+        "proteinSedentary": "Sedentary — little or no physical activity",
+        "proteinActive": "Active / cutting — regular exercise or weight loss (spares muscle)",
+        "proteinAthlete": "Serious athlete — cutting or muscle gain",
+        "fatMin": "Minimum — hormonal floor, don't go below",
+        "fatNormal": "Common — balanced intake for most people",
+        "fatHigh": "Higher — better satiety, more fat-forward diet"
+      }
     },
     "profile": {
       "sex": "Sex",

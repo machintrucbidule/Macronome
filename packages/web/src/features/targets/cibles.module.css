@@ -81,6 +81,55 @@
   gap: var(--sp-5);
 }
 
+/* A ratio cell = the g/kg field stacked over its guidance presets (B-007). */
+.ratioField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+/* Clickable g/kg guidance presets (B-007): a hint line + a column of suggestion buttons that
+   fill the field. Static guidance only; positioning + tokens, no computed figure. */
+.presets {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.presetList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.presetBtn {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  text-align: left;
+  background: var(--bg-field);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-sm);
+  padding: var(--sp-2) var(--sp-3);
+  cursor: pointer;
+  transition:
+    border-color 0.12s var(--ease),
+    background 0.12s var(--ease);
+}
+.presetBtn:hover {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+.presetVal {
+  font-family: var(--font-num);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-bold);
+  color: var(--accent);
+}
+.presetCaption {
+  font-size: var(--fs-11);
+  line-height: var(--lh-normal);
+  color: var(--text-dim);
+}
+
 /* Compact numeric field (mockup: 132px) — the input fills this fixed-width suffix wrapper
    instead of stretching to the grid cell (B-042: "over-wide fields"). */
 .inpW {
