@@ -70,4 +70,22 @@ export const entryRepo = {
     await prisma.mealEntry.delete({ where: { id: entryId } });
     return true;
   },
+
+  /** Atomically set the order_index of the given entries (drag reorder, B-029). The
+   *  caller verifies meal ownership; this returns false if any id is not one of the
+   *  meal's entries (→ 404). order_index may be sparse (blank rows kept). */
+  async reorder(mealId: string, order: { id: string; orderIndex: number }[]): Promise<boolean> {
+    const ids = order.map((o) => o.id);
+    const owned = await prisma.mealEntry.findMany({
+      where: { mealId, id: { in: ids } },
+      select: { id: true },
+    });
+    if (owned.length !== ids.length) return false;
+    await prisma.$transaction(
+      order.map((o) =>
+        prisma.mealEntry.update({ where: { id: o.id }, data: { orderIndex: o.orderIndex } }),
+      ),
+    );
+    return true;
+  },
 };

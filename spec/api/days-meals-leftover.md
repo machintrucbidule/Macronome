@@ -45,8 +45,16 @@ day has no body weight yet (no weigh-in).
 - `POST /meals/:mealId/entries` — referenced:
   `{kind:'referenced', food_id, served_quantity, unit, portion_id?}`; custom:
   `{kind:'custom', custom_name, served_quantity?, unit?, snap:{kcal,fat,carb,
-protein}}`. Server resolves served_grams and the macro **snapshot** at write
-  time. → 201 MealEntry.
+protein}}`. Both also accept an optional **`order_index`** (the line's row
+  position; the UI lets the user add into any empty row, leaving blank rows above —
+  see `screens/meals.md`). When omitted the entry is appended after the last row.
+  Server resolves served_grams and the macro **snapshot** at write time. → 201 MealEntry.
+- `PATCH /meals/:mealId/entries/order` — **reorder** a meal's lines (drag grip,
+  `screens/meals.md`): `{order:[{id, order_index}, …]}`, the full new position map
+  for that meal. Atomic; user-scoped (cross-tenant → 404). `order_index` may be
+  sparse (preserves intentionally blank rows). Reordering changes only `order_index`
+  (never consumed/totals). → 204; the client refetches the day. Any id not in this
+  meal → 404 (nothing written).
 - `PATCH /meals/:mealId/entries/:id` — change qty/unit/food/custom values; resets
   the snapshot for referenced foods at edit time. → 200.
 - `POST /meals/:mealId/entries/:id/pin` · `/unpin` — toggles the pantry_item for

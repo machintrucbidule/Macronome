@@ -12,6 +12,8 @@ const router = Router();
 
 router.use(requireAuth);
 router.post('/:mealId/entries', asyncHandler(entries.create));
+// `entries/order` must precede `entries/:id` so it isn't captured as an id.
+router.patch('/:mealId/entries/order', asyncHandler(entries.reorder));
 router.patch('/:mealId/entries/:id', asyncHandler(entries.update));
 router.delete('/:mealId/entries/:id', asyncHandler(entries.remove));
 router.post('/:mealId/entries/:id/pin', asyncHandler(entries.pin));

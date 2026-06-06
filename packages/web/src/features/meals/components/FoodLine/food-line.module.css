@@ -53,6 +53,27 @@
   color: var(--text-faint);
   font-size: 11px;
 }
+/* Drag handle on an entry row (B-029): a grip glyph revealed on hover; the line dims while
+   it is the one being dragged. */
+.gripDrag {
+  cursor: grab;
+  opacity: 0;
+  user-select: none;
+  text-align: center;
+  line-height: 1;
+}
+.gripDrag::before {
+  content: '⠿';
+}
+.gripDrag:active {
+  cursor: grabbing;
+}
+.line:hover .gripDrag {
+  opacity: 1;
+}
+.dragging {
+  opacity: 0.4;
+}
 
 .nm {
   font-size: 12.5px;

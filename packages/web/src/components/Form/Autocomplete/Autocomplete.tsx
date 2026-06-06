@@ -115,15 +115,18 @@ export function Autocomplete({
   onClose,
   onInputKeyDown,
 }: AutocompleteProps) {
-  const [hi, setHi] = useState(-1);
+  // Highlight defaults to the first suggestion (B-023): so Enter selects the first match
+  // without an explicit ↑/↓. `activeIndex` clamps `hi` to the (async) item list.
+  const [hi, setHi] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const listId = useId();
+  const activeIndex = items.length === 0 ? -1 : Math.min(Math.max(hi, 0), items.length - 1);
 
   useEffect(() => {
     inputRef.current?.focus();
     inputRef.current?.select();
   }, []);
-  useEffect(() => setHi(-1), [query]);
+  useEffect(() => setHi(0), [query]);
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>): void => {
     if (items.length && e.key === 'ArrowDown') {
@@ -134,7 +137,8 @@ export function Autocomplete({
       setHi((h) => Math.max(h - 1, 0));
     } else if (e.key === 'Enter') {
       e.preventDefault();
-      if (hi >= 0 && items[hi]) onPick(items[hi]);
+      const item = items[activeIndex];
+      if (item && !item.disabled) onPick(item);
     } else if (e.key === 'Escape') {
       e.preventDefault();
       onClose();
@@ -155,7 +159,7 @@ export function Autocomplete({
         aria-expanded={items.length > 0}
         aria-controls={listId}
         aria-autocomplete="list"
-        aria-activedescendant={hi >= 0 ? `${listId}-opt-${hi}` : undefined}
+        aria-activedescendant={activeIndex >= 0 ? `${listId}-opt-${activeIndex}` : undefined}
         autoComplete="off"
         onChange={(e) => onQueryChange(e.target.value)}
         onKeyDown={onKeyDown}
@@ -164,7 +168,7 @@ export function Autocomplete({
       <AutocompleteList
         listId={listId}
         items={items}
-        hi={hi}
+        hi={activeIndex}
         currentId={currentId}
         query={query}
         emptyLabel={emptyLabel}

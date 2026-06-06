@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { EntryUnit, MealEntry } from '@macronome/shared';
 import { useMeals } from '../../MealsContext';
+import { useFood } from '../../hooks/useFoodLookup';
 import { caretAtEdge, focusSiblingQty } from '../../hooks/useMealKeyboardNav';
 import { UnitMenu } from './UnitMenu';
 import styles from './food-line.module.css';
@@ -13,10 +15,53 @@ interface QtyCellProps {
   entry: MealEntry;
 }
 
+// Unit chip + menu. For a portion it shows "nb" (display-only abbreviation, not a real
+// unit — B-031) with the full "label (grams g)" in its tooltip (B-032) and the unit menu.
+function UnitChip({ mealId, entry }: QtyCellProps) {
+  const { t } = useTranslation();
+  const { actions } = useMeals();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const isPortion = entry.unit === 'portion';
+  const portionFood = useFood(isPortion ? entry.food_id : null);
+  const portion = portionFood.data?.data.named_portions.find((p) => p.id === entry.portion_id);
+  const chipLabel = isPortion ? t('meals.unit.portionAbbr') : entry.unit;
+  const chipTitle = isPortion
+    ? portion
+      ? `${portion.label} (${portion.grams} g)`
+      : t('meals.unit.portionAbbr')
+    : entry.unit;
+
+  return (
+    <>
+      <span
+        className={styles.unit}
+        title={chipTitle}
+        onClick={(e) => {
+          e.stopPropagation();
+          setMenuOpen((o) => !o);
+        }}
+      >
+        {chipLabel}
+      </span>
+      {menuOpen && (
+        <UnitMenu
+          foodId={entry.food_id}
+          currentUnit={entry.unit}
+          currentPortionId={entry.portion_id}
+          onSelect={(unit: EntryUnit, portionId) => {
+            setMenuOpen(false);
+            void actions.setUnit(mealId, entry.id, unit, portionId);
+          }}
+          onClose={() => setMenuOpen(false)}
+        />
+      )}
+    </>
+  );
+}
+
 export function QtyCell({ mealId, entry }: QtyCellProps) {
   const { actions, pendingFocus } = useMeals();
   const [value, setValue] = useState(String(entry.served_quantity));
-  const [menuOpen, setMenuOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => setValue(String(entry.served_quantity)), [entry.served_quantity]);
@@ -60,8 +105,6 @@ export function QtyCell({ mealId, entry }: QtyCellProps) {
     }
   };
 
-  const unitLabel = entry.unit === 'portion' ? 'portion' : entry.unit;
-
   return (
     <span className={styles.qtyCell}>
       <input
@@ -76,28 +119,7 @@ export function QtyCell({ mealId, entry }: QtyCellProps) {
         onKeyDown={onKeyDown}
         onClick={(e) => e.stopPropagation()}
       />
-      <span
-        className={styles.unit}
-        title={unitLabel}
-        onClick={(e) => {
-          e.stopPropagation();
-          setMenuOpen((o) => !o);
-        }}
-      >
-        {unitLabel}
-      </span>
-      {menuOpen && (
-        <UnitMenu
-          foodId={entry.food_id}
-          currentUnit={entry.unit}
-          currentPortionId={entry.portion_id}
-          onSelect={(unit: EntryUnit, portionId) => {
-            setMenuOpen(false);
-            void actions.setUnit(mealId, entry.id, unit, portionId);
-          }}
-          onClose={() => setMenuOpen(false)}
-        />
-      )}
+      <UnitChip mealId={mealId} entry={entry} />
     </span>
   );
 }

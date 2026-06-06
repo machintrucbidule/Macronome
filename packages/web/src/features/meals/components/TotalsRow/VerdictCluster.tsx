@@ -7,6 +7,7 @@ import {
   type Verdict,
 } from '@macronome/shared';
 import { useMeals } from '../../MealsContext';
+import { ActivityHelp } from './ActivityHelp';
 import { VerdictBadge } from '../../../../components/VerdictBadge/VerdictBadge';
 import { r0 } from '../../format';
 import { formatFixed } from '../../../../lib/format/number';
@@ -45,7 +46,10 @@ export function VerdictCluster({
   return (
     <div className={styles.verdict}>
       <div className={styles.actWrap}>
-        <span className={styles.actLabel}>{t('meals.activity.label')}</span>
+        <div className={styles.actHead}>
+          <span className={styles.actLabel}>{t('meals.activity.label')}</span>
+          <ActivityHelp />
+        </div>
         <select
           className={styles.actSelect}
           value={activityLevel}

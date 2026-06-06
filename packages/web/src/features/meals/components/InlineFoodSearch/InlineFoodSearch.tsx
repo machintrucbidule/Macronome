@@ -15,6 +15,8 @@ interface InlineFoodSearchProps {
   mealId: string;
   mealIndex: number;
   entryId: string | null;
+  /** Target row for a new line (B-028); ignored when re-picking an existing entry. */
+  orderIndex?: number | null;
   initialName: string;
   currentFoodId: string | null;
 }
@@ -23,6 +25,7 @@ export function InlineFoodSearch({
   mealId,
   mealIndex,
   entryId,
+  orderIndex,
   initialName,
   currentFoodId,
 }: InlineFoodSearchProps) {
@@ -64,8 +67,13 @@ export function InlineFoodSearch({
         emptyLabel={t('meals.search.empty')}
         customOptionLabel={t('meals.search.custom')}
         placeholder={t('meals.search.placeholder')}
-        onPick={(item) => void actions.pickFood({ mealId, mealIndex, entryId }, item.id)}
-        onCustom={() => actions.openCustom(mealId, mealIndex, entryId)}
+        onPick={(item) =>
+          void actions.pickFood(
+            { mealId, mealIndex, entryId, orderIndex: orderIndex ?? null },
+            item.id,
+          )
+        }
+        onCustom={() => actions.openCustom(mealId, mealIndex, entryId, orderIndex)}
         onClose={actions.closeEdit}
       />
     </div>

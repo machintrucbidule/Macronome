@@ -1,7 +1,9 @@
+import type { DragEvent } from 'react';
 import type { MealEntry } from '@macronome/shared';
 import { useTranslation } from 'react-i18next';
 import { useMeals } from '../../MealsContext';
 import { useFood } from '../../hooks/useFoodLookup';
+import type { LineDnd } from '../../hooks/useLineDnd';
 import { r0 } from '../../format';
 import { QtyCell } from './QtyCell';
 import { PinCell } from './PinCell';
@@ -9,18 +11,49 @@ import { InlineFoodSearch } from '../InlineFoodSearch/InlineFoodSearch';
 import styles from './food-line.module.css';
 
 // One log line: empty (click to add), referenced (name from the foods API + editable qty), or
-// custom (manual values). Macros shown are the server's consumed values (after any leftover
-// proration); the web only renders them. The body is split per state to keep each unit simple.
+// custom (manual values). Each line sits at its `row` (= order_index); the grip drag-reorders
+// (B-029) and any line is a drop target. Macros shown are the server's consumed values; the
+// web only renders them. The body is split per state to keep each unit simple.
 interface FoodLineProps {
   mealId: string;
   mealIndex: number;
+  row: number;
   entry: MealEntry | null;
   editing: boolean;
+  dnd: LineDnd;
 }
 
-function EmptyLine({ onAdd, label }: { onAdd: () => void; label: string }) {
+/** Props every line passes to make itself a drop target for the drag-reorder. */
+const dropProps = (row: number, dnd: LineDnd) => ({
+  onDragOver: (e: DragEvent) => e.preventDefault(),
+  onDrop: () => dnd.onDrop(row),
+});
+
+/** Build an entry row's class list (kept out of the component to cap its complexity). */
+function entryRowClass(isZero: boolean, isPinned: boolean, isDragging: boolean): string {
+  return [
+    styles.line,
+    isZero && styles.zero,
+    isPinned && styles.pinned,
+    isDragging && styles.dragging,
+  ]
+    .filter(Boolean)
+    .join(' ');
+}
+
+function EmptyLine({
+  row,
+  dnd,
+  onAdd,
+  label,
+}: {
+  row: number;
+  dnd: LineDnd;
+  onAdd: () => void;
+  label: string;
+}) {
   return (
-    <div className={`${styles.line} ${styles.empty}`} onClick={onAdd}>
+    <div className={`${styles.line} ${styles.empty}`} onClick={onAdd} {...dropProps(row, dnd)}>
       <span className={styles.grip} />
       <div className={styles.nm}>{label}</div>
       <span />
@@ -37,11 +70,15 @@ function EmptyLine({ onAdd, label }: { onAdd: () => void; label: string }) {
 function EntryRow({
   mealId,
   mealIndex,
+  row,
   entry,
+  dnd,
 }: {
   mealId: string;
   mealIndex: number;
+  row: number;
   entry: MealEntry;
+  dnd: LineDnd;
 }) {
   const { t } = useTranslation();
   const { actions } = useMeals();
@@ -56,9 +93,16 @@ function EntryRow({
 
   return (
     <div
-      className={`${styles.line} ${isZero ? styles.zero : ''} ${entry.is_pinned ? styles.pinned : ''}`}
+      className={entryRowClass(isZero, entry.is_pinned, dnd.dragId === entry.id)}
+      {...dropProps(row, dnd)}
     >
-      <span className={styles.grip} />
+      <span
+        className={`${styles.grip} ${styles.gripDrag}`}
+        draggable
+        onDragStart={() => dnd.onDragStart(entry.id, row)}
+        onDragEnd={dnd.onDragEnd}
+        title={t('meals.line.dragHint')}
+      />
       <div
         className={styles.nm}
         title={name}
@@ -101,7 +145,7 @@ function EntryRow({
   );
 }
 
-export function FoodLine({ mealId, mealIndex, entry, editing }: FoodLineProps) {
+export function FoodLine({ mealId, mealIndex, row, entry, editing, dnd }: FoodLineProps) {
   const { t } = useTranslation();
   const { actions } = useMeals();
   const referencedId = entry?.kind === 'referenced' ? entry.food_id : null;
@@ -116,6 +160,7 @@ export function FoodLine({ mealId, mealIndex, entry, editing }: FoodLineProps) {
             mealId={mealId}
             mealIndex={mealIndex}
             entryId={entry?.id ?? null}
+            orderIndex={row}
             initialName={food.data?.data.name ?? ''}
             currentFoodId={referencedId}
           />
@@ -127,11 +172,13 @@ export function FoodLine({ mealId, mealIndex, entry, editing }: FoodLineProps) {
   if (!entry) {
     return (
       <EmptyLine
+        row={row}
+        dnd={dnd}
         label={t('meals.line.addFood')}
-        onAdd={() => actions.startEdit(mealId, mealIndex, null)}
+        onAdd={() => actions.startEdit(mealId, mealIndex, null, row)}
       />
     );
   }
 
-  return <EntryRow mealId={mealId} mealIndex={mealIndex} entry={entry} />;
+  return <EntryRow mealId={mealId} mealIndex={mealIndex} row={row} entry={entry} dnd={dnd} />;
 }

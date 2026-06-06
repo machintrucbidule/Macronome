@@ -5,15 +5,16 @@ Macronome is spreadsheet-replacement-dense. Two shapes: (1) **HTML tables**
 line lists** (Repas meal columns, Recipe ingredient builder).
 
 ## Shared table conventions
+
 - `table{width:100%; border-collapse:collapse; font-size:var(--fs-13)}`.
 - **thead th**: `--font-num; --fs-10; uppercase; ls .04em; color:var(--text-faint);
-  font-weight:400; padding:9px 10px; border-bottom:1px solid var(--border)`
+font-weight:400; padding:9px 10px; border-bottom:1px solid var(--border)`
   (Aliments/Recettes use `--border-strong`). Numeric headers right/centre-aligned
   (`.r`/`.c`). **Sticky** headers stick at `top:51px` (= `--appbar-h`) with
   `background:var(--bg)`, `z-index:var(--z-popover)` range.
 - **tbody td**: `padding:7–9px 10px; border-bottom:1px solid var(--border)` (or
   `color-mix(--border 50%)` for lighter inner rows). Numeric cells `--font-num;
-  tabular-nums; white-space:nowrap`; first/name cell left, `--font-body`.
+tabular-nums; white-space:nowrap`; first/name cell left, `--font-body`.
 - **row hover**: `background:var(--bg-elev-2)` (or `color-mix(--bg-elev-2 70%)`).
 - **clickable row**: `cursor:pointer` + `title`.
 - **sortable header**: `cursor:pointer; user-select:none`; hover `color:var(--text)`;
@@ -28,10 +29,12 @@ line lists** (Repas meal columns, Recipe ingredient builder).
   archive 🗑 / restore ↺ / delete ×; destructive hover → `--nok`.
 
 ## Macro cells (Journal)
+
 `.mF→var(--c-fat)`, `.mC→var(--c-carb)`, `.mP→var(--c-prot)`; `.none →
 var(--text-faint)` em-dash when a day has no macro detail.
 
-## Line-list grid (Repas meal column)  — instance A
+## Line-list grid (Repas meal column) — instance A
+
 A meal `.meal` is a flex column on `--bg-elev`, `min-height:200px`, first column
 gets `--r-lg` left corners. Header `.meal-head` (name in `--font-display
 --fw-bold --fs-14` + cook 🍳 + ⋯ menu). Lines via CSS grid:
@@ -43,7 +46,8 @@ Line states: `.empty` (italic faint "+ aliment"), `.zero` (dimmed), `.pinned`
 (`background:var(--bg-field)`, inline search input), `.dragging` (`opacity:.4`).
 Hover reveals grip/pin/del. A meal keeps ≥2 trailing empty lines, ≥15 lines min.
 
-## Line-list grid (Recipe ingredient builder)  — instance B
+## Line-list grid (Recipe ingredient builder) — instance B
+
 Same line component, **different column map** (no pin; wider numerics):
 `grid-template-columns: 14px 1fr 72px 42px 32px 32px 32px 18px`
 (grip · name · qty+unit · kcal · L · G · P · del). Row `min-height:34px`;
@@ -56,6 +60,7 @@ had `--bg-elev`).
 > fill, edit/empty states, qty cell, unit chip, drag affordances.
 
 ## Quantity cell + unit chip
+
 `.qtycell` right-aligned flex: a borderless numeric `.qty` input
 (`--font-num; --fs-12; width 36–42px; transparent border` → hover `--border`,
 focus `--focus` + `--bg-field`) and a `.unit` chip (`--font-num; --fs-10;
@@ -63,7 +68,15 @@ focus `--focus` + `--bg-field`) and a `.unit` chip (`--font-num; --fs-10;
 (hover → `--accent` + `color-mix(--accent 10%)`). Custom lines show a static
 `g`/`—` instead of an input.
 
+**Chip label.** SI units show the unit verbatim (`g`/`ml`/`kg`). A **named
+portion** shows the compact abbreviation **`nb`** (B-031) — a display-only label,
+**not** a generic "nb" unit (the underlying unit stays the food's specific named
+portion; `screens/meals.md`). The full portion identity lives in the unit menu
+(`label (grams g)`, e.g. `œuf (57 g)`) and in the chip's **tooltip**: hovering the
+chip shows `label (grams g)` for a portion (B-032), the plain unit otherwise.
+
 ## States
+
 - **default / hover / clickable**.
 - **sorted** (header + arrow).
 - **empty** — see `states.md` (no foods / empty year / no weigh-ins).

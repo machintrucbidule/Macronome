@@ -6,6 +6,7 @@ import type {
   PatchDayRequest,
   PatchLeftoverRequest,
   PatchMealRequest,
+  ReorderEntriesRequest,
   UpdateMealEntryRequest,
 } from '@macronome/shared';
 import { daysApi } from '../../../api/days';
@@ -17,6 +18,22 @@ import { leftoverApi } from '../../../api/leftover';
 // invalidating the day (so the server-recomputed totals/verdict/proration refetch) and
 // the journal (so the calendar's day-state dots stay fresh). The web renders; it never computes.
 const DAY_KEY = 'day';
+
+/** Leftover-group mutations (split out to keep useDay within the per-function line cap). */
+function useLeftoverMutations(onSuccess: () => void) {
+  const createLeftover = useMutation({
+    mutationFn: (v: { mealId: string; body: LeftoverRequest }) =>
+      leftoverApi.create(v.mealId, v.body),
+    onSuccess,
+  });
+  const updateLeftover = useMutation({
+    mutationFn: (v: { groupId: string; body: PatchLeftoverRequest }) =>
+      leftoverApi.update(v.groupId, v.body),
+    onSuccess,
+  });
+  const removeLeftover = useMutation({ mutationFn: leftoverApi.remove, onSuccess });
+  return { createLeftover, updateLeftover, removeLeftover };
+}
 
 export function useDay(date: string) {
   const qc = useQueryClient();
@@ -58,6 +75,11 @@ export function useDay(date: string) {
       entriesApi.update(v.mealId, v.id, v.body),
     onSuccess,
   });
+  const reorderEntries = useMutation({
+    mutationFn: (v: { mealId: string; body: ReorderEntriesRequest }) =>
+      entriesApi.reorder(v.mealId, v.body),
+    onSuccess,
+  });
   const removeEntry = useMutation({
     mutationFn: (v: { mealId: string; id: string }) => entriesApi.remove(v.mealId, v.id),
     onSuccess,
@@ -71,20 +93,7 @@ export function useDay(date: string) {
     onSuccess,
   });
 
-  const createLeftover = useMutation({
-    mutationFn: (v: { mealId: string; body: LeftoverRequest }) =>
-      leftoverApi.create(v.mealId, v.body),
-    onSuccess,
-  });
-  const updateLeftover = useMutation({
-    mutationFn: (v: { groupId: string; body: PatchLeftoverRequest }) =>
-      leftoverApi.update(v.groupId, v.body),
-    onSuccess,
-  });
-  const removeLeftover = useMutation({
-    mutationFn: (groupId: string) => leftoverApi.remove(groupId),
-    onSuccess,
-  });
+  const { createLeftover, updateLeftover, removeLeftover } = useLeftoverMutations(onSuccess);
 
   return {
     query,
@@ -95,6 +104,7 @@ export function useDay(date: string) {
     removeMeal,
     createEntry,
     updateEntry,
+    reorderEntries,
     removeEntry,
     pinEntry,
     unpinEntry,

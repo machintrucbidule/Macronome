@@ -434,3 +434,65 @@ text input keeps the design contract unchanged.
 are all web-only.
 
 ---
+
+## IMP-3 — Repas & journal UX/behaviour (batch) — RESOLVED (author)
+
+Post-v1 backlog triage (batch IMP-3). Eight Repas items where the shipped behaviour
+diverged from, or was under-specified by, the contracts. Each was approved as an
+improvement and the relevant contract amended first.
+
+- **B-023 — Autocomplete Enter selects the first/highlighted suggestion.** The inline
+  food search left no item highlighted on open, so Enter did nothing until the user
+  pressed ↓. **Decision:** the first matching suggestion is highlighted by default;
+  Enter selects the highlighted one (first unless ↑/↓ moved it). _(Author — matches the
+  already-stated `forms-inputs.md` "Enter selects" and the spreadsheet-fast intent.)_
+  **Spec impact:** `specifications/screens/meals.md` (Entry interactions). Web-only
+  (`components/Form/Autocomplete`); no API/schema change.
+
+- **B-026 — Activity-level help legend.** No affordance explained the five activity
+  levels. **Decision:** a "?" button beside the "Activité du jour" selector opens a
+  legend popover (label + short description per level), closing on outside-click/Esc.
+  Copy reuses the existing `activity.*.label/description` i18n strings. _(Author — chose
+  a click popover over hover/inline for keyboard/touch accessibility.)_ **Spec impact:**
+  `specifications/screens/meals.md`. Web-only; no API/schema change.
+
+- **B-028 — Clickable, positional empty lines.** Only the first trailing empty line was
+  clickable; the rest were inert fillers, and a food could only be appended. **Decision:**
+  every empty row is a clickable "+ aliment"; a food is added at the exact clicked row
+  (`order_index` = row); intentionally-blank rows above are preserved (persisted), not
+  collapsed. _(Author — "if I leave blank lines, that's my choice".)_ **Spec impact:**
+  `specifications/screens/meals.md` (Entry) + `spec/api/days-meals-leftover.md`
+  (`POST /meals/:mealId/entries` gains optional `order_index`). DTO: `CreateMealEntryRequest`
+  gains optional `order_index`. No schema change (`meal_entry.order_index` already exists).
+
+- **B-029 — Drag-to-reorder lines persists.** The FoodLine drag grip was a visual
+  placeholder with no handlers and no persistence. **Decision:** wire native HTML5 DnD on
+  the grip; the new order persists via a new reorder endpoint. _(Author — the screen spec
+  already lists a drag grip; reordering should survive reload.)_ **Spec impact:**
+  `specifications/screens/meals.md` + `spec/api/days-meals-leftover.md`
+  (`PATCH /meals/:mealId/entries/order` — atomic, user-scoped, `{order:[{id,order_index}]}`).
+  New DTO `ReorderEntriesRequest`. No schema change (`order_index` already exists).
+
+- **B-031 — Portion unit chip shows "nb".** The chip rendered the literal word
+  "portion", truncated to "port…". **Decision:** a portion shows the compact abbreviation
+  "nb" (display-only — NOT a generic "nb" unit; the underlying unit stays the food's
+  specific named portion). _(Author — explicit choice.)_ **Spec impact:**
+  `design/components/data-tables.md` (chip label). Web-only; no API/schema change.
+
+- **B-032 — Portion chip tooltip shows label + grams.** The chip title showed "portion".
+  **Decision:** for a portion the chip tooltip shows `label (grams g)` (e.g. "œuf (57 g)");
+  plain unit otherwise. **Spec impact:** `design/components/data-tables.md`. Web-only.
+
+- **B-037 — Unified status wording.** The cards mixed `DANS LA CIBLE`/`AU-DESSUS`/`SOUS`.
+  **Decision:** `OK` for any in-target value, `DÉPASSÉ` for any over-target, `EN-DESSOUS`
+  for any under-target (EN: OK / Over / Below), across the calorie band and macro
+  floor/ceiling cards. _(Author — approved wording in backlog B-037.)_ **Spec impact:**
+  `design/components/metric-cards.md` (Domain states). i18n values only; no code/API/schema
+  change.
+
+- **B-044 — Threshold marker is a notch.** The 2px `var(--text)` tick was nearly invisible
+  over the light-green `--ok` floor fill. **Decision:** replace the over-drawn tick with a
+  **notch** cut into the bar (a card-background-coloured sliver flanked by a
+  `--border-strong` edge), legible over any fill colour. _(Author — picked "encoche".)_
+  **Spec impact:** `design/components/metric-cards.md` (Target indicator). CSS-only; reuses
+  existing tokens (`--bg-elev`/`--bg-elev-2`/`--border-strong`), no new token, no API/schema.

@@ -18,11 +18,14 @@ export interface EditTarget {
   mealIndex: number;
   /** null = adding a new line to the meal; otherwise the entry being re-picked. */
   entryId: string | null;
+  /** Target row for a new line (B-028): adds at this order_index, leaving blank rows above. */
+  orderIndex?: number | null;
 }
 export interface CustomTarget {
   mealId: string;
   mealIndex: number;
   entryId: string | null;
+  orderIndex?: number | null;
 }
 export interface CustomValues {
   name: string;
@@ -52,19 +55,26 @@ type Run = (p: Promise<unknown>) => Promise<void>;
 const served = (g: number | null) =>
   g && g > 0 ? { served_quantity: g, unit: 'g' as EntryUnit } : {};
 
-function lineActions(d: MealActionDeps, run: Run) {
-  /** Resolve a real meal id, materializing the day first when the slot is still a scaffold. */
-  const resolveMealId = async (mealId: string, mealIndex: number): Promise<string> => {
+/** Resolve a real meal id, materializing the day first when the slot is still a scaffold. */
+type ResolveMealId = (mealId: string, mealIndex: number) => Promise<string>;
+function makeResolveMealId(d: MealActionDeps): ResolveMealId {
+  return async (mealId, mealIndex) => {
     if (mealId) return mealId;
     const detail = await d.day.materializeRaw();
     const real = detail.meals.find((m) => m.order_index === mealIndex)?.id;
     if (!real) throw new ApiError(500, 'meal_unresolved');
     return real;
   };
+}
 
+function lineActions(d: MealActionDeps, run: Run, resolveMealId: ResolveMealId) {
   return {
-    startEdit: (mealId: string, mealIndex: number, entryId: string | null) =>
-      d.setEditing({ mealId, mealIndex, entryId }),
+    startEdit: (
+      mealId: string,
+      mealIndex: number,
+      entryId: string | null,
+      orderIndex?: number | null,
+    ) => d.setEditing({ mealId, mealIndex, entryId, orderIndex: orderIndex ?? null }),
     closeEdit: () => d.setEditing(null),
 
     async pickFood(t: EditTarget, foodId: string): Promise<void> {
@@ -82,7 +92,13 @@ function lineActions(d: MealActionDeps, run: Run) {
             const mealId = await resolveMealId(t.mealId, t.mealIndex);
             const entry = await d.day.createEntry.mutateAsync({
               mealId,
-              body: { kind: 'referenced', food_id: foodId, served_quantity: 0, unit: 'g' },
+              body: {
+                kind: 'referenced',
+                food_id: foodId,
+                served_quantity: 0,
+                unit: 'g',
+                ...(t.orderIndex == null ? {} : { order_index: t.orderIndex }),
+              },
             });
             d.setPendingFocus(entry.id);
           }
@@ -110,10 +126,22 @@ function lineActions(d: MealActionDeps, run: Run) {
     // Pin/unpin a referenced line as garde-manger (future-day prefill); persisted lines only.
     togglePin: (mealId: string, id: string, pinned: boolean) =>
       run((pinned ? d.day.unpinEntry : d.day.pinEntry).mutateAsync({ mealId, id })),
+    // Drag-reorder a meal's lines (B-029): the full new position map; sparse rows kept.
+    reorderEntries: (mealId: string, order: { id: string; order_index: number }[]) =>
+      run(d.day.reorderEntries.mutateAsync({ mealId, body: { order } })),
+  };
+}
 
-    openCustom: (mealId: string, mealIndex: number, entryId: string | null) => {
+function customActions(d: MealActionDeps, run: Run, resolveMealId: ResolveMealId) {
+  return {
+    openCustom: (
+      mealId: string,
+      mealIndex: number,
+      entryId: string | null,
+      orderIndex?: number | null,
+    ) => {
       d.setEditing(null);
-      d.setCustomTarget({ mealId, mealIndex, entryId });
+      d.setCustomTarget({ mealId, mealIndex, entryId, orderIndex: orderIndex ?? null });
     },
     closeCustom: () => d.setCustomTarget(null),
     saveCustom: (target: CustomTarget, v: CustomValues): Promise<void> =>
@@ -129,7 +157,14 @@ function lineActions(d: MealActionDeps, run: Run) {
             });
           } else {
             const mealId = await resolveMealId(target.mealId, target.mealIndex);
-            await d.day.createEntry.mutateAsync({ mealId, body: { kind: 'custom', ...body } });
+            await d.day.createEntry.mutateAsync({
+              mealId,
+              body: {
+                kind: 'custom',
+                ...body,
+                ...(target.orderIndex == null ? {} : { order_index: target.orderIndex }),
+              },
+            });
           }
         })(),
       ),
@@ -175,7 +210,12 @@ export function createMealActions(d: MealActionDeps) {
       d.setError(e instanceof ApiError ? e.code : 'request_failed');
     }
   };
-  return { ...lineActions(d, run), ...dayActions(d, run) };
+  const resolveMealId = makeResolveMealId(d);
+  return {
+    ...lineActions(d, run, resolveMealId),
+    ...customActions(d, run, resolveMealId),
+    ...dayActions(d, run),
+  };
 }
 
 export type MealActions = ReturnType<typeof createMealActions>;

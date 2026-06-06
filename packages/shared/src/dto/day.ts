@@ -134,7 +134,9 @@ const macroSnapInput = z.object({
   protein: z.number().nonnegative(),
 });
 
-/** POST /meals/:mealId/entries — referenced (food) or custom (manual values). */
+/** POST /meals/:mealId/entries — referenced (food) or custom (manual values).
+ *  Optional `order_index` is the line's row position (the UI lets the user add into
+ *  any empty row, leaving blank rows above — B-028); omitted = append at the end. */
 export const CreateMealEntrySchema = z.discriminatedUnion('kind', [
   z.object({
     kind: z.literal('referenced'),
@@ -142,6 +144,7 @@ export const CreateMealEntrySchema = z.discriminatedUnion('kind', [
     served_quantity: z.number().nonnegative(),
     unit: EntryUnitSchema,
     portion_id: z.string().uuid().nullish(),
+    order_index: z.number().int().nonnegative().optional(),
   }),
   z.object({
     kind: z.literal('custom'),
@@ -149,9 +152,19 @@ export const CreateMealEntrySchema = z.discriminatedUnion('kind', [
     served_quantity: z.number().nonnegative().optional(),
     unit: EntryUnitSchema.optional(),
     snap: macroSnapInput,
+    order_index: z.number().int().nonnegative().optional(),
   }),
 ]);
 export type CreateMealEntryRequest = z.infer<typeof CreateMealEntrySchema>;
+
+/** PATCH /meals/:mealId/entries/order — reorder a meal's lines (drag grip, B-029).
+ *  The full new position map for the meal; order_index may be sparse (blank rows kept). */
+export const ReorderEntriesSchema = z.object({
+  order: z
+    .array(z.object({ id: z.string().uuid(), order_index: z.number().int().nonnegative() }))
+    .min(1),
+});
+export type ReorderEntriesRequest = z.infer<typeof ReorderEntriesSchema>;
 
 /** PATCH /meals/:mealId/entries/:id — change qty/unit/food or custom values. */
 export const UpdateMealEntrySchema = z

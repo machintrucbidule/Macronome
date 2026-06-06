@@ -46,12 +46,23 @@
   border-radius: var(--r-pill);
   transition: width var(--dur-bar) var(--ease);
 }
+/* Threshold marker: a notch cut into the bar (B-044) — a card-background sliver flanked
+   by a strong-border edge, so it stays legible over any zone/fill colour (the former
+   2px var(--text) tick vanished over the light-green floor fill). Sits above the fill. */
 .tick {
   position: absolute;
-  top: -2px;
-  bottom: -2px;
-  width: 2px;
-  background: var(--text);
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  transform: translateX(-50%);
+  box-sizing: border-box;
+  background: var(--bg-elev);
+  border-left: 1px solid var(--border-strong);
+  border-right: 1px solid var(--border-strong);
+  z-index: 2;
+}
+.kcal .tick {
+  background: var(--bg-elev-2);
 }
 
 .bot {

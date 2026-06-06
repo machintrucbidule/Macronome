@@ -1,5 +1,10 @@
 import type { Request, Response } from 'express';
-import { CreateMealEntrySchema, ErrorCode, UpdateMealEntrySchema } from '@macronome/shared';
+import {
+  CreateMealEntrySchema,
+  ErrorCode,
+  ReorderEntriesSchema,
+  UpdateMealEntrySchema,
+} from '@macronome/shared';
 import * as entriesService from '../../services/entries.js';
 import * as pantryService from '../../services/pantry.js';
 import { ApiError, zodDetails } from '../errors.js';
@@ -26,6 +31,15 @@ export async function update(req: Request, res: Response): Promise<void> {
   const entry = await entriesService.update(userId(res), req.params.id as string, parsed.data);
   if (!entry) throw new ApiError(404, ErrorCode.NotFound);
   res.status(200).json(entry);
+}
+
+/** PATCH /meals/:mealId/entries/order — reorder the meal's lines (drag grip, B-029). */
+export async function reorder(req: Request, res: Response): Promise<void> {
+  const parsed = ReorderEntriesSchema.safeParse(req.body);
+  if (!parsed.success) throw new ApiError(422, ErrorCode.ValidationError, zodDetails(parsed.error));
+  const ok = await entriesService.reorder(userId(res), req.params.mealId as string, parsed.data);
+  if (!ok) throw new ApiError(404, ErrorCode.NotFound);
+  res.status(204).end();
 }
 
 /** DELETE /meals/:mealId/entries/:id. */

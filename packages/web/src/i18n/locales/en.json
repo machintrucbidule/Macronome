@@ -299,14 +299,19 @@
       "max": "max. {{n}} g"
     },
     "status": {
-      "inBand": "In target",
-      "sous": "Under",
+      "inBand": "OK",
+      "sous": "Below",
       "over": "Over",
       "ok": "OK",
       "depasse": "Over"
     },
+    "unit": {
+      "portionAbbr": "nb"
+    },
     "activity": {
-      "label": "Day activity"
+      "label": "Day activity",
+      "help": "Help on activity levels",
+      "legendTitle": "Activity levels"
     },
     "verdict": {
       "forceOk": "Force OK",
@@ -334,6 +339,7 @@
     "line": {
       "addFood": "+ food",
       "manual": "Manual entry",
+      "dragHint": "Drag to reorder",
       "pin": "Pin to pantry (prefills new days)",
       "unpin": "Unpin from pantry"
     },

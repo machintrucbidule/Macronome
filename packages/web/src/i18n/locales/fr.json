@@ -299,14 +299,19 @@
       "max": "max. {{n}} g"
     },
     "status": {
-      "inBand": "Dans la cible",
-      "sous": "Sous",
-      "over": "Au-dessus",
+      "inBand": "OK",
+      "sous": "En-dessous",
+      "over": "Dépassé",
       "ok": "OK",
       "depasse": "Dépassé"
     },
+    "unit": {
+      "portionAbbr": "nb"
+    },
     "activity": {
-      "label": "Activité du jour"
+      "label": "Activité du jour",
+      "help": "Aide sur les niveaux d'activité",
+      "legendTitle": "Niveaux d'activité"
     },
     "verdict": {
       "forceOk": "Forcer OK",
@@ -334,6 +339,7 @@
     "line": {
       "addFood": "+ aliment",
       "manual": "Saisie manuelle",
+      "dragHint": "Glisser pour réordonner",
       "pin": "Épingler au garde-manger (préremplit les nouveaux jours)",
       "unpin": "Retirer du garde-manger"
     },

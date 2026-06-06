@@ -1,4 +1,9 @@
-import type { CreateMealEntryRequest, MealEntry, UpdateMealEntryRequest } from '@macronome/shared';
+import type {
+  CreateMealEntryRequest,
+  MealEntry,
+  ReorderEntriesRequest,
+  UpdateMealEntryRequest,
+} from '@macronome/shared';
 import { ErrorCode } from '@macronome/shared';
 import type { MealEntry as MealEntryModel } from '@prisma/client';
 import { dayRepo } from '../data/repositories/day.repo.js';
@@ -97,8 +102,23 @@ export async function create(
 ): Promise<MealEntry | null> {
   if (!(await dayRepo.ownedMeal(userId, mealId))) return null;
   const data = await buildCreateData(userId, body);
-  const orderIndex = await entryRepo.nextOrderIndex(mealId);
+  // The UI may target a specific empty row (B-028); otherwise append at the end.
+  const orderIndex = body.order_index ?? (await entryRepo.nextOrderIndex(mealId));
   return mealEntryDto(await entryRepo.create(mealId, orderIndex, data));
+}
+
+/** Reorder a meal's lines (drag grip, B-029). Returns false → 404 when the meal is not
+ *  the user's or any id is not one of its entries. */
+export async function reorder(
+  userId: string,
+  mealId: string,
+  body: ReorderEntriesRequest,
+): Promise<boolean> {
+  if (!(await dayRepo.ownedMeal(userId, mealId))) return false;
+  return entryRepo.reorder(
+    mealId,
+    body.order.map((o) => ({ id: o.id, orderIndex: o.order_index })),
+  );
 }
 
 /** Rebuild a custom line's snapshot from its merged fields. */
