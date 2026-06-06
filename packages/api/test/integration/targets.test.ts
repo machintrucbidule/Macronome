@@ -46,6 +46,29 @@ function seedWeight(userId: string, weightKg: number) {
   });
 }
 
+/** UTC-midnight date N days before today (recent-average activity window is relative to
+ * today, so seed dates are computed from the runtime clock — not a fixed calendar date). */
+function daysAgo(n: number): Date {
+  const d = new Date();
+  d.setUTCHours(0, 0, 0, 0);
+  d.setUTCDate(d.getUTCDate() - n);
+  return d;
+}
+
+/** Seed a logged day with an activity level (recent-average activity input, B-072). */
+function seedDay(userId: string, date: Date, activityLevel: string) {
+  return prisma.dayLog.create({
+    data: {
+      userId,
+      date,
+      kind: 'summary',
+      summaryKcal: 2000,
+      activityLevel,
+      targetSnapshot: { cal_min: 1500, cal_max: 2100 },
+    },
+  });
+}
+
 function postTarget(agent: Agent, csrf: string, body: Record<string, unknown>) {
   return agent.post('/api/v1/target').set('x-csrf-token', csrf).send(body);
 }
@@ -176,5 +199,56 @@ describe('targets', () => {
     expect(res.body.error.code).toBe('validation_error');
     expect(res.body.error.details).toHaveProperty('calorie_max');
     expect(res.body.error.details).toHaveProperty('protein_g_per_kg');
+  });
+});
+
+describe('recent-average activity — Cibles burn from logged days (B-072)', () => {
+  it('uses the mean of logged-day multipliers in the 30-day window, no insufficient-data flag', async () => {
+    const { agent, userId } = await authedAgent('alice');
+    await seedWeight(userId, 80);
+    // Two recent very_active days (multiplier 1.725) within the trailing 30-day window.
+    await seedDay(userId, daysAgo(0), 'very_active');
+    await seedDay(userId, daysAgo(1), 'very_active');
+
+    const res = await agent.get('/api/v1/target');
+    expect(res.status).toBe(200);
+    expect(res.body.engine.recent_avg_activity).toBeCloseTo(1.725, 6);
+    // estimated_burn = BMR × multiplier (BMR depends on age → assert the relationship).
+    expect(res.body.engine.estimated_burn).toBeCloseTo(res.body.engine.bmr * 1.725, 5);
+    expect(res.body.warnings).not.toContain('insufficient_activity_data');
+  });
+
+  it('averages across activity levels in the window', async () => {
+    const { agent, userId } = await authedAgent('alice');
+    await seedWeight(userId, 80);
+    await seedDay(userId, daysAgo(0), 'very_active'); // 1.725
+    await seedDay(userId, daysAgo(1), 'sedentary'); // 1.2
+
+    const res = await agent.get('/api/v1/target');
+    expect(res.status).toBe(200);
+    expect(res.body.engine.recent_avg_activity).toBeCloseTo(1.4625, 6); // (1.725 + 1.2) / 2
+    expect(res.body.warnings).not.toContain('insufficient_activity_data');
+  });
+
+  it('falls back to sedentary + flags insufficient data when no day is logged', async () => {
+    const { agent, userId } = await authedAgent('alice');
+    await seedWeight(userId, 80);
+
+    const res = await agent.get('/api/v1/target');
+    expect(res.status).toBe(200);
+    expect(res.body.engine.recent_avg_activity).toBeCloseTo(1.2, 6);
+    expect(res.body.warnings).toContain('insufficient_activity_data');
+  });
+
+  it('ignores logged days outside the 30-day window (calendar semantics)', async () => {
+    const { agent, userId } = await authedAgent('alice');
+    await seedWeight(userId, 80);
+    // A very_active day older than the 30-day window must not count.
+    await seedDay(userId, daysAgo(40), 'very_active');
+
+    const res = await agent.get('/api/v1/target');
+    expect(res.status).toBe(200);
+    expect(res.body.engine.recent_avg_activity).toBeCloseTo(1.2, 6);
+    expect(res.body.warnings).toContain('insufficient_activity_data');
   });
 });

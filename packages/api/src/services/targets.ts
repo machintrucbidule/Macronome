@@ -1,12 +1,17 @@
-import type {
-  CreateTargetRequest,
-  GetTargetResponse,
-  PreviewTargetRequest,
-  PreviewTargetResponse,
-  Sex,
-  SuggestTargetResponse,
+import {
+  ACTIVITY_MULTIPLIERS,
+  type ActivityLevel,
+  type CreateTargetRequest,
+  type GetTargetResponse,
+  type PreviewTargetRequest,
+  type PreviewTargetResponse,
+  RECENT_ACTIVITY_WINDOW_DAYS,
+  type Sex,
+  type SuggestTargetResponse,
 } from '@macronome/shared';
 import { Prisma, type Target as TargetModel } from '@prisma/client';
+import { toDate } from '../data/repositories/day-read.repo.js';
+import { dayStatRepo } from '../data/repositories/day-stat.repo.js';
 import { profileRepo } from '../data/repositories/profile.repo.js';
 import { targetRepo } from '../data/repositories/target.repo.js';
 import { weightRepo } from '../data/repositories/weight.repo.js';
@@ -15,16 +20,30 @@ import {
   estimatedBurn,
   mifflinStJeor,
   recentAvgActivity,
+  type RecentActivity,
 } from '../domain/metabolic/index.js';
 import { suggestRange } from '../domain/targets/index.js';
+import { todayString } from './day-context.js';
 import { computeEngine, targetToDto } from './target-engine.js';
 
 // Targets service: orchestration only (CLAUDE.md — logic lives in the domain). It reads
 // the profile, current weight (latest weigh-in) and current target, then delegates the
-// derivation to the pure engine. Recent-average activity needs day_log (M3); until then
-// it falls back to sedentary via recentAvgActivity([]) with an insufficient-data flag.
+// derivation to the pure engine. Recent-average activity is the mean of the logged days'
+// activity multipliers within the trailing 30-calendar-day window (metabolic-engine.md
+// §3); with no logged day in the window it falls back to sedentary + insufficient-data.
 
 const num = (d: { toString(): string }): number => Number(d.toString());
+
+/** Mean activity multiplier over the logged days of the trailing 30-day window (as of
+ * today). Bounds are at UTC midnight so the upper bound (today) excludes future days and
+ * no time-of-day drift narrows the window. Empty window → sedentary fallback. */
+async function recentActivity(userId: string): Promise<RecentActivity> {
+  const to = toDate(todayString());
+  const from = new Date(to);
+  from.setUTCDate(from.getUTCDate() - (RECENT_ACTIVITY_WINDOW_DAYS - 1));
+  const levels = await dayStatRepo.activityLevelsInRange(userId, from, to);
+  return recentAvgActivity(levels.map((l) => ACTIVITY_MULTIPLIERS[l as ActivityLevel]));
+}
 
 /** GET /target — the persisted target + live engine readout + non-blocking warnings. */
 export async function get(userId: string): Promise<GetTargetResponse> {
@@ -35,7 +54,7 @@ export async function get(userId: string): Promise<GetTargetResponse> {
     weightRepo.latestAsOf(userId, refDate),
     targetRepo.currentAsOf(userId, refDate),
   ]);
-  const recent = recentAvgActivity([]); // M3: mean of the last ~30 logged days
+  const recent = await recentActivity(userId);
   const { engine, warnings } = computeEngine({ profile, weightRow, targetRow, recent, refDate });
   return { target: targetRow ? targetToDto(targetRow) : null, engine, warnings };
 }
@@ -69,7 +88,7 @@ export async function preview(
   const profile = await profileRepo.get(userId);
   if (!profile) throw new Error('profile_missing'); // an authed user always has one
   const weightRow = await weightRepo.latestAsOf(userId, refDate);
-  const recent = recentAvgActivity([]); // M3: mean of the last ~30 logged days
+  const recent = await recentActivity(userId);
   const dec = (n: number): Prisma.Decimal => new Prisma.Decimal(n);
   const draftRow: TargetModel = {
     id: 'preview',
@@ -103,7 +122,7 @@ export async function suggest(
     ageYears: ageYears(profile.birthdate, refDate),
     sex: profile.sex as Sex,
   });
-  const burn = estimatedBurn(bmr, recentAvgActivity([]).multiplier);
+  const burn = estimatedBurn(bmr, (await recentActivity(userId)).multiplier);
   const range = suggestRange(burn, desiredDeficit);
   return { calorie_min: range.calorieMin, calorie_max: range.calorieMax };
 }

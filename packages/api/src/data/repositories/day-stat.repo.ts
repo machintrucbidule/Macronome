@@ -129,4 +129,14 @@ export const dayStatRepo = {
     const r = await prisma.dayLog.aggregate({ where: { userId }, _max: { date: true } });
     return r._max.date ?? null;
   },
+
+  /** Activity levels of logged days within [from, to] (recent-average activity, Cibles). */
+  async activityLevelsInRange(userId: string, from: Date, to: Date): Promise<string[]> {
+    const rows = await prisma.dayLog.findMany({
+      where: { userId, date: { gte: from, lte: to } },
+      select: { activityLevel: true },
+      orderBy: [{ date: 'asc' }],
+    });
+    return rows.map((r) => r.activityLevel);
+  },
 };
