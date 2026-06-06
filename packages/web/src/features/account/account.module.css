@@ -6,11 +6,6 @@
   font-family: var(--font-display);
   font-size: var(--fs-22);
   font-weight: var(--fw-bold);
-  margin-bottom: var(--sp-1);
-}
-.lead {
-  font-size: var(--fs-13);
-  color: var(--text-dim);
   margin-bottom: var(--sp-7);
 }
 .card {
@@ -43,15 +38,6 @@
 }
 .lab {
   font-size: var(--fs-13);
-}
-.desc {
-  display: block;
-  font-family: var(--font-num);
-  font-size: var(--fs-10);
-  color: var(--text-faint);
-  margin-top: var(--sp-1);
-  max-width: 440px;
-  line-height: 1.45;
 }
 .ro {
   font-family: var(--font-num);

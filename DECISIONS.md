@@ -655,3 +655,62 @@ constant). **Code:** shared `dto/stats.ts` (`Signal.status`), `constants/tuning.
 nok_run_clear else-branch, ok_rate_14 threshold, `okRateGood` param) + `services/stats.ts`;
 web `features/stats/components/Signals.tsx` (dot driven by `status`, `DOT_BY_CODE` dropped) +
 i18n `stats.signal.nok_run_clear` (FR/EN). No DB/schema change.
+
+## B-061 — Compte: drop the two helper description texts — RESOLVED (author)
+
+Post-v1 backlog triage (batch BF-11). The Compte mockup (`specifications/mockups/account.html`)
+carried two grey helper lines: the page lead "Tes identifiants et ta session." and a password-row
+note "Pour ta sécurité, la modification passe par un flux dédié…". Both are noise on a screen
+that already reads clearly. **Decision (author, "Amender + tout faire"):** remove both texts. The
+screen header keeps the spacing the lead used to provide.
+
+**Spec impact:** `specifications/mockups/account.html` (lead div + password-row `<span class="d">`
+removed). **Code:** `features/account/AccountPage.tsx` (the `<p class=lead>` and the nested note
+`<span>` dropped, `h1` margin-bottom raised to keep header→card spacing); `account.module.css`
+(`.lead` + `.desc` rules removed); i18n keys `account.lead` + `account.passwordNote` removed
+(FR+EN). No API/schema change.
+
+## B-062 — Contenants: drop the on-screen breadcrumb — RESOLVED (author)
+
+Post-v1 backlog triage (batch BF-11). `specifications/screens/containers.md` specified an
+on-screen breadcrumb "Réglages › Contenants". The screen is reached from the single account-menu
+entry, so the breadcrumb is redundant chrome. **Decision (author, "Amender + tout faire"):**
+remove the on-screen breadcrumb (the account-menu entry already locates the screen; the route
+`/containers` is unchanged).
+
+**Spec impact:** `specifications/screens/containers.md` (Route section — breadcrumb removed).
+**Code:** `features/containers/ContainersPage.tsx` (the `<div class=crumb>` dropped);
+`containers.module.css` (`.crumb` rule removed); i18n key `containers.crumb` removed (FR+EN). No
+API/schema change.
+
+## B-065 — Journal: denser table rows — RESOLVED (author)
+
+Post-v1 backlog triage (batch BF-11). The shared dense-table contract sets `tbody td` vertical
+padding to `7–9px` (`design/components/data-tables.md`); the Journal used the shared 8px and felt
+too tall for a scan-heavy day list. A perceptible reduction falls below the shared range.
+**Decision (author, "Amender + tout faire"):** the **Journal** table opts into a denser row
+(`padding-top/bottom: 4px`), Journal-scoped so the other tables (Aliments/Recettes/Poids/
+Contenants) keep the 7–9px default.
+
+**Spec impact:** `design/components/data-tables.md` (tbody td note — Journal denser-row exception).
+**Code:** `features/journal/components/JournalTable.tsx` (a `journalTable` class on the `<table>`)
+
+- `journal.module.css` (`.journalTable tbody td { padding-top/bottom: 4px }`, a plain `td`
+  descendant scoping the override across CSS modules). No API/schema change.
+
+## B-069 — Sticky table header sits under the appbar (account menu overlay) — RESOLVED (author)
+
+Post-v1 backlog triage (batch BF-11). On Journal/Recipes, opening the account dropdown showed the
+sticky table header painted over the menu. Root cause: the appbar owns a stacking context
+(`position:sticky; z-index:var(--z-appbar)` = 50), trapping the menu popover (z 80) inside it,
+while the page's sticky `thead` used `--z-popover` (60) at the root level — so the header outranked
+the trapped menu. `data-tables.md` documented the `thead` at the `--z-popover` range.
+**Decision (author, "Amender + tout faire"):** a sticky table header is _content under the appbar
+chrome_, so it uses `--z-sticky-sub` (40, below `--z-appbar`). The appbar — and the account menu
+in its context — now overlays the header. The header still paints above the static body rows, so
+scrolling is unaffected.
+
+**Spec impact:** `design/components/data-tables.md` (sticky-header z-index → `--z-sticky-sub`).
+**Code:** `components/DataTable/DataTable.module.css` (`.table thead th` z-index
+`var(--z-popover)` → `var(--z-sticky-sub)`). No appbar/`.acctPop` token change, no API/schema
+change.

@@ -40,7 +40,10 @@
   position: sticky;
   top: var(--appbar-h);
   background: var(--bg);
-  z-index: var(--z-popover);
+  /* Sticky content sits *under* the appbar (data-tables.md): the appbar owns a stacking
+     context (--z-appbar), so the sticky thead must stay below it — otherwise the account
+     dropdown, trapped in that context, is painted over by the header (B-069). */
+  z-index: var(--z-sticky-sub);
 }
 
 .table thead th.r {

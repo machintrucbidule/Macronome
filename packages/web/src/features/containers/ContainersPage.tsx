@@ -60,7 +60,6 @@ export function ContainersPage() {
   return (
     <AppShell>
       <div className={styles.wrap}>
-        <div className={styles.crumb}>{t('containers.crumb')}</div>
         <ContainersToolbar
           count={editable}
           q={q}

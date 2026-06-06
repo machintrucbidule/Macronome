@@ -370,6 +370,7 @@
       "moveRight": "Déplacer à droite →",
       "delete": "Supprimer le repas",
       "renamePrompt": "Nom du repas :",
+      "deleteTitle": "Supprimer ce repas ?",
       "deletePrompt": "Supprimer le repas « {{name}} » de ce jour ?",
       "addPrompt": "Nom du nouveau repas :"
     },
@@ -621,7 +622,6 @@
   },
   "containers": {
     "title": "Contenants",
-    "crumb": "Réglages › Contenants",
     "lead": "Le poids à vide sert au calcul des restes (poids brut − contenant) sur le Journal. La saisie d'un aliment, elle, est toujours en poids net.",
     "count": "{{count}} contenant",
     "count_other": "{{count}} contenants",
@@ -652,11 +652,9 @@
   },
   "account": {
     "title": "Compte",
-    "lead": "Tes identifiants et ta session.",
     "credentials": "Identifiants",
     "username": "Nom d'utilisateur",
     "password": "Mot de passe",
-    "passwordNote": "Pour ta sécurité, la modification passe par un flux dédié.",
     "changePassword": "Changer le mot de passe",
     "session": "Session",
     "logout": "Se déconnecter",

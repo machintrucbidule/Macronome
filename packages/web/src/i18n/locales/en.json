@@ -370,6 +370,7 @@
       "moveRight": "Move right →",
       "delete": "Delete meal",
       "renamePrompt": "Meal name:",
+      "deleteTitle": "Delete this meal?",
       "deletePrompt": "Delete the meal \"{{name}}\" from this day?",
       "addPrompt": "New meal name:"
     },
@@ -621,7 +622,6 @@
   },
   "containers": {
     "title": "Containers",
-    "crumb": "Settings › Containers",
     "lead": "The empty weight is used to compute leftovers (gross − container) on the Journal. Food entry itself is always net.",
     "count": "{{count}} container",
     "count_other": "{{count}} containers",
@@ -652,11 +652,9 @@
   },
   "account": {
     "title": "Account",
-    "lead": "Your credentials and session.",
     "credentials": "Credentials",
     "username": "Username",
     "password": "Password",
-    "passwordNote": "For your security, changes go through a dedicated flow.",
     "changePassword": "Change password",
     "session": "Session",
     "logout": "Log out",

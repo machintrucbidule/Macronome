@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Meal, MealEntry } from '@macronome/shared';
 import { useMeals } from '../../MealsContext';
@@ -7,6 +8,7 @@ import { FoodLine } from '../FoodLine/FoodLine';
 import { LineHeader } from './LineHeader';
 import { MealHeader } from './MealHeader';
 import { MealFooter } from './MealFooter';
+import { MealDeleteConfirm } from './MealDeleteConfirm';
 import styles from './meal-column.module.css';
 
 // One meal as a column: header + sub-header + the lines + footer totals. Each entry sits at
@@ -24,6 +26,7 @@ interface MealColumnProps {
 export function MealColumn({ meal, index, meals, width }: MealColumnProps) {
   const { t } = useTranslation();
   const { editing, mutations, actions } = useMeals();
+  const [confirming, setConfirming] = useState(false);
   const rows = buildLineRows(meal.entries, MIN_LINES);
   const byRow = new Map<number, MealEntry>(
     rows.flatMap((r) => (r.entry ? ([[r.row, r.entry]] as const) : [])),
@@ -61,10 +64,7 @@ export function MealColumn({ meal, index, meals, width }: MealColumnProps) {
         }}
         onMoveLeft={() => index > 0 && swap(meals[index - 1] as Meal)}
         onMoveRight={() => index < meals.length - 1 && swap(meals[index + 1] as Meal)}
-        onDelete={() => {
-          if (window.confirm(t('meals.meal.deletePrompt', { name: meal.slot_name })))
-            void actions.deleteMeal(meal.id);
-        }}
+        onDelete={() => setConfirming(true)}
       />
       <div className={styles.lines}>
         <LineHeader />
@@ -81,6 +81,16 @@ export function MealColumn({ meal, index, meals, width }: MealColumnProps) {
         ))}
       </div>
       <MealFooter mealId={meal.id} totals={meal.totals} />
+      {confirming && (
+        <MealDeleteConfirm
+          name={meal.slot_name}
+          onCancel={() => setConfirming(false)}
+          onConfirm={() => {
+            setConfirming(false);
+            void actions.deleteMeal(meal.id);
+          }}
+        />
+      )}
     </div>
   );
 }

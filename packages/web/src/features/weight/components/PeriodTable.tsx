@@ -23,6 +23,24 @@ const COLS = [
   'note',
 ] as const;
 
+// Numeric columns are right-aligned (data-tables.md: numeric headers match their column,
+// mirroring the .num cells in PeriodRow). The first column (period) and the trailing text
+// columns (flag, note) stay left-aligned.
+const NUM_COLS = new Set([
+  'days',
+  'weight',
+  'trend',
+  'delta',
+  'ecart',
+  'bmi',
+  'waist',
+  'intake',
+  'estBurn',
+  'empBurn',
+  'deficit',
+  'activity',
+]);
+
 interface PeriodTableProps {
   periods: Period[];
   onRowClick: (endDate: string) => void;
@@ -36,7 +54,10 @@ export function PeriodTable({ periods, onRowClick }: PeriodTableProps) {
         <thead>
           <tr>
             {COLS.map((c) => (
-              <th key={c} className={styles.colHead}>
+              <th
+                key={c}
+                className={`${styles.colHead} ${NUM_COLS.has(c) ? styles.colHeadNum : ''}`}
+              >
                 {t(`weight.col.${c}`)}
               </th>
             ))}

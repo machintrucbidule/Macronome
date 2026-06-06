@@ -23,7 +23,6 @@ export function AccountPage() {
     <AppShell>
       <div className={styles.wrap}>
         <h1 className={styles.h1}>{t('account.title')}</h1>
-        <p className={styles.lead}>{t('account.lead')}</p>
 
         <div className={styles.card}>
           <div className={styles.ch}>{t('account.credentials')}</div>
@@ -33,10 +32,7 @@ export function AccountPage() {
               <span className={styles.ro}>{session.data?.user.username ?? '—'}</span>
             </div>
             <div className={styles.row}>
-              <span className={styles.lab}>
-                {t('account.password')}
-                <span className={styles.desc}>{t('account.passwordNote')}</span>
-              </span>
+              <span className={styles.lab}>{t('account.password')}</span>
               <Button variant="ghost" onClick={() => setPwOpen(true)}>
                 {t('account.changePassword')}
               </Button>

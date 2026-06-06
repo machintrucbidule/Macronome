@@ -2,11 +2,6 @@
   max-width: 720px;
   margin: 0 auto;
 }
-.crumb {
-  font-family: var(--font-num);
-  font-size: var(--fs-11);
-  color: var(--text-faint);
-}
 .toolbar {
   display: flex;
   align-items: center;

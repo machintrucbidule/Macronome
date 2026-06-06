@@ -11,10 +11,14 @@ line lists** (Repas meal columns, Recipe ingredient builder).
 font-weight:400; padding:9px 10px; border-bottom:1px solid var(--border)`
   (Aliments/Recettes use `--border-strong`). Numeric headers right/centre-aligned
   (`.r`/`.c`). **Sticky** headers stick at `top:51px` (= `--appbar-h`) with
-  `background:var(--bg)`, `z-index:var(--z-popover)` range.
+  `background:var(--bg)`, `z-index:var(--z-sticky-sub)` — i.e. **below** the appbar
+  (`--z-appbar`), so the account menu (in the appbar's stacking context) overlays the
+  header rather than the header painting over it (B-069, see `DECISIONS.md`).
 - **tbody td**: `padding:7–9px 10px; border-bottom:1px solid var(--border)` (or
   `color-mix(--border 50%)` for lighter inner rows). Numeric cells `--font-num;
-tabular-nums; white-space:nowrap`; first/name cell left, `--font-body`.
+tabular-nums; white-space:nowrap`; first/name cell left, `--font-body`. The **Journal**
+  table opts into a denser row (`padding-top/bottom:4px`) as a scan-heavy day list (B-065,
+  see `DECISIONS.md`); other tables keep the 7–9px default.
 - **row hover**: `background:var(--bg-elev-2)` (or `color-mix(--bg-elev-2 70%)`).
 - **clickable row**: `cursor:pointer` + `title`.
 - **sortable header**: `cursor:pointer; user-select:none`; hover `color:var(--text)`;

@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import type { JournalRow as Row, PatchDayRequest } from '@macronome/shared';
 import { tableStyles } from '../../../components/DataTable/SortableTh';
 import { JournalRow } from './JournalRow';
+import styles from '../journal.module.css';
 
 // The Journal table (history.md): one row per day, newest first (server order). Columns:
 // Jour · Calories · Macros (L·G·P) · Verdict · Activité · Commentaire. The table is a read
@@ -15,7 +16,7 @@ export function JournalTable({ rows, onPatch }: JournalTableProps) {
   const { t } = useTranslation();
   return (
     <div className={tableStyles.wrap}>
-      <table className={tableStyles.table}>
+      <table className={`${tableStyles.table} ${styles.journalTable}`}>
         <thead>
           <tr>
             <th>{t('journal.col.day')}</th>

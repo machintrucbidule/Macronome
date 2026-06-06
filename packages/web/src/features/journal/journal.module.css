@@ -53,6 +53,12 @@
 }
 
 /* ---- Cells ---- */
+/* Denser rows than the shared default (B-065): the Journal is a scan-heavy day list, so it
+   trims the shared 8px vertical cell padding. Journal-scoped (does not touch other tables). */
+.journalTable tbody td {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
 .dow {
   font-family: var(--font-num);
   font-size: var(--fs-10);

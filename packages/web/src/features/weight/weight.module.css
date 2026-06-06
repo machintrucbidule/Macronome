@@ -101,6 +101,9 @@
   background: var(--bg);
   z-index: var(--z-popover);
 }
+.colHeadNum {
+  text-align: right;
+}
 .periodRow {
   cursor: pointer;
   border-bottom: var(--bw) solid var(--border);
