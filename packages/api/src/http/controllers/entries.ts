@@ -49,14 +49,14 @@ export async function remove(req: Request, res: Response): Promise<void> {
   res.status(204).end();
 }
 
-/** POST /meals/:mealId/entries/:id/pin — pin this line's food (future prefill only). */
+/** POST /meals/:mealId/entries/:id/pin — pin this line's food (live; runs the add cascade). */
 export async function pin(req: Request, res: Response): Promise<void> {
   const entry = await pantryService.pin(userId(res), req.params.id as string);
   if (!entry) throw new ApiError(404, ErrorCode.NotFound);
   res.status(200).json(entry);
 }
 
-/** POST /meals/:mealId/entries/:id/unpin — unpin (future prefill only). */
+/** POST /meals/:mealId/entries/:id/unpin — unpin (live; runs the delete cascade). */
 export async function unpin(req: Request, res: Response): Promise<void> {
   const entry = await pantryService.unpin(userId(res), req.params.id as string);
   if (!entry) throw new ApiError(404, ErrorCode.NotFound);

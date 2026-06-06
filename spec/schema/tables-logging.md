@@ -14,10 +14,13 @@ The user's default day structure (edited in Paramètres; seeds new days).
 | created_at, updated_at | timestamptz | |
 | | | UNIQUE (user_id, name) |
 
-## pantry_item (garde-manger; OPEN_GAPS #8)
+## pantry_item (garde-manger; OPEN_GAPS #8, B-045)
 
-Recurring foods auto-prefilled (qty 0) on new days. Same data as the Repas 📌
-and the Paramètres per-meal editor.
+The **single live source of truth** for pins. Recurring foods auto-prefilled (qty 0) on
+new days; the 📌 icon on every existing day is **derived from this table on read** (it is
+not snapshotted per line — `logic/pantry-pin.md`). Same data as the Repas 📌 and the
+Paramètres per-meal editor (two views). Editing it runs the pin/unpin cascades over the
+user's days.
 | column | type | notes |
 |--------|------|-------|
 | id | uuid PK | |
@@ -81,7 +84,6 @@ template). Only on detailed days.
 | snap_fat               | numeric     | NOT NULL                                                                                           |
 | snap_carb              | numeric     | NOT NULL                                                                                           |
 | snap_protein           | numeric     | NOT NULL                                                                                           |
-| is_pinned              | boolean     | NOT NULL DEFAULT false — mirrors a pantry_item                                                     |
 | order_index            | integer     | NOT NULL                                                                                           |
 | created_at, updated_at | timestamptz |                                                                                                    |
 |                        |             | CHECK ((kind='referenced' AND food_id IS NOT NULL) OR (kind='custom' AND custom_name IS NOT NULL)) |

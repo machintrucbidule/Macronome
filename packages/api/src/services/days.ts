@@ -3,9 +3,10 @@ import { DEFAULT_ACTIVITY_LEVEL, ErrorCode } from '@macronome/shared';
 import type { Prisma } from '@prisma/client';
 import { dayReadRepo } from '../data/repositories/day-read.repo.js';
 import { dayRepo } from '../data/repositories/day.repo.js';
+import { pantryRepo } from '../data/repositories/pantry.repo.js';
 import { autoVerdict, type ResolvedSnapshot } from '../domain/day-verdict/index.js';
 import { ApiError } from '../http/errors.js';
-import { assembleDayDetail, buildConstat } from './day-assembler.js';
+import { assembleDayDetail, buildConstat, pinKey } from './day-assembler.js';
 import { isPast, loadDayContext, resolveSnapshotForDate, type DayContext } from './day-context.js';
 import { loadDaySeed, seedSlotPreview, seedToMeals, type DaySeed } from './day-prefill.js';
 
@@ -60,15 +61,20 @@ export async function get(userId: string, date: string): Promise<DayDetail> {
   }
 
   const past = isPast(date);
-  const snapshot = past
-    ? (aggregate.dayLog.targetSnapshot as unknown as ResolvedSnapshot)
-    : await resolveSnapshotForDate(userId, date);
+  const [snapshot, pins] = await Promise.all([
+    past
+      ? Promise.resolve(aggregate.dayLog.targetSnapshot as unknown as ResolvedSnapshot)
+      : resolveSnapshotForDate(userId, date),
+    pantryRepo.list(userId),
+  ]);
+  const pinnedKeys = new Set(pins.map((p) => pinKey(p.mealSlotName, p.foodId)));
   const detail = assembleDayDetail({
     aggregate,
     snapshot,
     profile: ctx.profile,
     weightKg: ctx.weightKg,
     ageOnDay: ctx.ageOnDay,
+    pinnedKeys,
   });
 
   // While today, re-persist the live snapshot + verdict so they freeze correctly later.

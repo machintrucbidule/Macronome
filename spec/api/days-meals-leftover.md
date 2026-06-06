@@ -60,14 +60,18 @@ protein}}`. Both also accept an optional **`order_index`** (the line's row
   meal → 404 (nothing written).
 - `PATCH /meals/:mealId/entries/:id` — change qty/unit/food/custom values; resets
   the snapshot for referenced foods at edit time. → 200.
-- `POST /meals/:mealId/entries/:id/pin` · `/unpin` — toggles the pantry_item for
-  (slot_name, food_id); affects **future** days' prefill only (OPEN_GAPS #8).
+- `POST /meals/:mealId/entries/:id/pin` · `/unpin` — edits the pantry_item for
+  (slot_name, food_id), the live source of truth, and runs the pin/unpin cascade
+  (`logic/pantry-pin.md`, B-045): **pin** adds a qty-0 line to today + future days
+  lacking the food; **unpin** drops qty-0 lines for (slot, food) everywhere, keeps
+  qty > 0. → 200 MealEntry.
 - `DELETE /meals/:mealId/entries/:id` → 204.
 
 **MealEntry** payload: `{id,kind,food_id?,custom_name?,served_quantity,unit,
 portion_id?,served_grams,snap:{kcal,fat,carb,protein},
 consumed:{grams,kcal,fat,carb,protein},is_pinned,order_index}` — `consumed` is
-derived (served − leftover share; `logic/leftover-proration.md`).
+derived (served − leftover share; `logic/leftover-proration.md`). `is_pinned` is
+**derived live** from `pantry_item` per read (`logic/pantry-pin.md`), not stored.
 
 ## Leftover (the plate deduction)
 

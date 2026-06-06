@@ -91,7 +91,8 @@ serving}` with neutral oracles; days/meals/entries/leftover/journal services + r
       **Scope changes (tracked):** `container` table added
       early (leftover needs a tare; full Contenants CRUD/screen + "Rien" seeding → M7);
       pantry/meal_slot_template/pin-unpin + template seeding → **M7** (`is_pinned` column
-      created but inert, days seed `DEFAULT_MEAL_SLOTS`); Cook mode → **M9**. New pure module
+      created but inert — later dropped in B-045, pin derived live; days seed
+      `DEFAULT_MEAL_SLOTS`); Cook mode → **M9**. New pure module
       `domain/serving` (ml→g 1:1). `check-schema.mjs` heading parser widened (tooling).
 - [x] **M4 — Weight & variable periods** → `docs/dev-plan/M4-weight.md`
       _depends-on: M2 (BMR), M3 (logged-day intake for period stats)._

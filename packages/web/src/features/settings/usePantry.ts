@@ -3,7 +3,8 @@ import type { CreatePantryRequest } from '@macronome/shared';
 import { pantryApi } from '../../api/pantry';
 
 // Garde-manger data hooks (spec/api §Settings). The full pantry is fetched once and grouped
-// by meal slot in the editor; mutations affect future-day prefill only.
+// by meal slot in the editor. The pin is the single source of truth and is reflected live
+// on every day (B-045), so editing it here also refreshes the open day + journal views.
 const PANTRY_KEY = ['pantry'] as const;
 
 export function usePantry() {
@@ -12,7 +13,11 @@ export function usePantry() {
 
 export function usePantryMutations() {
   const qc = useQueryClient();
-  const invalidate = () => qc.invalidateQueries({ queryKey: PANTRY_KEY });
+  const invalidate = () => {
+    void qc.invalidateQueries({ queryKey: PANTRY_KEY });
+    void qc.invalidateQueries({ queryKey: ['day'] });
+    void qc.invalidateQueries({ queryKey: ['journal'] });
+  };
   return {
     create: useMutation({
       mutationFn: (body: CreatePantryRequest) => pantryApi.create(body),

@@ -3,13 +3,16 @@ import { createApp } from '../../src/app.js';
 import { prisma } from '../../src/data/prisma.js';
 import { authedAgent, csrfPatch, csrfPost, seedFood, seedTarget, seedWeight } from './helpers.js';
 
-// Integration contract checks for M7a (spec/api §Settings, days-meals-leftover §pin/unpin).
-// Settings round-trip, meal-template CRUD, pantry dedup + pin idempotency + future-only
-// prefill, container CRUD with the locked built-in + history safety, and tenancy 404.
+// Integration contract checks for M7a (spec/api §Settings, days-meals-leftover §pin/unpin;
+// spec/logic/pantry-pin.md). Settings round-trip, meal-template CRUD, pantry dedup + live
+// pin derivation + pin/unpin cascades (B-045), container CRUD with the locked built-in +
+// history safety, and tenancy 404.
 const app = createApp();
 const TODAY = new Date().toISOString().slice(0, 10);
+const PAST = '2026-03-01';
 const FUTURE_A = '2026-12-01';
 const FUTURE_B = '2026-12-02';
+const FUTURE_C = '2026-12-03';
 
 beforeEach(async () => {
   await prisma.$executeRawUnsafe('TRUNCATE TABLE "app_user" CASCADE');
@@ -87,7 +90,7 @@ describe('meal-template — seeded defaults + CRUD', () => {
   });
 });
 
-describe('pantry — dedup, pin idempotency, future-only prefill', () => {
+describe('pantry — dedup + 📌 idempotency', () => {
   it('rejects a duplicate pin per (slot, food) with 409 pantry_duplicate', async () => {
     const { agent, csrf, userId } = await authedAgent(app, 'alice');
     const food = await seedFood(userId, 'Flocons');
@@ -144,8 +147,10 @@ describe('pantry — dedup, pin idempotency, future-only prefill', () => {
     const pantry = await agent.get('/api/v1/pantry');
     expect(pantry.body.data).toHaveLength(1);
   });
+});
 
-  it('unpin affects future prefill only — existing day lines are untouched', async () => {
+describe('pantry — pin/unpin cascades (B-045)', () => {
+  it('unpin cascade — drops qty-0 lines everywhere, keeps logged lines without the pin icon', async () => {
     const { agent, csrf, userId } = await authedAgent(app, 'alice');
     await seedTarget(userId, '2026-01-01');
     const food = await seedFood(userId, 'Flocons');
@@ -153,27 +158,64 @@ describe('pantry — dedup, pin idempotency, future-only prefill', () => {
       meal_slot_name: 'Petit déjeuner',
       food_id: food.id,
     });
+    const breakfastOf = (body: {
+      meals: { slot_name: string; id: string; entries: unknown[] }[];
+    }) => body.meals.find((m) => m.slot_name === 'Petit déjeuner')!;
 
-    // Materialize a future day WITH the pin in effect → it gets the qty-0 line.
-    await csrfPost(agent, csrf, `/api/v1/days/${FUTURE_A}`);
+    // Day A: prefilled, then logged at qty 200 → must survive the unpin.
+    const matA = await csrfPost(agent, csrf, `/api/v1/days/${FUTURE_A}`);
+    const bA = breakfastOf(matA.body) as { id: string; entries: { id: string }[] };
+    await csrfPatch(agent, csrf, `/api/v1/meals/${bA.id}/entries/${bA.entries[0]!.id}`, {
+      served_quantity: 200,
+    });
 
-    // Unpin from settings (future-only).
+    // Day B: prefilled, left at qty 0 → must be dropped by the unpin.
+    await csrfPost(agent, csrf, `/api/v1/days/${FUTURE_B}`);
+
+    // Unpin from settings → cascade runs across all days.
     const del = await agent.delete(`/api/v1/pantry/${pin.body.data.id}`).set('x-csrf-token', csrf);
     expect(del.status).toBe(204);
 
-    // The already-materialized day keeps its line…
-    const existing = await agent.get(`/api/v1/days/${FUTURE_A}`);
-    const existingBreakfast = existing.body.meals.find(
-      (m: { slot_name: string }) => m.slot_name === 'Petit déjeuner',
-    );
-    expect(existingBreakfast.entries).toHaveLength(1);
+    // Day A keeps the logged line, now without the derived pin icon.
+    const bAfterA = breakfastOf((await agent.get(`/api/v1/days/${FUTURE_A}`)).body);
+    expect(bAfterA.entries).toHaveLength(1);
+    expect(bAfterA.entries[0]).toMatchObject({ served_quantity: 200, is_pinned: false });
 
-    // …but a brand-new day no longer pre-fills it.
-    const fresh = await agent.get(`/api/v1/days/${FUTURE_B}`);
-    const freshBreakfast = fresh.body.meals.find(
-      (m: { slot_name: string }) => m.slot_name === 'Petit déjeuner',
-    );
-    expect(freshBreakfast.entries).toHaveLength(0);
+    // Day B's qty-0 line is gone, and a brand-new day no longer pre-fills it.
+    expect(breakfastOf((await agent.get(`/api/v1/days/${FUTURE_B}`)).body).entries).toHaveLength(0);
+    expect(breakfastOf((await agent.get(`/api/v1/days/${FUTURE_C}`)).body).entries).toHaveLength(0);
+  });
+
+  it('pin cascade (Option C) — adds a qty-0 line to today + future days, never to past days', async () => {
+    const { agent, csrf, userId } = await authedAgent(app, 'alice');
+    await seedTarget(userId, '2026-01-01');
+    const food = await seedFood(userId, 'Flocons');
+    const breakfastOf = (body: { meals: { slot_name: string; entries: unknown[] }[] }) =>
+      body.meals.find((m) => m.slot_name === 'Petit déjeuner')!;
+
+    // Three existing days, no pin yet → breakfast is empty on all of them.
+    await csrfPost(agent, csrf, `/api/v1/days/${PAST}`);
+    await csrfPost(agent, csrf, `/api/v1/days/${TODAY}`);
+    await csrfPost(agent, csrf, `/api/v1/days/${FUTURE_A}`);
+
+    // Pin the food from settings.
+    await csrfPost(agent, csrf, '/api/v1/pantry', {
+      meal_slot_name: 'Petit déjeuner',
+      food_id: food.id,
+    });
+
+    // Past is untouched; today + future gained the live qty-0 pin line.
+    expect(breakfastOf((await agent.get(`/api/v1/days/${PAST}`)).body).entries).toHaveLength(0);
+    const today = breakfastOf((await agent.get(`/api/v1/days/${TODAY}`)).body);
+    expect(today.entries).toHaveLength(1);
+    expect(today.entries[0]).toMatchObject({
+      food_id: food.id,
+      served_quantity: 0,
+      is_pinned: true,
+    });
+    const future = breakfastOf((await agent.get(`/api/v1/days/${FUTURE_A}`)).body);
+    expect(future.entries).toHaveLength(1);
+    expect(future.entries[0]).toMatchObject({ food_id: food.id, is_pinned: true });
   });
 });
 

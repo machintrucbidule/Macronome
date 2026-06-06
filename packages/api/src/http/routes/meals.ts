@@ -6,8 +6,8 @@ import { requireAuth } from '../middleware/auth.js';
 
 // Meal entries + leftover-create resource (spec/api/days-meals-leftover.md §Meal entries,
 // §Leftover). Entries and the per-meal leftover apply hang off /meals/:mealId. The pin/unpin
-// endpoints toggle the line's garde-manger pantry_item (future-day prefill only, OPEN_GAPS
-// #8). All routes require auth (user-scoped).
+// endpoints edit the line's garde-manger pantry_item (the live source of truth) and run the
+// pin/unpin cascades (spec/logic/pantry-pin.md, B-045). All routes require auth (user-scoped).
 const router = Router();
 
 router.use(requireAuth);

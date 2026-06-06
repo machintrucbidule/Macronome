@@ -73,6 +73,8 @@ target_zone:{cal_min,cal_max}, signals:[{code,value,text}]}`.
 - `GET /meal-template` · `POST /meal-template` (add) ·
   `PATCH /meal-template/:id` (rename/reorder) · `DELETE /meal-template/:id`.
 - `GET /pantry?meal_slot_name=` — list. `POST /pantry`
-  `{meal_slot_name,food_id}` (dedup → 409 `pantry_duplicate`).
-  `DELETE /pantry/:id` — unpins; affects **future** prefill only (OPEN_GAPS #8).
-  The Repas pin endpoints and these are two views of the same `pantry_item` data.
+  `{meal_slot_name,food_id}` (dedup → 409 `pantry_duplicate`) — pins and runs the **add
+  cascade** (qty-0 line on today + future days lacking the food; `logic/pantry-pin.md`,
+  B-045). `DELETE /pantry/:id` — unpins and runs the **delete cascade** (drops qty-0
+  lines for (slot, food) everywhere, keeps qty > 0). The Repas pin endpoints and these
+  are two views of the same live `pantry_item` data.

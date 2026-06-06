@@ -170,10 +170,18 @@ number. Confirms G7.
   to the dash.
 - **8 — Pantry editor (Paramètres):** (a) pantry foods within a meal ordered by
   insertion order; (b) no duplicate — a food already pinned on a meal cannot be
-  re-added (pin = boolean per (meal_slot_name, food_id)); (c) removing a food
-  here = unpinning = affects **future-day pre-fill only**; today's and past days'
-  already-created lines are untouched (a day's lines are independent once the day
-  exists). Same operation as toggling 📌 off on Repas, seen from the other side.
+  re-added (pin keyed per `(meal_slot_name, food_id)`); (c) **the `pantry_item` list
+  is the single live source of truth** — the 📌 icon on every day (past/present/future)
+  is **derived from it on read**, not a per-day snapshot. The Paramètres editor and the
+  Repas 📌 are two views of the same data and update everywhere instantly.
+  **REVISED by B-045 (was: "unpin affects future-day pre-fill only; past lines
+  untouched" — that frozen-snapshot model caused the same food to show pinned on one day
+  and not another).** New cascades (`spec/logic/pantry-pin.md`): **pin** adds a qty-0
+  referenced line to existing days with `date >= today` that lack the food (Option C —
+  _today + future_; past history untouched), and future uncreated days prefill at
+  creation; **unpin** removes every qty-0 referenced line for `(slot, food)` across all
+  days, **keeps** lines with qty > 0 (they simply lose the derived icon), and stops
+  future prefill. The `meal_entry.is_pinned` column is **dropped** (the flag is derived).
 - **9 — EMA factor:** α = 0.35 kept as the documented default, implemented as a
   named constant (trivially tunable); fine calibration is a post-load step,
   outside the spec. Pinned details: the EMA runs **over the weigh-in series**

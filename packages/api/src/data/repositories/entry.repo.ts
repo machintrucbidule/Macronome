@@ -1,5 +1,6 @@
 import type { MealEntry as MealEntryModel } from '@prisma/client';
 import { prisma } from '../prisma.js';
+import { toDate } from './day-read.repo.js';
 
 // Writes for meal_entry (a logged food line). Part of the day aggregate; split out for
 // the 300-line rule. User-scoped via meal → day_log.user_id (no Prisma relations). The
@@ -60,9 +61,80 @@ export const entryRepo = {
     return prisma.mealEntry.update({ where: { id: entryId }, data });
   },
 
-  /** Toggle the pin flag (mirrors a pantry_item). Used by the Repas 📌 (M7). */
-  setPinned(entryId: string, isPinned: boolean): Promise<MealEntryModel> {
-    return prisma.mealEntry.update({ where: { id: entryId }, data: { isPinned } });
+  /** Unpin cascade (B-045): drop every qty-0 referenced line for (slot, food) across all
+   *  the user's days. Lines with qty > 0 are kept (they lose only the derived pin icon).
+   *  User-scoped via day_log → meal → meal_entry. Returns the number of lines removed. */
+  async deleteZeroQtyReferencedLines(
+    userId: string,
+    slotName: string,
+    foodId: string,
+  ): Promise<number> {
+    const mealIds = await this.userMealIds(userId, slotName);
+    if (mealIds.length === 0) return 0;
+    const res = await prisma.mealEntry.deleteMany({
+      where: { mealId: { in: mealIds }, kind: 'referenced', foodId, servedQuantity: 0 },
+    });
+    return res.count;
+  },
+
+  /** Pin cascade (B-045, Option C): append a qty-0 referenced line for (slot, food) to
+   *  every day with date >= today whose slot meal does not already list the food. Past
+   *  days are untouched; future uncreated days are covered by prefill at creation. */
+  async addZeroQtyLineToCurrentAndFuture(
+    userId: string,
+    slotName: string,
+    foodId: string,
+    today: string,
+  ): Promise<void> {
+    const days = await prisma.dayLog.findMany({
+      where: { userId, date: { gte: toDate(today) } },
+      select: { id: true },
+    });
+    if (days.length === 0) return;
+    const meals = await prisma.meal.findMany({
+      where: { dayLogId: { in: days.map((d) => d.id) }, slotName },
+      select: { id: true },
+    });
+    if (meals.length === 0) return;
+    const present = await prisma.mealEntry.findMany({
+      where: { mealId: { in: meals.map((m) => m.id) }, kind: 'referenced', foodId },
+      select: { mealId: true },
+    });
+    const haveFood = new Set(present.map((e) => e.mealId));
+    const targets = meals.filter((m) => !haveFood.has(m.id));
+    if (targets.length === 0) return;
+    const maxima = await prisma.mealEntry.groupBy({
+      by: ['mealId'],
+      where: { mealId: { in: targets.map((m) => m.id) } },
+      _max: { orderIndex: true },
+    });
+    const nextIndex = new Map(maxima.map((g) => [g.mealId, (g._max.orderIndex ?? -1) + 1]));
+    await prisma.mealEntry.createMany({
+      data: targets.map((m) => ({
+        mealId: m.id,
+        kind: 'referenced',
+        foodId,
+        servedQuantity: 0,
+        unit: 'g',
+        servedGrams: 0,
+        snapKcal: 0,
+        snapFat: 0,
+        snapCarb: 0,
+        snapProtein: 0,
+        orderIndex: nextIndex.get(m.id) ?? 0,
+      })),
+    });
+  },
+
+  /** Meal ids for the user with the given slot name (day_log → meal scoping helper). */
+  async userMealIds(userId: string, slotName: string): Promise<string[]> {
+    const days = await prisma.dayLog.findMany({ where: { userId }, select: { id: true } });
+    if (days.length === 0) return [];
+    const meals = await prisma.meal.findMany({
+      where: { dayLogId: { in: days.map((d) => d.id) }, slotName },
+      select: { id: true },
+    });
+    return meals.map((m) => m.id);
   },
 
   async delete(userId: string, entryId: string): Promise<boolean> {

@@ -248,9 +248,10 @@ model Meal {
 /// A logged food line (spec/schema/tables-logging.md → meal_entry). Stores the served
 /// quantity + a macro snapshot frozen at write time (history immune to later food/
 /// recipe edits). Consumed grams & scaled macros are derived = snapshot × consumed/
-/// served (leftover-proration.md). `is_pinned` mirrors a pantry_item — created here but
-/// inert until M7 wires the pantry. The XOR(referenced⇔food_id, custom⇔custom_name),
-/// CHECKs and the meal FK (ON DELETE CASCADE) live in migration SQL.
+/// served (leftover-proration.md). The garde-manger pin is NOT stored per line: it is
+/// derived live from pantry_item on read (spec/logic/pantry-pin.md, B-045). The
+/// XOR(referenced⇔food_id, custom⇔custom_name), CHECKs and the meal FK (ON DELETE
+/// CASCADE) live in migration SQL.
 model MealEntry {
   id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   mealId          String   @map("meal_id") @db.Uuid
@@ -265,7 +266,6 @@ model MealEntry {
   snapFat         Decimal  @map("snap_fat") @db.Decimal
   snapCarb        Decimal  @map("snap_carb") @db.Decimal
   snapProtein     Decimal  @map("snap_protein") @db.Decimal
-  isPinned        Boolean  @default(false) @map("is_pinned")
   orderIndex      Int      @map("order_index")
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz()

@@ -8,7 +8,7 @@ import { toDate } from './day-read.repo.js';
 // files. Every method is user-scoped (CLAUDE.md rule 3) — sub-entity ownership is
 // verified by walking meal → day_log.user_id (the schema has no Prisma relations).
 
-/** A garde-manger pre-fill line materialized with a new day (qty 0, pinned). */
+/** A garde-manger pre-fill line materialized with a new day (qty 0; pin derived live). */
 export interface PrefillEntry {
   foodId: string;
   orderIndex: number;
@@ -55,9 +55,9 @@ export const dayRepo = {
           data: { dayLogId: day.id, slotName: m.slotName, orderIndex: m.orderIndex },
         });
         if (m.prefill && m.prefill.length > 0) {
-          // Garde-manger pre-fill: qty-0 referenced lines, pinned, snapshot 0 (the user
-          // edits the quantity to log). History stays frozen — later unpins never touch
-          // these already-materialized lines (OPEN_GAPS #8).
+          // Garde-manger pre-fill: qty-0 referenced lines, snapshot 0 (the user edits the
+          // quantity to log). The pin icon is derived live from pantry_item on read, not
+          // stored per line (spec/logic/pantry-pin.md, B-045).
           await tx.mealEntry.createMany({
             data: m.prefill.map((p) => ({
               mealId: meal.id,
@@ -70,7 +70,6 @@ export const dayRepo = {
               snapFat: 0,
               snapCarb: 0,
               snapProtein: 0,
-              isPinned: true,
               orderIndex: p.orderIndex,
             })),
           });

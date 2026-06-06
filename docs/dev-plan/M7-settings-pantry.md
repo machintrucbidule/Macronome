@@ -29,9 +29,12 @@ Depends-on: M1 (foods to pin), M3 (day pre-fill semantics).
 > projection's Maintien gate is applied client-side in M4 and should move server-side once
 > the mode is persisted.
 
-- Pantry editor (Gap 8): pinned foods ordered by insertion; no duplicate pin per
-  `(meal_slot_name, food_id)`; **unpinning affects future-day pre-fill only** —
-  today's/past lines untouched. Same op as the Repas 📌 toggle, seen from settings.
+- Pantry editor (Gap 8, revised by B-045): pinned foods ordered by insertion; no
+  duplicate pin per `(meal_slot_name, food_id)`. The pin is the **live source of truth**
+  (icon derived per read on all days); **pinning** adds a qty-0 line to today + future
+  days and prefills new days; **unpinning** drops qty-0 lines for (slot, food) everywhere
+  and keeps qty > 0 (it loses only the icon) — see `spec/logic/pantry-pin.md`. Same op as
+  the Repas 📌 toggle, seen from settings.
 - Containers screen: CRUD; deletion is free (leftover history froze name+tare as a
   value, `DECISIONS.md` Gap 13) — "Rien" stays locked.
 - Settings/profile/account screens (`specifications/screens/{settings,containers,

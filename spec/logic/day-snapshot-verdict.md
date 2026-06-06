@@ -41,6 +41,10 @@ day's own date**:
 - Rationale: only `cal_min/cal_max` feed a stored verdict (auto is
   calorie-only); the gram thresholds are display-only. Freezing keeps the OK/NOK
   history and the Stats OK-rate stable when targets/weight change later.
+- **Contrast — the garde-manger pin is NOT frozen** (unlike this snapshot): the 📌
+  state is derived live from `pantry_item` on every read, so editing the pantry list
+  changes the pin icon on past days too (it never changes their macros/verdict). See
+  `pantry-pin.md` (B-045).
 
 ## 4. Day calorie total
 
