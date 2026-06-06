@@ -56,6 +56,13 @@
   gap: var(--sp-7);
 }
 
+/* Confirm/prose text inside a (flex-column) body: a single block child so inline markup
+   (e.g. a bolded name via <Trans>) flows on one line instead of stacking as flex items. */
+.text {
+  margin: 0;
+  line-height: var(--lh-snug);
+}
+
 .actions {
   border-top: var(--bw) solid var(--border);
   padding: 14px 20px 20px;

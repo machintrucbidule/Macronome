@@ -16,11 +16,13 @@ export function MealTemplateDeleteConfirm({ item, onCancel, onConfirm }: Props) 
   return (
     <Modal title={t('settings.template.deleteTitle')} size="confirm" onClose={onCancel}>
       <div className={modalStyles.body}>
-        <Trans
-          i18nKey="settings.template.deletePrompt"
-          values={{ name: item.name }}
-          components={{ b: <b /> }}
-        />
+        <p className={modalStyles.text}>
+          <Trans
+            i18nKey="settings.template.deletePrompt"
+            values={{ name: item.name }}
+            components={{ b: <b /> }}
+          />
+        </p>
       </div>
       <div className={modalStyles.actions}>
         <span />

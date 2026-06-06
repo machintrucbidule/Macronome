@@ -35,16 +35,9 @@
 .num {
   font-family: var(--font-num);
   text-align: right;
-  /* No native spinner arrows (design forms-inputs.md: the only stepper is the custom
-     recipe-servings one). The bare arrows glue to the digit and clash with the design. */
-  appearance: textfield;
-  -moz-appearance: textfield;
-}
-.num::-webkit-outer-spin-button,
-.num::-webkit-inner-spin-button {
-  appearance: none;
-  -webkit-appearance: none;
-  margin: 0;
+  /* Native spinners stay (B-006). Keep the right-aligned value off the browser arrows so
+     the digit isn't glued to them; suffixed fields override this below. */
+  padding-right: 24px;
 }
 .input::placeholder {
   color: var(--text-faint);
@@ -58,17 +51,19 @@
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--nok) 20%, transparent);
 }
 
-/* number input with a unit suffix (kcal / g) */
+/* number input with a unit suffix (kcal / g). Layout reads value · unit · native spinner:
+   the value clears the unit (padding-right), and the unit sits just left of the browser
+   spinner at the field's right edge (B-006). */
 .withSuffix {
   position: relative;
 }
 .withSuffix .input {
   width: 100%;
-  padding-right: 38px;
+  padding-right: 58px;
 }
 .suffix {
   position: absolute;
-  right: 11px;
+  right: 26px;
   top: 50%;
   transform: translateY(-50%);
   font-family: var(--font-num);

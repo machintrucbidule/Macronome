@@ -16,11 +16,13 @@ export function ArchiveConfirm({ food, onCancel, onConfirm }: ArchiveConfirmProp
   return (
     <Modal title={t('foods.confirm.title')} size="confirm" onClose={onCancel}>
       <div className={modalStyles.body}>
-        <Trans
-          i18nKey="foods.confirm.body"
-          values={{ name: food.name }}
-          components={{ b: <b /> }}
-        />
+        <p className={modalStyles.text}>
+          <Trans
+            i18nKey="foods.confirm.body"
+            values={{ name: food.name }}
+            components={{ b: <b /> }}
+          />
+        </p>
       </div>
       <div className={modalStyles.actions}>
         <span />

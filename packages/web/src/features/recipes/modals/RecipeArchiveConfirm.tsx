@@ -16,11 +16,13 @@ export function RecipeArchiveConfirm({ recipe, onCancel, onConfirm }: RecipeArch
   return (
     <Modal title={t('recipes.confirm.title')} size="confirm" onClose={onCancel}>
       <div className={modalStyles.body}>
-        <Trans
-          i18nKey="recipes.confirm.body"
-          values={{ name: recipe.name }}
-          components={{ b: <b /> }}
-        />
+        <p className={modalStyles.text}>
+          <Trans
+            i18nKey="recipes.confirm.body"
+            values={{ name: recipe.name }}
+            components={{ b: <b /> }}
+          />
+        </p>
       </div>
       <div className={modalStyles.actions}>
         <span />

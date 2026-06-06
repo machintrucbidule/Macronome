@@ -42,7 +42,7 @@ export function GoalFields({ draft, set, engine }: GoalFieldsProps) {
         />
         <NumberInput
           label={<OptionalLabel textKey="cibles.targets.rate" />}
-          suffix="kg/sem"
+          suffix="kg/s"
           wrapperClassName={styles.inpW}
           min={0}
           step={0.01}
