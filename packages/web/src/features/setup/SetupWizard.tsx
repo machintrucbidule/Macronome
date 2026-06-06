@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { AuthTopBar } from '../../app/AuthTopBar';
 import { Button } from '../../components/Button/Button';
 import { CredentialsStep } from './steps/CredentialsStep';
 import { ProfileStep } from './steps/ProfileStep';
@@ -14,6 +15,7 @@ export function SetupWizard() {
 
   return (
     <main className={styles.wizard}>
+      <AuthTopBar />
       <h1>{t('setup.title')}</h1>
       <p className={styles.intro}>{t('setup.intro')}</p>
 

@@ -1,0 +1,46 @@
+/* Shared pre-auth top bar (Login + first-run setup wizard). Fixed top-right;
+   FR/EN segmented group + ThemeToggle. Moved verbatim from LoginPage.module.css. */
+.topbar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  display: flex;
+  gap: 8px;
+  padding: 16px 18px;
+  z-index: 5;
+}
+
+.seg {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+
+.seg button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--text-dim);
+  font-family: var(--font-num);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  padding: 0 11px;
+  height: 100%;
+  cursor: pointer;
+}
+
+.seg button[aria-pressed='true'] {
+  color: var(--accent-ink);
+  background: var(--accent);
+}
+
+.sep {
+  width: 1px;
+  height: 60%;
+  align-self: center;
+  background: var(--border);
+}

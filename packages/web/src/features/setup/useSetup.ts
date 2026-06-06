@@ -13,16 +13,27 @@ import { SETUP_STATE_KEY } from '../../app/useSetupState';
 export interface SetupDraft {
   username: string;
   password: string;
+  confirmPassword: string;
   sex: Sex | '';
   birthdate: string;
   heightCm: string;
 }
 
-const EMPTY: SetupDraft = { username: '', password: '', sex: '', birthdate: '', heightCm: '' };
+const EMPTY: SetupDraft = {
+  username: '',
+  password: '',
+  confirmPassword: '',
+  sex: '',
+  birthdate: '',
+  heightCm: '',
+};
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
+// The owner account is non-recoverable in-app (no "forgot password"), so the password must be
+// entered twice and match before we let it through (B-004). The confirmation is a client guard
+// only — the API still receives a single password.
 export function credentialsValid(d: SetupDraft): boolean {
-  return d.username.trim().length > 0 && d.password.length >= 8;
+  return d.username.trim().length > 0 && d.password.length >= 8 && d.password === d.confirmPassword;
 }
 
 export function profileValid(d: SetupDraft): boolean {

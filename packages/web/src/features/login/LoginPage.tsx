@@ -1,41 +1,13 @@
 import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import i18n from '../../i18n/config';
-import { applyLocale } from '../../app/applySettings';
-import { ThemeToggle } from '../../app/ThemeToggle';
+import { AuthTopBar } from '../../app/AuthTopBar';
 import { useLogin, type LoginState } from './useLogin';
 import styles from './LoginPage.module.css';
 
 // Pre-auth login surface (design/components/states.md §Login). A single card whose
 // data-state (idle|loading|error|lockout|success) is driven entirely by the server via
 // useLogin; CSS reveals the matching banner / countdown / success flash. The web renders,
-// never decides. Own top-bar (language + theme) per theming.md.
-
-function LoginTopBar() {
-  const { t } = useTranslation();
-  return (
-    <div className={styles.topbar}>
-      <div className={styles.seg} role="group" aria-label={t('login.languageGroup')}>
-        <button
-          type="button"
-          aria-pressed={i18n.language === 'fr'}
-          onClick={() => applyLocale('fr')}
-        >
-          FR
-        </button>
-        <span className={styles.sep} />
-        <button
-          type="button"
-          aria-pressed={i18n.language === 'en'}
-          onClick={() => applyLocale('en')}
-        >
-          EN
-        </button>
-      </div>
-      <ThemeToggle />
-    </div>
-  );
-}
+// never decides. Shared pre-auth top-bar (language + theme) per theming.md.
 
 function StateAlert({ state, lockSeconds }: { state: LoginState; lockSeconds: number }) {
   const { t } = useTranslation();
@@ -86,7 +58,7 @@ export function LoginPage() {
 
   return (
     <div className={styles.shell} data-state={state}>
-      <LoginTopBar />
+      <AuthTopBar />
       <main className={styles.card} aria-labelledby="login-wordmark">
         <form className={styles.formBody} onSubmit={onSubmit}>
           <div className={styles.brand}>

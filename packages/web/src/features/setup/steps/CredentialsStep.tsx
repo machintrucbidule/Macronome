@@ -11,6 +11,7 @@ interface Props {
 
 export function CredentialsStep({ draft, set }: Props) {
   const { t } = useTranslation();
+  const mismatch = draft.confirmPassword.length > 0 && draft.confirmPassword !== draft.password;
   return (
     <>
       <TextInput
@@ -27,6 +28,15 @@ export function CredentialsStep({ draft, set }: Props) {
         onChange={(e) => set({ password: e.target.value })}
       />
       <p>{t('setup.passwordHint')}</p>
+      <TextInput
+        label={t('setup.confirmPassword')}
+        type="password"
+        autoComplete="new-password"
+        invalid={mismatch}
+        value={draft.confirmPassword}
+        onChange={(e) => set({ confirmPassword: e.target.value })}
+      />
+      {mismatch && <p role="alert">{t('setup.passwordMismatch')}</p>}
     </>
   );
 }

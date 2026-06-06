@@ -37,6 +37,8 @@
     "username": "Identifiant",
     "password": "Mot de passe",
     "passwordHint": "8 caractères minimum.",
+    "confirmPassword": "Confirmer le mot de passe",
+    "passwordMismatch": "Les mots de passe ne correspondent pas.",
     "sex": "Sexe",
     "sexPlaceholder": "Sélectionner…",
     "male": "Homme",

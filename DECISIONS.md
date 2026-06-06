@@ -399,3 +399,38 @@ this stepper (and the recipe-servings stepper is noted as the distinct horizonta
 variant). The custom stepper is no longer recipe-servings-only. No data/API/schema change.
 
 ---
+
+## B-004 / B-005 — First-run setup wizard: confirm-password + pre-auth top bar — RESOLVED (author)
+
+Post-v1 backlog triage (batch IMP-2). The first-run **setup wizard** — the only way to create
+the single owner account on a fresh install — diverged from the pre-auth screen contract in two
+ways. It had **one** password field (a typo there silently locks the owner out of their only
+account, with no in-app recovery by design — see `screens/login.md` "Deliberate omissions"), and
+it carried **no** pre-auth controls, whereas the Login screen mandates a top bar with FR/EN +
+dark/light "posed here on the simplest screen". The wizard has no dedicated screen spec; its
+nearest authority is the pre-auth spec `specifications/screens/login.md`.
+
+- **Decision (B-004):** the credentials step requires the password **entered twice**; the two
+  must match (and meet the existing 8-char minimum) before the owner account can be created. A
+  mismatch marks the confirmation field invalid (`aria-invalid`, the canonical red-border state)
+  with a hint, and keeps the step's "Continuer" button disabled. The confirmation is a **client
+  guard only** — the API still receives a single `password`; no DTO/endpoint change. _(Author —
+  approved as an improvement; chosen over a reveal-toggle because re-entry is the safer guard for
+  a non-recoverable single account.)_
+- **Decision (B-005):** the wizard carries the **same pre-auth top bar** as Login — FR/EN +
+  dark/light segmented toggles — applied client-side and live (theme swaps tokens, FR/EN swaps
+  strings), exactly as on Login. The bar is extracted into a shared `AuthTopBar` used by both
+  screens (Login's appearance unchanged). No theme persistence is introduced (still client-side,
+  per the login spec's still-open "proposed addition"). _(Author — chose **theme + language**
+  over theme-only for full pre-auth parity, IMP-2 planning.)_
+
+**Rationale:** both fixes raise safety/parity to the Login contract without computing anything in
+the web or touching domain data — purely pre-auth UX. Reusing `ThemeToggle` and the canonical
+text input keeps the design contract unchanged.
+
+**Spec impact:** `specifications/screens/login.md` (git-ignored local authority) gains a
+"First-run setup wizard (related pre-auth screen)" section recording both requirements. **No**
+`design/`, `spec/api/`, `spec/logic/`, DTO, or schema change — the confirm field and the toggles
+are all web-only.
+
+---

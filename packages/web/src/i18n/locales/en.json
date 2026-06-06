@@ -37,6 +37,8 @@
     "username": "Username",
     "password": "Password",
     "passwordHint": "At least 8 characters.",
+    "confirmPassword": "Confirm password",
+    "passwordMismatch": "The passwords do not match.",
     "sex": "Sex",
     "sexPlaceholder": "Select…",
     "male": "Male",
