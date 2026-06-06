@@ -194,9 +194,14 @@
       "proteinRatio": "Protéines",
       "fatRatio": "Lipides",
       "carbNote": "Les glucides ne se saisissent pas : ils sont le reste calculé (plafond à droite).",
+      "carbLabel": "Glucides — plafond",
+      "carbValue": "= {{value}} g (calculé)",
+      "carbPending": "calculé",
       "goal": "Objectif de poids",
       "targetWeight": "Poids cible",
-      "rate": "Rythme visé"
+      "rate": "Rythme visé",
+      "targetBmi": "IMC cible",
+      "targetBmiHint": "Dérivé du poids cible et de la taille"
     },
     "profile": {
       "sex": "Sexe",
@@ -540,7 +545,8 @@
       "rename": "Renommer",
       "renamePrompt": "Nom du repas :",
       "delete": "Supprimer",
-      "deletePrompt": "Retirer « {{name}} » du modèle ?",
+      "deleteTitle": "Retirer ce repas du modèle ?",
+      "deletePrompt": "« <b>{{name}}</b> » sera retiré de la structure de journée par défaut. Tes journées déjà enregistrées ne changent pas.",
       "addPlaceholder": "Nouveau repas (ex. Collation)",
       "add": "+ Ajouter"
     },

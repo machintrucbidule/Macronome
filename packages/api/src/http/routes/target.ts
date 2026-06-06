@@ -10,6 +10,7 @@ const router = Router();
 router.use(requireAuth);
 router.get('/', asyncHandler(targets.get));
 router.post('/', asyncHandler(targets.create));
+router.post('/preview', asyncHandler(targets.preview));
 router.post('/suggest', asyncHandler(targets.suggest));
 
 export default router;

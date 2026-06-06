@@ -8,14 +8,14 @@ import {
 import { MetricCard } from '../../../components/MetricCard/MetricCard';
 import { Banner } from '../../../components/Banner/Banner';
 import { ProfileForm } from './ProfileForm';
-import { grams1, kcal, macroG, multiplier2, rate2, signedKcal } from '../format';
+import { MacroFloorTiles } from './MacroFloorTiles';
+import { grams1, kcal, multiplier2, rate2, signedKcal } from '../format';
 import styles from '../cibles.module.css';
 
 // Right column — "Moteur métabolique" (computed). Every figure comes from GET /target;
 // the web only rounds for display. Weight-dependent tiles read "—" until there is a
 // weigh-in; empirical burn needs logged days (M3) and stays "—" in M2.
 const DASH = '—';
-const showG = (n: number | null): string => (n === null ? DASH : macroG(n));
 const showKcal = (n: number | null): string => (n === null ? DASH : kcal(n));
 
 interface EnginePanelProps {
@@ -60,25 +60,7 @@ export function EnginePanel({ engine, warnings, profile }: EnginePanelProps) {
 
       {noWeight && <Banner tone="warning">{t('cibles.warning.noWeight')}</Banner>}
 
-      <div className={styles.tiles3}>
-        <MetricCard
-          label={t('cibles.engine.proteinFloor')}
-          value={showG(engine.protein_floor_g)}
-          unit="g"
-          note={t('cibles.engine.floorNote')}
-        />
-        <MetricCard
-          label={t('cibles.engine.fatFloor')}
-          value={showG(engine.fat_floor_g)}
-          unit="g"
-        />
-        <MetricCard
-          label={t('cibles.engine.carbCeiling')}
-          value={showG(engine.carb_ceiling_g)}
-          unit="g"
-          tone={carbWarn ? 'warn' : 'default'}
-        />
-      </div>
+      <MacroFloorTiles engine={engine} carbWarn={carbWarn} />
 
       {carbWarn && <Banner tone="warning">{t('cibles.warning.carb')}</Banner>}
 

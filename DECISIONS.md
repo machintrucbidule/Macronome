@@ -331,3 +331,39 @@ cell gains `kcal:number|null`; `specifications/screens/stats.md` already specifi
 consistent). DTO `HeatmapCell` + domain `heatmap()` updated. No schema change.
 
 ---
+
+## B-042 — Cibles target BMI + live recompute via a preview endpoint — RESOLVED (author)
+
+Post-v1 backlog triage (batch BF-6). `specifications/screens/targets.md` mandates that the
+Cibles screen show a derived **target BMI** ("Objectif de poids" group) and that editing any
+calorie/ratio/target field **recomputes live** (derived grams, carb ceiling, deficit, BMI).
+The shipped screen exposed **no** target BMI at all, and the engine readout only refreshed
+**after Save** (read from `GET /target`) — a divergence from the screen contract.
+
+The web app cannot fill either gap itself: `CLAUDE.md` rule 2 forbids the web from computing
+any BMI, and the live figures need the full metabolic engine. The server already owns the
+maths (`computeEngine`, `domain/weight/bmi`) but only over the **persisted** target.
+
+- **Decision (target BMI):** add `target_bmi` to the engine readout, computed server-side as
+  `target_weight_kg / (height_m)²` (the existing BMI formula, on the _target_ weight), null
+  when no target weight is set. Carried by both `GET /target` and the new preview endpoint.
+- **Decision (live recompute):** add a **stateless** `POST /target/preview` endpoint. The form
+  posts the current draft target (the create body minus `effective_from`, debounced) and
+  receives the engine readout for the **unsaved** draft, **without persisting** (no row written
+  — read-only, user-scoped). Live recompute is scoped to the **target draft**: the preview uses
+  the **persisted** profile + latest weigh-in; profile fields (sex/birthdate/height) still
+  refresh the engine on their own `PATCH /profile` save, as before. _(Author — confirmed
+  during BF-6 planning, "tout B-042 maintenant".)_
+
+**Rationale:** keeps the entire nutrition computation on the backend (rule 2) while honouring
+the screen contract — preferred over computing BMI/derived grams in the client. `target_bmi`
+reuses the proven `bmi()` (no new maths); the preview reuses the pure `computeEngine` (a new
+read-only view of it, mirroring `POST /recipes/preview`, B-035). `screens/targets.md` is
+**unchanged** (the code is brought into line with it).
+
+**Spec impact:** `spec/logic/targets-macros.md` gains §6 (Target BMI + oracle);
+`spec/api/weight-targets-stats-settings.md` §Targets adds `target_bmi` to the engine object
+and the `POST /target/preview` endpoint; DTO `EngineReadout` gains `target_bmi`, plus
+`TargetPreviewSchema`/`PreviewTargetResponse`. No schema change (nothing persisted).
+
+---

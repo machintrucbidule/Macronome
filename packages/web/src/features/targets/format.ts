@@ -20,6 +20,9 @@ export const macroG = (n: number): string => formatInt(n);
 
 export const ratio2 = (n: number): string => formatFixed(n, 2);
 
+/** BMI for display: 1 decimal (targets-macros.md §6, weight-periods-trajectory.md §5). */
+export const bmi1 = (n: number): string => formatFixed(n, 1);
+
 export const rate2 = (n: number): string => formatFixed(n, 2);
 
 export const multiplier2 = (n: number): string => `×${formatFixed(n, 2)}`;

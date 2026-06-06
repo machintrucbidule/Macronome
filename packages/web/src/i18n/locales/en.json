@@ -194,9 +194,14 @@
       "proteinRatio": "Protein",
       "fatRatio": "Fat",
       "carbNote": "Carbs are never entered: they are the computed remainder (ceiling on the right).",
+      "carbLabel": "Carbs — ceiling",
+      "carbValue": "= {{value}} g (computed)",
+      "carbPending": "computed",
       "goal": "Weight goal",
       "targetWeight": "Target weight",
-      "rate": "Desired rate"
+      "rate": "Desired rate",
+      "targetBmi": "Target BMI",
+      "targetBmiHint": "Derived from target weight and height"
     },
     "profile": {
       "sex": "Sex",
@@ -540,7 +545,8 @@
       "rename": "Rename",
       "renamePrompt": "Meal name:",
       "delete": "Delete",
-      "deletePrompt": "Remove “{{name}}” from the template?",
+      "deleteTitle": "Remove this meal from the template?",
+      "deletePrompt": "“<b>{{name}}</b>” will be removed from the default day structure. Days you have already saved are not affected.",
       "addPlaceholder": "New meal (e.g. Snack)",
       "add": "+ Add"
     },

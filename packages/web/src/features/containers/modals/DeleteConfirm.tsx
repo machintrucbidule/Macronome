@@ -18,7 +18,11 @@ export function DeleteConfirm({ container, onCancel, onConfirm }: Props) {
     <Modal title={t('containers.confirm.title')} size="confirm" onClose={onCancel}>
       <div className={styles.modalBody}>
         <p>
-          <Trans i18nKey="containers.confirm.body" values={{ name: container.name }} />
+          <Trans
+            i18nKey="containers.confirm.body"
+            values={{ name: container.name }}
+            components={{ b: <b /> }}
+          />
         </p>
       </div>
       <div className={styles.modalActions}>

@@ -1,4 +1,4 @@
-import type { CreateTargetRequest, Target } from '@macronome/shared';
+import type { CreateTargetRequest, PreviewTargetRequest, Target } from '@macronome/shared';
 
 // Local form state for the manual targets (left column). Kept as strings so the inputs
 // stay controlled; converted to the typed request on save. The engine is never
@@ -39,6 +39,19 @@ export function draftToBody(draft: TargetDraft): CreateTargetRequest {
     target_weight_kg: optional(draft.targetWeightKg),
     rate_kg_per_week: optional(draft.rateKgPerWeek),
     effective_from: new Date().toISOString().slice(0, 10),
+  };
+}
+
+/** Build the stateless preview body (no effective_from — nothing is persisted). Used to
+ * recompute the engine live while editing (DECISIONS B-042). */
+export function draftToPreviewBody(draft: TargetDraft): PreviewTargetRequest {
+  return {
+    calorie_min: Number(draft.calorieMin),
+    calorie_max: Number(draft.calorieMax),
+    protein_g_per_kg: Number(draft.proteinGPerKg),
+    fat_g_per_kg: Number(draft.fatGPerKg),
+    target_weight_kg: optional(draft.targetWeightKg),
+    rate_kg_per_week: optional(draft.rateKgPerWeek),
   };
 }
 

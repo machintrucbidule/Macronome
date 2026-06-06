@@ -10,6 +10,18 @@
   gap: 4px;
 }
 
+/* Derived-macro tiles (Cibles): a coloured top border identifies the macro
+   (design/components — targets mockup .mt-cell.prot/.fat/.carb). */
+.card.prot {
+  border-top: 2px solid var(--c-prot);
+}
+.card.fat {
+  border-top: 2px solid var(--c-fat);
+}
+.card.carb {
+  border-top: 2px solid var(--c-carb);
+}
+
 .label {
   font-family: var(--font-num);
   font-size: var(--fs-10);

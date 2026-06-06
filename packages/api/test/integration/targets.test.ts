@@ -50,6 +50,18 @@ function postTarget(agent: Agent, csrf: string, body: Record<string, unknown>) {
   return agent.post('/api/v1/target').set('x-csrf-token', csrf).send(body);
 }
 
+function postPreview(agent: Agent, csrf: string, body: Record<string, unknown>) {
+  return agent.post('/api/v1/target/preview').set('x-csrf-token', csrf).send(body);
+}
+
+const draftTarget = {
+  calorie_min: 1500,
+  calorie_max: 2100,
+  protein_g_per_kg: 1.8,
+  fat_g_per_kg: 0.8,
+  target_weight_kg: 72,
+};
+
 const inconsistentTarget = {
   calorie_min: 1000,
   calorie_max: 1200,
@@ -102,6 +114,53 @@ describe('targets', () => {
   it('requires authentication', async () => {
     const res = await request(app).get('/api/v1/target');
     expect(res.status).toBe(401);
+  });
+
+  describe('POST /target/preview — stateless live recompute (B-042)', () => {
+    it('returns the engine readout for a draft (incl. target BMI) without persisting', async () => {
+      const { agent, csrf, userId } = await authedAgent('alice');
+      await seedWeight(userId, 80);
+
+      const res = await postPreview(agent, csrf, draftTarget);
+      expect(res.status).toBe(200);
+      // Derived from current weight 80 kg / height 180 cm (targets-macros.md §3).
+      expect(res.body.engine.protein_floor_g).toBe(144); // 1.8 × 80
+      expect(res.body.engine.fat_floor_g).toBe(64); // 0.8 × 80
+      expect(res.body.engine.carb_ceiling_g).toBe(237); // (2100 − 576 − 576)/4
+      // Target BMI = target_weight 72 / (1.80)² (targets-macros.md §6).
+      expect(res.body.engine.target_bmi).toBeCloseTo(22.222, 2);
+      expect(res.body).not.toHaveProperty('target'); // preview never echoes a row
+      // Nothing was written.
+      expect(await prisma.target.count({ where: { userId } })).toBe(0);
+    });
+
+    it('computes target BMI even with no weigh-in (BMI uses the goal weight, not the current)', async () => {
+      const { agent, csrf } = await authedAgent('alice');
+      const res = await postPreview(agent, csrf, draftTarget);
+      expect(res.status).toBe(200);
+      // Weight-dependent figures are null + the no-weight warning…
+      expect(res.body.engine.protein_floor_g).toBeNull();
+      expect(res.body.warnings).toContain('no_weight');
+      // …but target BMI is independent of any weigh-in.
+      expect(res.body.engine.target_bmi).toBeCloseTo(22.222, 2);
+    });
+
+    it('returns target_bmi null when no target weight is given', async () => {
+      const { agent, csrf, userId } = await authedAgent('alice');
+      await seedWeight(userId, 80);
+      const { target_weight_kg, ...noGoal } = draftTarget;
+      void target_weight_kg;
+      const res = await postPreview(agent, csrf, noGoal);
+      expect(res.status).toBe(200);
+      expect(res.body.engine.target_bmi).toBeNull();
+    });
+
+    it('rejects a malformed draft with 422 (max < min)', async () => {
+      const { agent, csrf } = await authedAgent('alice');
+      const res = await postPreview(agent, csrf, { ...draftTarget, calorie_min: 2200 });
+      expect(res.status).toBe(422);
+      expect(res.body.error.code).toBe('validation_error');
+    });
   });
 
   it('rejects a malformed body with 422 + per-field details', async () => {

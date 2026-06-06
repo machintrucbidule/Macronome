@@ -1,6 +1,8 @@
 import type {
   CreateTargetRequest,
   GetTargetResponse,
+  PreviewTargetRequest,
+  PreviewTargetResponse,
   SuggestTargetRequest,
   SuggestTargetResponse,
 } from '@macronome/shared';
@@ -13,5 +15,6 @@ import { api } from './client';
 export const targetApi = {
   get: () => api.get<GetTargetResponse>('/target'),
   create: (body: CreateTargetRequest) => api.post<GetTargetResponse>('/target', body),
+  preview: (body: PreviewTargetRequest) => api.post<PreviewTargetResponse>('/target/preview', body),
   suggest: (body: SuggestTargetRequest) => api.post<SuggestTargetResponse>('/target/suggest', body),
 };

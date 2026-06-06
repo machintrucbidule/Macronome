@@ -6,9 +6,9 @@ See `00-conventions.md`. Scoped to the authenticated user.
 
 - `GET /weight?range=3m|6m|1y|all` — → 200
   `{weigh_ins:[{id,date,weight_kg,waist_cm,diet_flag,note}],
-  ema:[{date,value}], trajectory:[{date,value}],
-  periods:[Period], cartouche:{current,delta_prev,bmi,bmi_category,waist,
-  waist_delta,gap_to_goal,projection}, current_mode}`.
+ema:[{date,value}], trajectory:[{date,value}],
+periods:[Period], cartouche:{current,delta_prev,bmi,bmi_category,waist,
+waist_delta,gap_to_goal,projection}, current_mode}`.
   EMA/trajectory computed on full history, clipped to range
   (`logic/weight-periods-trajectory.md`).
 - `POST /weight` — `{date, weight_kg, waist_cm?, diet_flag, note?}`.
@@ -27,16 +27,23 @@ not in Maintien mode.
 
 - `GET /target` — current target + live engine readout. → 200
   `{target:{calorie_min,calorie_max,protein_g_per_kg,fat_g_per_kg,
-  target_weight_kg,rate_kg_per_week,effective_from},
-  engine:{age,bmr,current_weight_kg,recent_avg_activity,estimated_burn,
-  empirical_burn,protein_floor_g,fat_floor_g,carb_ceiling_g,
-  deficit_at_target,kg_per_week},
-  warnings:[ 'carb_ceiling_non_positive'? ] }`.
+target_weight_kg,rate_kg_per_week,effective_from},
+engine:{age,bmr,current_weight_kg,recent_avg_activity,estimated_burn,
+empirical_burn,protein_floor_g,fat_floor_g,carb_ceiling_g,
+deficit_at_target,kg_per_week,target_bmi},
+warnings:[ 'carb_ceiling_non_positive'? ] }`.
   Engine values are derived (`logic/metabolic-engine.md`, `targets-macros.md`);
+  `target_bmi` is null when `target_weight_kg` is unset (`targets-macros.md §6`);
   carb ceiling ≤ 0 returns its **real value** + the warning, never blocks.
 - `POST /target` — new target row `{calorie_min,calorie_max(≥min),
 protein_g_per_kg(≥0),fat_g_per_kg(≥0),target_weight_kg?,rate_kg_per_week?,
 effective_from}`. Saving never blocks on an inconsistent carb ceiling. → 201.
+- `POST /target/preview` — **stateless** live recompute for the Cibles form (an
+  unsaved draft; mirrors `POST /recipes/preview`). Body = the target body **without
+  `effective_from`**: `{calorie_min,calorie_max(≥min),protein_g_per_kg(≥0),
+fat_g_per_kg(≥0),target_weight_kg?,rate_kg_per_week?}`. Reads the persisted profile
+  - latest weigh-in (target-draft scope) and returns the engine readout **without
+    persisting anything** (no row written). → 200 `{engine:{…,target_bmi}, warnings}`.
 - `POST /target/suggest` — `{desired_deficit}` → 200 proposed `{calorie_min,
 calorie_max}` (never writes; client confirms then POSTs).
 - `GET/PATCH /profile` — `{sex,birthdate,height_cm}` (edited on Cibles; feeds the
@@ -51,9 +58,9 @@ calorie_max}` (never writes; client confirms then POSTs).
   within (OPEN_GAPS #2, RECONCILIATION_LOG §E4).
 - `GET /stats/adherence?year=YYYY` — → 200
   `{heatmap:[{date,status:'OK'|'NOK'|'none',kcal:number|null}],
-  monthly:[{month,ok_count,nok_count,ok_rate,avg_kcal_ok,avg_kcal_nok}],
-  key:{year_ok_rate,overall_ok_rate,current_ok_streak,best_month},
-  target_zone:{cal_min,cal_max}, signals:[{code,value,text}]}`.
+monthly:[{month,ok_count,nok_count,ok_rate,avg_kcal_ok,avg_kcal_nok}],
+key:{year_ok_rate,overall_ok_rate,current_ok_streak,best_month},
+target_zone:{cal_min,cal_max}, signals:[{code,value,text}]}`.
   Best month: highest ok_rate among months with ≥ 5 logged days (OPEN_GAPS #12).
   Heatmap `kcal` = that day's calorie value for logged cells, `null` when
   `status:'none'` (not logged) — feeds the cell tooltip `(date · status · kcal)`

@@ -75,6 +75,34 @@
   gap: var(--sp-5);
 }
 
+/* Compact numeric field (mockup: 132px) — the input fills this fixed-width suffix wrapper
+   instead of stretching to the grid cell (B-042: "over-wide fields"). */
+.inpW {
+  display: inline-block;
+  width: 132px;
+  max-width: 100%;
+}
+
+/* Read-only derived value row in the left column (carb ceiling, target BMI) — label left,
+   server-computed figure right (mockup .row + .readout). */
+.derivedRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-5);
+}
+.derivedLabel {
+  font-size: var(--fs-13);
+  color: var(--text);
+}
+.derivedVal {
+  font-family: var(--font-num);
+  font-size: var(--fs-14);
+  font-weight: var(--fw-bold);
+  color: var(--text);
+  white-space: nowrap;
+}
+
 .actions {
   display: flex;
   justify-content: space-between;

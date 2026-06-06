@@ -7,15 +7,24 @@ interface NumberInputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: ReactNode;
   suffix?: string;
   invalid?: boolean;
+  /** Extra class on the suffix wrapper — e.g. to size a compact field (Cibles). */
+  wrapperClassName?: string | undefined;
 }
 
-export function NumberInput({ label, suffix, invalid, className, ...rest }: NumberInputProps) {
+export function NumberInput({
+  label,
+  suffix,
+  invalid,
+  className,
+  wrapperClassName,
+  ...rest
+}: NumberInputProps) {
   const field = [styles.input, styles.num, className].filter(Boolean).join(' ');
   const input = (
     <input type="number" className={field} aria-invalid={invalid || undefined} {...rest} />
   );
   const control = suffix ? (
-    <span className={styles.withSuffix}>
+    <span className={[styles.withSuffix, wrapperClassName].filter(Boolean).join(' ')}>
       {input}
       <span className={styles.suffix}>{suffix}</span>
     </span>

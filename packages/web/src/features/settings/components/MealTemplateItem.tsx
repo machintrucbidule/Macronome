@@ -1,10 +1,13 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { MealTemplateItem as Item, PantryItem } from '@macronome/shared';
 import { PantryEditor } from './PantryEditor';
+import { MealTemplateDeleteConfirm } from './MealTemplateDeleteConfirm';
 import styles from '../settings.module.css';
 
 // One default-meal row: reorder (↑/↓), rename, delete, and its garde-manger sub-editor.
-// Rename/delete use native prompt/confirm (parity with the mockup); names are user data.
+// Rename uses a native prompt; delete uses the shared styled confirm modal (B-009 —
+// design/components/modals.md: destructive flows use the confirm modal). Names are user data.
 interface Props {
   item: Item;
   index: number;
@@ -27,13 +30,11 @@ export function MealTemplateItem({
   onDelete,
 }: Props) {
   const { t } = useTranslation();
+  const [confirming, setConfirming] = useState(false);
 
   const rename = (): void => {
     const next = window.prompt(t('settings.template.renamePrompt'), item.name)?.trim();
     if (next && next !== item.name) onRename(item, next);
-  };
-  const del = (): void => {
-    if (window.confirm(t('settings.template.deletePrompt', { name: item.name }))) onDelete(item);
   };
 
   return (
@@ -70,12 +71,22 @@ export function MealTemplateItem({
           type="button"
           className={styles.iconbtn}
           title={t('settings.template.delete')}
-          onClick={del}
+          onClick={() => setConfirming(true)}
         >
           ×
         </button>
       </div>
       <PantryEditor mealSlotName={item.name} items={pantry} foodName={foodName} />
+      {confirming && (
+        <MealTemplateDeleteConfirm
+          item={item}
+          onCancel={() => setConfirming(false)}
+          onConfirm={() => {
+            setConfirming(false);
+            onDelete(item);
+          }}
+        />
+      )}
     </div>
   );
 }

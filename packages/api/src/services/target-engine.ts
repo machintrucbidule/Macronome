@@ -12,6 +12,7 @@ import {
   type RecentActivity,
 } from '../domain/metabolic/index.js';
 import { carbCeilingG, fatFloorG, proteinFloorG } from '../domain/targets/index.js';
+import { bmi } from '../domain/weight/bmi.js';
 
 // Pure assembly of the Cibles engine readout from the persisted rows + the recent
 // activity. It calls the domain (logic/metabolic-engine.md, targets-macros.md) and
@@ -109,6 +110,12 @@ export function computeEngine({
   const { bmr, estimated } = deriveBurn(profile, currentWeightKg, age, recent.multiplier);
   const { proteinFloor, fatFloor, carbCeiling } = deriveMacros(targetRow, currentWeightKg);
   const { deficit, kgWeek } = deriveDeficit(targetRow, estimated);
+  // Target BMI is derived from the *target* weight (not the current one) + height
+  // (targets-macros.md §6); null when no target weight has been set.
+  const targetBmi =
+    targetRow !== null && targetRow.targetWeightKg !== null
+      ? bmi(num(targetRow.targetWeightKg), num(profile.heightCm))
+      : null;
 
   const engine: EngineReadout = {
     age,
@@ -122,6 +129,7 @@ export function computeEngine({
     carb_ceiling_g: carbCeiling,
     deficit_at_target: deficit,
     kg_per_week: kgWeek,
+    target_bmi: targetBmi,
   };
 
   const warnings: TargetWarningCode[] = [];

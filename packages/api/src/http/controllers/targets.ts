@@ -3,6 +3,7 @@ import {
   CreateTargetSchema,
   ErrorCode,
   SuggestTargetSchema,
+  TargetPreviewSchema,
   TargetWarning,
 } from '@macronome/shared';
 import * as targetsService from '../../services/targets.js';
@@ -24,6 +25,13 @@ export async function create(req: Request, res: Response): Promise<void> {
   const parsed = CreateTargetSchema.safeParse(req.body);
   if (!parsed.success) throw new ApiError(422, ErrorCode.ValidationError, zodDetails(parsed.error));
   res.status(201).json(await targetsService.create(userId(res), parsed.data));
+}
+
+/** POST /target/preview — engine readout for a draft target (200; persists nothing). */
+export async function preview(req: Request, res: Response): Promise<void> {
+  const parsed = TargetPreviewSchema.safeParse(req.body);
+  if (!parsed.success) throw new ApiError(422, ErrorCode.ValidationError, zodDetails(parsed.error));
+  res.status(200).json(await targetsService.preview(userId(res), parsed.data));
 }
 
 /** POST /target/suggest — propose a range from a desired deficit (200; never writes). */

@@ -1,9 +1,12 @@
 import type {
   CreateTargetRequest,
   GetTargetResponse,
+  PreviewTargetRequest,
+  PreviewTargetResponse,
   Sex,
   SuggestTargetResponse,
 } from '@macronome/shared';
+import { Prisma, type Target as TargetModel } from '@prisma/client';
 import { profileRepo } from '../data/repositories/profile.repo.js';
 import { targetRepo } from '../data/repositories/target.repo.js';
 import { weightRepo } from '../data/repositories/weight.repo.js';
@@ -52,6 +55,36 @@ export async function create(
     effectiveFrom: new Date(body.effective_from),
   });
   return get(userId);
+}
+
+/** POST /target/preview — stateless engine readout for a draft (unsaved) target. Reads
+ * the persisted profile + latest weigh-in (target-draft scope, DECISIONS B-042); writes
+ * nothing. Lets the Cibles form recompute live while editing (CLAUDE.md rule 2: the web
+ * never computes). The profile still refreshes the engine on its own PATCH-save. */
+export async function preview(
+  userId: string,
+  body: PreviewTargetRequest,
+): Promise<PreviewTargetResponse> {
+  const refDate = new Date();
+  const profile = await profileRepo.get(userId);
+  if (!profile) throw new Error('profile_missing'); // an authed user always has one
+  const weightRow = await weightRepo.latestAsOf(userId, refDate);
+  const recent = recentAvgActivity([]); // M3: mean of the last ~30 logged days
+  const dec = (n: number): Prisma.Decimal => new Prisma.Decimal(n);
+  const draftRow: TargetModel = {
+    id: 'preview',
+    userId,
+    calorieMin: body.calorie_min,
+    calorieMax: body.calorie_max,
+    proteinGPerKg: dec(body.protein_g_per_kg),
+    fatGPerKg: dec(body.fat_g_per_kg),
+    targetWeightKg: body.target_weight_kg == null ? null : dec(body.target_weight_kg),
+    rateKgPerWeek: body.rate_kg_per_week == null ? null : dec(body.rate_kg_per_week),
+    effectiveFrom: refDate,
+    createdAt: refDate,
+    updatedAt: refDate,
+  };
+  return computeEngine({ profile, weightRow, targetRow: draftRow, recent, refDate });
 }
 
 /** POST /target/suggest — propose a range from burn − desired deficit. Never writes.

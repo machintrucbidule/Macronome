@@ -82,6 +82,12 @@
 .arr {
   font-size: var(--fs-9);
 }
+/* The active sort arrow shows in --accent (data-tables.md). Scoped to .sorted .arr so it
+   beats `.table thead th{color:--text-faint}` (0,2,0 > 0,1,2); the header label itself
+   stays faint, only the direction arrow is coloured. */
+.sorted .arr {
+  color: var(--accent);
+}
 
 .table tbody td {
   padding: 8px 10px;

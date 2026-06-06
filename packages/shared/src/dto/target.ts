@@ -66,10 +66,37 @@ export interface EngineReadout {
   carb_ceiling_g: number | null;
   deficit_at_target: number | null;
   kg_per_week: number | null;
+  /** target_weight_kg / (height_m)²; null when no target weight (targets-macros.md §6). */
+  target_bmi: number | null;
 }
 
 export interface GetTargetResponse {
   target: Target | null;
+  engine: EngineReadout;
+  warnings: TargetWarningCode[];
+}
+
+// --- Live preview of the engine from a draft (unsaved) target ----------------
+// Stateless recompute for the Cibles form (targets-macros.md, DECISIONS B-042),
+// mirroring POST /recipes/preview (B-035). Same numeric fields as a create, minus
+// effective_from (nothing is persisted); returns the engine + warnings only.
+
+export const TargetPreviewSchema = z
+  .object({
+    calorie_min: targetFields.calorie_min,
+    calorie_max: targetFields.calorie_max,
+    protein_g_per_kg: targetFields.protein_g_per_kg,
+    fat_g_per_kg: targetFields.fat_g_per_kg,
+    target_weight_kg: targetFields.target_weight_kg,
+    rate_kg_per_week: targetFields.rate_kg_per_week,
+  })
+  .refine((b) => b.calorie_max >= b.calorie_min, {
+    message: 'calorie_max_below_min',
+    path: ['calorie_max'],
+  });
+export type PreviewTargetRequest = z.infer<typeof TargetPreviewSchema>;
+
+export interface PreviewTargetResponse {
   engine: EngineReadout;
   warnings: TargetWarningCode[];
 }
