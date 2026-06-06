@@ -35,9 +35,17 @@
 .num {
   font-family: var(--font-num);
   text-align: right;
-  /* Native spinners stay (B-006). Keep the right-aligned value off the browser arrows so
-     the digit isn't glued to them; suffixed fields override this below. */
-  padding-right: 24px;
+  /* The native browser spinner is hidden — replaced by our custom ▲▼ stepper (B-006,
+     forms-inputs.md). It cannot render value·unit·spinner (the browser glues it to the
+     digit), so we draw our own at the field's far right, after the unit. */
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+.num::-webkit-outer-spin-button,
+.num::-webkit-inner-spin-button {
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
 }
 .input::placeholder {
   color: var(--text-faint);
@@ -51,25 +59,63 @@
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--nok) 20%, transparent);
 }
 
-/* number input with a unit suffix (kcal / g). Layout reads value · unit · native spinner:
-   the value clears the unit (padding-right), and the unit sits just left of the browser
-   spinner at the field's right edge (B-006). */
-.withSuffix {
+/* Number-field wrapper: the input + optional unit + the custom ▲▼ stepper. The value is
+   right-aligned and padded to clear the unit; the unit sits just left of the stepper, which
+   is pinned inside the box at the far right → value · unit · ▲▼ (B-006). */
+.control {
   position: relative;
 }
-.withSuffix .input {
+.control .input {
   width: 100%;
-  padding-right: 58px;
+  padding-right: 28px; /* clear the stepper */
+}
+.control.withSuffix .input {
+  padding-right: 62px; /* clear the unit + the stepper */
 }
 .suffix {
   position: absolute;
-  right: 26px;
+  right: 30px; /* just left of the stepper */
   top: 50%;
   transform: translateY(-50%);
   font-family: var(--font-num);
   font-size: var(--fs-11);
   color: var(--text-faint);
   pointer-events: none;
+}
+/* Custom stepper: two arrows stacked vertically inside the field box, far right (variant B
+   — triangles + a vertical divider). Drives the value via the input's stepUp/stepDown. */
+.stepper {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  bottom: 1px;
+  width: 20px;
+  display: flex;
+  flex-direction: column;
+  border-left: var(--bw) solid var(--border);
+}
+.stepper button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--text-faint);
+  cursor: pointer;
+  font-size: var(--fs-9);
+  line-height: 1;
+  padding: 0;
+}
+.stepper button:hover {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+.stepper button:first-child {
+  border-top-right-radius: 6px;
+}
+.stepper button:last-child {
+  border-bottom-right-radius: 6px;
 }
 
 /* ---- search field ---- */

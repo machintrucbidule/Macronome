@@ -26,7 +26,7 @@ export function SuggestDialog({ onClose, onApply }: SuggestDialogProps) {
       <div className={modalStyles.body}>
         <NumberInput
           label={t('cibles.suggest.deficit')}
-          suffix="kcal/j"
+          suffix="kcal"
           value={deficit}
           onChange={(e) => setDeficit(e.target.value)}
         />

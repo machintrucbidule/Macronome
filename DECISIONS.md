@@ -367,3 +367,35 @@ and the `POST /target/preview` endpoint; DTO `EngineReadout` gains `target_bmi`,
 `TargetPreviewSchema`/`PreviewTargetResponse`. No schema change (nothing persisted).
 
 ---
+
+## B-006 — Custom ▲▼ stepper on number inputs — RESOLVED (author)
+
+Post-v1 backlog triage (batch BF-6). The bug report was a display nit: on number fields the
+value was glued to the browser's spinner arrows, with no spacing. The desired layout is
+`value · unit · spinner`, the arrows at the field's far right after the unit.
+
+A native `<input type=number>` spinner **cannot** produce that order: the browser anchors its
+spinner to the right edge of the input's _content_ (immediately after the number), so any
+right padding only shifts the number+spinner block left and the unit ends up to the right of
+the spinner (verified in Firefox). The only way to get `value · unit · arrows` is to draw the
+stepper ourselves.
+
+- **Decision:** hide the native spinner and add a **custom stacked ▲▼ stepper** inside the
+  field box at the far right, after the unit (two borderless arrow buttons stacked vertically,
+  ~20px column, 1px divider, hover `--accent`). The real `<input type=number>` is kept (typing
+  - keyboard ↑/↓ unchanged); the buttons drive the value via the input's own
+    `stepUp()`/`stepDown()` (so `step`/`min`/`max` are honoured) and notify the controlled
+    parent. Lives in the shared `NumberInput`, so every number field gets it. _(Author —
+    chosen over the native spinner after the layout was shown to be impossible natively; the
+    user picked the triangles-with-divider variant from an HTML mockup.)_
+
+**Rationale:** the requested layout is unachievable with native spinners; a custom stepper is
+the minimal control that delivers it consistently across browsers while keeping the native
+input semantics. Reuses the recipe-servings stepper idea, but as a stacked ▲▼ variant on the
+field's edge (the recipe one is a separate horizontal −/+).
+
+**Spec impact:** `design/components/forms-inputs.md` — the number-input canonical now carries
+this stepper (and the recipe-servings stepper is noted as the distinct horizontal −/+
+variant). The custom stepper is no longer recipe-servings-only. No data/API/schema change.
+
+---
