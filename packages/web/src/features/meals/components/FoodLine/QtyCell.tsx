@@ -59,11 +59,14 @@ function UnitChip({ mealId, entry }: QtyCellProps) {
   );
 }
 
-/** At-rest display: the consumed quantity in the line's unit (= served when no leftover
- * applies, B-047), trimmed to at most 2 decimals so portions read "1.8" and grams "270". */
+/** At-rest display (B-047). With no leftover the consumed quantity equals the served one, so we
+ * show the value exactly as entered (keeps fractional inputs like "1.5" portions intact). When a
+ * leftover applies, the consumed quantity is a computed figure → round it to an integer, like the
+ * meal-table grams/macros (00-conventions.md), so it never renders an ugly long decimal. */
 function restValue(entry: MealEntry): string {
-  const q = entry.consumed.quantity ?? entry.served_quantity;
-  return String(Math.round(q * 100) / 100);
+  const { quantity } = entry.consumed;
+  if (quantity === null || quantity === entry.served_quantity) return String(entry.served_quantity);
+  return String(Math.round(quantity));
 }
 
 export function QtyCell({ mealId, entry }: QtyCellProps) {

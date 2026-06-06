@@ -56,6 +56,26 @@ describe('QtyCell consumed display (B-047)', () => {
     expect((getByRole('textbox') as HTMLInputElement).value).toBe('180');
   });
 
+  it('rounds the computed consumed quantity to an integer (no ugly decimals)', () => {
+    const { getByRole } = renderQty(
+      entry({
+        served_quantity: 300,
+        consumed: { grams: 269.7, quantity: 269.7, kcal: 0, fat: 0, carb: 0, protein: 0 },
+      }),
+    );
+    expect((getByRole('textbox') as HTMLInputElement).value).toBe('270');
+  });
+
+  it('keeps a fractional served quantity intact when no leftover applies', () => {
+    const { getByRole } = renderQty(
+      entry({
+        served_quantity: 1.5,
+        consumed: { grams: 1.5, quantity: 1.5, kcal: 0, fat: 0, carb: 0, protein: 0 },
+      }),
+    );
+    expect((getByRole('textbox') as HTMLInputElement).value).toBe('1.5');
+  });
+
   it('writes the SERVED quantity when the user types and commits', () => {
     const { getByRole, setQty } = renderQty(entry());
     const input = getByRole('textbox');
