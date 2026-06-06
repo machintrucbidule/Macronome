@@ -36,10 +36,12 @@ export interface RollingResponse {
 
 // --- Adherence (GET /stats/adherence?year=YYYY) ----------------------------
 
-/** One calendar cell of the selected year. `none` = not logged (grey, never NOK). */
+/** One calendar cell of the selected year. `none` = not logged (grey, never NOK).
+ * `kcal` = that day's calorie value for logged cells, `null` when `status:'none'`. */
 export interface HeatmapCell {
   date: string;
   status: 'OK' | 'NOK' | 'none';
+  kcal: number | null;
 }
 
 /** Per-month pivot over the selected year's logged days (only months with data).

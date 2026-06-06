@@ -305,3 +305,29 @@ it. `screens/recipe.md` is **unchanged** (the code is brought into line with it)
 
 **Spec impact:** `spec/api/foods-recipes.md` §Recipes gains `POST /recipes/preview` + the
 `RecipePreview` payload. No schema change (nothing persisted).
+
+---
+
+## B-040 — Stats heatmap tooltip kcal; reconciled API ↔ screen — RESOLVED (author)
+
+Post-v1 backlog triage (batch BF-5). The two contracts disagreed on the Stats calendar
+heatmap tooltip: `specifications/screens/stats.md` ("Hover a heatmap cell / bar → tooltip
+(date, status, **kcal**)") wanted the day's calorie value, but the API contract
+`spec/api/weight-targets-stats-settings.md` defined the cell as `{date, status}` only — no
+kcal. The shipped tooltip therefore showed date + status, diverging from the screen contract.
+
+- **Decision:** add the per-day calorie value to the heatmap cell. The adherence response's
+  heatmap entry becomes `{date, status, kcal:number|null}` — `kcal` is the logged day's
+  calorie value, `null` for `status:'none'` (not-logged) cells. The cell tooltip renders
+  `date · status · kcal` when present. _(Author — confirmed during BF-5 planning.)_
+
+**Rationale:** the data is already available server-side (the stats `DayStat` carries `kcal`),
+so this only surfaces an existing figure — no new computation, no schema change. Honours the
+screen contract (rule 2: the web renders the server's value, never recomputes it). Chosen over
+dropping the kcal requirement from the screen spec.
+
+**Spec impact:** `spec/api/weight-targets-stats-settings.md` §Stats `/stats/adherence` heatmap
+cell gains `kcal:number|null`; `specifications/screens/stats.md` already specifies it (now
+consistent). DTO `HeatmapCell` + domain `heatmap()` updated. No schema change.
+
+---

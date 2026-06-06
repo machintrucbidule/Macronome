@@ -83,11 +83,13 @@ describe('stats — adherence', () => {
     expect(res.body.heatmap).toHaveLength(365); // 2026 is not a leap year
     expect(res.body.target_zone).toEqual({ cal_min: 1550, cal_max: 1650 });
 
-    const heatmap = res.body.heatmap as { date: string; status: string }[];
+    const heatmap = res.body.heatmap as { date: string; status: string; kcal: number | null }[];
     const cell = (date: string) => heatmap.find((c) => c.date === date)!;
     expect(cell('2026-05-28').status).toBe('OK');
+    expect(cell('2026-05-28').kcal).toBe(1600); // logged cell carries its kcal (tooltip)
     expect(cell('2026-05-29').status).toBe('NOK');
     expect(cell('2026-05-27').status).toBe('none'); // unlogged
+    expect(cell('2026-05-27').kcal).toBeNull(); // not-logged → null kcal
 
     const may = res.body.monthly.find((m: { month: number }) => m.month === 5);
     expect(may).toMatchObject({ ok_count: 1, nok_count: 2 });

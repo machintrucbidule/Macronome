@@ -25,23 +25,22 @@ export function MonthlyBars({ monthly }: { monthly: MonthlyStat[] }) {
         const x = PAD.l + slot * i + (slot - barW) / 2;
         const okH = (m.ok_count / maxTotal) * plotH;
         const nokH = (m.nok_count / maxTotal) * plotH;
+        const label = monthLabel(m.month, i18n.language);
+        const tip = `${label} · ${t('stats.monthly.tooltip', { ok: m.ok_count, nok: m.nok_count })}`;
         return (
           <g key={m.month}>
-            <rect
-              className={styles.barNok}
-              x={x}
-              y={base - okH - nokH}
-              width={barW}
-              height={nokH}
-            />
-            <rect className={styles.barOk} x={x} y={base - okH} width={barW} height={okH} />
+            <rect className={styles.barNok} x={x} y={base - okH - nokH} width={barW} height={nokH}>
+              <title>{tip}</title>
+            </rect>
+            <rect className={styles.barOk} x={x} y={base - okH} width={barW} height={okH}>
+              <title>{tip}</title>
+            </rect>
             <text className={styles.barTop} x={x + barW / 2} y={base - okH - nokH - 4}>
               {pct(m.ok_rate)}
             </text>
             <text className={styles.axis} x={x + barW / 2} y={H - 8}>
-              {monthLabel(m.month, i18n.language)}
+              {label}
             </text>
-            <title>{`${monthLabel(m.month, i18n.language)} · ${t('stats.monthly.tooltip', { ok: m.ok_count, nok: m.nok_count })}`}</title>
           </g>
         );
       })}

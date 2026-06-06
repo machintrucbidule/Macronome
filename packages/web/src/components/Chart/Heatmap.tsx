@@ -82,7 +82,10 @@ export function Heatmap({ cells }: { cells: HeatmapCell[] }) {
           rx={2}
           className={cls[p.cell.status]}
         >
-          <title>{`${p.cell.date} · ${t(`stats.status.${p.cell.status}`)}`}</title>
+          <title>
+            {`${p.cell.date} · ${t(`stats.status.${p.cell.status}`)}`}
+            {p.cell.kcal !== null ? ` · ${p.cell.kcal} kcal` : ''}
+          </title>
         </rect>
       ))}
     </svg>

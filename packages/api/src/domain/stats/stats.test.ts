@@ -92,12 +92,14 @@ test('monthly pivot splits counts + avg kcal over OK / NOK days (§4–5)', () =
   expect(m!.ok_rate).toBe(2 / 3);
 });
 
-test('heatmap fills every calendar date of the year, none where not logged (§3)', () => {
+test('heatmap fills every calendar date of the year, none/null where not logged (§3)', () => {
   const cells = heatmap([d('2025-01-02', 1600, 'OK'), d('2025-12-31', 1700, 'NOK')], 2025);
   expect(cells).toHaveLength(365);
-  expect(cells[0]).toEqual({ date: '2025-01-01', status: 'none' });
-  expect(cells[1]).toEqual({ date: '2025-01-02', status: 'OK' });
-  expect(cells[364]).toEqual({ date: '2025-12-31', status: 'NOK' });
+  // Not-logged cell: grey status + null kcal.
+  expect(cells[0]).toEqual({ date: '2025-01-01', status: 'none', kcal: null });
+  // Logged cells carry the day's verdict + its calorie value (feeds the tooltip).
+  expect(cells[1]).toEqual({ date: '2025-01-02', status: 'OK', kcal: 1600 });
+  expect(cells[364]).toEqual({ date: '2025-12-31', status: 'NOK', kcal: 1700 });
 });
 
 test('signals: 30-day avg above band, NOK run ≥ alert, 14-day OK rate (§7)', () => {

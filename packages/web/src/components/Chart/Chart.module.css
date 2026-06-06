@@ -20,6 +20,25 @@
   display: block;
 }
 
+/* axes + gridlines (design/components/charts.md §Shared primitives) */
+.gridline {
+  stroke: var(--grid);
+  stroke-width: 1;
+}
+.axislbl {
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  fill: var(--text-faint);
+}
+.axislblWaist {
+  fill: var(--waistc);
+}
+
+/* transparent point hit-area carrying the <title> tooltip (B-018) */
+.hit {
+  fill: transparent;
+}
+
 /* layers (back-to-front) */
 .goal {
   stroke: var(--ok);

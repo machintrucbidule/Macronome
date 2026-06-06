@@ -135,23 +135,45 @@
   opacity: 0.6;
 }
 
-/* ---- Signals ---- */
+/* ---- Signals (design/components/charts.md §Signals: responsive grid of .sig cards
+   with a status dot) ---- */
 .signals {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: var(--sp-3);
 }
-.signal {
+.sig {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
   font-family: var(--font-num);
   font-size: var(--fs-12);
   color: var(--text);
   padding: var(--sp-3) var(--sp-4);
-  background: var(--bg-elev);
+  background: var(--bg-elev-2);
   border: 1px solid var(--border);
-  border-radius: var(--r-sm);
+  border-radius: var(--r-md);
+}
+.dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.dotOk {
+  background: var(--ok);
+}
+.dotWarn {
+  background: var(--nok);
+}
+.dotInfo {
+  background: var(--under);
+}
+.sigText {
+  min-width: 0;
 }
 .signalNone {
   font-family: var(--font-num);

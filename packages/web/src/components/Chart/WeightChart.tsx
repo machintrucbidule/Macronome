@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { WeighIn, WeightPoint, WeightRange } from '@macronome/shared';
+import { ChartAxes } from './ChartAxes';
 import { ChartLegend } from './ChartLegend';
+import { HitAreas, type HitPoint } from './HitAreas';
 import { RangeControl } from './RangeControl';
 import { WEIGHT_BOX as B, linear, niceDomain, polyline, toMs } from './scale';
 import styles from './Chart.module.css';
@@ -34,21 +36,23 @@ function buildScales(
     ...trajectory.map((p) => p.value),
     ...(goal !== null ? [goal] : []),
   ];
-  const [yMin, yMax] = niceDomain(ys);
-  const [wMin, wMax] = niceDomain(
-    weighIns.filter((w) => w.waist_cm !== null).map((w) => w.waist_cm!),
-  );
+  const yDomain = niceDomain(ys);
+  const wDomain = niceDomain(weighIns.filter((w) => w.waist_cm !== null).map((w) => w.waist_cm!));
+  const xDomain: [number, number] = [Math.min(...xs), Math.max(...xs)];
   return {
-    x: linear(Math.min(...xs), Math.max(...xs), B.padL, B.w - B.padR),
-    y: linear(yMin, yMax, B.h - B.padB, B.padT),
-    wy: linear(wMin, wMax, B.h - B.padB, B.padT),
+    x: linear(xDomain[0], xDomain[1], B.padL, B.w - B.padR),
+    y: linear(yDomain[0], yDomain[1], B.h - B.padB, B.padT),
+    wy: linear(wDomain[0], wDomain[1], B.h - B.padB, B.padT),
+    yDomain,
+    wDomain,
+    xDomain,
   };
 }
 
 export function WeightChart(props: WeightChartProps) {
   const { weighIns, ema, trajectory, goal, showWaist, onToggleWaist, range, onRange } = props;
   const { t } = useTranslation();
-  const { x, y, wy } = useMemo(
+  const { x, y, wy, yDomain, wDomain, xDomain } = useMemo(
     () => buildScales(weighIns, ema, trajectory, goal),
     [weighIns, ema, trajectory, goal],
   );
@@ -59,6 +63,22 @@ export function WeightChart(props: WeightChartProps) {
   const waistPts = weighIns.filter((p) => p.waist_cm !== null);
   const waistPath = polyline(waistPts.map((p) => ({ x: x(toMs(p.date)), y: wy(p.waist_cm!) })));
   const goalY = goal !== null ? y(goal) : null;
+  const hits: HitPoint[] = [
+    ...weighIns.map((p) => ({
+      id: `h-${p.id}`,
+      cx: x(toMs(p.date)),
+      cy: y(p.weight_kg),
+      tip: `${p.date} · ${p.weight_kg} kg`,
+    })),
+    ...(showWaist
+      ? waistPts.map((p) => ({
+          id: `wh-${p.id}`,
+          cx: x(toMs(p.date)),
+          cy: wy(p.waist_cm!),
+          tip: `${p.date} · ${p.waist_cm} cm`,
+        }))
+      : []),
+  ];
 
   return (
     <div className={styles.chart} data-chart="weight">
@@ -74,6 +94,16 @@ export function WeightChart(props: WeightChartProps) {
         <RangeControl range={range} onRange={onRange} />
       </div>
       <svg viewBox={`0 0 ${B.w} ${B.h}`} preserveAspectRatio="xMidYMid meet" className={styles.svg}>
+        <ChartAxes
+          box={B}
+          yDomain={yDomain}
+          y={y}
+          xDomain={xDomain}
+          x={x}
+          showWaist={showWaist}
+          wDomain={wDomain}
+          wy={wy}
+        />
         {goalY !== null && (
           <line className={styles.goal} x1={B.padL} x2={B.w - B.padR} y1={goalY} y2={goalY} />
         )}
@@ -81,9 +111,13 @@ export function WeightChart(props: WeightChartProps) {
         {rawPath && <path className={styles.raw} d={rawPath} />}
         {emaPath && <path className={styles.ema} d={emaPath} />}
         {weighIns.map((p) => (
-          <circle className={styles.pt} key={p.id} cx={x(toMs(p.date))} cy={y(p.weight_kg)} r={2.6}>
-            <title>{`${p.date} · ${p.weight_kg} kg`}</title>
-          </circle>
+          <circle
+            className={styles.pt}
+            key={p.id}
+            cx={x(toMs(p.date))}
+            cy={y(p.weight_kg)}
+            r={2.6}
+          />
         ))}
         {showWaist && waistPath && <path className={styles.waist} d={waistPath} />}
         {showWaist &&
@@ -94,10 +128,9 @@ export function WeightChart(props: WeightChartProps) {
               cx={x(toMs(p.date))}
               cy={wy(p.waist_cm!)}
               r={2}
-            >
-              <title>{`${p.date} · ${p.waist_cm} cm`}</title>
-            </circle>
+            />
           ))}
+        <HitAreas points={hits} />
       </svg>
       <ChartLegend showWaist={showWaist} />
     </div>

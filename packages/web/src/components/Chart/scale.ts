@@ -39,3 +39,10 @@ export function niceDomain(values: number[], pad = 0.06): [number, number] {
 export function polyline(points: { x: number; y: number }[]): string {
   return points.map((p, i) => `${i ? 'L' : 'M'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
 }
+
+/** `count + 1` evenly spaced domain values across [d0,d1] (axis ticks / gridlines).
+ * A zero-width domain collapses to a single value. */
+export function ticks(d0: number, d1: number, count = 4): number[] {
+  if (d1 <= d0) return [d0];
+  return Array.from({ length: count + 1 }, (_, i) => d0 + ((d1 - d0) * i) / count);
+}
