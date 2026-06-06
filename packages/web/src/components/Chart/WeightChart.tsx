@@ -1,8 +1,9 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { WeighIn, WeightPoint, WeightRange } from '@macronome/shared';
 import { ChartAxes } from './ChartAxes';
 import { ChartLegend } from './ChartLegend';
+import { ChartTooltip } from './ChartTooltip';
 import { HitAreas, type HitPoint } from './HitAreas';
 import { RangeControl } from './RangeControl';
 import { WEIGHT_BOX as B, linear, niceDomain, polyline, toMs } from './scale';
@@ -49,21 +50,16 @@ function buildScales(
   };
 }
 
-export function WeightChart(props: WeightChartProps) {
-  const { weighIns, ema, trajectory, goal, showWaist, onToggleWaist, range, onRange } = props;
-  const { t } = useTranslation();
-  const { x, y, wy, yDomain, wDomain, xDomain } = useMemo(
-    () => buildScales(weighIns, ema, trajectory, goal),
-    [weighIns, ema, trajectory, goal],
-  );
-
-  const emaPath = polyline(ema.map((p) => ({ x: x(toMs(p.date)), y: y(p.value) })));
-  const trajPath = polyline(trajectory.map((p) => ({ x: x(toMs(p.date)), y: y(p.value) })));
-  const rawPath = polyline(weighIns.map((p) => ({ x: x(toMs(p.date)), y: y(p.weight_kg) })));
-  const waistPts = weighIns.filter((p) => p.waist_cm !== null);
-  const waistPath = polyline(waistPts.map((p) => ({ x: x(toMs(p.date)), y: wy(p.waist_cm!) })));
-  const goalY = goal !== null ? y(goal) : null;
-  const hits: HitPoint[] = [
+/** Hoverable point list: weight dots, plus waist dots when the overlay is on. */
+function buildHits(
+  weighIns: WeighIn[],
+  waistPts: WeighIn[],
+  showWaist: boolean,
+  x: (v: number) => number,
+  y: (v: number) => number,
+  wy: (v: number) => number,
+): HitPoint[] {
+  return [
     ...weighIns.map((p) => ({
       id: `h-${p.id}`,
       cx: x(toMs(p.date)),
@@ -79,6 +75,24 @@ export function WeightChart(props: WeightChartProps) {
         }))
       : []),
   ];
+}
+
+export function WeightChart(props: WeightChartProps) {
+  const { weighIns, ema, trajectory, goal, showWaist, onToggleWaist, range, onRange } = props;
+  const { t } = useTranslation();
+  const [hovered, setHovered] = useState<HitPoint | null>(null);
+  const { x, y, wy, yDomain, wDomain, xDomain } = useMemo(
+    () => buildScales(weighIns, ema, trajectory, goal),
+    [weighIns, ema, trajectory, goal],
+  );
+
+  const emaPath = polyline(ema.map((p) => ({ x: x(toMs(p.date)), y: y(p.value) })));
+  const trajPath = polyline(trajectory.map((p) => ({ x: x(toMs(p.date)), y: y(p.value) })));
+  const rawPath = polyline(weighIns.map((p) => ({ x: x(toMs(p.date)), y: y(p.weight_kg) })));
+  const waistPts = weighIns.filter((p) => p.waist_cm !== null);
+  const waistPath = polyline(waistPts.map((p) => ({ x: x(toMs(p.date)), y: wy(p.waist_cm!) })));
+  const goalY = goal !== null ? y(goal) : null;
+  const hits = buildHits(weighIns, waistPts, showWaist, x, y, wy);
 
   return (
     <div className={styles.chart} data-chart="weight">
@@ -93,45 +107,52 @@ export function WeightChart(props: WeightChartProps) {
         </button>
         <RangeControl range={range} onRange={onRange} />
       </div>
-      <svg viewBox={`0 0 ${B.w} ${B.h}`} preserveAspectRatio="xMidYMid meet" className={styles.svg}>
-        <ChartAxes
-          box={B}
-          yDomain={yDomain}
-          y={y}
-          xDomain={xDomain}
-          x={x}
-          showWaist={showWaist}
-          wDomain={wDomain}
-          wy={wy}
-        />
-        {goalY !== null && (
-          <line className={styles.goal} x1={B.padL} x2={B.w - B.padR} y1={goalY} y2={goalY} />
-        )}
-        {trajPath && <path className={styles.traj} d={trajPath} />}
-        {rawPath && <path className={styles.raw} d={rawPath} />}
-        {emaPath && <path className={styles.ema} d={emaPath} />}
-        {weighIns.map((p) => (
-          <circle
-            className={styles.pt}
-            key={p.id}
-            cx={x(toMs(p.date))}
-            cy={y(p.weight_kg)}
-            r={2.6}
+      <div className={styles.plot}>
+        <svg
+          viewBox={`0 0 ${B.w} ${B.h}`}
+          preserveAspectRatio="xMidYMid meet"
+          className={styles.svg}
+        >
+          <ChartAxes
+            box={B}
+            yDomain={yDomain}
+            y={y}
+            xDomain={xDomain}
+            x={x}
+            showWaist={showWaist}
+            wDomain={wDomain}
+            wy={wy}
           />
-        ))}
-        {showWaist && waistPath && <path className={styles.waist} d={waistPath} />}
-        {showWaist &&
-          waistPts.map((p) => (
+          {goalY !== null && (
+            <line className={styles.goal} x1={B.padL} x2={B.w - B.padR} y1={goalY} y2={goalY} />
+          )}
+          {trajPath && <path className={styles.traj} d={trajPath} />}
+          {rawPath && <path className={styles.raw} d={rawPath} />}
+          {emaPath && <path className={styles.ema} d={emaPath} />}
+          {weighIns.map((p) => (
             <circle
-              className={styles.waistPt}
-              key={`w-${p.id}`}
+              className={styles.pt}
+              key={p.id}
               cx={x(toMs(p.date))}
-              cy={wy(p.waist_cm!)}
-              r={2}
+              cy={y(p.weight_kg)}
+              r={2.6}
             />
           ))}
-        <HitAreas points={hits} />
-      </svg>
+          {showWaist && waistPath && <path className={styles.waist} d={waistPath} />}
+          {showWaist &&
+            waistPts.map((p) => (
+              <circle
+                className={styles.waistPt}
+                key={`w-${p.id}`}
+                cx={x(toMs(p.date))}
+                cy={wy(p.waist_cm!)}
+                r={2}
+              />
+            ))}
+          <HitAreas points={hits} onHover={setHovered} onLeave={() => setHovered(null)} />
+        </svg>
+        {hovered && <ChartTooltip point={hovered} box={B} />}
+      </div>
       <ChartLegend showWaist={showWaist} />
     </div>
   );

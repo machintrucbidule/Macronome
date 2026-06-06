@@ -20,3 +20,6 @@ export const BEST_MONTH_MIN_DAYS = 5;
 
 /** Surface the current-NOK-run signal once it reaches this length (stats §7). */
 export const NOK_RUN_ALERT = 3;
+
+/** 14-day OK-rate "good" threshold (percent): at/above → ok dot, below → warn (stats §7). */
+export const OK_RATE_GOOD_PCT = 70;

@@ -22,6 +22,12 @@ export function monthLabel(month: number, locale: string): string {
   return new Date(2020, month - 1, 1).toLocaleDateString(locale, { month: 'short' });
 }
 
+/** Narrow weekday label for a Monday-first index (0 = Mon … 6 = Sun), e.g. "L" / "M".
+ * 2024-01-01 is a Monday, so day index maps straight to the weekday. */
+export function weekdayNarrow(mondayIndex: number, locale: string): string {
+  return new Date(2024, 0, 1 + mondayIndex).toLocaleDateString(locale, { weekday: 'narrow' });
+}
+
 /** Localized full date for a YYYY-MM-DD string, e.g. "2 juin 2026". */
 export function formatDate(date: string, locale: string): string {
   const p = date.split('-');

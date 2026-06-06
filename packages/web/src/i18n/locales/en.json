@@ -541,6 +541,7 @@
       "avg30_above_target": "30-day average {{value}} kcal above target",
       "avg30_below_target": "30-day average {{value}} kcal below target",
       "nok_run": "{{value}} consecutive days off target",
+      "nok_run_clear": "No NOK streak in progress.",
       "ok_rate_14": "14-day OK rate {{value}}%"
     }
   },

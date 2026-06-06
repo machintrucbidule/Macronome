@@ -1,5 +1,10 @@
 import { expect, test } from 'vitest';
-import { BEST_MONTH_MIN_DAYS, NOK_RUN_ALERT, STATS_ROLLING_WINDOWS } from '@macronome/shared';
+import {
+  BEST_MONTH_MIN_DAYS,
+  NOK_RUN_ALERT,
+  OK_RATE_GOOD_PCT,
+  STATS_ROLLING_WINDOWS,
+} from '@macronome/shared';
 import { bestMonth } from './best-month.js';
 import { heatmap } from './heatmap.js';
 import { monthlyPivot } from './monthly.js';
@@ -111,9 +116,30 @@ test('signals: 30-day avg above band, NOK run ≥ alert, 14-day OK rate (§7)', 
     d('2026-06-04', 2200, 'NOK'),
     d('2026-06-05', 2200, 'NOK'),
   ];
-  const out = signals(logged, { cal_min: 1550, cal_max: 1650 }, NOK_RUN_ALERT);
-  const byCode = Object.fromEntries(out.map((s) => [s.code, s.value]));
-  expect(byCode.avg30_above_target).toBe(550); // 2200 − 1650
-  expect(byCode.nok_run).toBe(5); // ≥ 3
-  expect(byCode.ok_rate_14).toBe(0); // 0 OK of 5
+  const out = signals(logged, { cal_min: 1550, cal_max: 1650 }, NOK_RUN_ALERT, OK_RATE_GOOD_PCT);
+  const byCode = Object.fromEntries(out.map((s) => [s.code, s]));
+  expect(byCode.avg30_above_target!.value).toBe(550); // 2200 − 1650
+  expect(byCode.avg30_above_target!.status).toBe('warn');
+  expect(byCode.nok_run!.value).toBe(5); // ≥ 3
+  expect(byCode.nok_run!.status).toBe('warn');
+  expect(byCode.nok_run_clear).toBeUndefined(); // exactly one of nok_run / nok_run_clear
+  expect(byCode.ok_rate_14!.value).toBe(0); // 0 OK of 5
+  expect(byCode.ok_rate_14!.status).toBe('warn'); // 0 < OK_RATE_GOOD_PCT
+});
+
+test('signals: no NOK run → nok_run_clear (ok); good 14-day OK rate → ok dot (§7)', () => {
+  // Five most-recent logged days all OK, within the band.
+  const logged: DayStat[] = [
+    d('2026-06-01', 1600, 'OK'),
+    d('2026-06-02', 1600, 'OK'),
+    d('2026-06-03', 1600, 'OK'),
+    d('2026-06-04', 1600, 'OK'),
+    d('2026-06-05', 1600, 'OK'),
+  ];
+  const out = signals(logged, { cal_min: 1550, cal_max: 1650 }, NOK_RUN_ALERT, OK_RATE_GOOD_PCT);
+  const byCode = Object.fromEntries(out.map((s) => [s.code, s]));
+  expect(byCode.nok_run).toBeUndefined();
+  expect(byCode.nok_run_clear!.status).toBe('ok'); // positive counterpart emitted
+  expect(byCode.ok_rate_14!.value).toBe(100); // 5 OK of 5
+  expect(byCode.ok_rate_14!.status).toBe('ok'); // 100 ≥ OK_RATE_GOOD_PCT
 });

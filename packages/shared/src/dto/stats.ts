@@ -76,11 +76,14 @@ export interface TargetZone {
 }
 
 /** A factual, rule-based signal. `text` is the contract's English fallback; the web
- * localizes via `stats.signal.<code>` with `value` interpolation (no motivational copy). */
+ * localizes via `stats.signal.<code>` with `value` interpolation (no motivational copy).
+ * `status` is server-decided and drives the design's status dot (rule 2: the web never
+ * derives a verdict — see spec/logic/stats-adherence.md §7). */
 export interface Signal {
   code: string;
   value: number;
   text: string;
+  status: 'ok' | 'warn' | 'info';
 }
 
 export interface AdherenceResponse {

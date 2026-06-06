@@ -1,6 +1,7 @@
 import {
   BEST_MONTH_MIN_DAYS,
   NOK_RUN_ALERT,
+  OK_RATE_GOOD_PCT,
   STATS_ROLLING_WINDOWS,
   type AdherenceResponse,
   type RollingResponse,
@@ -86,6 +87,6 @@ export async function getAdherence(userId: string, year: number): Promise<Adhere
       best_month: bestMonth(logged, BEST_MONTH_MIN_DAYS),
     },
     target_zone: zone,
-    signals: signals(logged, zone, NOK_RUN_ALERT),
+    signals: signals(logged, zone, NOK_RUN_ALERT, OK_RATE_GOOD_PCT),
   };
 }

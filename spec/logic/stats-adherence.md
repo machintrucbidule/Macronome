@@ -70,10 +70,26 @@ Examples (thresholds are named constants):
 
 - 30-day average vs target: if `avg_kcal_30 > cal_max` → "30-day average N kcal
   above target" (`N = avg_kcal_30 − cal_max`); symmetric below `cal_min`.
-- Current NOK run: count of consecutive most-recent logged NOK days; surface if
-  ≥ `NOK_RUN_ALERT = 3`.
+- Current NOK run: count of consecutive most-recent logged NOK days. Surface
+  `nok_run` if ≥ `NOK_RUN_ALERT = 3`; otherwise surface the positive counterpart
+  `nok_run_clear` ("no NOK streak in progress"). Exactly one of the two is emitted
+  whenever there is at least one logged day (B-058).
 - 14-day OK rate readout.
   No motivational messaging.
+
+Each signal carries a `status` (`ok` | `warn` | `info`) that drives the design's
+status dot (`charts.md` §Signals: `.ok→--ok / .warn→--nok / .info→--under`). The
+mapping is **server-decided** (the web never derives a verdict — rule 2):
+
+| code                 | status                                          |
+| -------------------- | ----------------------------------------------- |
+| `avg30_above_target` | `warn`                                          |
+| `avg30_below_target` | `info`                                          |
+| `nok_run`            | `warn`                                          |
+| `nok_run_clear`      | `ok`                                            |
+| `ok_rate_14`         | `ok` if `value ≥ OK_RATE_GOOD_PCT`, else `warn` |
+
+`OK_RATE_GOOD_PCT = 70` is a named constant (the 14-day OK-rate "good" threshold).
 
 ## 8. Empty / partial
 

@@ -20,6 +20,28 @@
   display: block;
 }
 
+/* relative wrapper so the styled tooltip (B-056) anchors to the chart box */
+.plot {
+  position: relative;
+}
+
+/* styled weight-chart tooltip (B-056; design/components/charts.md) */
+.tooltip {
+  position: absolute;
+  transform: translate(-50%, calc(-100% - 8px));
+  pointer-events: none;
+  white-space: nowrap;
+  background: var(--bg-elev-2);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow);
+  padding: 4px 8px;
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  color: var(--text);
+  z-index: 1;
+}
+
 /* axes + gridlines (design/components/charts.md §Shared primitives) */
 .gridline {
   stroke: var(--grid);

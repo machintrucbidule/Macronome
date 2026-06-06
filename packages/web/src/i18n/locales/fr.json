@@ -541,6 +541,7 @@
       "avg30_above_target": "Moyenne 30 j : {{value}} kcal au-dessus de la cible",
       "avg30_below_target": "Moyenne 30 j : {{value}} kcal sous la cible",
       "nok_run": "{{value}} jours consécutifs hors cible",
+      "nok_run_clear": "Pas de série NOK en cours.",
       "ok_rate_14": "Taux OK sur 14 j : {{value}} %"
     }
   },

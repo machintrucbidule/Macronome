@@ -33,7 +33,7 @@ export function ChartAxes(props: ChartAxesProps) {
             textAnchor="end"
             dominantBaseline="middle"
           >
-            {v.toFixed(1)}
+            {Math.round(v)}
           </text>
         </g>
       ))}
@@ -47,7 +47,7 @@ export function ChartAxes(props: ChartAxesProps) {
             textAnchor="start"
             dominantBaseline="middle"
           >
-            {v.toFixed(1)}
+            {Math.round(v)}
           </text>
         ))}
       {ticks(xDomain[0], xDomain[1]).map((v) => (

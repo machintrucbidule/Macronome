@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { HeatmapCell } from '@macronome/shared';
-import { monthLabel } from '../../features/stats/format';
+import { monthLabel, weekdayNarrow } from '../../features/stats/format';
 import styles from './Heatmap.module.css';
 
 // Calendar heatmap (design/components/charts.md; spec/logic/stats-adherence.md §3): one
@@ -13,6 +13,8 @@ const CELL = 11;
 const GAP = 3;
 const STEP = CELL + GAP;
 const TOP = 14; // room for month labels
+const LEFT = 16; // room for weekday row labels (B-073)
+const WEEKDAY_ROWS = [0, 2, 4, 6]; // labelled every other row (charts.md §heatmap)
 
 /** Monday-first weekday index (0 = Mon … 6 = Sun) for a YYYY-MM-DD date. */
 function mondayIndex(date: string): number {
@@ -55,7 +57,7 @@ export function Heatmap({ cells }: { cells: HeatmapCell[] }) {
   const { t, i18n } = useTranslation();
   const { placed, cols } = useMemo(() => layout(cells), [cells]);
   const ticks = useMemo(() => monthTicks(placed, i18n.language), [placed, i18n.language]);
-  const width = Math.max(cols, 1) * STEP;
+  const width = LEFT + Math.max(cols, 1) * STEP;
   const height = TOP + 7 * STEP;
   const cls = { OK: styles.ok, NOK: styles.nok, none: styles.none } as const;
 
@@ -67,15 +69,26 @@ export function Heatmap({ cells }: { cells: HeatmapCell[] }) {
       role="img"
       aria-label={t('stats.heatmap.label')}
     >
+      {WEEKDAY_ROWS.map((row) => (
+        <text
+          key={`dow-${row}`}
+          x={LEFT - 4}
+          y={TOP + row * STEP + CELL - 1}
+          textAnchor="end"
+          className={styles.month}
+        >
+          {weekdayNarrow(row, i18n.language)}
+        </text>
+      ))}
       {ticks.map((tk) => (
-        <text key={tk.label} x={tk.col * STEP} y={10} className={styles.month}>
+        <text key={tk.label} x={LEFT + tk.col * STEP} y={10} className={styles.month}>
           {tk.label}
         </text>
       ))}
       {placed.map((p) => (
         <rect
           key={p.cell.date}
-          x={p.col * STEP}
+          x={LEFT + p.col * STEP}
           y={TOP + p.row * STEP}
           width={CELL}
           height={CELL}
@@ -84,7 +97,7 @@ export function Heatmap({ cells }: { cells: HeatmapCell[] }) {
         >
           <title>
             {`${p.cell.date} · ${t(`stats.status.${p.cell.status}`)}`}
-            {p.cell.kcal !== null ? ` · ${p.cell.kcal} kcal` : ''}
+            {p.cell.kcal !== null ? ` · ${Math.round(p.cell.kcal)} kcal` : ''}
           </title>
         </rect>
       ))}

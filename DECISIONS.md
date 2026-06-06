@@ -621,3 +621,37 @@ is annotated rather than the code silently diverging.
 **Spec impact:** `specifications/screens/recipe.md` (recipe-list row note). **Code:** removed the
 `<span class=badge>` from `RecipeRow.tsx`, the now-unused `.badge` class in `recipes.module.css`,
 and the `recipes.badge` i18n key (FR+EN). No API/schema change.
+
+## B-056 — Weight chart: styled tooltip (replaces native `<title>`) — RESOLVED (author)
+
+Post-v1 backlog triage (batch BF-9). `design/components/charts.md` mandated **native SVG
+`<title>`** tooltips for every chart point/cell. On the weight chart those default browser
+tooltips are slow to appear and visually poor. **Decision (author, "Tout maintenant"):** the
+**weight chart** uses a **styled HTML tooltip** — a floating card (`--bg-elev-2`, `--border`,
+`--r-md`, shadow, `--font-num`/`--fs-11`) anchored to the hovered point, content `date · value`.
+The **heatmap and bars keep the native `<title>`** (dense grids where a styled overlay adds no
+value). Faithful to the item's scope (`WeightChart` / `HitAreas`).
+
+**Spec impact:** `design/components/charts.md` (§Shared primitives Tooltips note + §Weight chart
+dots). **Code:** new web `components/Chart/ChartTooltip.tsx`; `HitAreas.tsx` drops `<title>` and
+emits hover callbacks; `WeightChart.tsx` holds the hovered point + relative wrapper; tooltip
+styles in `Chart.module.css`. No API/schema change.
+
+## B-058 — Stats signals: no-NOK-run signal + server-decided status dot — RESOLVED (author)
+
+Post-v1 backlog triage (batch BF-9). Two divergences from the mockup
+(`specifications/mockups/stats.html`): (1) the signals panel always shows a NOK-streak line —
+`nok_run` when ≥ 3, else "Pas de série NOK en cours." — but `stats-adherence.md §7` only emitted
+`nok_run` (≥ 3), so with no streak **nothing** was shown; (2) the mockup colours the 14-day OK
+rate **green ≥ 70 % / red otherwise**, but the app always showed it blue. The colour is a verdict
+on the rate, which rule 2 forbids the web from computing. **Decision (author):** the server emits
+a positive **`nok_run_clear`** signal when the current NOK run is `< NOK_RUN_ALERT`, and **every
+signal carries a server-decided `status`** (`ok`/`warn`/`info`) driving the design's status dot.
+`ok_rate_14` → `ok` when `value ≥ OK_RATE_GOOD_PCT` (= 70), else `warn`.
+
+**Spec impact:** `spec/logic/stats-adherence.md §7` (nok_run_clear + status table + threshold
+constant). **Code:** shared `dto/stats.ts` (`Signal.status`), `constants/tuning.ts`
+(`OK_RATE_GOOD_PCT = 70`) + `index.ts` export; api `domain/stats/signals.ts` (status per signal,
+nok_run_clear else-branch, ok_rate_14 threshold, `okRateGood` param) + `services/stats.ts`;
+web `features/stats/components/Signals.tsx` (dot driven by `status`, `DOT_BY_CODE` dropped) +
+i18n `stats.signal.nok_run_clear` (FR/EN). No DB/schema change.
