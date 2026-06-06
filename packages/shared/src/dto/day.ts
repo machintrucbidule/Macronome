@@ -34,7 +34,9 @@ export interface MacroSnap {
   protein: number;
 }
 
-/** One logged food line. `consumed` is derived (served − leftover share). */
+/** One logged food line. `consumed` is derived (served − leftover share); `consumed.quantity`
+ *  is that share expressed in the line's own unit (= served_quantity × consumed_grams /
+ *  served_grams), so the Qté column can render the consumed amount (B-047). */
 export interface MealEntry {
   id: string;
   kind: 'referenced' | 'custom';
@@ -45,7 +47,7 @@ export interface MealEntry {
   portion_id: string | null;
   served_grams: number | null;
   snap: MacroSnap;
-  consumed: { grams: number | null } & MacroSnap;
+  consumed: { grams: number | null; quantity: number | null } & MacroSnap;
   is_pinned: boolean;
   order_index: number;
 }
@@ -200,6 +202,31 @@ export const PatchLeftoverSchema = z
   })
   .refine((b) => Object.keys(b).length > 0, { message: 'empty_patch' });
 export type PatchLeftoverRequest = z.infer<typeof PatchLeftoverSchema>;
+
+/** POST /meals/:mealId/leftover/preview — stateless per-line proration for a draft leftover
+ *  (B-047). The web sends the already-known tare (catalog or a group's frozen value); the
+ *  server does the proportional split (CLAUDE.md rule 2). Persists nothing. */
+export const LeftoverPreviewRequestSchema = z.object({
+  entry_ids: z.array(z.string().uuid()).min(1),
+  gross_grams: z.number().nonnegative(),
+  tare_g: z.number().nonnegative(),
+});
+export type LeftoverPreviewRequest = z.infer<typeof LeftoverPreviewRequestSchema>;
+
+/** One previewed line: served grams in, consumed grams out (after the proration). */
+export interface LeftoverPreviewLine {
+  entry_id: string;
+  served_grams: number;
+  consumed_grams: number;
+}
+
+export interface LeftoverPreviewResponse {
+  net_grams: number;
+  served_total: number;
+  lines: LeftoverPreviewLine[];
+  /** Block reason when the draft is incoherent (same codes the apply enforces), else null. */
+  blocked: 'gross_below_tare' | 'leftover_exceeds_served' | null;
+}
 
 /** GET /journal?year=YYYY — one row per logged day, newest first. */
 export const JournalQuerySchema = z.object({

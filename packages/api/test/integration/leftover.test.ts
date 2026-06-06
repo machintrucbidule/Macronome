@@ -3,6 +3,7 @@ import { createApp } from '../../src/app.js';
 import { prisma } from '../../src/data/prisma.js';
 import {
   authedAgent,
+  csrfPatch,
   csrfPost,
   seedContainer,
   seedFood,
@@ -102,5 +103,87 @@ describe('leftover', () => {
 
     const day = await agent.get(`/api/v1/days/${TODAY}`);
     expect(day.body.meals[0].leftover_groups).toHaveLength(0);
+  });
+});
+
+describe('leftover preview & re-edit (B-047)', () => {
+  it('previews per-line consumed (net 100 / 1000 → 450/270/180) without writing (B-047)', async () => {
+    const { agent, csrf, mealId, entryIds } = await plate();
+
+    const res = await csrfPost(agent, csrf, `/api/v1/meals/${mealId}/leftover/preview`, {
+      entry_ids: entryIds,
+      gross_grams: 508,
+      tare_g: 408,
+    });
+    expect(res.status).toBe(200);
+    expect(res.body.net_grams).toBe(100);
+    expect(res.body.served_total).toBe(1000);
+    expect(res.body.blocked).toBeNull();
+    const byId = Object.fromEntries(
+      (res.body.lines as { entry_id: string; consumed_grams: number }[]).map((l) => [
+        l.entry_id,
+        l.consumed_grams,
+      ]),
+    );
+    expect([byId[entryIds[0]!], byId[entryIds[1]!], byId[entryIds[2]!]]).toEqual([450, 270, 180]);
+
+    const day = await agent.get(`/api/v1/days/${TODAY}`);
+    expect(day.body.meals[0].leftover_groups).toHaveLength(0); // preview persists nothing
+  });
+
+  it('preview flags blocked drafts (gross < tare, net > served)', async () => {
+    const { agent, csrf, mealId, entryIds } = await plate();
+    const url = `/api/v1/meals/${mealId}/leftover/preview`;
+
+    const below = await csrfPost(agent, csrf, url, {
+      entry_ids: entryIds,
+      gross_grams: 300,
+      tare_g: 408,
+    });
+    expect(below.body.blocked).toBe('gross_below_tare');
+    const exceeds = await csrfPost(agent, csrf, url, {
+      entry_ids: entryIds,
+      gross_grams: 1500,
+      tare_g: 408,
+    });
+    expect(exceeds.body.blocked).toBe('leftover_exceeds_served');
+  });
+
+  it('exposes consumed.quantity scaled by the applied leftover (B-047)', async () => {
+    const { agent, csrf, userId, mealId, entryIds } = await plate();
+    const container = await seedContainer(userId, 'Bowl', 408);
+
+    await csrfPost(agent, csrf, `/api/v1/meals/${mealId}/leftover`, {
+      container_id: container.id,
+      gross_grams: 508,
+      entry_ids: entryIds,
+    });
+    const day = await agent.get(`/api/v1/days/${TODAY}`);
+    const entries = day.body.meals[0].entries as { consumed: { quantity: number } }[];
+    // g unit: served_quantity == grams, so consumed.quantity tracks consumed grams.
+    expect(entries.map((e) => e.consumed.quantity)).toEqual([450, 270, 180]);
+  });
+
+  it('re-edits a group via PATCH and recomputes consumed (smaller net = more eaten)', async () => {
+    const { agent, csrf, userId, mealId, entryIds } = await plate();
+    const container = await seedContainer(userId, 'Bowl', 408);
+    const created = await csrfPost(agent, csrf, `/api/v1/meals/${mealId}/leftover`, {
+      container_id: container.id,
+      gross_grams: 508, // net 100
+      entry_ids: entryIds,
+    });
+    const groupId = created.body.id as string;
+
+    const patched = await csrfPatch(agent, csrf, `/api/v1/leftover/${groupId}`, {
+      gross_grams: 458, // net 50 → A consumes 500 − 50×500/1000 = 475
+    });
+    expect(patched.status).toBe(200);
+    expect(patched.body.leftover_net_grams).toBe(50);
+
+    const day = await agent.get(`/api/v1/days/${TODAY}`);
+    const grams = (day.body.meals[0].entries as { consumed: { grams: number } }[]).map(
+      (e) => e.consumed.grams,
+    );
+    expect(grams).toEqual([475, 285, 190]); // ×0.95
   });
 });

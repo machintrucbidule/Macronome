@@ -69,9 +69,12 @@ protein}}`. Both also accept an optional **`order_index`** (the line's row
 
 **MealEntry** payload: `{id,kind,food_id?,custom_name?,served_quantity,unit,
 portion_id?,served_grams,snap:{kcal,fat,carb,protein},
-consumed:{grams,kcal,fat,carb,protein},is_pinned,order_index}` — `consumed` is
-derived (served − leftover share; `logic/leftover-proration.md`). `is_pinned` is
-**derived live** from `pantry_item` per read (`logic/pantry-pin.md`), not stored.
+consumed:{grams,quantity,kcal,fat,carb,protein},is_pinned,order_index}` — `consumed` is
+derived (served − leftover share; `logic/leftover-proration.md`). `consumed.quantity` is
+that consumed amount expressed in the line's **own unit** (= `served_quantity ×
+consumed_grams / served_grams`), so the Qté column renders what was eaten (B-047); it equals
+`served_quantity` when no leftover applies. `is_pinned` is **derived live** from `pantry_item`
+per read (`logic/pantry-pin.md`), not stored.
 
 ## Leftover (the plate deduction)
 
@@ -82,8 +85,17 @@ entry_ids:[...]}`. Server reads the container to **freeze** its
     if net > selected served_total. Nothing written on a block
     (RECONCILIATION_LOG §E1). → 201 LeftoverGroup + updated entries.
 - `PATCH /leftover/:groupId` — re-edit gross/container/selection; recomputes
-  consumed (OPEN_GAPS #13). → 200.
+  consumed (OPEN_GAPS #13). → 200. A re-edit may omit `container_id` to keep the group's
+  already-frozen container (used when the original container was since deleted).
 - `DELETE /leftover/:groupId` → 204 (entries revert to fully consumed).
+- `POST /meals/:mealId/leftover/preview` — `{entry_ids:[...], gross_grams, tare_g}`.
+  **Stateless** per-line proration for a draft leftover (B-047); persists nothing. The caller
+  supplies the tare (catalog `empty_weight_g`, or a group's frozen `tare_g` on re-edit), so this
+  endpoint covers create, re-edit, and a since-deleted container uniformly. The proportional
+  split itself stays server-side (CLAUDE.md rule 2). → 200 `{net_grams, served_total,
+lines:[{entry_id, served_grams, consumed_grams}], blocked}` where `blocked` is
+  `'gross_below_tare' | 'leftover_exceeds_served' | null` (same codes the apply enforces) and
+  each `consumed_grams` is clamped to ≥ 0 for display.
 
 **LeftoverGroup** payload: `{id,container_name,tare_g,gross_grams,
 leftover_net_grams,entry_ids:[...]}`.

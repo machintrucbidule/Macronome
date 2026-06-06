@@ -59,12 +59,25 @@ function UnitChip({ mealId, entry }: QtyCellProps) {
   );
 }
 
+/** At-rest display: the consumed quantity in the line's unit (= served when no leftover
+ * applies, B-047), trimmed to at most 2 decimals so portions read "1.8" and grams "270". */
+function restValue(entry: MealEntry): string {
+  const q = entry.consumed.quantity ?? entry.served_quantity;
+  return String(Math.round(q * 100) / 100);
+}
+
 export function QtyCell({ mealId, entry }: QtyCellProps) {
   const { actions, pendingFocus } = useMeals();
-  const [value, setValue] = useState(String(entry.served_quantity));
+  const [value, setValue] = useState(() => restValue(entry));
+  // The field shows the CONSUMED quantity at rest but edits the SERVED quantity; `dirty`
+  // gates the commit so focus+blur without a keystroke never overwrites served with consumed.
+  const [dirty, setDirty] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => setValue(String(entry.served_quantity)), [entry.served_quantity]);
+  useEffect(() => {
+    setValue(restValue(entry));
+    setDirty(false);
+  }, [entry.served_quantity, entry.consumed.quantity]);
   useEffect(() => {
     if (pendingFocus === entry.id) {
       inputRef.current?.focus();
@@ -74,10 +87,16 @@ export function QtyCell({ mealId, entry }: QtyCellProps) {
   }, [pendingFocus, entry.id, actions]);
 
   const commit = (): void => {
+    if (!dirty) return;
     const n = Number(value.replace(',', '.'));
     const qty = Number.isFinite(n) ? n : 0;
     if (qty !== entry.served_quantity)
       void actions.setQty(mealId, entry.id, qty, entry.unit, entry.portion_id);
+  };
+
+  const onChange = (v: string): void => {
+    setValue(v);
+    setDirty(true);
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>): void => {
@@ -87,7 +106,8 @@ export function QtyCell({ mealId, entry }: QtyCellProps) {
       focusSiblingQty(e.currentTarget, 1);
     } else if (e.key === 'Escape') {
       e.preventDefault();
-      setValue(String(entry.served_quantity));
+      setValue(restValue(entry));
+      setDirty(false);
       e.currentTarget.blur();
     } else if (e.key === 'Tab') {
       commit();
@@ -113,7 +133,7 @@ export function QtyCell({ mealId, entry }: QtyCellProps) {
         className={`${styles.qty} num`}
         value={value}
         inputMode="decimal"
-        onChange={(e) => setValue(e.target.value)}
+        onChange={(e) => onChange(e.target.value)}
         onFocus={(e) => e.target.select()}
         onBlur={commit}
         onKeyDown={onKeyDown}

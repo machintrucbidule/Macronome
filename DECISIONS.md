@@ -562,3 +562,48 @@ Post-v1 backlog triage (batch IMP-5). Two small improvements; both amend a contr
   build/CI step) + two `<link>` tags in `packages/web/index.html`. Vite copies `public/*`
   to `dist/`; the API already serves `dist/` statically (`http/spa.ts`), so both resolve in
   prod with no API change.
+
+---
+
+## LO-1 — Leftover: consumed Qté column, served→consumed preview & list/edit/delete (B-047) — RESOLVED (author)
+
+Post-v1 backlog triage (batch LO-1, critical-correctness). The proration **maths are
+unchanged and correct** (`spec/logic/leftover-proration.md`, `domain/leftover/`); this batch
+fixes the display + adds the missing UI. Three facets, all decided with the author:
+
+- **Qté column shows the consumed quantity.** Bug: after a leftover applied, a line's macros
+  and the meal total switched to _consumed_ but the Qté column stayed on the _served_ value,
+  so the total no longer matched the listed quantities. **Decision (author, option "champ
+  éditable affichant le consommé"):** the Qté field **stays editable** but **at rest shows the
+  consumed quantity**; typing a value still writes the **served** quantity (the server
+  re-prorates). To support this without the web computing proration (CLAUDE.md rule 2), the
+  server adds `MealEntry.consumed.quantity` = `served_quantity × consumed_grams / served_grams`
+  (a display projection; equals `served_quantity` with no leftover). The web `QtyCell` tracks a
+  `dirty` flag so a focus/blur without a keystroke never overwrites served with consumed.
+
+- **Served → consumed preview table.** `screens/meals.md` already required a pre-apply preview
+  and the mockup (`specifications/mockups/meals.html` `.lo-preview`) drew it, but it was never
+  implemented. **Decision:** show the served → consumed table (new value in red, `--delta-neg`)
+  in the create **and** edit forms. Because rule 2 forbids client-side proration, a new
+  **stateless** endpoint `POST /meals/:mealId/leftover/preview` returns the per-line consumed
+  grams (same pattern as `POST /recipes/preview` B-035, `POST /target/preview` B-042). It takes
+  `{entry_ids, gross_grams, tare_g}` — the web supplies the tare (a number it already holds from
+  the container catalog, or a group's frozen `tare_g` on re-edit), so create / re-edit /
+  since-deleted-container are handled uniformly; only the proportional split runs server-side.
+
+- **Leftover list + re-edit + delete.** The API `PATCH`/`DELETE /leftover/:groupId` existed but
+  had **no UI**. **Decision (author, option "⊟ Restes ouvre une liste"):** the ⊟ Restes button
+  opens a **list** of applied leftovers (each: container · −net g · n lines, with Éditer /
+  Supprimer) plus **＋ Nouveau reste**. Edit restores the saved gross weight + container +
+  selection and saves via PATCH; if the frozen container was since deleted, its name+tare are
+  shown and kept (PATCH omits `container_id`). Delete reverts the lines to fully consumed.
+
+  **Spec impact:** `specifications/screens/meals.md` (Qté mapping + Leftover-proration flow),
+  `spec/api/days-meals-leftover.md` (`consumed.quantity` field + preview endpoint),
+  `spec/logic/leftover-proration.md` §6b (consumed-quantity display note). **Code:** shared
+  `dto/day.ts` (`consumed.quantity`, `LeftoverPreviewRequest`/`Response`); api
+  `services/day-assembler.ts` (compute `consumed.quantity`), `services/leftover.ts` (`preview`),
+  `http/controllers/leftover.ts` + `http/routes/meals.ts` (preview route); web `api/leftover.ts`
+  (preview client), meals `useLeftoverPreview` hook, `QtyCell.tsx`, and the `LeftoverModal`
+  (mode router + `LeftoverList` + `LeftoverPreview` + `useLeftoverForm` edit support) + i18n.
+  No DB/schema change (consumed stays derived; nothing new persisted).

@@ -56,7 +56,7 @@ function previewEntry(item: PantryItemModel, orderIndex: number): MealEntryDto {
     portion_id: null,
     served_grams: 0,
     snap: zero,
-    consumed: { grams: 0, ...zero },
+    consumed: { grams: 0, quantity: 0, ...zero },
     is_pinned: true,
     order_index: orderIndex,
   };

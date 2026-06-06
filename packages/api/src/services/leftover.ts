@@ -1,10 +1,16 @@
-import type { LeftoverGroup, LeftoverRequest, PatchLeftoverRequest } from '@macronome/shared';
+import type {
+  LeftoverGroup,
+  LeftoverPreviewRequest,
+  LeftoverPreviewResponse,
+  LeftoverRequest,
+  PatchLeftoverRequest,
+} from '@macronome/shared';
 import { ErrorCode } from '@macronome/shared';
 import { containerRepo } from '../data/repositories/container.repo.js';
 import { dayRepo } from '../data/repositories/day.repo.js';
 import { entryRepo } from '../data/repositories/entry.repo.js';
 import { leftoverRepo, type LeftoverWriteData } from '../data/repositories/leftover.repo.js';
-import { netLeftover, validate } from '../domain/leftover/index.js';
+import { netLeftover, prorateConsumed, validate } from '../domain/leftover/index.js';
 import { ApiError } from '../http/errors.js';
 
 // Leftover service (spec/api/days-meals-leftover.md §Leftover). It freezes the chosen
@@ -119,4 +125,37 @@ export async function update(
 
 export function remove(userId: string, groupId: string): Promise<boolean> {
   return leftoverRepo.delete(userId, groupId);
+}
+
+/** POST /meals/:mealId/leftover/preview — stateless per-line proration for a draft leftover
+ * (B-047). Persists nothing: it totals the selected served grams, computes net = gross − tare
+ * (tare supplied by the caller), and returns each line's consumed grams plus the block reason
+ * (same codes the apply enforces). consumed grams are clamped to ≥ 0 for display. */
+export async function preview(
+  userId: string,
+  mealId: string,
+  body: LeftoverPreviewRequest,
+): Promise<LeftoverPreviewResponse | null> {
+  if (!(await dayRepo.ownedMeal(userId, mealId))) return null;
+  const entries = await entryRepo.entriesByIds(mealId, body.entry_ids);
+  if (entries.length !== body.entry_ids.length) {
+    throw new ApiError(422, ErrorCode.ValidationError, { entry_ids: 'invalid_selection' });
+  }
+  const served = entries.map((e) => ({
+    entry_id: e.id,
+    served_grams: e.servedGrams === null ? 0 : num(e.servedGrams),
+  }));
+  const servedTotal = served.reduce((sum, s) => sum + s.served_grams, 0);
+  const net = netLeftover(body.gross_grams, body.tare_g);
+  const result = validate(net, servedTotal);
+  return {
+    net_grams: net,
+    served_total: servedTotal,
+    lines: served.map((s) => ({
+      entry_id: s.entry_id,
+      served_grams: s.served_grams,
+      consumed_grams: Math.max(0, prorateConsumed(s.served_grams, net, servedTotal)),
+    })),
+    blocked: result.ok ? null : result.code,
+  };
 }

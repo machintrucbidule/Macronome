@@ -145,3 +145,82 @@
   color: var(--accent);
   font-size: 15px;
 }
+
+/* ---- Leftover served → consumed preview table (mockup .lo-preview) ---- */
+.loPreview {
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+.loPh {
+  font-family: var(--font-num);
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  padding: 7px 12px;
+  background: var(--bg-elev-2);
+  border-bottom: 1px solid var(--border);
+}
+.loPr {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: var(--sp-5);
+  padding: 6px 12px;
+  font-size: var(--fs-12);
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
+}
+.loPr:last-child {
+  border-bottom: 0;
+}
+.loPrNum {
+  font-family: var(--font-num);
+  text-align: right;
+}
+.loArrow {
+  color: var(--text-faint);
+}
+.loNew {
+  font-family: var(--font-num);
+  text-align: right;
+  color: var(--delta-neg);
+  font-weight: 700;
+}
+
+/* ---- Leftover list (applied groups + new) ---- */
+.loList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+.loGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+}
+.loGroupMain {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.loGroupName {
+  font-size: 13px;
+  font-weight: 600;
+}
+.loGroupMeta {
+  font-family: var(--font-num);
+  font-size: var(--fs-12);
+  color: var(--text-dim);
+}
+.loGroupActions {
+  display: flex;
+  gap: var(--sp-3);
+}
+.loEmptyList {
+  color: var(--text-faint);
+  font-size: var(--fs-12);
+}

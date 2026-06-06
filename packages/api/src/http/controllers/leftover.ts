@@ -1,5 +1,10 @@
 import type { Request, Response } from 'express';
-import { ErrorCode, LeftoverRequestSchema, PatchLeftoverSchema } from '@macronome/shared';
+import {
+  ErrorCode,
+  LeftoverPreviewRequestSchema,
+  LeftoverRequestSchema,
+  PatchLeftoverSchema,
+} from '@macronome/shared';
 import * as leftoverService from '../../services/leftover.js';
 import { ApiError, zodDetails } from '../errors.js';
 
@@ -17,6 +22,19 @@ export async function create(req: Request, res: Response): Promise<void> {
   const group = await leftoverService.create(userId(res), req.params.mealId as string, parsed.data);
   if (!group) throw new ApiError(404, ErrorCode.NotFound);
   res.status(201).json(group);
+}
+
+/** POST /meals/:mealId/leftover/preview — stateless per-line proration (200; no write). */
+export async function preview(req: Request, res: Response): Promise<void> {
+  const parsed = LeftoverPreviewRequestSchema.safeParse(req.body);
+  if (!parsed.success) throw new ApiError(422, ErrorCode.ValidationError, zodDetails(parsed.error));
+  const result = await leftoverService.preview(
+    userId(res),
+    req.params.mealId as string,
+    parsed.data,
+  );
+  if (!result) throw new ApiError(404, ErrorCode.NotFound);
+  res.status(200).json(result);
 }
 
 /** PATCH /leftover/:groupId — re-edit gross/container/selection (200). */
