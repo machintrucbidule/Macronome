@@ -13,6 +13,7 @@ router.use(requireAuth);
 router.get('/:date', asyncHandler(days.get));
 router.post('/:date', asyncHandler(days.materialize));
 router.patch('/:date', asyncHandler(days.patch));
+router.post('/:date/clear', asyncHandler(days.clear));
 router.post('/:date/meals', asyncHandler(meals.create));
 router.patch('/:date/meals/:mealId', asyncHandler(meals.patch));
 router.delete('/:date/meals/:mealId', asyncHandler(meals.remove));

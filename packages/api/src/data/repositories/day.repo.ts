@@ -130,4 +130,42 @@ export const dayRepo = {
     await prisma.meal.delete({ where: { id: mealId } });
     return true;
   },
+
+  /** Clear-the-day (B-046): in one transaction drop the day's leftover groups (links
+   *  cascade), delete the non-pinned entries, reset the pinned (garde-manger) lines to
+   *  qty 0, and clear `verdict_override` (back to Auto). The caller (service) resolves
+   *  which ids fall in each bucket from the user-scoped aggregate + live pantry pins. */
+  async clearDay(
+    userId: string,
+    date: string,
+    ids: { groupIds: string[]; deleteEntryIds: string[]; zeroEntryIds: string[] },
+  ): Promise<void> {
+    await prisma.$transaction(async (tx) => {
+      if (ids.groupIds.length > 0) {
+        await tx.leftoverGroup.deleteMany({ where: { id: { in: ids.groupIds } } });
+      }
+      if (ids.deleteEntryIds.length > 0) {
+        await tx.mealEntry.deleteMany({ where: { id: { in: ids.deleteEntryIds } } });
+      }
+      if (ids.zeroEntryIds.length > 0) {
+        await tx.mealEntry.updateMany({
+          where: { id: { in: ids.zeroEntryIds } },
+          data: {
+            servedQuantity: 0,
+            unit: 'g',
+            portionId: null,
+            servedGrams: 0,
+            snapKcal: 0,
+            snapFat: 0,
+            snapCarb: 0,
+            snapProtein: 0,
+          },
+        });
+      }
+      await tx.dayLog.updateMany({
+        where: { userId, date: toDate(date) },
+        data: { verdictOverride: null },
+      });
+    });
+  },
 };

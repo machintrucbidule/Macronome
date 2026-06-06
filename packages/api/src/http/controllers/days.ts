@@ -34,3 +34,10 @@ export async function patch(req: Request, res: Response): Promise<void> {
   if (!day) throw new ApiError(404, ErrorCode.NotFound);
   res.status(200).json(day);
 }
+
+/** POST /days/:date/clear — empty the day, keeping pins@0 + comment + activity (200; 409 summary). */
+export async function clear(req: Request, res: Response): Promise<void> {
+  const day = await daysService.clear(userId(res), pathDate(req));
+  if (!day) throw new ApiError(404, ErrorCode.NotFound);
+  res.status(200).json(day);
+}

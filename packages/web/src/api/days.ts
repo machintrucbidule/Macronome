@@ -8,4 +8,6 @@ export const daysApi = {
   get: (date: string) => api.get<DayDetail>(`/days/${date}`),
   materialize: (date: string) => api.post<DayDetail>(`/days/${date}`),
   patch: (date: string, body: PatchDayRequest) => api.patch<DayDetail>(`/days/${date}`, body),
+  // Clear the day (B-046): keeps pins@0 + comment + activity, resets the verdict to Auto.
+  clear: (date: string) => api.post<DayDetail>(`/days/${date}/clear`),
 };

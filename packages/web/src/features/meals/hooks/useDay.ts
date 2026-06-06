@@ -51,6 +51,7 @@ export function useDay(date: string) {
     mutationFn: (b: PatchDayRequest) => daysApi.patch(date, b),
     onSuccess,
   });
+  const clearDay = useMutation({ mutationFn: () => daysApi.clear(date), onSuccess });
   const createMeal = useMutation({
     mutationFn: (b: CreateMealRequest) => mealsApi.create(date, b),
     onSuccess,
@@ -99,6 +100,7 @@ export function useDay(date: string) {
     query,
     materializeRaw,
     patchDay,
+    clearDay,
     createMeal,
     patchMeal,
     removeMeal,

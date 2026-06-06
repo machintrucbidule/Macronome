@@ -67,13 +67,7 @@ export function TotalsRow({ day }: TotalsRowProps) {
         status={macroStatus}
         unit="g"
       />
-      <VerdictCluster
-        activityLevel={day.activity_level}
-        effective={day.effective_verdict}
-        auto={day.verdict_auto}
-        override={day.verdict_override}
-        constat={day.constat}
-      />
+      <VerdictCluster activityLevel={day.activity_level} constat={day.constat} />
     </div>
   );
 }

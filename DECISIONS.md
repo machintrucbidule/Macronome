@@ -714,3 +714,38 @@ scrolling is unaffected.
 **Code:** `components/DataTable/DataTable.module.css` (`.table thead th` z-index
 `var(--z-popover)` → `var(--z-sticky-sub)`). No appbar/`.acctPop` token change, no API/schema
 change.
+
+## IMP-6 — Meals UX: clear-all + comment/verdict on the date line (B-046/B-063/B-064) — RESOLVED (author)
+
+Post-v1 backlog triage (batch IMP-6, improvement). Three Meals-screen UX changes that free
+vertical space and add a fast "wipe the day" action. Decided with the author.
+
+- **B-046 — "Tout effacer".** A button on the controls row, **left of "+ Repas"**, empties the
+  day. **Behaviour (author):** it removes every logged food/quantity and any leftover deductions,
+  **keeps the garde-manger lines at qty 0**, **keeps the day comment and the activity level**, and
+  resets the verdict to **Auto** (`verdict_override` cleared). It is guarded by the shared confirm
+  modal (destructive flow, `design/components/modals.md`), not a native `confirm()`. The clear is a
+  single **atomic server operation** (CLAUDE.md rule 2 — no client-side delete loop): a new
+  endpoint `POST /days/:date/clear` deletes the day's leftover groups, deletes non-pinned entries
+  (custom lines + non-pinned referenced lines), zeroes pinned referenced lines, and clears
+  `verdict_override`; → 200 DayDetail. A never-materialized scaffold is a no-op; a summary day →
+  409 `summary_day_readonly`. Pin membership is resolved live from `pantry_item`, the single source
+  of truth (`spec/logic/pantry-pin.md`).
+
+- **B-063 — day comment on the date line.** The comment field moves up from its own row into the
+  sticky header's **date line** (after the day-type tag), saving vertical space.
+
+- **B-064 — OK/NOK badge on the date line.** **Scope decision (author):** only the **OK/NOK/Auto
+  badge** moves onto the date line (far right); the **activity selector (+ "?") and the
+  burn/deficit constat stay** in the totals-row verdict cluster. The date line then reads
+  date selector · comment · OK-NOK-Auto.
+
+**Spec impact:** `specifications/screens/meals.md` (layout/date-line, component inventory, the
+"Tout effacer" interaction, comment placement, verdict-badge placement); `spec/api/days-meals-
+leftover.md` (`POST /days/:date/clear`). **Code:** api `http/routes/days.ts` + `http/controllers/
+days.ts` (`clear`), `services/days.ts` (`clear`), `data/repositories/day.repo.ts` (`clearDay`,
+transactional); web `api/days.ts` (`clear`), meals `hooks/useDay.ts` (`clearDay`) + `hooks/
+mealActions.ts` (`clearDay`), new `components/ClearDayConfirm.tsx`, `MealsPage.tsx` (button),
+`components/DayHeader/DayHeader.tsx` (+ new `DayCommentField.tsx`, `DayVerdictBadge.tsx`),
+`components/TotalsRow/VerdictCluster.tsx` (badge removed), `meals.module.css`, i18n FR+EN. No
+DB/schema change, no design-token change.

@@ -62,7 +62,8 @@
   display: flex;
   align-items: center;
   gap: var(--sp-4);
-  margin-bottom: var(--sp-6);
+  flex: 1;
+  min-width: 180px;
 }
 .dcIcon {
   color: var(--text-faint);
@@ -355,6 +356,20 @@
 .addMeal:hover {
   border-color: var(--accent);
   color: var(--accent);
+}
+.clearAll {
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-elev-2);
+  color: var(--text-dim);
+  border-radius: var(--r-md);
+  padding: 7px 12px;
+  cursor: pointer;
+}
+.clearAll:hover {
+  border-color: var(--nok);
+  color: var(--nok);
 }
 
 .scrollerWrap {

@@ -183,6 +183,8 @@ function dayActions(d: MealActionDeps, run: Run) {
     setComment: (comment: string) => run(d.day.patchDay.mutateAsync({ comment })),
     setVerdict: (verdict_override: Verdict | null) =>
       run(d.day.patchDay.mutateAsync({ verdict_override })),
+    // Tout effacer (B-046): server clears foods/leftovers, keeps pins@0 + comment + activity.
+    clearDay: () => run(d.day.clearDay.mutateAsync()),
     openLeftover: (mealId: string) => d.setLeftoverMealId(mealId),
     closeLeftover: () => d.setLeftoverMealId(null),
     openCook: (mealId: string) => d.setCookMealId(mealId),

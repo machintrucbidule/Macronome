@@ -125,3 +125,35 @@ export async function patch(
   });
   return get(userId, date);
 }
+
+/** POST /days/:date/clear — empty the day (B-046): drop logged foods + leftovers, keep
+ *  the garde-manger lines at qty 0, keep comment + activity, reset the verdict to Auto.
+ *  A never-materialized scaffold is a no-op; a summary day is read-only (409). */
+export async function clear(userId: string, date: string): Promise<DayDetail | null> {
+  const existing = await dayRepo.findDay(userId, date);
+  if (!existing) return get(userId, date); // scaffold: already "empty with pins at 0"
+  if (existing.kind === 'summary') throw new ApiError(409, ErrorCode.SummaryDayReadonly);
+
+  const [aggregate, pins] = await Promise.all([
+    dayReadRepo.readAggregate(userId, date),
+    pantryRepo.list(userId),
+  ]);
+  if (!aggregate) return get(userId, date);
+  const pinnedKeys = new Set(pins.map((p) => pinKey(p.mealSlotName, p.foodId)));
+
+  const groupIds: string[] = [];
+  const deleteEntryIds: string[] = [];
+  const zeroEntryIds: string[] = [];
+  for (const { meal, entries, groups } of aggregate.meals) {
+    for (const g of groups) groupIds.push(g.group.id);
+    for (const e of entries) {
+      const pinned =
+        e.kind === 'referenced' &&
+        e.foodId !== null &&
+        pinnedKeys.has(pinKey(meal.slotName, e.foodId));
+      (pinned ? zeroEntryIds : deleteEntryIds).push(e.id);
+    }
+  }
+  await dayRepo.clearDay(userId, date, { groupIds, deleteEntryIds, zeroEntryIds });
+  return get(userId, date);
+}

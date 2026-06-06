@@ -17,17 +17,11 @@ afterEach(async () => {
 
 function renderCluster(activityLevel: string, constat: DayConstat) {
   const ctrl = {
-    actions: { setActivity: vi.fn(), setVerdict: vi.fn() },
+    actions: { setActivity: vi.fn() },
   } as unknown as MealsController;
   return render(
     <MealsProvider value={ctrl}>
-      <VerdictCluster
-        activityLevel={activityLevel}
-        effective="NOK"
-        auto="NOK"
-        override={null}
-        constat={constat}
-      />
+      <VerdictCluster activityLevel={activityLevel} constat={constat} />
     </MealsProvider>,
   );
 }

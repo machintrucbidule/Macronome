@@ -4,44 +4,24 @@ import {
   ACTIVITY_LEVELS,
   type ActivityLevel,
   type DayConstat,
-  type Verdict,
 } from '@macronome/shared';
 import { useMeals } from '../../MealsContext';
 import { ActivityHelp } from './ActivityHelp';
-import { VerdictBadge } from '../../../../components/VerdictBadge/VerdictBadge';
 import { r0 } from '../../format';
 import { formatFixed } from '../../../../lib/format/number';
 import styles from '../../meals.module.css';
 
-// Verdict cluster: per-day activity select + the OK/NOK badge (with override menu) + the
-// burn/deficit constat. All values are server-computed; the cluster only displays them and
-// emits the activity / override change.
+// Verdict cluster: per-day activity select + the burn/deficit constat. The OK/NOK badge moved
+// to the header date line (B-064). All values are server-computed; the cluster only displays
+// them and emits the activity change.
 interface VerdictClusterProps {
   activityLevel: string;
-  effective: Verdict | null;
-  auto: Verdict | null;
-  override: Verdict | null;
   constat: DayConstat;
 }
 
-export function VerdictCluster({
-  activityLevel,
-  effective,
-  auto,
-  override,
-  constat,
-}: VerdictClusterProps) {
+export function VerdictCluster({ activityLevel, constat }: VerdictClusterProps) {
   const { t } = useTranslation();
   const { actions } = useMeals();
-
-  const labels = {
-    forceOk: t('meals.verdict.forceOk'),
-    forceNok: t('meals.verdict.forceNok'),
-    autoCalc: (a: Verdict | null) =>
-      a ? t('meals.verdict.autoCalcWith', { v: a }) : t('meals.verdict.autoCalc'),
-    auto: t('meals.verdict.auto'),
-    forced: t('meals.verdict.forced'),
-  };
 
   return (
     <div className={styles.verdict}>
@@ -62,14 +42,6 @@ export function VerdictCluster({
           ))}
         </select>
       </div>
-
-      <VerdictBadge
-        effective={effective}
-        auto={auto}
-        override={override}
-        labels={labels}
-        onSet={(v) => void actions.setVerdict(v)}
-      />
 
       <div className={styles.constat}>
         {constat.estimated_burn === null ? (

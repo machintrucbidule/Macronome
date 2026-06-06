@@ -16,6 +16,13 @@ See `00-conventions.md`. Scoped to the authenticated user.
   is never null (defaults to `sedentary`); there is no "unset" value (DECISIONS Gap #11).
 - Summary day: `PATCH` accepts only `{summary_kcal?, comment?,
 verdict_override?}`; meal detail is rejected → 409 `summary_day_readonly`.
+- `POST /days/:date/clear` — **clear the day** (B-046). No body. Atomically: deletes the
+  day's leftover groups, deletes all non-pinned entries (custom lines + non-pinned
+  referenced lines), and resets the **pinned** referenced lines (garde-manger) to qty 0;
+  **keeps** `comment` and `activity_level`; resets `verdict_override` to null (back to
+  Auto). Pin membership is the live `pantry_item` set (`logic/pantry-pin.md`). A
+  never-materialized scaffold (nothing logged) is a no-op. → 200 DayDetail. Summary day
+  → 409 `summary_day_readonly`.
 
 **DayDetail** payload (detailed):
 
