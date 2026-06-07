@@ -1,11 +1,36 @@
 /* Inline status banner. Semantic tokens only. */
 
 .banner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-4);
   border: var(--bw) solid var(--border-strong);
   border-radius: var(--r-md);
   padding: var(--sp-4) var(--sp-6);
   font-size: var(--fs-12);
   line-height: var(--lh-snug);
+}
+
+.content {
+  flex: 1;
+}
+
+/* Close (×) affordance for dismissible banners (toasts-warnings.md §D). Inherits the tone
+   colour; a borderless square so it sits flush against the banner's right edge. */
+.close {
+  flex: none;
+  margin: calc(-1 * var(--sp-1)) calc(-1 * var(--sp-2)) 0 0;
+  padding: 0 var(--sp-2);
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: var(--fs-16);
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.7;
+}
+.close:hover {
+  opacity: 1;
 }
 
 .warning {

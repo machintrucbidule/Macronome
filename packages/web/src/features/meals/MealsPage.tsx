@@ -35,7 +35,13 @@ export function MealsPage() {
   return (
     <AppShell flush>
       <MealsProvider value={ctl}>
-        {ctl.error && <Banner tone="warning">{errorMessage}</Banner>}
+        {ctl.error && (
+          <div className={styles.errorBar}>
+            <Banner tone="warning" onDismiss={ctl.actions.dismissError}>
+              {errorMessage}
+            </Banner>
+          </div>
+        )}
 
         {ctl.isLoading || !ctl.day ? (
           <SkeletonRows />

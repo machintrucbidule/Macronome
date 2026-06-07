@@ -324,6 +324,13 @@
 }
 
 /* ---- Controls + scroller ---- */
+/* Page-level error banner: the Repas page is flush (no wrapper padding), so the banner gets
+   the gutter here to align with the content width instead of bleeding under the viewport edges
+   (toasts-warnings.md §D — "above the content"). */
+.errorBar {
+  padding: var(--sp-5) var(--page-gutter) 0;
+}
+
 .controls {
   display: flex;
   align-items: center;

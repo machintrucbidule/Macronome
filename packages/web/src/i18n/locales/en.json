@@ -59,6 +59,7 @@
     "save": "Save",
     "cancel": "Cancel",
     "remove": "Remove",
+    "close": "Close",
     "optional": "(optional)",
     "loading": "Loading…",
     "loadError": "Couldn't load. Showing cached data; try again later."

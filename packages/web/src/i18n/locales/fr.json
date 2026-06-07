@@ -59,6 +59,7 @@
     "save": "Enregistrer",
     "cancel": "Annuler",
     "remove": "Supprimer",
+    "close": "Fermer",
     "optional": "(optionnel)",
     "loading": "Chargement…",
     "loadError": "Échec du chargement. Affichage des données en cache ; réessayez plus tard."
