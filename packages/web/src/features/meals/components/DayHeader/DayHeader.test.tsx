@@ -23,6 +23,7 @@ const DAY = {
   verdict_auto: 'OK',
   verdict_override: null,
   effective_verdict: 'OK',
+  totals: { kcal: 0, fat: 0, carb: 0, protein: 0, weight_g: 0 },
 } as unknown as DayDetail;
 
 function renderHeader() {

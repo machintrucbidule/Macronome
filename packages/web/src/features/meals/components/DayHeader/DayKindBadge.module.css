@@ -1,0 +1,72 @@
+/* Day-kind chip + menu (design/components/badges-verdict.md §D, DK-1 / B-078). A clickable
+   pill switching the day kind Complet <-> Partiel; colour-coded green (Complet) / yellow
+   (Partiel, the --accent calendar-partial colour). Menu reuses the shared menu primitive. */
+.wrap {
+  position: relative;
+}
+
+.chip {
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  color: var(--text-dim);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+.chip:hover {
+  filter: brightness(1.08);
+}
+
+.complet {
+  color: var(--ok);
+  background: var(--ok-soft);
+  border-color: color-mix(in srgb, var(--ok) 45%, transparent);
+}
+.partiel {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.caret {
+  font-size: var(--fs-9);
+  opacity: 0.6;
+}
+
+.menu {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 4px);
+  z-index: var(--z-menu);
+  min-width: 140px;
+  overflow: hidden;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow);
+}
+.menu button {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-num);
+  font-size: var(--fs-12);
+  padding: 9px 13px;
+  cursor: pointer;
+  text-align: left;
+}
+.menu button:hover {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+.menu button.cur {
+  color: var(--accent);
+}

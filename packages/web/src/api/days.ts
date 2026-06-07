@@ -12,4 +12,7 @@ export const daysApi = {
   clear: (date: string) => api.post<DayDetail>(`/days/${date}/clear`),
   // Convert a summary (light) day to a detailed day (day-model §9): seeds meals to log lines.
   convertToDetailed: (date: string) => api.post<DayDetail>(`/days/${date}/detail`),
+  // Convert a detailed (Complet) day to a summary (Partiel) day (DK-1 / B-078): discards the
+  // lines and sets summary_kcal := the day's current Σ (client gates Σ>0 behind a confirm).
+  convertToSummary: (date: string) => api.post<DayDetail>(`/days/${date}/summary`),
 };

@@ -227,10 +227,15 @@ function dayActions(d: MealActionDeps, run: Run) {
     setComment: (comment: string) => run(d.day.patchDay.mutateAsync({ comment })),
     setVerdict: (verdict_override: Verdict | null) =>
       run(d.day.patchDay.mutateAsync({ verdict_override })),
+    // Edit a Partiel day's calorie total from the Repas Calories card (B-079; parity with Journal).
+    setSummaryKcal: (summary_kcal: number) => run(d.day.patchDay.mutateAsync({ summary_kcal })),
     // Tout effacer (B-046): server clears foods/leftovers, keeps pins@0 + comment + activity.
     clearDay: () => run(d.day.clearDay.mutateAsync()),
     // Convert a summary (light) day to a detailed day so the user can log meal lines (day-model §9).
     convertToDetailed: () => run(d.day.convertToDetailed.mutateAsync()),
+    // Convert a detailed (Complet) day to a summary (Partiel) day (DK-1 / B-078): discards lines,
+    // freezes summary_kcal := Σ. The destructive confirm is handled by the chip menu component.
+    convertToSummary: () => run(d.day.convertToSummary.mutateAsync()),
     openLeftover: (mealId: string) => d.setLeftoverMealId(mealId),
     closeLeftover: () => d.setLeftoverMealId(null),
     openCook: (mealId: string) => d.setCookMealId(mealId),

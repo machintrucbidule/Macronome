@@ -124,6 +124,40 @@ export async function convertToDetailed(userId: string, date: string): Promise<D
   return get(userId, date);
 }
 
+/** POST /days/:date/summary — convert a detailed (Complet) day to a summary (Partiel) day
+ *  (day-model §9; DK-1 / B-078): compute summary_kcal := the current Σ kcal, drop the day's
+ *  meals (entries + leftovers cascade), set kind='summary'. Unlike PATCH summary_kcal this is
+ *  allowed when Σ > 0 — the deliberate, client-confirmed discard. Idempotent on a summary day;
+ *  materializes a missing day as summary (summary_kcal=0). → DayDetail. */
+export async function convertToSummary(userId: string, date: string): Promise<DayDetail> {
+  const existing = await dayRepo.findDay(userId, date);
+  const snapshot =
+    existing && isPast(date)
+      ? (existing.targetSnapshot as unknown as ResolvedSnapshot)
+      : await resolveSnapshotForDate(userId, date);
+
+  if (!existing) {
+    await dayRepo.createDay(userId, {
+      date,
+      kind: 'summary',
+      summaryKcal: 0,
+      targetSnapshot: asJson(snapshot),
+      verdictAuto: autoVerdict(0, snapshot.cal_min, snapshot.cal_max),
+      meals: [],
+    });
+    return get(userId, date);
+  }
+  if (existing.kind === 'summary') return get(userId, date);
+
+  const aggregate = await dayReadRepo.readAggregate(userId, date);
+  const summaryKcal = aggregate ? computeDayTotals(aggregate).kcal : 0;
+  await dayRepo.convertToSummary(userId, date, {
+    summaryKcal,
+    verdictAuto: autoVerdict(summaryKcal, snapshot.cal_min, snapshot.cal_max),
+  });
+  return get(userId, date);
+}
+
 /** PATCH /days/:date — **upserts** the day (day-model): activity / comment / verdict on a
  *  never-touched date auto-materializes a detailed day; `summary_kcal` creates/updates/converts
  *  a summary (light) day. Always returns the resulting DayDetail (never 404 on a missing row). */

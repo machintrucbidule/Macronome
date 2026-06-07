@@ -3,6 +3,7 @@ import type { DayDetail } from '@macronome/shared';
 import { CalorieCard } from '../../../../components/MetricCard/CalorieCard';
 import { MacroCard } from '../../../../components/MetricCard/MacroCard';
 import { formatInt } from '../../../../lib/format/number';
+import { useMeals } from '../../MealsContext';
 import { VerdictCluster } from './VerdictCluster';
 import styles from '../../meals.module.css';
 
@@ -14,6 +15,7 @@ interface TotalsRowProps {
 
 export function TotalsRow({ day }: TotalsRowProps) {
   const { t } = useTranslation();
+  const { actions } = useMeals();
   const s = day.target_snapshot;
   const macroStatus = { ok: t('meals.status.ok'), bad: t('meals.status.sous') };
 
@@ -31,6 +33,9 @@ export function TotalsRow({ day }: TotalsRowProps) {
           over: t('meals.status.over'),
         }}
         unit="kcal"
+        editable={day.kind === 'summary'}
+        onSave={(k) => void actions.setSummaryKcal(k)}
+        placeholder={t('meals.card.caloriesPlaceholder')}
       />
       <MacroCard
         label={t('meals.card.fat')}

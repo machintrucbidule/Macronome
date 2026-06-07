@@ -134,7 +134,13 @@ when a detailed day's entries sum to 0 (cleared, or pantry-only at qty 0).
 - **Conversion (all summary/detailed days):**
   - **light → detailed:** a summary day that receives meal detail becomes `detailed` (clears
     `summary_kcal`, sets `kind='detailed'`); its state then follows §8 (`green` once Σ > 0).
-  - **detailed → light:** a detailed day reduced to a typed total becomes `summary` (sets
-    `summary_kcal`, `kind='summary'`, drops its meals); allowed only when the day has **no
-    meal lines with Σ > 0** (a detailed day with real lines shows a read-only derived Σ — the
-    Calories cell is not editable).
+  - **detailed → light:** a detailed day becomes `summary` (sets `summary_kcal`,
+    `kind='summary'`, drops its meals). Two paths (DK-1 / B-078):
+    - _In-place edit (PATCH `summary_kcal`)_ — allowed **only when the day has no meal lines
+      with Σ > 0**. A detailed day with real lines shows a read-only derived Σ (the Calories
+      cell is not editable) → `409 calories_not_editable`. This guards against an accidental
+      overwrite of a detailed day's computed total.
+    - _Deliberate conversion (`POST /days/:date/summary`)_ — allowed **even when Σ > 0**: it
+      **discards the day's meal lines** and sets `summary_kcal := the current Σ`, behind a
+      **strong confirmation** (the client warns that the foods will be removed,
+      `design/components/modals.md`). The day is then an editable Partiel day.

@@ -21,7 +21,9 @@ See `00-conventions.md`. Scoped to the authenticated user.
   **creates or converts** to one. On a non-existent / empty (`red`) date → **creates** a summary
   (yellow) day; on an existing summary day → **updates** the total; on a `detailed` day with no
   calorie lines (Σ = 0) → **converts** it to summary (drops its empty meals). On a `detailed`
-  day **with** lines (Σ > 0) the Calories cell is read-only → **409 `calories_not_editable`**.
+  day **with** lines (Σ > 0) the Calories cell is read-only → **409 `calories_not_editable`**
+  (an accidental in-place edit stays blocked; the _deliberate_ Complet→Partiel conversion that
+  discards lines goes through `POST /days/:date/summary` below, DK-1 / B-078).
   There is **no provenance distinction** — imported and self-made summary days behave identically
   (the analysis "freeze imported archives" scoping was overridden; `DECISIONS.md` Gap 3).
 - Summary day: `PATCH` rejects `activity_level` (a detailed-day concept) → 409
@@ -31,6 +33,13 @@ See `00-conventions.md`. Scoped to the authenticated user.
   §9). No body. Clears `summary_kcal`, sets `kind='detailed'`, and seeds meals from the user's
   template + garde-manger pre-fill (qty 0) so the user can log lines. Idempotent on an already
   detailed day; materializes a never-touched day. → 200 DayDetail.
+- `POST /days/:date/summary` — **convert a detailed (Complet) day to a summary (Partiel) day**
+  (day-model §9; DK-1 / B-078). No body. Mirror of `/detail`: computes `summary_kcal := the
+day's current Σ consumed kcal` **server-side**, then **drops the day's meals** (entries +
+  leftovers cascade) and sets `kind='summary'`. Unlike the PATCH path this is allowed even when
+  Σ > 0 — it is the deliberate, confirmed discard-the-lines conversion (the client gates it
+  behind a strong confirmation, `design/components/modals.md`). Idempotent on an already summary
+  day; materializes a never-touched day as summary (`summary_kcal=0`). → 200 DayDetail.
 - `POST /days/:date/clear` — **clear the day** (B-046). No body. Atomically: deletes the
   day's leftover groups, deletes all non-pinned entries (custom lines + non-pinned
   referenced lines), and resets the **pinned** referenced lines (garde-manger) to qty 0;

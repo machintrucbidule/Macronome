@@ -25,6 +25,12 @@ margin-left:auto`).
 **Calories card `.card.kcal`** is emphasised: `background:var(--bg-elev-2);
 border-color:var(--border-strong)`; `.c-val` at `--fs-24`.
 
+**Editable variant (Partiel day, DK-1 / B-079).** On a Partiel (summary) day the Repas
+Calories card is **editable**: `.c-val` renders as an inline numeric input (same commit
+rule as the Journal Calories cell — commit on blur/Enter) writing the day's `summary_kcal`.
+On a Complet (detailed) day it stays the read-only derived Σ. The band/status still reflect
+the typed value. Default (no editable flag) is read-only — only the Repas Partiel day opts in.
+
 ## Target indicator (the band / floor / ceiling bar)
 
 A 9px-tall rounded track (`.c-bar`, `border-radius:var(--r-pill); overflow:hidden`)

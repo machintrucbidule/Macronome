@@ -1,8 +1,11 @@
+import { useEffect, useState } from 'react';
 import styles from './BandCard.module.css';
 
 // Wide calorie card with the three-zone target band (design/components/metric-cards.md).
 // The value (day kcal) and the band (cal_min/cal_max) come from the server; this only
 // positions the bar and picks the status word — it is not the authoritative day verdict.
+// On a Partiel day it is editable (DK-1 / B-079): the value becomes an inline input writing
+// the day's summary_kcal (same commit rule as the Journal Calories cell).
 
 interface CalorieStatus {
   inBand: string;
@@ -18,6 +21,55 @@ interface CalorieCardProps {
   thresholdText: string;
   status: CalorieStatus;
   unit: string;
+  /** Partiel day: make the value an inline kcal input writing summary_kcal (B-079). */
+  editable?: boolean;
+  onSave?: (kcal: number) => void;
+  placeholder?: string;
+}
+
+interface CalorieValueProps {
+  value: number;
+  unit: string;
+  editable: boolean;
+  onSave: ((kcal: number) => void) | undefined;
+  placeholder: string | undefined;
+}
+
+/** The calorie total in the card footer: a read-only number, or an inline input on a Partiel
+ *  day (commits on blur/Enter when finite, > 0 and changed — mirrors the Journal Calories cell). */
+function CalorieValue({ value, unit, editable, onSave, placeholder }: CalorieValueProps) {
+  const [draft, setDraft] = useState(value > 0 ? String(value) : '');
+  useEffect(() => {
+    setDraft(value > 0 ? String(value) : '');
+  }, [value]);
+
+  if (!editable) {
+    return (
+      <span className={styles.val}>
+        {Math.round(value)} {unit}
+      </span>
+    );
+  }
+  const commit = (): void => {
+    const n = Number(draft.replace(',', '.'));
+    if (onSave && Number.isFinite(n) && n > 0 && n !== value) onSave(n);
+  };
+  return (
+    <span className={styles.val}>
+      <input
+        className={styles.valInput}
+        value={draft}
+        inputMode="numeric"
+        placeholder={placeholder}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') e.currentTarget.blur();
+        }}
+      />{' '}
+      {unit}
+    </span>
+  );
 }
 
 export function CalorieCard({
@@ -28,6 +80,9 @@ export function CalorieCard({
   thresholdText,
   status,
   unit,
+  editable = false,
+  onSave,
+  placeholder,
 }: CalorieCardProps) {
   const top = max * 1.3 || 1;
   const p1 = (min / top) * 100;
@@ -63,9 +118,13 @@ export function CalorieCard({
         <span className={styles.tick} style={{ left: `${p2}%` }} />
       </div>
       <div className={styles.bot}>
-        <span className={styles.val}>
-          {Math.round(value)} {unit}
-        </span>
+        <CalorieValue
+          value={value}
+          unit={unit}
+          editable={editable}
+          onSave={onSave}
+          placeholder={placeholder}
+        />
         <span className={styles.status}>
           {ok ? status.inBand : under ? status.under : status.over}
         </span>

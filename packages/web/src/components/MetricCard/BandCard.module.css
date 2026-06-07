@@ -78,6 +78,22 @@
 .kcal .val {
   font-size: var(--fs-24);
 }
+/* Editable calorie total on a Partiel day (DK-1 / B-079): an inline input that matches .val. */
+.valInput {
+  font-family: var(--font-num);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-24);
+  width: 4.5ch;
+  padding: 0 2px;
+  border: 0;
+  border-bottom: 1px dashed var(--border-strong);
+  background: transparent;
+  color: inherit;
+}
+.valInput:focus {
+  outline: none;
+  border-bottom-color: var(--accent);
+}
 .status {
   font-family: var(--font-num);
   font-size: var(--fs-10);

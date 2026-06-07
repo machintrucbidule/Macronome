@@ -910,3 +910,34 @@ in `features/meals/components/DayHeader/DayTypeTag.tsx`. No component logic, DB,
 design-token change. **Spec impact:** `specifications/screens/meals.md` (tag reads "Partiel") +
 `history.md` (day-kind vocabulary note). The `meals.summary.*` banner strings are intentionally left
 untouched — DK-1 (B-078) removes that banner entirely.
+
+---
+
+## DK-1 / B-078, B-079 — Day-kind switch menu (Complet ⟷ Partiel) + editable Partiel kcal — RESOLVED (author, 2026-06-07)
+
+The Repas day-type tag becomes a **clickable chip + menu** switching the day kind **both
+ways**, replacing the inert tag and the "Passer en jour détaillé" banner. The chip is
+colour-coded **green on Complet** (`--ok`), **yellow on Partiel** (`--accent`, the existing
+calendar-partial colour — **no new token**). On a **Partiel** day the Repas Calories total is
+**editable** (parity with the Journal); on a **Complet** day it stays the read-only derived Σ.
+
+**Key behaviour decision (author, 2026-06-07): Complet→Partiel discards lines behind a strong
+confirmation.** Converting a detailed day **that carries food** (Σ > 0) to Partiel is now
+allowed — it **drops the day's meal lines** and sets `summary_kcal := the current Σ`, behind a
+**strong confirm** (`design/components/modals.md`; foods removed, no past-day restriction). This
+**relaxes** the previous absolute block, but only through a **deliberate, confirmed** path:
+
+- **New endpoint `POST /days/:date/summary`** (mirror of `/detail`): server computes
+  `summary_kcal := Σ`, drops meals (reusing the existing `dayRepo.convertToSummary`, which
+  cascades entries + leftovers), sets `kind='summary'`. Idempotent on a summary day;
+  materializes a missing day as summary (`summary_kcal=0`).
+- **The PATCH `summary_kcal` 409 `calories_not_editable` stays** for a detailed-with-lines day:
+  an _accidental_ in-place edit is still blocked; only the explicit menu conversion discards
+  lines. This separates "don't silently overwrite a computed total" from "I meant to convert".
+
+**Contracts amended:** `spec/api/days-meals-leftover.md` (new `/summary` endpoint + 409 note),
+`spec/logic/day-snapshot-verdict.md §9` (two detailed→light paths), `design/components/badges-verdict.md`
+(§D day-kind chip), `design/components/metric-cards.md` (editable Calories variant),
+`specifications/screens/meals.md` (chip menu + Partiel state + editable Calories). **No DB/schema
+change, no migration** (`kind`/`summary_kcal` already model both; CHECK holds, `summary_kcal=Σ≥0`).
+Gap 3 / day-model (all summary days uniform, no provenance) unchanged.

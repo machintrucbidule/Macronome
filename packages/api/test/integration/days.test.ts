@@ -241,6 +241,49 @@ describe('daily log — summary→detailed conversion (day-model)', () => {
   });
 });
 
+describe('daily log — detailed→summary conversion (DK-1 / B-078)', () => {
+  it('POST /days/:date/summary discards lines and sets summary_kcal := Σ (Σ>0)', async () => {
+    const { agent, csrf, userId } = await authedAgent(app, 'alice');
+    await seedTarget(userId, '2026-01-01'); // 1900–2100
+    await seedWeight(userId, '2026-01-01', 80);
+    const food = await seedFood(userId, 'Riz'); // 200 kcal / 100 g
+    const day = await csrfPost(agent, csrf, `/api/v1/days/${TODAY}`);
+    const mealId = day.body.meals[0].id as string;
+    await csrfPost(agent, csrf, `/api/v1/meals/${mealId}/entries`, {
+      kind: 'referenced',
+      food_id: food.id,
+      served_quantity: 1000, // 2000 kcal
+      unit: 'g',
+    });
+
+    const summary = await csrfPost(agent, csrf, `/api/v1/days/${TODAY}/summary`);
+    expect(summary.status).toBe(200);
+    expect(summary.body.kind).toBe('summary');
+    expect(summary.body.summary_kcal).toBe(2000); // frozen to the day's current Σ
+    expect(summary.body.totals.kcal).toBe(2000);
+    expect(summary.body.meals).toHaveLength(0); // lines discarded
+    expect(summary.body.verdict_auto).toBe('OK'); // 2000 within 1900–2100
+
+    // Idempotent on an already-summary day (keeps the total).
+    const again = await csrfPost(agent, csrf, `/api/v1/days/${TODAY}/summary`);
+    expect(again.body.kind).toBe('summary');
+    expect(again.body.summary_kcal).toBe(2000);
+  });
+
+  it('POST /days/:date/summary on an empty detailed day sets summary_kcal=0', async () => {
+    const { agent, csrf, userId } = await authedAgent(app, 'alice');
+    await seedTarget(userId, '2026-01-01');
+    await seedWeight(userId, '2026-01-01', 80);
+    await csrfPost(agent, csrf, `/api/v1/days/${TODAY}`); // detailed, Σ=0
+
+    const summary = await csrfPost(agent, csrf, `/api/v1/days/${TODAY}/summary`);
+    expect(summary.status).toBe(200);
+    expect(summary.body.kind).toBe('summary');
+    expect(summary.body.summary_kcal).toBe(0);
+    expect(summary.body.meals).toHaveLength(0);
+  });
+});
+
 describe('daily log — frozen past', () => {
   it('keeps a past day snapshot stable when a later weigh-in is added', async () => {
     const { agent, csrf, userId } = await authedAgent(app, 'alice');

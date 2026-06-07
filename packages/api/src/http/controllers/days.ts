@@ -39,6 +39,12 @@ export async function convertToDetailed(req: Request, res: Response): Promise<vo
   res.status(200).json(await daysService.convertToDetailed(userId(res), pathDate(req)));
 }
 
+/** POST /days/:date/summary — convert a detailed day to summary, discarding lines and setting
+ *  summary_kcal := current Σ (200 DayDetail; DK-1 / B-078). The destructive confirm is client-side. */
+export async function convertToSummary(req: Request, res: Response): Promise<void> {
+  res.status(200).json(await daysService.convertToSummary(userId(res), pathDate(req)));
+}
+
 /** POST /days/:date/clear — empty the day, keeping pins@0 + comment + activity (200; 409 summary). */
 export async function clear(req: Request, res: Response): Promise<void> {
   const day = await daysService.clear(userId(res), pathDate(req));

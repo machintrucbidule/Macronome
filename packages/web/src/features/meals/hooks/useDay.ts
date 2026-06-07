@@ -35,6 +35,21 @@ function useLeftoverMutations(onSuccess: () => void) {
   return { createLeftover, updateLeftover, removeLeftover };
 }
 
+/** Day-level whole-day mutations (clear + kind conversions). Split out to keep useDay within
+ *  the per-function line cap; each invalidates the day + journal via onSuccess. */
+function useDayKindMutations(date: string, onSuccess: () => void) {
+  const clearDay = useMutation({ mutationFn: () => daysApi.clear(date), onSuccess });
+  const convertToDetailed = useMutation({
+    mutationFn: () => daysApi.convertToDetailed(date),
+    onSuccess,
+  });
+  const convertToSummary = useMutation({
+    mutationFn: () => daysApi.convertToSummary(date),
+    onSuccess,
+  });
+  return { clearDay, convertToDetailed, convertToSummary };
+}
+
 export function useDay(date: string) {
   const qc = useQueryClient();
   const query = useQuery({ queryKey: [DAY_KEY, date], queryFn: () => daysApi.get(date) });
@@ -51,11 +66,7 @@ export function useDay(date: string) {
     mutationFn: (b: PatchDayRequest) => daysApi.patch(date, b),
     onSuccess,
   });
-  const clearDay = useMutation({ mutationFn: () => daysApi.clear(date), onSuccess });
-  const convertToDetailed = useMutation({
-    mutationFn: () => daysApi.convertToDetailed(date),
-    onSuccess,
-  });
+  const { clearDay, convertToDetailed, convertToSummary } = useDayKindMutations(date, onSuccess);
   const createMeal = useMutation({
     mutationFn: (b: CreateMealRequest) => mealsApi.create(date, b),
     onSuccess,
@@ -106,6 +117,7 @@ export function useDay(date: string) {
     patchDay,
     clearDay,
     convertToDetailed,
+    convertToSummary,
     createMeal,
     patchMeal,
     removeMeal,

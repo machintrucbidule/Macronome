@@ -269,9 +269,13 @@
       "confirm": "Tout effacer"
     },
     "total": "Total",
-    "summary": {
-      "hint": "Jour résumé : seul un total de calories est saisi, sans détail des repas. Passe-le en jour détaillé pour saisir les aliments.",
-      "convert": "Passer en jour détaillé"
+    "partial": {
+      "hint": "Jour partiel : saisis le total de calories ci-dessus, ou repasse en Complet pour détailler les repas."
+    },
+    "convertSummary": {
+      "title": "Passer en jour partiel ?",
+      "prompt": "Les aliments de ce jour seront supprimés et seul le total de calories actuel sera conservé. Tu pourras ensuite modifier ce total.",
+      "confirm": "Passer en partiel"
     },
     "commentTitle": "Note du jour",
     "commentPlaceholder": "Note du jour…",
@@ -292,7 +296,8 @@
     },
     "dayType": {
       "detailed": "Complet",
-      "summary": "Partiel"
+      "summary": "Partiel",
+      "switch": "Changer le type de jour"
     },
     "nav": {
       "prev": "Jour précédent",
@@ -312,7 +317,8 @@
       "protein": "Protéines",
       "calorieTarget": "cible {{min}}–{{max}}",
       "min": "min. {{n}} g",
-      "max": "max. {{n}} g"
+      "max": "max. {{n}} g",
+      "caloriesPlaceholder": "kcal"
     },
     "status": {
       "inBand": "OK",

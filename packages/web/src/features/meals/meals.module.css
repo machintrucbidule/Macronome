@@ -48,16 +48,6 @@
   color: var(--text-faint);
   margin-left: var(--sp-4);
 }
-.dayTag {
-  font-family: var(--font-num);
-  font-size: var(--fs-10);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 3px 8px;
-  border-radius: var(--r-pill);
-  border: 1px solid var(--border-strong);
-  color: var(--text-dim);
-}
 .dayComment {
   display: flex;
   align-items: center;
@@ -375,19 +365,14 @@
   color: var(--nok);
 }
 
-/* Summary (light) day: no meal breakdown — offer the convert-to-detailed affordance. */
-.summaryPanel {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--sp-5);
-  padding: var(--sp-7) var(--page-gutter);
-  max-width: 520px;
-}
-.summaryPanel p {
+/* Partiel (summary) day: no meal breakdown — a small muted hint (DK-1 / B-078). The kind
+   switch lives in the date-line chip menu; the calorie total is editable in the header. */
+.partialHint {
   font-family: var(--font-num);
   font-size: var(--fs-12);
-  color: var(--text-dim);
+  color: var(--text-faint);
+  padding: var(--sp-7) var(--page-gutter);
+  max-width: 520px;
   margin: 0;
 }
 

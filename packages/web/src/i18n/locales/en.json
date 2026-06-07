@@ -269,9 +269,13 @@
       "confirm": "Clear all"
     },
     "total": "Total",
-    "summary": {
-      "hint": "Summary day: only a calorie total is recorded, with no meal breakdown. Switch it to a detailed day to log foods.",
-      "convert": "Switch to detailed day"
+    "partial": {
+      "hint": "Partial day: enter the calorie total above, or switch back to Complete to log meals."
+    },
+    "convertSummary": {
+      "title": "Switch to a partial day?",
+      "prompt": "This day's foods will be removed and only the current calorie total kept. You can then edit that total.",
+      "confirm": "Switch to partial"
     },
     "commentTitle": "Day note",
     "commentPlaceholder": "Day note…",
@@ -292,7 +296,8 @@
     },
     "dayType": {
       "detailed": "Complete",
-      "summary": "Partial"
+      "summary": "Partial",
+      "switch": "Change day type"
     },
     "nav": {
       "prev": "Previous day",
@@ -312,7 +317,8 @@
       "protein": "Protein",
       "calorieTarget": "target {{min}}–{{max}}",
       "min": "min. {{n}} g",
-      "max": "max. {{n}} g"
+      "max": "max. {{n}} g",
+      "caloriesPlaceholder": "kcal"
     },
     "status": {
       "inBand": "OK",

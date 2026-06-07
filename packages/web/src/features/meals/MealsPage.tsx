@@ -10,8 +10,8 @@ import { DayHeader } from './components/DayHeader/DayHeader';
 import { MealsControls } from './components/MealsControls';
 import { MealsOverlays } from './components/MealsOverlays';
 import { MealScroller } from './components/MealScroller/MealScroller';
-import { SummaryDayPanel } from './components/SummaryDayPanel';
 import { todayIso } from './format';
+import styles from './meals.module.css';
 
 // Repas page (specifications/screens/meals.md): the core daily loop. Route container — fetches
 // the day, lays out the sticky header + meal scroller, and wires the overlays (MealsOverlays).
@@ -35,7 +35,7 @@ export function MealsPage() {
           <>
             <DayHeader date={date} day={ctl.day} onNavigate={(d) => void navigate(`/day/${d}`)} />
             {ctl.day.kind === 'summary' ? (
-              <SummaryDayPanel onConvert={() => void ctl.actions.convertToDetailed()} />
+              <p className={styles.partialHint}>{t('meals.partial.hint')}</p>
             ) : (
               <>
                 <MealsControls
