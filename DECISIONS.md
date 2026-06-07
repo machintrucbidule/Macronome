@@ -1560,3 +1560,23 @@ Valeur énergétique / Energy / Calories_ (take kcal; else kJ ÷ 4.184). The **"
 `features/foods/useFoods.ts` (`useParseLabel`), new `modals/ParseLabelDialog.tsx`, wired into
 `modals/FoodModal.tsx` + `FoodModalFields.tsx`, i18n `foods.parse.*` (fr/en). **No DB/schema change**
 (additive API + new domain module only).
+
+---
+
+## ML-1 / Repas — narrow the qty+unit column to widen the food-name column — RESOLVED (author, 2026-06-08)
+
+**Problem.** On the Repas meal lines, ~18–20 px of dead space sat between the food name and its
+quantity. The grid reserved a **74 px** qty+unit column (`data-tables.md §62`) — wide enough for a long
+unit label — but the unit chip **always renders a short token** (`g`/`ml`/`kg`, or `nb` for a named
+portion; `data-tables.md §93/§100`, B-031), so that width was never used and the right-aligned content
+left a permanent gap.
+
+**Decision (improvement, UX; web-only, CSS only).** Size the qty+unit column to its **real** content —
+the numeric input (unchanged 36 px, so no quantity ever clips) plus the short unit chip — and give the
+reclaimed width to the `1fr` **name** column (longer food names now show before ellipsis). Meal column
+grid `74px → 54px`; `.qtyCell` gap `3px → 2px`; `.unit` `min-width 18px → 16px`. The quantity input and
+its display are untouched. The recipe-builder line grid (instance B, `data-tables.md §81`) is unchanged.
+
+**Spec impact:** `design/components/data-tables.md §62` (meal column grid 74→54 + rationale). **Code:**
+`features/meals/components/FoodLine/food-line.module.css` (`.row` grid, `.qtyCell` gap, `.unit`
+min-width). No DB/API/DTO change; no behaviour change beyond the column widths.

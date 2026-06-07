@@ -64,8 +64,11 @@ a hover-revealed delete (×, `--nok`). Numeric columns right-aligned (`.num`). T
 A meal `.meal` is a flex column on `--bg-elev`, `min-height:200px`, first column
 gets `--r-lg` left corners. Header `.meal-head` (name in `--font-display
 --fw-bold --fs-14` + cook 🍳 + ⋯ menu). Lines via CSS grid:
-`grid-template-columns: 7px 1fr 74px 34px 26px 26px 26px 15px 15px`
-(grip · name · qty+unit · kcal · L · G · P · pin · del). `.lhead` row `--fs-9`
+`grid-template-columns: 7px 1fr 54px 34px 26px 26px 26px 15px 15px`
+(grip · name · qty+unit · kcal · L · G · P · pin · del). The **qty+unit column is
+sized to its real content** — the numeric input plus the always-short unit chip
+(`g`/`ml`/`kg`/`nb`), not a wide unit label that never renders — so the reclaimed
+width widens the `1fr` name column (longer food names show before ellipsis). `.lhead` row `--fs-9`
 uppercase. Line `min-height:32px`. Footer `.meal-foot` = totals on `--bg-elev-2`.
 Line states: `.empty` (italic faint "+ aliment"), `.zero` (**whole-line muted**:
 text cells name/qty/unit/macros in `--text-faint`, grip/📌/× at `opacity:.45` — a
