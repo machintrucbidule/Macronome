@@ -31,6 +31,9 @@ interface AutocompleteProps {
   onClose: () => void;
   /** Keys the dropdown didn't consume (Tab, edge arrows) — for cell navigation. */
   onInputKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => void;
+  /** On mount, select the seeded text (default) so typing replaces it; false places the caret
+   *  at the end instead — used for type-to-search where the seed is a char to keep typing (B-105). */
+  selectOnMount?: boolean;
 }
 
 interface ListProps {
@@ -114,6 +117,7 @@ export function Autocomplete({
   onCustom,
   onClose,
   onInputKeyDown,
+  selectOnMount = true,
 }: AutocompleteProps) {
   // Highlight defaults to the first suggestion (B-023): so Enter selects the first match
   // without an explicit ↑/↓. `activeIndex` clamps `hi` to the (async) item list.
@@ -123,9 +127,12 @@ export function Autocomplete({
   const activeIndex = items.length === 0 ? -1 : Math.min(Math.max(hi, 0), items.length - 1);
 
   useEffect(() => {
-    inputRef.current?.focus();
-    inputRef.current?.select();
-  }, []);
+    const el = inputRef.current;
+    if (!el) return;
+    el.focus();
+    if (selectOnMount) el.select();
+    else el.setSelectionRange(el.value.length, el.value.length); // caret at end (type-to-search)
+  }, [selectOnMount]);
   useEffect(() => setHi(0), [query]);
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>): void => {

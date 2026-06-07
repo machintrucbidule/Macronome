@@ -22,6 +22,9 @@ export interface EditTarget {
   entryId: string | null;
   /** Target row for a new line (B-028): adds at this order_index, leaving blank rows above. */
   orderIndex?: number | null;
+  /** Type-to-search seed (B-105): the first character typed on the focused name cell, so the
+   *  picker opens already querying it (caret at end). Absent → seed with the current name. */
+  initialQuery?: string | undefined;
 }
 export interface CustomTarget {
   mealId: string;
@@ -112,14 +115,6 @@ function lineActions(
       })(),
     );
   return {
-    startEdit: (
-      mealId: string,
-      mealIndex: number,
-      entryId: string | null,
-      orderIndex?: number | null,
-    ) => d.setEditing({ mealId, mealIndex, entryId, orderIndex: orderIndex ?? null }),
-    closeEdit: () => d.setEditing(null),
-
     async pickFood(t: EditTarget, foodId: string): Promise<void> {
       d.setEditing(null);
       await run(
@@ -176,6 +171,21 @@ function lineActions(
     // Drag-reorder a meal's lines (B-029): the full new position map; sparse rows kept.
     reorderEntries: (mealId: string, order: { id: string; order_index: number }[]) =>
       run(d.day.reorderEntries.mutateAsync({ mealId, body: { order } })),
+  };
+}
+
+// Open/close the inline food picker. startEdit carries an optional type-to-search seed (B-105):
+// the first character typed on the focused name cell, so the picker opens already querying it.
+function editActions(d: MealActionDeps) {
+  return {
+    startEdit: (
+      mealId: string,
+      mealIndex: number,
+      entryId: string | null,
+      orderIndex?: number | null,
+      initialQuery?: string,
+    ) => d.setEditing({ mealId, mealIndex, entryId, orderIndex: orderIndex ?? null, initialQuery }),
+    closeEdit: () => d.setEditing(null),
   };
 }
 
@@ -271,6 +281,7 @@ export function createMealActions(d: MealActionDeps) {
   const resolveMealId = makeResolveMealId(d);
   const resolveEntry = makeResolveEntry(d);
   return {
+    ...editActions(d),
     ...lineActions(d, run, resolveMealId, resolveEntry),
     ...customActions(d, run, resolveMealId),
     ...dayActions(d, run),

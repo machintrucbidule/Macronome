@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render } from '@testing-library/react';
+import { cleanup, fireEvent, render } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { MealEntry } from '@macronome/shared';
 import '../../../../i18n/config';
@@ -38,24 +38,26 @@ function entry(): MealEntry {
 
 function renderLine() {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const startEdit = vi.fn();
   const ctrl = {
     actions: {
       setQty: vi.fn(),
       clearFocus: vi.fn(),
-      startEdit: vi.fn(),
+      startEdit,
       openCustom: vi.fn(),
       deleteEntry: vi.fn(),
       togglePin: vi.fn(),
     },
     pendingFocus: null,
   } as unknown as MealsController;
-  return render(
+  const utils = render(
     <QueryClientProvider client={qc}>
       <MealsProvider value={ctrl}>
         <FoodLine mealId="m1" mealIndex={0} row={0} entry={entry()} editing={false} dnd={dnd} />
       </MealsProvider>
     </QueryClientProvider>,
   );
+  return { ...utils, startEdit };
 }
 
 describe('FoodLine keyboard tab order (B-105)', () => {
@@ -67,5 +69,20 @@ describe('FoodLine keyboard tab order (B-105)', () => {
     const buttons = [...container.querySelectorAll('button')];
     expect(buttons).toHaveLength(2); // pin + delete
     for (const b of buttons) expect(b.getAttribute('tabindex')).toBe('-1');
+  });
+
+  it('opens the picker seeded with a typed character (type-to-search)', () => {
+    const { container, startEdit } = renderLine();
+    const name = container.querySelector('[role="button"]') as HTMLElement;
+    fireEvent.keyDown(name, { key: 'p' });
+    // startEdit(mealId, mealIndex, entryId, orderIndex, initialQuery)
+    expect(startEdit).toHaveBeenCalledWith('m1', 0, 'e1', undefined, 'p');
+  });
+
+  it('opens the picker with no seed on Enter (search the current name)', () => {
+    const { container, startEdit } = renderLine();
+    const name = container.querySelector('[role="button"]') as HTMLElement;
+    fireEvent.keyDown(name, { key: 'Enter' });
+    expect(startEdit).toHaveBeenCalledWith('m1', 0, 'e1', undefined, undefined);
   });
 });

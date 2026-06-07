@@ -68,7 +68,8 @@ function EmptyLine({
 }
 
 // The food-name cell: a keyboard tab stop in the name↔qty serpentine (meals.md §113, B-105).
-// Enter/Space opens its editor, like the click. Custom lines show the manual pen.
+// Enter/Space opens its editor; typing a character opens it already searching that character
+// (type-to-search), like the click. Custom lines show the manual pen.
 function NameCell({
   name,
   isCustom,
@@ -76,7 +77,7 @@ function NameCell({
 }: {
   name: string;
   isCustom: boolean;
-  onOpen: () => void;
+  onOpen: (initialQuery?: string) => void;
 }) {
   const { t } = useTranslation();
   return (
@@ -85,11 +86,14 @@ function NameCell({
       title={name}
       role="button"
       tabIndex={0}
-      onClick={onOpen}
+      onClick={() => onOpen()}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           onOpen();
+        } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+          e.preventDefault();
+          onOpen(e.key); // type-to-search: seed the picker with this character
         }
       }}
     >
@@ -126,10 +130,10 @@ function EntryRow({
   // A pinned line is a garde-manger food: accent left-border + filled pin. Pantry is food-based,
   // so the pin only shows on referenced lines (custom lines have no food_id; see PinCell).
   const showPin = !isCustom;
-  const openEdit = (): void =>
+  const openEdit = (initialQuery?: string): void =>
     isCustom
       ? actions.openCustom(mealId, mealIndex, entry.id)
-      : actions.startEdit(mealId, mealIndex, entry.id);
+      : actions.startEdit(mealId, mealIndex, entry.id, undefined, initialQuery);
 
   return (
     <div

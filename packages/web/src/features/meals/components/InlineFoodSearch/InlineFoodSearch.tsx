@@ -30,8 +30,11 @@ export function InlineFoodSearch({
   currentFoodId,
 }: InlineFoodSearchProps) {
   const { t } = useTranslation();
-  const { actions } = useMeals();
-  const [query, setQuery] = useState(initialName);
+  const { actions, editing } = useMeals();
+  // Type-to-search (B-105): when the picker was opened by typing on the focused name, seed the
+  // query with that character (caret kept at the end); otherwise seed with the current name.
+  const seed = editing?.initialQuery;
+  const [query, setQuery] = useState(seed ?? initialName);
   const wrapRef = useRef<HTMLDivElement>(null);
   const search = useFoodSearch(query, true);
 
@@ -75,6 +78,7 @@ export function InlineFoodSearch({
         }
         onCustom={() => actions.openCustom(mealId, mealIndex, entryId, orderIndex)}
         onClose={actions.closeEdit}
+        selectOnMount={seed == null}
       />
     </div>
   );
