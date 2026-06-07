@@ -26,9 +26,13 @@ See `00-conventions.md`. Scoped to the authenticated user.
   discards lines goes through `POST /days/:date/summary` below, DK-1 / B-078).
   There is **no provenance distinction** — imported and self-made summary days behave identically
   (the analysis "freeze imported archives" scoping was overridden; `DECISIONS.md` Gap 3).
-- Summary day: `PATCH` rejects `activity_level` (a detailed-day concept) → 409
-  `summary_day_readonly`. Adding meal detail converts a summary day back to `detailed`
-  (`logic/day-snapshot-verdict.md §9`).
+- Summary day: `activity_level` is **editable** like on any other day (ED-1 / B-096) — the
+  former `409 summary_day_readonly` on a summary-day activity PATCH is **removed** (it blocked a
+  field the user legitimately edits, e.g. on imported history). It may travel in the same PATCH
+  as `summary_kcal`. Editing activity recomputes the day's `constat` (burn/deficit) on read but
+  not the calorie `verdict_auto`; past days keep their **frozen** `target_snapshot` (no
+  retroactive recompute, CLAUDE.md rule 4). Adding meal detail converts a summary day back to
+  `detailed` (`logic/day-snapshot-verdict.md §9`).
 - `POST /days/:date/detail` — **convert a summary (light) day to a detailed day** (day-model
   §9). No body. Clears `summary_kcal`, sets `kind='detailed'`, and seeds meals from the user's
   template + garde-manger pre-fill (qty 0) so the user can log lines. Idempotent on an already

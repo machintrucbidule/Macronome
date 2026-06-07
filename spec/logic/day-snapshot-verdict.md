@@ -144,6 +144,15 @@ when a detailed day's entries sum to 0 (cleared, or pantry-only at qty 0).
   any other day — there is **no freeze** and no provenance marker. Every summary day, whatever
   its origin, is editable and freely convertible (author decision 2026-06-07, overriding the
   analysis doc's "freeze imported archives" scoping; see `DECISIONS.md` Gap 3).
+- **Editable fields on a summary day (ED-1 / B-096).** `activity_level`, `comment`,
+  `verdict_override` and `summary_kcal` are all directly editable on a summary day, past or
+  present (imported history included) — no `readonly` lock. Editing `activity_level` recomputes
+  the day's `constat` (estimated burn / deficit) on read; it does **not** change the calorie
+  `verdict_auto`. Direct edits never recompute a **past** day's frozen `target_snapshot`
+  (CLAUDE.md rule 4): the freeze rule only governs _later_ edits to a referenced food/target,
+  not a direct edit of the day's own fields. The day total of a **detailed** day stays the
+  read-only derived Σ (see the `409 calories_not_editable` below) — that is intended, not a lock
+  to lift.
 - **Conversion (all summary/detailed days):**
   - **light → detailed:** a summary day that receives meal detail becomes `detailed` (clears
     `summary_kcal`, sets `kind='detailed'`); its state then follows §8 (`green` once Σ > 0).

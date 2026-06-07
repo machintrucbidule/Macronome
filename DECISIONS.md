@@ -1272,3 +1272,42 @@ silently drawn flat at 0 when an early Target exists.
 
 **Spec impact:** `spec/logic/weight-periods-trajectory.md §4` (per-period rate paragraph + a second
 worked oracle: 1.0 then 0.25 kg/week → 80.0 → 79.0 → 78.5). No DB/schema/API change.
+
+---
+
+## ED-1 / B-096, B-097 — Activity editable on summary/imported days; Complet total stays read-only — RESOLVED (author, 2026-06-07)
+
+**Problem.** After import, all history arrives as **summary** (Partiel) days (Gap 3). Editing the
+day's **activity** there failed with **409 `summary_day_readonly`** — a field the user legitimately
+edits, blocked by a `readonly` error they never asked for. The user's ask was precise: _"pouvoir
+modifier les champs qui sont censés l'être, sans être bloqué par une erreur readonly à la con que
+j'ai jamais demandé."_
+
+**Decision (improvement; lift one lock, no DB/schema/API-shape change).**
+
+- **B-096 — lift `summary_day_readonly` on activity.** `activity_level` is editable on every day,
+  summary/imported included (Repas + Journal already render the selector; only the API blocked it).
+  It may travel in the same PATCH as `summary_kcal`. **Snapshots kept** — editing activity recomputes
+  the `constat` (burn/deficit) on read but not the calorie `verdict_auto`; a **past** day keeps its
+  frozen `target_snapshot` (CLAUDE.md rule 4: the freeze rule governs _later_ edits to a referenced
+  food/target, not a direct edit of the day's own fields).
+- **B-097 — triage correction, no code.** The backlog triage framed B-097 as "make the **Complet**
+  day's calorie total editable". The author **rejected** that: a Complet day's total is the derived Σ
+  of its food lines and is **correctly read-only**. The `409 calories_not_editable` (PATCH
+  `summary_kcal` on a detailed day with Σ > 0) **stays**. No manual override, no new column. _(Author,
+  2026-06-07: "Sur un jour complet, le champ total calorique n'est pas censé être éditable.")_
+
+**Audit result (the "probablement d'autres champs" check).** The only `readonly`-style locks in the
+days service are `summary_day_readonly` (activity on summary — lifted here) and `calories_not_editable`
+(Complet total — intended, kept). `comment` and `verdict_override` were already editable everywhere.
+The `summary_day_readonly` thrown in `clear()` is left as-is — it is not reachable from the UI (no
+"Tout effacer" button on a Partiel day). `ErrorCode.SummaryDayReadonly` stays defined (still used by
+`clear()`); the PATCH path simply no longer raises it.
+
+**Code (api only).** `services/days.ts`: `patch` drops the two `summary_day_readonly` throws (combined
+`summary_kcal`+`activity_level`, and activity on an existing summary day); `setSummaryKcal` adds
+`activity_level` to its `extra` write so a combined Partiel edit applies both. Web unchanged.
+
+**Spec impact:** `spec/api/days-meals-leftover.md` (summary-day activity rule rewritten: editable, no
+409), `spec/logic/day-snapshot-verdict.md §9` (editable-fields paragraph; Complet total stays Σ). Gap 3
+readonly principle confirmed. No DB/schema/API-shape change.

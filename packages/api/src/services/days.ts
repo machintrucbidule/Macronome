@@ -169,18 +169,15 @@ export async function patch(
   const existing = await dayRepo.findDay(userId, date);
 
   // summary_kcal drives creation / update / conversion of a summary day (logic §9).
+  // activity_level may travel alongside it (editable on summary days too, ED-1 / B-096).
   if (typeof body.summary_kcal === 'number') {
-    if (body.activity_level !== undefined) {
-      throw new ApiError(409, ErrorCode.SummaryDayReadonly); // activity is a detailed-day concept
-    }
     return setSummaryKcal(userId, date, existing, body, body.summary_kcal);
   }
 
   // activity / comment / verdict only — auto-materialize a detailed day when none exists yet.
+  // activity_level is editable on every day, summary/imported included (ED-1 / B-096).
   if (!existing) {
     await materialize(userId, date);
-  } else if (existing.kind === 'summary' && body.activity_level !== undefined) {
-    throw new ApiError(409, ErrorCode.SummaryDayReadonly);
   }
   await dayRepo.updateDay(userId, date, {
     ...(body.activity_level !== undefined ? { activityLevel: body.activity_level } : {}),
@@ -201,6 +198,7 @@ async function setSummaryKcal(
   summaryKcal: number,
 ): Promise<DayDetail> {
   const extra = {
+    ...(body.activity_level !== undefined ? { activityLevel: body.activity_level } : {}),
     ...(body.comment !== undefined ? { comment: body.comment } : {}),
     ...(body.verdict_override !== undefined ? { verdictOverride: body.verdict_override } : {}),
   };
