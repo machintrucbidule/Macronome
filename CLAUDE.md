@@ -54,8 +54,9 @@ Architecture docs (how it's built) are in `ARCHITECTURE.md` + `docs/architecture
   (orchestration), `data/repositories/*` (Prisma, always user-scoped), `http/*`.
 - `packages/web` — React + Vite SPA. **Renders, never computes.** One folder per
   screen under `features/`, design components under `components/`.
-- `packages/etl` — one-shot Excel → DB migration script. **Built in O1, which is _out
-  of the dev plan_** (run on the author's decision; see `docs/dev-plan/O1-excel-migration.md`).
+- `packages/etl` — legacy one-shot Excel → DB migration stub, **superseded**: the personal
+  workbook is now migrated through the in-app **Settings → import** (the IMP-1 export/import
+  envelope), using an extract prepared per the `spec/logic/migration-etl.md` contract. Not built/run.
 
 The precise mapping (logic spec → module, screen → feature, component → file) is in
 `docs/architecture/module-map.md`. Use it to locate where a change belongs.

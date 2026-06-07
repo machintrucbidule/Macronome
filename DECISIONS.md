@@ -240,9 +240,10 @@ a fixed contract and reshapes the milestone plan.
 - **Excel migration is out of the dev plan (O1).** The one-shot Excel→DB import of the
   personal workbook is **not** a build milestone, carries **no `M` number**, and is
   **not** required for v1. It is run at the author's discretion once the app is mature,
-  and is traced in `docs/dev-plan/O1-excel-migration.md`. Its logic contract
-  `spec/logic/migration-etl.md` is **unchanged**. The ETL is **no longer** a first-user
-  bootstrap path (that role is now M8's wizard). _(Author.)_
+  and is now performed through the in-app **Settings → import** (the IMP-1 export/import
+  envelope), loading an extract prepared per the **unchanged** logic contract
+  `spec/logic/migration-etl.md` (the former standalone ETL plan was removed). It is **no
+  longer** a first-user bootstrap path (that role is now M8's wizard). _(Author.)_
 
 **Rationale:** the app must be genuinely usable after M10 without importing Excel data —
 a real login + a first-run account creation + usable empty screens deliver that. The

@@ -177,5 +177,5 @@ only while no user exists, then permanently disabled — built in M8). A tiny on
 `create-user` script in `packages/api` (argon2id hash, no API surface) is kept as an
 **admin / headless fallback**. Documented in the root `CLAUDE.md`.
 
-(The Excel migration — `docs/dev-plan/O1-excel-migration.md`, out of the dev plan — is
-**not** a bootstrap path; it imports historical data into an already-bootstrapped DB.)
+(The Excel migration — done via the in-app **Settings → import** (IMP-1), out of the dev
+plan — is **not** a bootstrap path; it imports historical data into an already-bootstrapped DB.)

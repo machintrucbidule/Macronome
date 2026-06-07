@@ -4,8 +4,8 @@
 (when no account exists) a setup wizard creates the single owner account; the login form
 actually works; and every screen is navigable/usable with zero data, which the user then
 fills in manually. This is what makes the app genuinely usable **after M9 (the end of the
-dev plan), without any Excel migration** (the Excel import is out of the dev plan — see
-`O1-excel-migration.md`).
+dev plan), without any Excel migration** (the Excel import is out of the dev plan — it is
+done through the in-app Settings → import, the IMP-1 envelope).
 
 Depends-on: M0 (auth/session skeleton), M1–M7 (the screens that must render empty).
 

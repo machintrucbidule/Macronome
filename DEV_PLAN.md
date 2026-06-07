@@ -159,8 +159,8 @@ serving}` with neutral oracles; days/meals/entries/leftover/journal services + r
       auth contract amendment was already in place (verified, not re-edited). Acceptance
       green: setup/login integration (empty→200+session+seed, 409, 422, non-enumerating
       probe) + first-run e2e (wizard → logged-in → empty screens → add first food) +
-      typecheck + lint + check:schema + web build. _The Excel import is **not** here — see
-      **O1** below._
+      typecheck + lint + check:schema + web build. _The Excel import is **not** here — the
+      personal workbook is loaded through Settings → import (the IMP-1 envelope)._
       **Deferred (tracked):** full unauthenticated route protection (`RequireAuth` →
       `/login`) + login polish (lockout/a11y) + full Empty/Skeleton visual contract → M9.
       e2e isolation via a `first-run` Playwright project the `app` project depends on. See
@@ -220,12 +220,13 @@ wizard creates the owner account; no Excel data is required). The items below ar
 part of the dev plan, carry **no `M` number**, and are **not** gates for v1. They are
 documented here only so the information is ready when the author decides to run them.
 
-- **O1 — Excel migration (NOT part of the dev plan)** → `docs/dev-plan/O1-excel-migration.md`
-  The one-shot Excel→DB import of the author's personal workbook. Built and run
-  **only when the author decides** the app is mature / bug-free — at their
-  discretion, never as a build step. Targets the stable schema; implements the
-  **fixed, unchanged** contract `spec/logic/migration-etl.md`. It is **not** a
-  first-user bootstrap path (that role belongs to M8's first-run wizard).
+- **Excel migration (done via in-app import — no build step).** The author's personal
+  workbook is migrated through the shipped **Settings → import** feature (the IMP-1 data
+  export/import envelope, `spec/api/data-export-import.md`): a ready-to-import extract is
+  prepared from the workbook per the **fixed, unchanged** contract `spec/logic/migration-etl.md`
+  and loaded once the app is mature, at the author's discretion. It is **not** a first-user
+  bootstrap path (that role belongs to M8's first-run wizard). _(Replaces the former
+  standalone "O1" ETL plan, now removed.)_
 - **O2 — Reserved AI-advisor hook (NOT part of the dev plan)** → `docs/dev-plan/O2-ai-advisor-hook.md`
   An inert seam, **not** a v1 feature: the reserved `POST /api/v1/advisor/query` route
   (returns **501 `not_implemented`**) plus the stored-but-unused `User.settings.llm_endpoint`
