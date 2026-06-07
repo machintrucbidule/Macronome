@@ -29,11 +29,16 @@ export interface LoggedDay {
   activityLevel: string;
 }
 
-/** kcal + activity of one logged day (summary days use their stored summary_kcal). */
-export function loggedDay(aggregate: DayAggregate): LoggedDay {
+/** kcal + activity of one LOGGED day, or null when the day carries no calorie value
+ *  (spec/logic/day-snapshot-verdict.md §8): a summary day uses its stored summary_kcal; a
+ *  detailed day must have Σ consumed kcal > 0. A cleared / comment-only "red" day (qty-0
+ *  pre-fill rows, Σ=0) is excluded so it never drags a period's average intake. */
+export function loggedDay(aggregate: DayAggregate): LoggedDay | null {
   const { dayLog } = aggregate;
   const isSummary = dayLog.kind === 'summary';
   const kcal = isSummary ? num(dayLog.summaryKcal ?? 0) : computeDayTotals(aggregate).kcal;
+  const logged = isSummary ? dayLog.summaryKcal !== null : kcal > 0;
+  if (!logged) return null;
   return {
     date: dayLog.date.toISOString().slice(0, 10),
     kcal,

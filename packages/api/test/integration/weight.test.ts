@@ -50,6 +50,19 @@ describe('weight', () => {
     expect(res.body.current_mode).toBe('in_diet');
   });
 
+  it('excludes a Σ=0 (comment-only) day from a period average intake (day-model)', async () => {
+    const { agent, csrf } = await authedAgent(app, 'alice');
+    await postWeight(agent, csrf, weighIn('2026-01-01', 80));
+    await postWeight(agent, csrf, weighIn('2026-01-08', 79)); // period span (01, 08]
+    // One genuinely logged day (a typed summary total) and one comment-only red day in the span.
+    await csrfPatch(agent, csrf, '/api/v1/days/2026-01-05', { summary_kcal: 2000 });
+    await csrfPatch(agent, csrf, '/api/v1/days/2026-01-06', { comment: 'rest day' });
+
+    const res = await agent.get('/api/v1/weight');
+    // Only the 2000-kcal day counts; the comment-only day (Σ=0) is not logged → not averaged in.
+    expect(res.body.periods[0].avg_intake).toBe(2000);
+  });
+
   it('blocks a second weigh-in on an occupied date → 409 + existing_id', async () => {
     const { agent, csrf } = await authedAgent(app, 'alice');
     const first = await postWeight(agent, csrf, weighIn('2026-02-01', 80));

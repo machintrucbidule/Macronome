@@ -35,7 +35,9 @@ async function readView(userId: string, range: WeightRange): Promise<GetWeightRe
   if (entries.length >= 2) {
     const from = entries[0]!.date.toISOString().slice(0, 10);
     const to = entries[entries.length - 1]!.date.toISOString().slice(0, 10);
-    loggedDays = (await dayReadRepo.readRange(userId, from, to)).map(loggedDay);
+    loggedDays = (await dayReadRepo.readRange(userId, from, to))
+      .map(loggedDay)
+      .filter((d): d is LoggedDay => d !== null);
   }
   return buildWeightView({
     entries,
