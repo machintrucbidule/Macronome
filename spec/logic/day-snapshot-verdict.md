@@ -84,3 +84,57 @@ verdict_auto = OK   if cal_min ≤ day_kcal ≤ cal_max
 burn` (see `metabolic-engine.md`). Shown as a burn/deficit readout **next to** the
   verdict, never as a verdict. Not stored (derived). Computable on every day that has
   a body weight; the readout is shown with a placeholder only when no weigh-in exists yet.
+
+## 8. Day states (day-model)
+
+A day's **state** is derived server-side (never in the web — rule 2) from its calorie
+value and its date relative to today (T). The _calorie value_ is: detailed → Σ consumed
+kcal of its entries (§4); summary → `summary_kcal`; **absent** when there is no row, or
+when a detailed day's entries sum to 0 (cleared, or pantry-only at qty 0).
+
+| state    | condition                                                                                      | logged (counts in stats)? |
+| -------- | ---------------------------------------------------------------------------------------------- | ------------------------- |
+| `none`   | date > T and no calorie value (no row, or a planned row with Σ = 0)                            | no                        |
+| `green`  | `kind='detailed'` with Σ kcal > 0                                                              | yes if date ≤ T           |
+| `yellow` | `kind='summary'` (`summary_kcal` set — self-made light **or** imported)                        | yes if date ≤ T           |
+| `red`    | date ≤ T and no calorie value (no row; a row with only comment/activity/verdict; detailed Σ=0) | **no**                    |
+
+- **Derivation precedence:** summary → `yellow`; detailed with Σ kcal > 0 → `green`;
+  otherwise (no row, or detailed with Σ = 0) → `red` when date ≤ T, `none` when date > T.
+- A **comment-only / activity-only / verdict-only** day stays `red`: it exists but carries
+  no calorie value, so it is **not "logged"** and is excluded from the OK-rate. This keeps
+  the rate honest while the Journal still surfaces the gap (chosen: empty/zeroed days excluded).
+- A **future** day with data renders per content (`green`/`yellow`) but is **excluded from
+  every stats aggregate** until its date arrives (`stats-adherence.md §1`). A future day with
+  no calorie value is `none`.
+- **Logged day** (the stats unit, single-sourced here): `(green | yellow) AND date ≤ T` —
+  i.e. "has a calorie value and is not in the future". `none` and `red` are never logged.
+  This restates `stats-adherence.md §1` as the state-level rule.
+
+**Worked examples** (oracles; T = today):
+
+- detailed, Σ = 950, date ≤ T → `green`, logged.
+- summary, summary_kcal = 1800, date ≤ T → `yellow`, logged.
+- no row, date ≤ T → `red`, not logged.
+- detailed, Σ = 0 (cleared / pantry-only at qty 0), date ≤ T → `red`, not logged.
+- comment-only row (detailed, Σ = 0, comment set), date ≤ T → `red`, not logged.
+- no row, date > T → `none`, not logged.
+- detailed, Σ = 1500, date > T (planned) → `green`, **not** logged (future).
+- summary, summary_kcal = 1600, date > T → `yellow`, **not** logged (future).
+
+## 9. Summary (light) days: creatable & freely convertible (day-model)
+
+- Summary days are **creatable in-app**: a calorie total (`summary_kcal`) with no meal
+  breakdown (primary entry point: the Journal Calories cell). They reuse the existing
+  `kind='summary'` + `summary_kcal` shape and the `summary⇔summary_kcal` CHECK.
+- **No provenance distinction.** Imported days (from the Excel migration) are treated like
+  any other day — there is **no freeze** and no provenance marker. Every summary day, whatever
+  its origin, is editable and freely convertible (author decision 2026-06-07, overriding the
+  analysis doc's "freeze imported archives" scoping; see `DECISIONS.md` Gap 3).
+- **Conversion (all summary/detailed days):**
+  - **light → detailed:** a summary day that receives meal detail becomes `detailed` (clears
+    `summary_kcal`, sets `kind='detailed'`); its state then follows §8 (`green` once Σ > 0).
+  - **detailed → light:** a detailed day reduced to a typed total becomes `summary` (sets
+    `summary_kcal`, `kind='summary'`, drops its meals); allowed only when the day has **no
+    meal lines with Σ > 0** (a detailed day with real lines shows a read-only derived Σ — the
+    Calories cell is not editable).

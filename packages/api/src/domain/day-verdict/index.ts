@@ -13,3 +13,4 @@ export {
   type SnapshotInputs,
   type ResolvedSnapshot,
 } from './snapshot.js';
+export { dayState, isLoggedDay, type DayState, type DayStateInputs } from './state.js';

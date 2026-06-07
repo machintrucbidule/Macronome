@@ -61,6 +61,22 @@ decisions, and do not affect the schema or runtime logic. They are pinned in
 fact is the already-settled `DayLog.kind ∈ {summary, detailed}` with summary
 days read-only and calorie-only.
 
+**Amendment (day-model, 2026-06-07) — summary days are creatable & freely
+convertible in-app; imported days are NOT frozen.** The "every day must be usable"
+change (`specifications/analysis/day-model.md`) extends this gap, and the author
+**overrode** that document's "freeze imported archives" scoping:
+
+- Summary ("light") days are no longer import-only. The user can **create** one in-app
+  by typing a calorie total (no meal breakdown) — primarily from the Journal Calories
+  cell. Every summary day is **editable** and freely **convertible** light⟷detailed.
+- **Imported days are treated like any other data — no freeze, no provenance marker.**
+  The author rejected the document's frozen-archive scoping (and therefore the
+  `imported_at` provenance column it proposed): imported summary days behave exactly
+  like self-made ones. _(Author, 2026-06-07: "l'import excel ne doit pas être gelé, il
+  doit être géré comme n'importe quelle autre donnée".)_ The earlier-3a "read-only
+  archive" wording is superseded for runtime behaviour; 3a/3c still govern **what** the
+  ETL imports (summary, only filled days).
+
 ---
 
 ## Gap 4 — (nb)/(poids) merge at migration (ETL-only) — DEFAULTED
@@ -844,3 +860,35 @@ the scroller chrome on a DOM-free `hasOverflow(width, mealCount)` instead of rea
 are bug-fixes: `features/meals/logic/columnFit.ts` (`hasOverflow`),
 `components/MealScroller/MealScroller.tsx`, test `logic/columnFit.test.ts`. No DB/schema/API change,
 no design-token change.
+
+---
+
+## DAY-MODEL — "every day must be usable": states, light days, full Journal trame — RESOLVED (author)
+
+Executes `specifications/analysis/day-model.md` (the authority), with one author override
+recorded below. Root fix: every past/present/future day is editable whether or not it is
+persisted — `PATCH /days/:date` and entry writes auto-materialize the day, killing the two 404s
+(comment on an unsaved day; starting a meal on a scaffold prefill line). The day model is settled
+around four **calorie-driven** states derived server-side (rule 2): `none` (future, no data) ·
+`green` (detailed, Σ kcal > 0) · `yellow` (summary, `summary_kcal` set) · `red` (date ≤ today with
+**no** calorie value — no row, or only comment/activity/verdict, or detailed with Σ = 0). "Logged"
+for stats = green/yellow with date ≤ today; red/none/future never enter the OK-rate (already
+`spec/logic/stats-adherence.md §1`).
+
+**Phase-1 open-edge resolutions (author, 2026-06-07):**
+
+- **Zeroed detailed day → red, excluded.** A detailed day whose lines are all 0 (cleared, or "Tout
+  effacer") has no calorie value → it is **red** and excluded from the OK-rate, like an empty day.
+  _(Confirms the analysis §6 default.)_
+- **Future planned days are LISTED inline in the Journal.** **Diverges** from the analysis §3.5
+  default ("not listed"), which §6 left open. The Journal trame is one row per calendar day from
+  `max(first record, Jan 1 of year)` to today (empties red), **plus** any future day (> today,
+  ≤ Dec 31) that already has a row. Future days render per content, are never red/empty-generated,
+  and stay excluded from every stats aggregate until their date arrives. _(Author: listed inline.)_
+- **No provenance marker; imported days not frozen.** **Overrides** the analysis §3.4/§4/§5
+  freeze-imported scoping (and its proposed `imported_at` column): imported summary days are treated
+  like any other data — editable and convertible. All summary days are uniform. The Journal Calories
+  cell is editable on any non-`green` day. _(Author: "géré comme n'importe quelle autre donnée".)_
+
+Subsequent contract amendments (logic states, API upsert/trame, screens, design) are recorded with
+their steps; this entry is the umbrella decision.

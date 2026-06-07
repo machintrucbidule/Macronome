@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest';
 import { autoVerdict, calorieStatus, dayKcal, effectiveVerdict } from './verdict.js';
 import { resolveSnapshot } from './snapshot.js';
+import { dayState, isLoggedDay } from './state.js';
 
 // Neutral CI oracles from spec/logic/day-snapshot-verdict.md §5 (range 1900–2100) and
 // the §2 snapshot composition (canonical 80 kg, target 1.8/0.8 → matches targets-macros).
@@ -48,4 +49,27 @@ test('resolveSnapshot leaves thresholds null without a weigh-in', () => {
   expect(snap.cal_min).toBe(1900);
   expect(snap.protein_floor_g).toBeNull();
   expect(snap.carb_ceiling_g).toBeNull();
+});
+
+// Day-state oracles — the worked examples from spec/logic/day-snapshot-verdict.md §8.
+test('dayState — calorie-driven derivation (§8 worked examples)', () => {
+  // date ≤ today (isFuture=false)
+  expect(dayState({ kind: 'detailed', dayKcal: 950, isFuture: false })).toBe('green');
+  expect(dayState({ kind: 'summary', dayKcal: 1800, isFuture: false })).toBe('yellow');
+  expect(dayState({ kind: null, dayKcal: 0, isFuture: false })).toBe('red'); // no row
+  expect(dayState({ kind: 'detailed', dayKcal: 0, isFuture: false })).toBe('red'); // cleared / pantry-only
+  // future days (isFuture=true)
+  expect(dayState({ kind: null, dayKcal: 0, isFuture: true })).toBe('none');
+  expect(dayState({ kind: 'detailed', dayKcal: 1500, isFuture: true })).toBe('green'); // planned
+  expect(dayState({ kind: 'summary', dayKcal: 1600, isFuture: true })).toBe('yellow');
+});
+
+test('isLoggedDay — only calorie-bearing days whose date has arrived count (§8)', () => {
+  expect(isLoggedDay({ kind: 'detailed', dayKcal: 950, isFuture: false })).toBe(true);
+  expect(isLoggedDay({ kind: 'summary', dayKcal: 1800, isFuture: false })).toBe(true);
+  expect(isLoggedDay({ kind: 'detailed', dayKcal: 0, isFuture: false })).toBe(false); // red
+  expect(isLoggedDay({ kind: null, dayKcal: 0, isFuture: false })).toBe(false); // red, no row
+  expect(isLoggedDay({ kind: 'detailed', dayKcal: 1500, isFuture: true })).toBe(false); // future green
+  expect(isLoggedDay({ kind: 'summary', dayKcal: 1600, isFuture: true })).toBe(false); // future yellow
+  expect(isLoggedDay({ kind: null, dayKcal: 0, isFuture: true })).toBe(false); // none
 });
