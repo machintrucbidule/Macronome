@@ -26,7 +26,7 @@ not in Maintien mode.
 ## Targets & metabolic engine (Cibles)
 
 - `GET /target` — current target + live engine readout. → 200
-  `{target:{calorie_min,calorie_max,protein_g_per_kg,fat_g_per_kg,
+  `{target:{id,calorie_min,calorie_max,protein_g_per_kg,fat_g_per_kg,
 target_weight_kg,rate_kg_per_week,effective_from},
 engine:{age,bmr,current_weight_kg,recent_avg_activity,estimated_burn,
 empirical_burn,protein_floor_g,fat_floor_g,carb_ceiling_g,
@@ -39,13 +39,39 @@ warnings:[ 'carb_ceiling_non_positive'? ] }`.
 protein_g_per_kg(≥0),fat_g_per_kg(≥0),target_weight_kg?,rate_kg_per_week?,
 effective_from}`. Saving never blocks on an inconsistent carb ceiling. → 201.
 - `POST /target/preview` — **stateless** live recompute for the Cibles form (an
-  unsaved draft; mirrors `POST /recipes/preview`). Body = the target body **without
-  `effective_from`**: `{calorie_min,calorie_max(≥min),protein_g_per_kg(≥0),
-fat_g_per_kg(≥0),target_weight_kg?,rate_kg_per_week?}`. Reads the persisted profile
-  - latest weigh-in (target-draft scope) and returns the engine readout **without
-    persisting anything** (no row written). → 200 `{engine:{…,target_bmi}, warnings}`.
+  unsaved draft; mirrors `POST /recipes/preview`). Body = the target body with an
+  **optional `effective_from`**: `{calorie_min,calorie_max(≥min),protein_g_per_kg(≥0),
+fat_g_per_kg(≥0),target_weight_kg?,rate_kg_per_week?,effective_from?}`. Reads the
+  persisted profile + weigh-in and returns the engine readout **without persisting
+  anything** (no row written). With `effective_from` the engine is computed **as of that
+  date** (weight, age and the recent-activity window resolved on that date) — used by the
+  history editor so a past version's panel reflects its period; absent → as of today.
+  → 200 `{engine:{…,target_bmi}, warnings}`.
 - `POST /target/suggest` — `{desired_deficit}` → 200 proposed `{calorie_min,
 calorie_max}` (never writes; client confirms then POSTs).
+
+**Target history (TH-1).** Targets are versioned by `effective_from` (one row per date,
+`UNIQUE(user_id, effective_from)`). The plural `/targets` resource manages the history.
+
+- `GET /targets` — all versions, **newest `effective_from` first**. → 200
+  `{versions:[{id,calorie_min,calorie_max,protein_g_per_kg,fat_g_per_kg,
+target_weight_kg,rate_kg_per_week,effective_from,until}]}`. `until` = the day before the
+  next (newer) version's `effective_from`; `null` for the current version.
+- `PATCH /targets/:id` — edit a version; all fields optional, **including `effective_from`**
+  (back-datable). The merged row must keep `calorie_max ≥ calorie_min` (else 422). Moving
+  onto another version's date → 409 `target_date_occupied` `{existing_id}`. Absent /
+  another tenant's → 404. → 200 the updated version (with its recomputed `until`).
+- `DELETE /targets/:id` → 204; 404 when absent / another tenant's. (Deleting the earliest
+  version shifts the retroactive-earliest fallback — `logic/day-snapshot-verdict.md §2`.)
+- `POST /targets/:id/recompute` — **opt-in, auto-only** re-freeze of the version's window
+  (`logic/day-snapshot-verdict.md §3`). Optional body `{from?,to?}` widens the window to a
+  union span (an `effective_from` edit). Re-freezes `target_snapshot` + recomputes
+  `verdict_auto` **only for logged days with `verdict_override IS NULL`** in the window;
+  forced/overridden and out-of-window days are untouched. → 200 `{recomputed:number}`;
+  404 when absent.
+- `GET /targets/:id/recompute-count` — how many days the recompute would touch (button
+  label). → 200 `{count:number}`; 404 when absent.
+
 - `GET/PATCH /profile` — `{sex,birthdate,height_cm}` (edited on Cibles; feeds the
   engine). Age is derived, never written.
 

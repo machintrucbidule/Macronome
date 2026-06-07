@@ -51,6 +51,14 @@ A small **state legend** sits in the header to the right of the year selector, r
 `ChartLegend` swatch pattern (`legend`/`legendItem`): three items **Complet · Partiel · Rien**,
 each a small square swatch in the matching state colour. `--font-num; --fs-11; --text-dim`.
 
+## Target history table (Cibles, TH-1 / B-091)
+
+The "Historique des cibles" panel reuses the **shared table conventions** above (no
+sortable headers needed — few rows): columns **Depuis · Jusqu'au · Calories · Prot/Lip ·**
+a hover-revealed delete (×, `--nok`). Numeric columns right-aligned (`.num`). The row
+**loaded into the editor** carries an `--accent`-tinted background
+(`color-mix(--accent 12%)`), distinct from the plain hover fill. **No new token.**
+
 ## Line-list grid (Repas meal column) — instance A
 
 A meal `.meal` is a flex column on `--bg-elev`, `min-height:200px`, first column

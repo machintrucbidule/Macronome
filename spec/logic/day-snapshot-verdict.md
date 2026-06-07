@@ -49,6 +49,15 @@ day's own date**:
   state is derived live from `pantry_item` on every read, so editing the pantry list
   changes the pin icon on past days too (it never changes their macros/verdict). See
   `pantry-pin.md` (B-045).
+- **Sanctioned exception — opt-in target recompute (TH-1 / B-091).** Correcting a past
+  target version leaves frozen days frozen **by default**. The single exception is an
+  **explicit, user-triggered** recompute (`POST /targets/:id/recompute`): for the version's
+  affected window it re-freezes `target_snapshot` and recomputes `verdict_auto` **only for
+  logged days with `verdict_override IS NULL`**. Manually forced/overridden days, future
+  days and out-of-window days are never touched, and the verdict formula (§5) is unchanged
+  — so this re-aligns history to a corrected target without otherwise breaching the freeze
+  rule. Each day re-resolves its snapshot via the §2 rule, so it re-freezes against whatever
+  version now governs its date.
 
 ## 4. Day calorie total
 

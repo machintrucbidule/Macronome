@@ -1,4 +1,10 @@
-import type { EngineReadout, Sex, Target, TargetWarningCode } from '@macronome/shared';
+import type {
+  EngineReadout,
+  Sex,
+  Target,
+  TargetVersion,
+  TargetWarningCode,
+} from '@macronome/shared';
 import { TargetWarning } from '@macronome/shared';
 import type { Target as TargetModel, WeightEntry as WeightEntryModel } from '@prisma/client';
 import type { ProfileRow } from '../data/repositories/profile.repo.js';
@@ -26,6 +32,7 @@ const toDateString = (d: Date): string => d.toISOString().slice(0, 10);
 /** Map a persisted target row to the contract DTO (carbs are never stored). */
 export function targetToDto(row: TargetModel): Target {
   return {
+    id: row.id,
     calorie_min: row.calorieMin,
     calorie_max: row.calorieMax,
     protein_g_per_kg: num(row.proteinGPerKg),
@@ -34,6 +41,12 @@ export function targetToDto(row: TargetModel): Target {
     rate_kg_per_week: row.rateKgPerWeek === null ? null : num(row.rateKgPerWeek),
     effective_from: toDateString(row.effectiveFrom),
   };
+}
+
+/** Map a row to a history version DTO. `until` = the day before the next version's
+ * effective date (null for the current version) — computed by the history service. */
+export function targetToListItemDto(row: TargetModel, until: string | null): TargetVersion {
+  return { ...targetToDto(row), until };
 }
 
 export interface EngineInputs {

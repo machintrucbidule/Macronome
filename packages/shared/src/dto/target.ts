@@ -30,6 +30,7 @@ export type CreateTargetRequest = z.infer<typeof CreateTargetSchema>;
 
 /** Persisted target as returned by the API (carbs are never stored — derived). */
 export const TargetSchema = z.object({
+  id: z.string(),
   calorie_min: z.number(),
   calorie_max: z.number(),
   protein_g_per_kg: z.number(),
@@ -39,6 +40,65 @@ export const TargetSchema = z.object({
   effective_from: z.string(),
 });
 export type Target = z.infer<typeof TargetSchema>;
+
+// --- Target history (versions list + edit; TH-1 / B-091) -------------------
+// Targets are versioned by effective_from (one row per date). The history endpoints
+// expose the full list with a computed period end (`until`) and let any version be
+// edited/deleted (spec/api/weight-targets-stats-settings.md §Targets, DECISIONS TH-1).
+
+/** One target version with its period end: `until` = day before the next version's
+ * effective_from, or null for the current (latest) version. */
+export const TargetVersionSchema = TargetSchema.extend({
+  until: z.string().nullable(),
+});
+export type TargetVersion = z.infer<typeof TargetVersionSchema>;
+
+export interface GetTargetHistoryResponse {
+  versions: TargetVersion[];
+}
+
+/** PATCH /targets/:id — edit any field of a version, including its effective_from
+ * (back-datable). All optional; the service validates calorie_max ≥ calorie_min on the
+ * merged row. A date colliding with another version → 409 target_date_occupied. */
+export const PatchTargetSchema = z
+  .object({
+    calorie_min: targetFields.calorie_min.optional(),
+    calorie_max: targetFields.calorie_max.optional(),
+    protein_g_per_kg: targetFields.protein_g_per_kg.optional(),
+    fat_g_per_kg: targetFields.fat_g_per_kg.optional(),
+    target_weight_kg: targetFields.target_weight_kg,
+    rate_kg_per_week: targetFields.rate_kg_per_week,
+    effective_from: targetFields.effective_from.optional(),
+  })
+  .refine((b) => Object.keys(b).length > 0, { message: 'empty_patch' })
+  .refine(
+    (b) =>
+      b.calorie_min === undefined || b.calorie_max === undefined || b.calorie_max >= b.calorie_min,
+    {
+      message: 'calorie_max_below_min',
+      path: ['calorie_max'],
+    },
+  );
+export type PatchTargetRequest = z.infer<typeof PatchTargetSchema>;
+
+// --- Recompute a version's window (opt-in, auto-only; DECISIONS TH-1) -------
+// Re-freezes target_snapshot + recomputes verdict_auto for logged days with no override
+// in the affected window (day-snapshot-verdict.md §3). Optional from/to override the
+// natural window to cover an effective_from edit's union span.
+
+export const RecomputeTargetSchema = z.object({
+  from: dateString.optional(),
+  to: dateString.optional(),
+});
+export type RecomputeTargetRequest = z.infer<typeof RecomputeTargetSchema>;
+
+export interface RecomputeTargetResponse {
+  recomputed: number;
+}
+
+export interface RecomputeCountResponse {
+  count: number;
+}
 
 // --- Engine readout (all derived; nullable when a source is missing) -------
 
@@ -78,8 +138,10 @@ export interface GetTargetResponse {
 
 // --- Live preview of the engine from a draft (unsaved) target ----------------
 // Stateless recompute for the Cibles form (targets-macros.md, DECISIONS B-042),
-// mirroring POST /recipes/preview (B-035). Same numeric fields as a create, minus
-// effective_from (nothing is persisted); returns the engine + warnings only.
+// mirroring POST /recipes/preview (B-035). Same numeric fields as a create; nothing is
+// persisted. `effective_from` is optional (TH-1): when present the engine is computed
+// AS OF that date (weight/age/recent-activity window resolved on that date) so the
+// history editor's right panel reflects the version's period, not today.
 
 export const TargetPreviewSchema = z
   .object({
@@ -89,6 +151,7 @@ export const TargetPreviewSchema = z
     fat_g_per_kg: targetFields.fat_g_per_kg,
     target_weight_kg: targetFields.target_weight_kg,
     rate_kg_per_week: targetFields.rate_kg_per_week,
+    effective_from: targetFields.effective_from.optional(),
   })
   .refine((b) => b.calorie_max >= b.calorie_min, {
     message: 'calorie_max_below_min',

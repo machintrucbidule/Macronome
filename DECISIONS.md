@@ -1073,3 +1073,53 @@ change beyond the additive fields.**
 **Spec impact:** `spec/schema/tables-catalog.md`, `spec/api/foods-recipes.md`,
 `spec/logic/migration-etl.md`, `specifications/screens/recipe.md`.
 `design/components/rating-stars.md` unchanged (applies to recipes identically).
+
+## TH-1 / B-091 — Target history editor (list / edit / delete + opt-in recompute) — RESOLVED (author, 2026-06-07)
+
+**Problem.** The Cibles screen exposed only the _current_ target and Save hard-coded
+`effective_from = today` (`draft.ts`), even though targets are already versioned by
+`effective_from` (`UNIQUE(user_id, effective_from)`; `targetRepo.currentAsOf` resolves the
+version in effect on a date). The gap was a read/edit surface: no way to list past versions,
+correct one, back-date one, or delete one.
+
+**Decision (improvement, contract amended; no DB migration).** Add full target-history
+management on Cibles, with two user decisions taken with the author:
+
+- **Recompute = opt-in, auto-only.** Correcting a past version leaves logged days **frozen
+  by default** (CLAUDE.md rule 4). An explicit, strong-confirmed `POST /targets/:id/recompute`
+  re-freezes `target_snapshot` + recomputes `verdict_auto` **only for logged days with
+  `verdict_override IS NULL`** in the affected window; forced/overridden, future and
+  out-of-window days are untouched, and the verdict formula is unchanged. This is the single
+  sanctioned exception to the freeze rule (`spec/logic/day-snapshot-verdict.md §3`).
+- **Effective date is choosable on create (back-datable) and editable** on a version.
+
+**API (`spec/api/weight-targets-stats-settings.md`).** New plural `/targets` resource:
+`GET /targets` (versions newest-first, each with `id` + `until` = day before the next
+version / null for current); `PATCH /targets/:id` (edit any field incl. `effective_from`;
+merged `calorie_max ≥ calorie_min` else 422; date collision → 409 `target_date_occupied`
+`{existing_id}`); `DELETE /targets/:id`; `POST /targets/:id/recompute` (optional `{from,to}`
+union window → `{recomputed}`); `GET /targets/:id/recompute-count` → `{count}`. `id` exposed
+on the Target DTO. `POST /target/preview` gains an optional `effective_from` → engine computed
+**as of that date** (weight/age/recent-activity window resolved on the date) for the history
+editor; absent → today. New error code `target_date_occupied` (`spec/api/00-conventions.md`).
+
+**Recompute window.** A version's affected window = `[effective_from, next.effective_from)`;
+the earliest version is retroactive to the first logged day (VR-1/B-090). Each affected day
+re-resolves its snapshot via `resolveSnapshotForDate`, so it re-freezes against whatever
+version now governs its date; per-day kcal reuses the stats proration (`services/day-stat.ts`).
+
+**Code.** shared `dto/target.ts` (`id` on Target; `TargetVersion`+`until`; `PatchTargetSchema`;
+`RecomputeTargetSchema`; recompute/count responses; optional `effective_from` on preview),
+`errors.ts`. api `data/repositories/target.repo.ts` (`list`/`findById`/`findByEffectiveFrom`/
+`update`/`remove`), `services/targets.ts` (`recentActivity(asOf?)` + preview as-of),
+`services/target-engine.ts` (`id`; `targetToListItemDto`), new `services/target-history.ts`
+and `services/target-recompute.ts`, `http/controllers/targets.ts` + new `http/routes/targets.ts`
+(mounted `/api/v1/targets`). web `features/targets/` — `api/target.ts`, `useTargets.ts`
+(history/version mutations/recompute-count), new `useCiblesController.ts`, `draft.ts`
+(`effectiveFrom`), `CiblesPage.tsx` (thin renderer), `components/TargetForm.tsx` (date field +
+editor modes + freeze notice/recompute), new `components/TargetHistory.tsx`,
+`RecomputeConfirm.tsx`, `DeleteTargetConfirm.tsx`, i18n `cibles.history/recompute/deleteVersion/error.*`.
+
+**Spec impact:** `spec/api/weight-targets-stats-settings.md`, `spec/api/00-conventions.md`,
+`spec/logic/day-snapshot-verdict.md §3`, `specifications/screens/targets.md`,
+`design/components/data-tables.md`. **No DB/schema change.**

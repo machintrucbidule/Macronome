@@ -34,11 +34,12 @@ import { computeEngine, targetToDto } from './target-engine.js';
 
 const num = (d: { toString(): string }): number => Number(d.toString());
 
-/** Mean activity multiplier over the logged days of the trailing 30-day window (as of
- * today). Bounds are at UTC midnight so the upper bound (today) excludes future days and
+/** Mean activity multiplier over the logged days of the trailing 30-day window ending at
+ * `asOf` (default today; TH-1 lets the history editor compute the engine as of a version's
+ * effective date). Bounds are at UTC midnight so the upper bound excludes later days and
  * no time-of-day drift narrows the window. Empty window → sedentary fallback. */
-async function recentActivity(userId: string): Promise<RecentActivity> {
-  const to = toDate(todayString());
+async function recentActivity(userId: string, asOf?: Date): Promise<RecentActivity> {
+  const to = asOf ?? toDate(todayString());
   const from = new Date(to);
   from.setUTCDate(from.getUTCDate() - (RECENT_ACTIVITY_WINDOW_DAYS - 1));
   const levels = await dayStatRepo.activityLevelsInRange(userId, from, to);
@@ -84,11 +85,12 @@ export async function preview(
   userId: string,
   body: PreviewTargetRequest,
 ): Promise<PreviewTargetResponse> {
-  const refDate = new Date();
+  // Default: as of today. With effective_from (history editor), compute as of that date.
+  const refDate = body.effective_from ? toDate(body.effective_from) : new Date();
   const profile = await profileRepo.get(userId);
   if (!profile) throw new Error('profile_missing'); // an authed user always has one
   const weightRow = await weightRepo.latestAsOf(userId, refDate);
-  const recent = await recentActivity(userId);
+  const recent = await recentActivity(userId, refDate);
   const dec = (n: number): Prisma.Decimal => new Prisma.Decimal(n);
   const draftRow: TargetModel = {
     id: 'preview',

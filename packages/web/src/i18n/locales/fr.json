@@ -264,6 +264,39 @@
       "proposed": "Plage proposée : {{min}} – {{max}} kcal",
       "apply": "Appliquer",
       "noWeight": "Pas de pesée : impossible d'estimer la dépense."
+    },
+    "history": {
+      "title": "Historique des cibles",
+      "modeCurrent": "Cible en cours",
+      "modeEditing": "Édition du {{date}}",
+      "newTarget": "Nouvelle cible",
+      "backToCurrent": "Revenir à la cible en cours",
+      "effectiveFrom": "Date d'effet",
+      "from": "Depuis",
+      "until": "Jusqu'au",
+      "current": "en cours",
+      "calories": "Calories",
+      "ratios": "Prot/Lip (g/kg)",
+      "update": "Mettre à jour",
+      "delete": "Supprimer"
+    },
+    "recompute": {
+      "notice": "Les jours déjà enregistrés de cette période restent figés. Vous pouvez recalculer leur verdict automatique avec ces cibles corrigées ; les jours dont le verdict a été forcé manuellement ne sont pas touchés.",
+      "loading": "Calcul…",
+      "button": "Recalculer les {{count}} jours de cette période",
+      "title": "Recalculer la période",
+      "body": "Cette action recalcule le verdict automatique de <b>{{count}}</b> jour(s) enregistré(s) sur la période {{period}}. Les jours au verdict forcé manuellement ne sont pas modifiés. Continuer ?",
+      "confirm": "Recalculer {{count}} jours"
+    },
+    "deleteVersion": {
+      "title": "Supprimer cette cible",
+      "body": "Supprimer la cible du <b>{{date}}</b> ? Les jours déjà enregistrés restent figés ; la période sera reprise par la cible voisine.",
+      "confirm": "Supprimer"
+    },
+    "error": {
+      "target_date_occupied": "Une cible existe déjà à cette date d'effet.",
+      "calorie_max_below_min": "Le maximum calorique doit être supérieur ou égal au minimum.",
+      "validation_error": "Valeurs invalides."
     }
   },
   "meals": {

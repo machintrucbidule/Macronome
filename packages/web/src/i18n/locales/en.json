@@ -264,6 +264,39 @@
       "proposed": "Proposed range: {{min}} – {{max}} kcal",
       "apply": "Apply",
       "noWeight": "No weigh-in: cannot estimate the burn."
+    },
+    "history": {
+      "title": "Target history",
+      "modeCurrent": "Current target",
+      "modeEditing": "Editing {{date}}",
+      "newTarget": "New target",
+      "backToCurrent": "Back to the current target",
+      "effectiveFrom": "Effective from",
+      "from": "From",
+      "until": "Until",
+      "current": "current",
+      "calories": "Calories",
+      "ratios": "Prot/Fat (g/kg)",
+      "update": "Update",
+      "delete": "Delete"
+    },
+    "recompute": {
+      "notice": "Already-logged days in this period stay frozen. You can recompute their automatic verdict with these corrected targets; days whose verdict was set by hand are left untouched.",
+      "loading": "Computing…",
+      "button": "Recompute the {{count}} days of this period",
+      "title": "Recompute the period",
+      "body": "This recomputes the automatic verdict of <b>{{count}}</b> logged day(s) over {{period}}. Days with a manually forced verdict are not changed. Continue?",
+      "confirm": "Recompute {{count}} days"
+    },
+    "deleteVersion": {
+      "title": "Delete this target",
+      "body": "Delete the target from <b>{{date}}</b>? Already-logged days stay frozen; the period is taken over by the neighbouring target.",
+      "confirm": "Delete"
+    },
+    "error": {
+      "target_date_occupied": "A target already exists for that effective date.",
+      "calorie_max_below_min": "The calorie maximum must be greater than or equal to the minimum.",
+      "validation_error": "Invalid values."
     }
   },
   "meals": {

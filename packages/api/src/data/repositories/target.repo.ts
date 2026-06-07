@@ -44,4 +44,35 @@ export const targetRepo = {
       update: rest,
     });
   },
+
+  /** All of the user's target versions, newest effective date first (history list). */
+  list(userId: string): Promise<TargetModel[]> {
+    return prisma.target.findMany({ where: { userId }, orderBy: { effectiveFrom: 'desc' } });
+  },
+
+  /** One target version by id, user-scoped (null when another tenant's or absent). */
+  findById(userId: string, id: string): Promise<TargetModel | null> {
+    return prisma.target.findFirst({ where: { id, userId } });
+  },
+
+  /** The version occupying an effective date (one per date), or null — collision probe. */
+  findByEffectiveFrom(userId: string, effectiveFrom: Date): Promise<TargetModel | null> {
+    return prisma.target.findFirst({ where: { userId, effectiveFrom } });
+  },
+
+  /** Patch a version, user-scoped. Returns the updated row, or null when not found. */
+  async update(
+    userId: string,
+    id: string,
+    data: Partial<TargetWriteData>,
+  ): Promise<TargetModel | null> {
+    const result = await prisma.target.updateMany({ where: { id, userId }, data });
+    return result.count > 0 ? this.findById(userId, id) : null;
+  },
+
+  /** Delete a version, user-scoped. Returns true when a row was removed. */
+  async remove(userId: string, id: string): Promise<boolean> {
+    const result = await prisma.target.deleteMany({ where: { id, userId } });
+    return result.count > 0;
+  },
 };

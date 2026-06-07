@@ -24,6 +24,7 @@ import searchRoutes from './http/routes/search.js';
 import settingsRoutes from './http/routes/settings.js';
 import statsRoutes from './http/routes/stats.js';
 import targetRoutes from './http/routes/target.js';
+import targetsRoutes from './http/routes/targets.js';
 import weightRoutes from './http/routes/weight.js';
 import { logger } from './observability/logger.js';
 
@@ -46,6 +47,7 @@ export function createApp(): Express {
   app.use('/api/v1/recipes', recipesRoutes);
   app.use('/api/v1/search', searchRoutes);
   app.use('/api/v1/target', targetRoutes);
+  app.use('/api/v1/targets', targetsRoutes);
   app.use('/api/v1/weight', weightRoutes);
   app.use('/api/v1/profile', profileRoutes);
   app.use('/api/v1/days', daysRoutes);

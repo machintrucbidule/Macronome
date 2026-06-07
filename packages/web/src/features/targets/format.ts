@@ -26,3 +26,10 @@ export const bmi1 = (n: number): string => formatFixed(n, 1);
 export const rate2 = (n: number): string => formatFixed(n, 2);
 
 export const multiplier2 = (n: number): string => `×${formatFixed(n, 2)}`;
+
+/** Localised short date for a YYYY-MM-DD value, e.g. "01/06/2026" (history table). Parsed
+ * at local noon to dodge DST edges. */
+export const shortDate = (date: string, locale: string): string => {
+  const p = date.split('-');
+  return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]), 12).toLocaleDateString(locale);
+};
