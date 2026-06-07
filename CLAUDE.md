@@ -186,3 +186,8 @@ release the owner runs `git tag -a vX.Y.Z -m "vX.Y.Z" && git push origin vX.Y.Z`
   (CI is the "fresh clone" context). After pushing, check the run with `gh run watch`.
 - **Never commit personal/local files** (`.env`, `specifications/`, `*.local.test.ts`,
   DB dumps). Confirm `git status` before each commit.
+- **Bilingual README — keep both in sync.** The project README exists in two languages:
+  `README.md` (English, **canonical**) and `README_FR.md` (French translation). Any edit
+  to one **must** be mirrored in the other in the same change — identical content and
+  section order, only the prose language differs. Each links to the other on its first
+  line; don't let them drift.
