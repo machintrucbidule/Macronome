@@ -892,3 +892,21 @@ for stats = green/yellow with date ≤ today; red/none/future never enter the OK
 
 Subsequent contract amendments (logic states, API upsert/trame, screens, design) are recorded with
 their steps; this entry is the umbrella decision.
+
+---
+
+## RN-1 / B-076 — Day-kind labels unified to "Complet" / "Partiel" — RESOLVED (author, 2026-06-07)
+
+The user-facing labels for a day's kind are standardised to **Complet** (the `detailed` kind) and
+**Partiel** (the `summary` kind), replacing the previous inconsistent wording ("Jour détaillé" /
+"Résumé (importé)"; calendar "résumé"). EN mirrors: **Complete** / **Partial**. This establishes the
+vocabulary reused by DK-1 (day-kind switch menu) and JR-1 (Journal state legend).
+
+**Scope:** display labels only. The internal enum / DB / wire values `summary` | `detailed` are
+**unchanged — no migration.** **Code (web only):** `i18n/locales/{fr,en}.json` —
+`meals.dayType.detailed` → "Complet"/"Complete", `meals.dayType.summary` → "Partiel"/"Partial",
+`meals.calendar.partial` → "partiel"/"partial" (`calendar.full`/`empty` unchanged); comment-only edit
+in `features/meals/components/DayHeader/DayTypeTag.tsx`. No component logic, DB, schema, API, or
+design-token change. **Spec impact:** `specifications/screens/meals.md` (tag reads "Partiel") +
+`history.md` (day-kind vocabulary note). The `meals.summary.*` banner strings are intentionally left
+untouched — DK-1 (B-078) removes that banner entirely.

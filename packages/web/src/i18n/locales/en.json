@@ -291,8 +291,8 @@
       "noFoods": "No food"
     },
     "dayType": {
-      "detailed": "Detailed day",
-      "summary": "Summary (imported)"
+      "detailed": "Complete",
+      "summary": "Partial"
     },
     "nav": {
       "prev": "Previous day",
@@ -302,7 +302,7 @@
     "calendar": {
       "dow": ["M", "T", "W", "T", "F", "S", "S"],
       "full": "complete",
-      "partial": "summary",
+      "partial": "partial",
       "empty": "empty"
     },
     "card": {
