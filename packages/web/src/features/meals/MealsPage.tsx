@@ -10,6 +10,7 @@ import { DayHeader } from './components/DayHeader/DayHeader';
 import { MealsControls } from './components/MealsControls';
 import { MealsOverlays } from './components/MealsOverlays';
 import { MealScroller } from './components/MealScroller/MealScroller';
+import { SummaryDayPanel } from './components/SummaryDayPanel';
 import { todayIso } from './format';
 
 // Repas page (specifications/screens/meals.md): the core daily loop. Route container — fetches
@@ -33,11 +34,17 @@ export function MealsPage() {
         ) : (
           <>
             <DayHeader date={date} day={ctl.day} onNavigate={(d) => void navigate(`/day/${d}`)} />
-            <MealsControls
-              onClear={() => setClearing(true)}
-              onAddMeal={(name) => void ctl.actions.addMeal(name, ctl.day?.meals.length ?? 0)}
-            />
-            <MealScroller meals={ctl.day.meals} />
+            {ctl.day.kind === 'summary' ? (
+              <SummaryDayPanel onConvert={() => void ctl.actions.convertToDetailed()} />
+            ) : (
+              <>
+                <MealsControls
+                  onClear={() => setClearing(true)}
+                  onAddMeal={(name) => void ctl.actions.addMeal(name, ctl.day?.meals.length ?? 0)}
+                />
+                <MealScroller meals={ctl.day.meals} />
+              </>
+            )}
           </>
         )}
 

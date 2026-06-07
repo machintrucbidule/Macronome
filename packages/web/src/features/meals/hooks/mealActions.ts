@@ -2,6 +2,7 @@ import type {
   ActivityLevel,
   EntryUnit,
   MacroSnap,
+  MealEntry,
   UpdateMealEntryRequest,
   Verdict,
 } from '@macronome/shared';
@@ -67,7 +68,46 @@ function makeResolveMealId(d: MealActionDeps): ResolveMealId {
   };
 }
 
-function lineActions(d: MealActionDeps, run: Run, resolveMealId: ResolveMealId) {
+/** Resolve a real (mealId, entryId) for a line edit. On a scaffold pre-fill line (empty ids)
+ *  the day is materialized first, then the line is mapped to its real meal + entry by
+ *  order_index / food_id before the write — the server cannot patch a phantom id (Failure 2). */
+type ResolveEntry = (
+  mealId: string,
+  mealIndex: number,
+  entry: MealEntry,
+) => Promise<{ mealId: string; id: string }>;
+function makeResolveEntry(d: MealActionDeps): ResolveEntry {
+  return async (mealId, mealIndex, entry) => {
+    if (entry.id) return { mealId, id: entry.id };
+    const detail = await d.day.materializeRaw();
+    const meal = detail.meals.find((m) => m.order_index === mealIndex);
+    const real =
+      meal?.entries.find((e) => entry.food_id !== null && e.food_id === entry.food_id) ??
+      meal?.entries.find((e) => e.order_index === entry.order_index);
+    if (!meal || !real) throw new ApiError(500, 'entry_unresolved');
+    return { mealId: meal.id, id: real.id };
+  };
+}
+
+function lineActions(
+  d: MealActionDeps,
+  run: Run,
+  resolveMealId: ResolveMealId,
+  resolveEntry: ResolveEntry,
+) {
+  // Edit a line, resolving a scaffold pre-fill line (empty ids) to its real meal+entry first.
+  const editLine = (
+    mealId: string,
+    mealIndex: number,
+    entry: MealEntry,
+    body: UpdateMealEntryRequest,
+  ): Promise<void> =>
+    run(
+      (async () => {
+        const real = await resolveEntry(mealId, mealIndex, entry);
+        await d.day.updateEntry.mutateAsync({ mealId: real.mealId, id: real.id, body });
+      })(),
+    );
   return {
     startEdit: (
       mealId: string,
@@ -106,23 +146,27 @@ function lineActions(d: MealActionDeps, run: Run, resolveMealId: ResolveMealId) 
       );
     },
 
+    // setQty/setUnit accept the full entry + mealIndex so a scaffold pre-fill line (empty ids)
+    // is materialized and remapped before the write (Failure 2); a persisted line resolves
+    // immediately (no materialize).
     setQty: (
       mealId: string,
-      id: string,
+      mealIndex: number,
+      entry: MealEntry,
       qty: number,
       unit: EntryUnit,
       portion_id?: string | null,
-    ) =>
-      run(
-        d.day.updateEntry.mutateAsync({
-          mealId,
-          id,
-          body: { served_quantity: qty, unit, portion_id },
-        }),
-      ),
-    setUnit: (mealId: string, id: string, unit: EntryUnit, portion_id: string | null) =>
-      run(d.day.updateEntry.mutateAsync({ mealId, id, body: { unit, portion_id } })),
-    deleteEntry: (mealId: string, id: string) => run(d.day.removeEntry.mutateAsync({ mealId, id })),
+    ) => editLine(mealId, mealIndex, entry, { served_quantity: qty, unit, portion_id }),
+    setUnit: (
+      mealId: string,
+      mealIndex: number,
+      entry: MealEntry,
+      unit: EntryUnit,
+      portion_id: string | null,
+    ) => editLine(mealId, mealIndex, entry, { unit, portion_id }),
+    // A scaffold pre-fill line (empty id) has nothing persisted to delete → no-op.
+    deleteEntry: (mealId: string, id: string) =>
+      id ? run(d.day.removeEntry.mutateAsync({ mealId, id })) : Promise.resolve(),
     // Pin/unpin a referenced line as garde-manger (future-day prefill); persisted lines only.
     togglePin: (mealId: string, id: string, pinned: boolean) =>
       run((pinned ? d.day.unpinEntry : d.day.pinEntry).mutateAsync({ mealId, id })),
@@ -185,6 +229,8 @@ function dayActions(d: MealActionDeps, run: Run) {
       run(d.day.patchDay.mutateAsync({ verdict_override })),
     // Tout effacer (B-046): server clears foods/leftovers, keeps pins@0 + comment + activity.
     clearDay: () => run(d.day.clearDay.mutateAsync()),
+    // Convert a summary (light) day to a detailed day so the user can log meal lines (day-model §9).
+    convertToDetailed: () => run(d.day.convertToDetailed.mutateAsync()),
     openLeftover: (mealId: string) => d.setLeftoverMealId(mealId),
     closeLeftover: () => d.setLeftoverMealId(null),
     openCook: (mealId: string) => d.setCookMealId(mealId),
@@ -213,8 +259,9 @@ export function createMealActions(d: MealActionDeps) {
     }
   };
   const resolveMealId = makeResolveMealId(d);
+  const resolveEntry = makeResolveEntry(d);
   return {
-    ...lineActions(d, run, resolveMealId),
+    ...lineActions(d, run, resolveMealId, resolveEntry),
     ...customActions(d, run, resolveMealId),
     ...dayActions(d, run),
   };

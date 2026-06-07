@@ -269,6 +269,10 @@
       "confirm": "Tout effacer"
     },
     "total": "Total",
+    "summary": {
+      "hint": "Jour résumé : seul un total de calories est saisi, sans détail des repas. Passe-le en jour détaillé pour saisir les aliments.",
+      "convert": "Passer en jour détaillé"
+    },
     "commentTitle": "Note du jour",
     "commentPlaceholder": "Note du jour…",
     "error": "Échec de l'opération ({{code}}).",
@@ -298,7 +302,8 @@
     "calendar": {
       "dow": ["L", "M", "M", "J", "V", "S", "D"],
       "full": "complet",
-      "partial": "résumé (importé)"
+      "partial": "résumé",
+      "empty": "vide"
     },
     "card": {
       "calories": "Calories",

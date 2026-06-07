@@ -12,12 +12,13 @@ import styles from './food-line.module.css';
 // the UnitMenu. Arrows at the field edge and Tab walk between quantity cells.
 interface QtyCellProps {
   mealId: string;
+  mealIndex: number;
   entry: MealEntry;
 }
 
 // Unit chip + menu. For a portion it shows "nb" (display-only abbreviation, not a real
 // unit — B-031) with the full "label (grams g)" in its tooltip (B-032) and the unit menu.
-function UnitChip({ mealId, entry }: QtyCellProps) {
+function UnitChip({ mealId, mealIndex, entry }: QtyCellProps) {
   const { t } = useTranslation();
   const { actions } = useMeals();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -50,7 +51,7 @@ function UnitChip({ mealId, entry }: QtyCellProps) {
           currentPortionId={entry.portion_id}
           onSelect={(unit: EntryUnit, portionId) => {
             setMenuOpen(false);
-            void actions.setUnit(mealId, entry.id, unit, portionId);
+            void actions.setUnit(mealId, mealIndex, entry, unit, portionId);
           }}
           onClose={() => setMenuOpen(false)}
         />
@@ -69,7 +70,7 @@ function restValue(entry: MealEntry): string {
   return String(Math.round(quantity));
 }
 
-export function QtyCell({ mealId, entry }: QtyCellProps) {
+export function QtyCell({ mealId, mealIndex, entry }: QtyCellProps) {
   const { actions, pendingFocus } = useMeals();
   const [value, setValue] = useState(() => restValue(entry));
   // The field shows the CONSUMED quantity at rest but edits the SERVED quantity; `dirty`
@@ -94,7 +95,7 @@ export function QtyCell({ mealId, entry }: QtyCellProps) {
     const n = Number(value.replace(',', '.'));
     const qty = Number.isFinite(n) ? n : 0;
     if (qty !== entry.served_quantity)
-      void actions.setQty(mealId, entry.id, qty, entry.unit, entry.portion_id);
+      void actions.setQty(mealId, mealIndex, entry, qty, entry.unit, entry.portion_id);
   };
 
   const onChange = (v: string): void => {
@@ -142,7 +143,7 @@ export function QtyCell({ mealId, entry }: QtyCellProps) {
         onKeyDown={onKeyDown}
         onClick={(e) => e.stopPropagation()}
       />
-      <UnitChip mealId={mealId} entry={entry} />
+      <UnitChip mealId={mealId} mealIndex={mealIndex} entry={entry} />
     </span>
   );
 }

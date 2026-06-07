@@ -269,6 +269,10 @@
       "confirm": "Clear all"
     },
     "total": "Total",
+    "summary": {
+      "hint": "Summary day: only a calorie total is recorded, with no meal breakdown. Switch it to a detailed day to log foods.",
+      "convert": "Switch to detailed day"
+    },
     "commentTitle": "Day note",
     "commentPlaceholder": "Day note…",
     "error": "Operation failed ({{code}}).",
@@ -298,7 +302,8 @@
     "calendar": {
       "dow": ["M", "T", "W", "T", "F", "S", "S"],
       "full": "complete",
-      "partial": "summary (imported)"
+      "partial": "summary",
+      "empty": "empty"
     },
     "card": {
       "calories": "Calories",

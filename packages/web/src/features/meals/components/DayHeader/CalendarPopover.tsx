@@ -6,9 +6,9 @@ import { parseIso, todayIso } from '../../format';
 import styles from '../../meals.module.css';
 
 // Month grid with day-state dots (specifications/screens/meals.md §Layout). Dots come from the
-// Journal API (one row per logged day): detailed → full, summary (imported) → partial. Future
-// days are selectable (plan meals ahead, parity with the ‹ › arrows — B-016). View-only —
-// picking a day navigates the screen.
+// Journal trame (day-model §8): green → full, yellow (summary) → partial, red (past/present with
+// no calorie value) → empty. Future days are selectable (plan meals ahead, parity with the ‹ ›
+// arrows — B-016). View-only — picking a day navigates the screen.
 interface CalendarPopoverProps {
   selected: string;
   onPick: (date: string) => void;
@@ -25,9 +25,17 @@ export function CalendarPopover({ selected, onPick }: CalendarPopoverProps) {
   const year = month.getFullYear();
   const journal = useQuery({ queryKey: ['journal', year], queryFn: () => journalApi.list(year) });
 
-  const states = new Map<string, 'full' | 'partial'>();
-  for (const row of journal.data?.data ?? [])
-    states.set(row.date, row.kind === 'summary' ? 'partial' : 'full');
+  type Dot = 'full' | 'partial' | 'empty';
+  const dotForState: Record<string, Dot | undefined> = {
+    green: 'full',
+    yellow: 'partial',
+    red: 'empty',
+  };
+  const states = new Map<string, Dot>();
+  for (const row of journal.data?.data ?? []) {
+    const dot = dotForState[row.state];
+    if (dot) states.set(row.date, dot);
+  }
 
   const today = todayIso();
   const mo = month.getMonth();
@@ -67,11 +75,7 @@ export function CalendarPopover({ selected, onPick }: CalendarPopoverProps) {
           return (
             <div key={d} className={cls} onClick={() => onPick(date)}>
               {d}
-              {dot && (
-                <span
-                  className={`${styles.dot} ${dot === 'full' ? styles.full : styles.partial}`}
-                />
-              )}
+              {dot && <span className={`${styles.dot} ${styles[dot]}`} />}
             </div>
           );
         })}
@@ -84,6 +88,10 @@ export function CalendarPopover({ selected, onPick }: CalendarPopoverProps) {
         <span>
           <i className={styles.partial} />
           {t('meals.calendar.partial')}
+        </span>
+        <span>
+          <i className={styles.empty} />
+          {t('meals.calendar.empty')}
         </span>
       </div>
     </div>

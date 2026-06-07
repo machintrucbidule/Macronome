@@ -164,6 +164,9 @@
 .partial {
   background: var(--accent);
 }
+.empty {
+  background: var(--nok);
+}
 .legend {
   display: flex;
   gap: var(--sp-6);
@@ -370,6 +373,22 @@
 .clearAll:hover {
   border-color: var(--nok);
   color: var(--nok);
+}
+
+/* Summary (light) day: no meal breakdown — offer the convert-to-detailed affordance. */
+.summaryPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-5);
+  padding: var(--sp-7) var(--page-gutter);
+  max-width: 520px;
+}
+.summaryPanel p {
+  font-family: var(--font-num);
+  font-size: var(--fs-12);
+  color: var(--text-dim);
+  margin: 0;
 }
 
 .scrollerWrap {

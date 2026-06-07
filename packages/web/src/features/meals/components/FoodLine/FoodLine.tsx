@@ -124,7 +124,7 @@ function EntryRow({
           {entry.served_grams ? `${r0(entry.served_grams)} g` : '—'}
         </span>
       ) : (
-        <QtyCell mealId={mealId} entry={entry} />
+        <QtyCell mealId={mealId} mealIndex={mealIndex} entry={entry} />
       )}
       <span className={`${styles.v} num`} style={{ fontWeight: 700 }}>
         {r0(c.kcal)}

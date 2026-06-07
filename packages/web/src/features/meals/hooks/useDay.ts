@@ -52,6 +52,10 @@ export function useDay(date: string) {
     onSuccess,
   });
   const clearDay = useMutation({ mutationFn: () => daysApi.clear(date), onSuccess });
+  const convertToDetailed = useMutation({
+    mutationFn: () => daysApi.convertToDetailed(date),
+    onSuccess,
+  });
   const createMeal = useMutation({
     mutationFn: (b: CreateMealRequest) => mealsApi.create(date, b),
     onSuccess,
@@ -101,6 +105,7 @@ export function useDay(date: string) {
     materializeRaw,
     patchDay,
     clearDay,
+    convertToDetailed,
     createMeal,
     patchMeal,
     removeMeal,

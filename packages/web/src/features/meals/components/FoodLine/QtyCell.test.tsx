@@ -38,7 +38,7 @@ function renderQty(e: MealEntry, setQty = vi.fn()) {
   const utils = render(
     <QueryClientProvider client={qc}>
       <MealsProvider value={ctrl}>
-        <QtyCell mealId="m1" entry={e} />
+        <QtyCell mealId="m1" mealIndex={0} entry={e} />
       </MealsProvider>
     </QueryClientProvider>,
   );
@@ -77,11 +77,13 @@ describe('QtyCell consumed display (B-047)', () => {
   });
 
   it('writes the SERVED quantity when the user types and commits', () => {
-    const { getByRole, setQty } = renderQty(entry());
+    const e = entry();
+    const { getByRole, setQty } = renderQty(e);
     const input = getByRole('textbox');
     fireEvent.change(input, { target: { value: '250' } });
     fireEvent.blur(input);
-    expect(setQty).toHaveBeenCalledWith('m1', 'e1', 250, 'g', null);
+    // New signature carries mealIndex + the full entry so scaffold lines can be remapped.
+    expect(setQty).toHaveBeenCalledWith('m1', 0, e, 250, 'g', null);
   });
 
   it('does not overwrite served on a focus/blur without a keystroke', () => {

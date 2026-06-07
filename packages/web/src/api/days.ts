@@ -10,4 +10,6 @@ export const daysApi = {
   patch: (date: string, body: PatchDayRequest) => api.patch<DayDetail>(`/days/${date}`, body),
   // Clear the day (B-046): keeps pins@0 + comment + activity, resets the verdict to Auto.
   clear: (date: string) => api.post<DayDetail>(`/days/${date}/clear`),
+  // Convert a summary (light) day to a detailed day (day-model §9): seeds meals to log lines.
+  convertToDetailed: (date: string) => api.post<DayDetail>(`/days/${date}/detail`),
 };
