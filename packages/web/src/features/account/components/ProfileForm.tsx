@@ -32,37 +32,45 @@ export function ProfileForm({ profile }: { profile: Profile }) {
   };
 
   return (
-    <div className={styles.infoForm}>
-      <label className={styles.field}>
-        <span className={styles.fieldLabel}>{t('account.info.sex')}</span>
+    <>
+      <div className={styles.row}>
+        <span className={styles.lab}>{t('account.info.sex')}</span>
         <select
           className={styles.select}
+          aria-label={t('account.info.sex')}
           value={draft.sex}
           onChange={(e) => setDraft((d) => ({ ...d, sex: e.target.value as Sex }))}
         >
           <option value="male">{t('account.info.male')}</option>
           <option value="female">{t('account.info.female')}</option>
         </select>
-      </label>
-      <label className={styles.field}>
-        <span className={styles.fieldLabel}>{t('account.info.birthdate')}</span>
+      </div>
+      <div className={styles.row}>
+        <span className={styles.lab}>{t('account.info.birthdate')}</span>
         <input
           type="date"
           className={styles.select}
+          aria-label={t('account.info.birthdate')}
           value={draft.birthdate}
           onChange={(e) => setDraft((d) => ({ ...d, birthdate: e.target.value }))}
         />
-      </label>
-      <NumberInput
-        label={t('account.info.height')}
-        suffix="cm"
-        min={0}
-        value={draft.heightCm}
-        onChange={(e) => setDraft((d) => ({ ...d, heightCm: e.target.value }))}
-      />
-      <Button variant="ghost" onClick={save} disabled={mutation.isPending}>
-        {t('account.info.save')}
-      </Button>
-    </div>
+      </div>
+      <div className={styles.row}>
+        <span className={styles.lab}>{t('account.info.height')}</span>
+        <NumberInput
+          suffix="cm"
+          min={0}
+          aria-label={t('account.info.height')}
+          wrapperClassName={styles.infoNum}
+          value={draft.heightCm}
+          onChange={(e) => setDraft((d) => ({ ...d, heightCm: e.target.value }))}
+        />
+      </div>
+      <div className={styles.infoActions}>
+        <Button variant="ghost" onClick={save} disabled={mutation.isPending}>
+          {t('account.info.save')}
+        </Button>
+      </div>
+    </>
   );
 }

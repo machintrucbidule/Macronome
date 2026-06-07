@@ -45,29 +45,11 @@
   color: var(--text-dim);
 }
 /* "Mes informations" frame — metabolic profile editor (sex / birth date / height), moved off
-   Cibles (B-060). A compact field grid + a save button, inside the account card body. */
-.infoForm {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr) auto;
-  gap: var(--sp-5);
-  align-items: end;
-  padding: var(--sp-5) 0;
-}
-@media (max-width: 520px) {
-  .infoForm {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.fieldLabel {
-  font-size: var(--fs-12);
-  color: var(--text-dim);
-}
+   Cibles (B-060). Each field is its own card row (label left, control right), matching the
+   "Identifiants" rows; the update button sits on its own row at the bottom. */
 .select {
+  width: 180px;
+  max-width: 100%;
   height: var(--control-h-md);
   background: var(--bg-field);
   border: var(--bw) solid var(--border-strong);
@@ -76,6 +58,15 @@
   padding: 0 10px;
   font-family: var(--font-body);
   font-size: var(--fs-13);
+}
+.infoNum {
+  width: 180px;
+  max-width: 100%;
+}
+.infoActions {
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--sp-4) 0;
 }
 .modalBody {
   padding: var(--sp-6);
