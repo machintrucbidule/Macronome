@@ -1237,3 +1237,38 @@ stats-settings.md` (POST body + new PATCH); `spec/api/days-meals-leftover.md` (c
 pin's unit); `spec/logic/pantry-pin.md` §3 + §5 oracle; `specifications/screens/settings.md`
 (per-food unit selector + picker outside-click); `packages/shared/src/dto/pantry.ts`. DB migration
 (additive, non-destructive).
+
+---
+
+## WT-1 / B-099 — Weight target trajectory resolves the rate per period — RESOLVED (author, 2026-06-07)
+
+**Problem.** On the Poids screen the "trajectoire cible" curve barely descends despite a history of
+1 kg/week (early) then 0.25 kg/week (recent) targets. `services/weight.ts` read a **single** target
+(`targetRepo.currentAsOf(today)`) and passed one scalar `rate_kg_per_week` to `deriveTrajectory`,
+which applied today's rate (0.25) to the **whole** history — the steeper early periods were lost.
+Targets are versioned by `effective_from`, but the trajectory ignored that history.
+`spec/logic/weight-periods-trajectory.md §4` was **silent** on multi-version targets.
+
+**Decision (bug-fix; spec clarification, no behaviour reversal, no DB/schema/API change).** The
+trajectory resolves `rate_kg_per_week` **per period** from the Target in effect on the period's
+**end date** (the weigh-in that closes it — the same date that fixes the period's `diet_flag`):
+the latest `effective_from ≤ end_date`, falling back to the **earliest** Target before any Target
+exists (retroactive — mirrors the calorie resolution in `day-snapshot-verdict.md §2` and the
+B-090 rule). The slope now changes at each rate boundary. `goal_weight` still comes from the
+**current** Target (a single cap on the whole line) — the cap only binds near the goal, which is the
+weight aimed at today; keeping it current is the minimal, targeted fix for the reported slope bug.
+
+**Rationale.** Resolving by **end date** matches how `derivePeriods` already attributes a period's
+`diet_flag` (taken from its ending weigh-in), so rate and flag are read at the same point. The
+earliest-Target fallback keeps parity with `currentAsOf` (B-090), so pre-target periods are not
+silently drawn flat at 0 when an early Target exists.
+
+**Code (`packages/api` only; web unchanged — it only plots the server series, rule 2).**
+`domain/weight/trajectory.ts`: `TrajectoryPeriod` gains `rateKgPerWeek`; the scalar leaves
+`TrajectoryInput`; new pure `rateAsOf(targets, date)` + `TargetRate` type. `services/weight-view.ts`:
+`WeightViewInput.rateKgPerWeek` → `targetRates: TargetRate[]`; each period's rate is
+`rateAsOf(targetRates, endDate)`. `services/weight.ts`: also fetches `targetRepo.list` (keeps
+`currentAsOf` for the current `goal_weight`).
+
+**Spec impact:** `spec/logic/weight-periods-trajectory.md §4` (per-period rate paragraph + a second
+worked oracle: 1.0 then 0.25 kg/week → 80.0 → 79.0 → 78.5). No DB/schema/API change.

@@ -5,6 +5,8 @@ export { bmi, bmiCategory } from './bmi.js';
 export {
   deriveTrajectory,
   ecart,
+  rateAsOf,
+  type TargetRate,
   type TrajectoryInput,
   type TrajectoryPeriod,
 } from './trajectory.js';

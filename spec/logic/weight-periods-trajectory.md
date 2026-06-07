@@ -54,14 +54,24 @@ weight.** Built forward, period by period, in date order:
 traj[0] = weight[0]                         (anchor = real first weigh-in)
 for each period i ending at weigh-in i (days_i, flag_i):
   if flag_i == in_diet:
-      drop = rate_kg_per_week × days_i / 7
+      rate_i = rate_kg_per_week effective for period i   (see below)
+      drop = rate_i × days_i / 7
       traj[i] = max(traj[i−1] − drop, goal_weight)   (capped at goal)
   else:  # not_in_diet
       traj[i] = traj[i−1]                              (flat)
 ```
 
-- `rate_kg_per_week` and `goal_weight` come from the Target. If no goal weight,
-  the cap is omitted (no floor).
+- **Per-period rate (multi-version targets).** Targets are versioned by
+  `effective_from`. `rate_kg_per_week` is resolved **per period** from the Target in
+  effect on that period's **end date** (the weigh-in that closes it — the same date that
+  fixes its `diet_flag`): the latest `effective_from ≤ end_date`, falling back to the
+  **earliest** Target for periods before any Target exists (retroactive, mirrors the
+  calorie resolution in `day-snapshot-verdict.md §2` and B-090). With no Target at all the
+  rate is 0 (flat). The slope therefore **changes at each rate boundary**, so a history
+  spanning several rates is drawn faithfully rather than at the current rate throughout
+  (B-099).
+- `goal_weight` comes from the **current** Target (a single cap on the whole line); if no
+  goal weight, the cap is omitted (no floor).
 - `écart_à_la_trajectoire = real_weight − traj` at each weigh-in.
 - **Worked example** (oracle):
   `anchor=80.0, rate=1.0 kg/week, goal=72`
@@ -69,6 +79,10 @@ for each period i ending at weigh-in i (days_i, flag_i):
   `P2: not_in_diet, 7 days → flat → traj=79.0`
   `P3: in_diet, 14 days → drop 2.0 → traj=77.0`
   if real at P3 = 78.0 → écart = 78.0 − 77.0 = +1.0 kg (behind plan).
+- **Worked example — per-period rate** (oracle, B-099): targets `1.0 kg/week` then
+  `0.25 kg/week` from a later `effective_from`. `anchor=80.0, goal=none`.
+  `P1: in_diet, 7 days, rate 1.0 → drop 1.0 → traj=79.0`
+  `P2: in_diet, 14 days, rate 0.25 → drop 0.5 → traj=78.5` (slope changes at the boundary).
 
 ## 5. BMI
 

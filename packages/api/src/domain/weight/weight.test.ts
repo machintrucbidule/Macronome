@@ -3,11 +3,12 @@ import { bmi } from './bmi.js';
 import { deriveEma } from './ema.js';
 import { derivePeriods } from './periods.js';
 import { projectGoalDate } from './projection.js';
-import { deriveTrajectory, ecart } from './trajectory.js';
+import { deriveTrajectory, ecart, rateAsOf } from './trajectory.js';
 
 // Neutral oracles from spec/logic/weight-periods-trajectory.md (current weight ~80 kg,
 // no personal data). Display precision is 1 decimal where the spec rounds.
 const round1 = (n: number): number => Number(n.toFixed(1));
+const round2 = (n: number): number => Number(n.toFixed(2));
 
 test('EMA over the weigh-in series, seeded at the first weight (§3)', () => {
   const ema = deriveEma([80.0, 79.0, 78.0]); // α = 0.35
@@ -19,12 +20,11 @@ test('EMA over the weigh-in series, seeded at the first weight (§3)', () => {
 test('broken-line trajectory driven by per-period diet flag (§4)', () => {
   const traj = deriveTrajectory({
     anchor: 80.0,
-    rateKgPerWeek: 1.0,
     goalWeight: 72,
     periods: [
-      { days: 7, dietFlag: 'in_diet' }, // drop 1.0 → 79.0
-      { days: 7, dietFlag: 'not_in_diet' }, // flat → 79.0
-      { days: 14, dietFlag: 'in_diet' }, // drop 2.0 → 77.0
+      { days: 7, dietFlag: 'in_diet', rateKgPerWeek: 1.0 }, // drop 1.0 → 79.0
+      { days: 7, dietFlag: 'not_in_diet', rateKgPerWeek: 1.0 }, // flat → 79.0
+      { days: 14, dietFlag: 'in_diet', rateKgPerWeek: 1.0 }, // drop 2.0 → 77.0
     ],
   });
   expect(traj.map(round1)).toEqual([80.0, 79.0, 79.0, 77.0]);
@@ -35,18 +35,40 @@ test('broken-line trajectory driven by per-period diet flag (§4)', () => {
 test('trajectory cap at the goal weight, no floor when goal absent (§4)', () => {
   const capped = deriveTrajectory({
     anchor: 73,
-    rateKgPerWeek: 1.0,
     goalWeight: 72,
-    periods: [{ days: 14, dietFlag: 'in_diet' }], // drop 2.0 → 71 → capped at 72
+    periods: [{ days: 14, dietFlag: 'in_diet', rateKgPerWeek: 1.0 }], // drop 2.0 → 71 → capped at 72
   });
   expect(round1(capped[1]!)).toBe(72.0);
   const uncapped = deriveTrajectory({
     anchor: 73,
-    rateKgPerWeek: 1.0,
     goalWeight: null,
-    periods: [{ days: 14, dietFlag: 'in_diet' }], // no cap → 71
+    periods: [{ days: 14, dietFlag: 'in_diet', rateKgPerWeek: 1.0 }], // no cap → 71
   });
   expect(round1(uncapped[1]!)).toBe(71.0);
+});
+
+test('per-period rate: the slope changes at the target-rate boundary (§4, B-099)', () => {
+  const traj = deriveTrajectory({
+    anchor: 80.0,
+    goalWeight: null,
+    periods: [
+      { days: 7, dietFlag: 'in_diet', rateKgPerWeek: 1.0 }, // drop 1.0 → 79.0
+      { days: 7, dietFlag: 'in_diet', rateKgPerWeek: 0.25 }, // drop 0.25 → 78.75
+    ],
+  });
+  expect(traj.map(round2)).toEqual([80.0, 79.0, 78.75]);
+});
+
+test('rateAsOf: latest effective_from ≤ date, earliest before the first, 0 when none (B-099)', () => {
+  const targets = [
+    { effectiveFrom: '2025-02-01', rateKgPerWeek: 1.0 },
+    { effectiveFrom: '2025-11-01', rateKgPerWeek: 0.25 },
+  ];
+  expect(rateAsOf(targets, '2025-01-01')).toBe(1.0); // before the first → earliest (retroactive)
+  expect(rateAsOf(targets, '2025-05-01')).toBe(1.0);
+  expect(rateAsOf(targets, '2025-11-01')).toBe(0.25); // on the boundary → new rate
+  expect(rateAsOf(targets, '2026-03-01')).toBe(0.25);
+  expect(rateAsOf([], '2026-01-01')).toBe(0); // no target → flat
 });
 
 test('BMI from weight and height (§5)', () => {

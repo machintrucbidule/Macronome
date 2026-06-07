@@ -19,6 +19,22 @@ function postWeight(agent: Agent, csrf: string, body: Record<string, unknown>) {
   return csrfPost(agent, csrf, '/api/v1/weight', body);
 }
 
+/** Seed a target version carrying a loss rate (kg/week) for the trajectory (B-099). */
+function seedRateTarget(userId: string, effectiveFrom: string, rateKgPerWeek: number) {
+  return prisma.target.create({
+    data: {
+      userId,
+      calorieMin: 1900,
+      calorieMax: 2100,
+      proteinGPerKg: 1.8,
+      fatGPerKg: 0.8,
+      rateKgPerWeek,
+      targetWeightKg: null,
+      effectiveFrom: new Date(`${effectiveFrom}T00:00:00.000Z`),
+    },
+  });
+}
+
 function deleteWeight(agent: Agent, csrf: string, id: string) {
   return agent.delete(`/api/v1/weight/${id}`).set('x-csrf-token', csrf);
 }
@@ -48,6 +64,32 @@ describe('weight', () => {
     expect(res.body.periods[0]).toMatchObject({ days: 7, weight_end: 79, delta: -1 });
     expect(res.body.cartouche.current).toBe(79);
     expect(res.body.current_mode).toBe('in_diet');
+  });
+
+  it('stitches the trajectory at the per-period target rate, not the current one (B-099)', async () => {
+    const { agent, csrf, userId } = await authedAgent(app, 'alice');
+    // Two target versions: 1.0 kg/week, then 0.25 from 2025-11-01.
+    await seedRateTarget(userId, '2025-02-01', 1.0);
+    await seedRateTarget(userId, '2025-11-01', 0.25);
+    // Three weigh-ins → period 1 ends before the boundary (rate 1.0), period 2 ends after it (0.25).
+    await postWeight(agent, csrf, weighIn('2025-10-18', 80));
+    await postWeight(agent, csrf, weighIn('2025-10-25', 79)); // period 1: 7 days
+    await postWeight(agent, csrf, weighIn('2025-11-08', 78)); // period 2: 14 days
+
+    const res = await agent.get('/api/v1/weight?range=all');
+    expect(res.status).toBe(200);
+    const traj = res.body.trajectory as { date: string; value: number }[];
+    expect(traj).toHaveLength(3);
+    const v = traj.map((p) => p.value);
+    // anchor 80 → −1.0 (1.0/wk × 7d) → 79.0 → −0.5 (0.25/wk × 14d) → 78.5.
+    expect(v[0]!).toBeCloseTo(80.0, 5);
+    expect(v[1]!).toBeCloseTo(79.0, 5);
+    expect(v[2]!).toBeCloseTo(78.5, 5);
+    // The slope changes at the boundary (the bug drew the whole line at the current 0.25/wk).
+    const slope1 = (v[1]! - v[0]!) / 7;
+    const slope2 = (v[2]! - v[1]!) / 14;
+    expect(slope1).toBeCloseTo(-1.0 / 7, 5);
+    expect(slope2).toBeCloseTo(-0.25 / 7, 5);
   });
 
   it('excludes a Σ=0 (comment-only) day from a period average intake (day-model)', async () => {

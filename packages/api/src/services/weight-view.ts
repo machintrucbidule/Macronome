@@ -18,7 +18,9 @@ import {
   deriveTrajectory,
   ecart,
   projectGoalDate,
+  rateAsOf,
   type ProjectionPoint,
+  type TargetRate,
   type WeighInInput,
 } from '../domain/weight/index.js';
 import { periodMetabolics, type LoggedDay } from './weight-periods.js';
@@ -43,8 +45,9 @@ const addDays = (date: string, days: number): string =>
 export interface WeightViewInput {
   entries: WeightEntryModel[];
   profile: ProfileRow;
-  /** Target loss rate (kg/week); 0 when no target — trajectory then stays flat. */
-  rateKgPerWeek: number;
+  /** Target versions (effective_from + rate); the trajectory resolves the rate per period
+   * from this history (B-099). Empty → trajectory stays flat. */
+  targetRates: TargetRate[];
   /** Goal weight (caps the trajectory + enables the projection); null when unset. */
   goalWeight: number | null;
   loggedDays: LoggedDay[];
@@ -114,7 +117,7 @@ function rangeCutoff(range: WeightRange, inputs: WeighInInput[]): string | null 
 export function buildWeightView({
   entries,
   profile,
-  rateKgPerWeek,
+  targetRates,
   goalWeight,
   loggedDays,
   range,
@@ -141,8 +144,13 @@ export function buildWeightView({
   const rawPeriods = derivePeriods(inputs);
   const trajValues = deriveTrajectory({
     anchor: inputs[0]?.weightKg ?? 0,
-    periods: rawPeriods.map((p) => ({ days: p.days, dietFlag: p.dietFlag })),
-    rateKgPerWeek,
+    // Resolve the rate per period from the target effective on the period's end date
+    // (the weigh-in that closes it — consistent with how dietFlag is taken). B-099.
+    periods: rawPeriods.map((p) => ({
+      days: p.days,
+      dietFlag: p.dietFlag,
+      rateKgPerWeek: rateAsOf(targetRates, p.endDate),
+    })),
     goalWeight,
   });
   const emaFull: WeightPoint[] = inputs.map((i, idx) => ({ date: i.date, value: emaValues[idx]! }));

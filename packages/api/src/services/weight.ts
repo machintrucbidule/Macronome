@@ -24,10 +24,11 @@ const num = (d: { toString(): string }): number => Number(d.toString());
 
 /** Read + assemble the full Weight view for the user (used by GET and after each write). */
 async function readView(userId: string, range: WeightRange): Promise<GetWeightResponse> {
-  const [entries, profile, target, currentMode] = await Promise.all([
+  const [entries, profile, target, targets, currentMode] = await Promise.all([
     weightRepo.findAll(userId),
     profileRepo.get(userId),
     targetRepo.currentAsOf(userId, new Date()),
+    targetRepo.list(userId),
     settingsService.currentMode(userId),
   ]);
   if (!profile) throw new Error('profile_missing'); // an authed user always has one
@@ -42,7 +43,10 @@ async function readView(userId: string, range: WeightRange): Promise<GetWeightRe
   return buildWeightView({
     entries,
     profile,
-    rateKgPerWeek: target?.rateKgPerWeek != null ? num(target.rateKgPerWeek) : 0,
+    targetRates: targets.map((t) => ({
+      effectiveFrom: t.effectiveFrom.toISOString().slice(0, 10),
+      rateKgPerWeek: t.rateKgPerWeek != null ? num(t.rateKgPerWeek) : 0,
+    })),
     goalWeight: target?.targetWeightKg != null ? num(target.targetWeightKg) : null,
     loggedDays,
     range,
