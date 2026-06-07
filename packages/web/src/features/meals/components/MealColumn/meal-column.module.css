@@ -14,6 +14,19 @@
   border-bottom-left-radius: var(--r-lg);
 }
 
+/* B-055: when the scroller stacks columns vertically (≤760px), each meal must be full-width and
+   grow to its content height. The inline width/flexBasis (set for the horizontal integer-fit layout)
+   would otherwise force a fixed height that clips the content and overlaps the next meal — so they
+   are overridden here (!important beats the inline style). */
+@media (max-width: 760px) {
+  .col {
+    width: 100% !important;
+    flex-basis: auto !important;
+    border-left: 1px solid var(--border);
+    border-radius: var(--r-lg);
+  }
+}
+
 .head {
   display: flex;
   align-items: center;

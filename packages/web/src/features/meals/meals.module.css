@@ -462,12 +462,7 @@
   .hbar {
     display: none !important;
   }
-  /* B-055: each meal full-width; flex-basis must not become a fixed height when the scroller
-     stacks vertically (the inline width/flexBasis would otherwise clip & overlap the next meal). */
-  .col {
-    width: 100% !important;
-    flex-basis: auto !important;
-  }
+  /* (B-055 full-width stacking lives in meal-column.module.css, where the `.col` class is scoped.) */
   /* B-053: only the date line stays pinned on mobile; the totals block scrolls with the page.
      Un-stick the wrapper and make the daybar a full-bleed sticky strip with its own background. */
   .sticky {
