@@ -34,6 +34,11 @@ export async function patch(req: Request, res: Response): Promise<void> {
   res.status(200).json(await daysService.patch(userId(res), pathDate(req), parsed.data));
 }
 
+/** POST /days/:date/detail — convert a summary day to detailed (seed meals; 200 DayDetail). */
+export async function convertToDetailed(req: Request, res: Response): Promise<void> {
+  res.status(200).json(await daysService.convertToDetailed(userId(res), pathDate(req)));
+}
+
 /** POST /days/:date/clear — empty the day, keeping pins@0 + comment + activity (200; 409 summary). */
 export async function clear(req: Request, res: Response): Promise<void> {
   const day = await daysService.clear(userId(res), pathDate(req));

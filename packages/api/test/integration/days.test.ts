@@ -220,6 +220,27 @@ describe('daily log — PATCH upserts the day (day-model)', () => {
   });
 });
 
+describe('daily log — summary→detailed conversion (day-model)', () => {
+  it('POST /days/:date/detail converts a summary day to a seeded detailed day', async () => {
+    const { agent, csrf, userId } = await authedAgent(app, 'alice');
+    await seedTarget(userId, '2026-01-01');
+    await seedWeight(userId, '2026-01-01', 80);
+    // First make a summary (yellow) day by typing a total.
+    const summary = await csrfPatch(agent, csrf, `/api/v1/days/${TODAY}`, { summary_kcal: 2000 });
+    expect(summary.body.kind).toBe('summary');
+
+    const detailed = await csrfPost(agent, csrf, `/api/v1/days/${TODAY}/detail`);
+    expect(detailed.status).toBe(200);
+    expect(detailed.body.kind).toBe('detailed');
+    expect(detailed.body.summary_kcal ?? null).toBeNull();
+    expect(detailed.body.meals.length).toBeGreaterThan(0); // seeded from the template
+
+    // Idempotent on an already-detailed day.
+    const again = await csrfPost(agent, csrf, `/api/v1/days/${TODAY}/detail`);
+    expect(again.body.kind).toBe('detailed');
+  });
+});
+
 describe('daily log — frozen past', () => {
   it('keeps a past day snapshot stable when a later weigh-in is added', async () => {
     const { agent, csrf, userId } = await authedAgent(app, 'alice');

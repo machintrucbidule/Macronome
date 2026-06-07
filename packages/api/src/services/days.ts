@@ -106,6 +106,24 @@ export async function materialize(userId: string, date: string): Promise<DayDeta
   return get(userId, date);
 }
 
+/** POST /days/:date/detail — convert a summary (light) day to a detailed day (day-model §9):
+ *  clear summary_kcal, seed meals from the template + garde-manger. Idempotent on a detailed
+ *  day; materializes a missing day. → DayDetail. */
+export async function convertToDetailed(userId: string, date: string): Promise<DayDetail> {
+  const existing = await dayRepo.findDay(userId, date);
+  if (!existing) return materialize(userId, date);
+  if (existing.kind === 'detailed') return get(userId, date);
+  const snapshot = isPast(date)
+    ? (existing.targetSnapshot as unknown as ResolvedSnapshot)
+    : await resolveSnapshotForDate(userId, date);
+  const seed = await loadDaySeed(userId);
+  await dayRepo.convertToDetailed(userId, date, {
+    verdictAuto: autoVerdict(0, snapshot.cal_min, snapshot.cal_max),
+    meals: seedToMeals(seed),
+  });
+  return get(userId, date);
+}
+
 /** PATCH /days/:date — **upserts** the day (day-model): activity / comment / verdict on a
  *  never-touched date auto-materializes a detailed day; `summary_kcal` creates/updates/converts
  *  a summary (light) day. Always returns the resulting DayDetail (never 404 on a missing row). */

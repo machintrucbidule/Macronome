@@ -27,6 +27,10 @@ See `00-conventions.md`. Scoped to the authenticated user.
 - Summary day: `PATCH` rejects `activity_level` (a detailed-day concept) → 409
   `summary_day_readonly`. Adding meal detail converts a summary day back to `detailed`
   (`logic/day-snapshot-verdict.md §9`).
+- `POST /days/:date/detail` — **convert a summary (light) day to a detailed day** (day-model
+  §9). No body. Clears `summary_kcal`, sets `kind='detailed'`, and seeds meals from the user's
+  template + garde-manger pre-fill (qty 0) so the user can log lines. Idempotent on an already
+  detailed day; materializes a never-touched day. → 200 DayDetail.
 - `POST /days/:date/clear` — **clear the day** (B-046). No body. Atomically: deletes the
   day's leftover groups, deletes all non-pinned entries (custom lines + non-pinned
   referenced lines), and resets the **pinned** referenced lines (garde-manger) to qty 0;

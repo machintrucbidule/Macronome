@@ -32,6 +32,41 @@ export interface UpdateDayData {
   targetSnapshot?: Prisma.InputJsonValue;
 }
 
+type MealSeed = { slotName: string; orderIndex: number; prefill?: PrefillEntry[] };
+
+/** Create a day's meals + their qty-0 garde-manger pre-fill lines inside a transaction.
+ *  Shared by createDay (materialize) and convertToDetailed (summary→detailed, day-model §9).
+ *  Pre-fill lines are qty-0 referenced lines with a 0 snapshot (the user edits the quantity);
+ *  the pin icon is derived live from pantry_item on read, not stored (pantry-pin.md, B-045). */
+async function seedMealsTx(
+  tx: Prisma.TransactionClient,
+  dayLogId: string,
+  meals: MealSeed[],
+): Promise<void> {
+  for (const m of meals) {
+    const meal = await tx.meal.create({
+      data: { dayLogId, slotName: m.slotName, orderIndex: m.orderIndex },
+    });
+    if (m.prefill && m.prefill.length > 0) {
+      await tx.mealEntry.createMany({
+        data: m.prefill.map((p) => ({
+          mealId: meal.id,
+          kind: 'referenced',
+          foodId: p.foodId,
+          servedQuantity: 0,
+          unit: 'g',
+          servedGrams: 0,
+          snapKcal: 0,
+          snapFat: 0,
+          snapCarb: 0,
+          snapProtein: 0,
+          orderIndex: p.orderIndex,
+        })),
+      });
+    }
+  }
+}
+
 export const dayRepo = {
   findDay(userId: string, date: string): Promise<DayLogModel | null> {
     return prisma.dayLog.findFirst({ where: { userId, date: toDate(date) } });
@@ -50,31 +85,7 @@ export const dayRepo = {
           targetSnapshot: data.targetSnapshot,
         },
       });
-      for (const m of data.meals) {
-        const meal = await tx.meal.create({
-          data: { dayLogId: day.id, slotName: m.slotName, orderIndex: m.orderIndex },
-        });
-        if (m.prefill && m.prefill.length > 0) {
-          // Garde-manger pre-fill: qty-0 referenced lines, snapshot 0 (the user edits the
-          // quantity to log). The pin icon is derived live from pantry_item on read, not
-          // stored per line (spec/logic/pantry-pin.md, B-045).
-          await tx.mealEntry.createMany({
-            data: m.prefill.map((p) => ({
-              mealId: meal.id,
-              kind: 'referenced',
-              foodId: p.foodId,
-              servedQuantity: 0,
-              unit: 'g',
-              servedGrams: 0,
-              snapKcal: 0,
-              snapFat: 0,
-              snapCarb: 0,
-              snapProtein: 0,
-              orderIndex: p.orderIndex,
-            })),
-          });
-        }
-      }
+      await seedMealsTx(tx, day.id, data.meals);
       return day;
     });
   },
@@ -114,6 +125,28 @@ export const dayRepo = {
         where: { userId, date: toDate(date) },
         data: { kind: 'summary', summaryKcal: data.summaryKcal, verdictAuto: data.verdictAuto },
       });
+    });
+  },
+
+  /** Convert a summary day to a detailed day in one transaction (day-model §9): clear
+   *  summary_kcal, set kind='detailed' + verdict_auto, and seed meals from the template +
+   *  garde-manger pre-fill. User-scoped; no-op when the day is missing. */
+  async convertToDetailed(
+    userId: string,
+    date: string,
+    data: { verdictAuto: 'OK' | 'NOK' | null; meals: MealSeed[] },
+  ): Promise<void> {
+    await prisma.$transaction(async (tx) => {
+      const day = await tx.dayLog.findFirst({
+        where: { userId, date: toDate(date) },
+        select: { id: true },
+      });
+      if (!day) return;
+      await tx.dayLog.updateMany({
+        where: { userId, date: toDate(date) },
+        data: { kind: 'detailed', summaryKcal: null, verdictAuto: data.verdictAuto },
+      });
+      await seedMealsTx(tx, day.id, data.meals);
     });
   },
 
