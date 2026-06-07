@@ -20,6 +20,10 @@
   max-height: 90vh;
   overflow: auto;
   width: min(560px, 93vw);
+  /* Centre the panel in the scrim (both axes). margin:auto on a flex child centres it and,
+     unlike align-items:center, keeps the top reachable when the panel overflows the viewport
+     (the scrim scrolls). Fixes the panel hugging the top under the sticky nav. */
+  margin: auto;
 }
 /* The panel takes focus on open (focus trap) as a fallback target; no visible ring. */
 .modal:focus {

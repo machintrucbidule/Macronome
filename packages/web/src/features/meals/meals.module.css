@@ -372,7 +372,6 @@
   font-size: var(--fs-12);
   color: var(--text-faint);
   padding: var(--sp-7) var(--page-gutter);
-  max-width: 520px;
   margin: 0;
 }
 
