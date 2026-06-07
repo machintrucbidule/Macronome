@@ -95,6 +95,28 @@ export const dayRepo = {
     return result.count > 0 ? this.findDay(userId, date) : null;
   },
 
+  /** Convert a detailed day to a summary (light) day in one transaction (day-model, §9):
+   *  drop its meals (entries/leftovers cascade) and set kind='summary' + summary_kcal +
+   *  verdict_auto. Caller guarantees the day has no calorie lines (Σ = 0). User-scoped. */
+  async convertToSummary(
+    userId: string,
+    date: string,
+    data: { summaryKcal: number; verdictAuto: 'OK' | 'NOK' | null },
+  ): Promise<void> {
+    await prisma.$transaction(async (tx) => {
+      const day = await tx.dayLog.findFirst({
+        where: { userId, date: toDate(date) },
+        select: { id: true },
+      });
+      if (!day) return;
+      await tx.meal.deleteMany({ where: { dayLogId: day.id } });
+      await tx.dayLog.updateMany({
+        where: { userId, date: toDate(date) },
+        data: { kind: 'summary', summaryKcal: data.summaryKcal, verdictAuto: data.verdictAuto },
+      });
+    });
+  },
+
   /** The meal if it belongs to the user (walks meal → day_log.user_id), else null. */
   async ownedMeal(userId: string, mealId: string): Promise<MealModel | null> {
     const meal = await prisma.meal.findUnique({ where: { id: mealId } });

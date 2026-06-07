@@ -11,11 +11,22 @@ See `00-conventions.md`. Scoped to the authenticated user.
 - `POST /days/:date` — materialize/ensure the day_log on first write
   (creates the row + target_snapshot from that date's effective target & weight,
   `logic/day-snapshot-verdict.md`). Usually implicit via the first entry write.
-- `PATCH /days/:date` — `{activity_level?(one of the 5 keys), comment?, verdict_override?(OK|NOK|null)}`.
-  → 200 DayDetail (recomputes burn/deficit; verdict_auto recomputed). `activity_level`
-  is never null (defaults to `sedentary`); there is no "unset" value (DECISIONS Gap #11).
-- Summary day: `PATCH` accepts only `{summary_kcal?, comment?,
-verdict_override?}`; meal detail is rejected → 409 `summary_day_readonly`.
+- `PATCH /days/:date` — `{activity_level?(one of the 5 keys), comment?, verdict_override?(OK|NOK|null), summary_kcal?}`.
+  **Upserts / auto-materializes the day** (day-model): when no row exists it is created before
+  the mutation, so a comment / activity / verdict edit on a **never-touched past, present or
+  future** date succeeds instead of 404-ing (it creates a `detailed` day). → 200 DayDetail
+  (recomputes burn/deficit; verdict_auto recomputed). `activity_level` is never null (defaults
+  to `sedentary`; DECISIONS Gap #11).
+- **`summary_kcal` semantics** (day-model): the calorie total of a **summary** day; it also
+  **creates or converts** to one. On a non-existent / empty (`red`) date → **creates** a summary
+  (yellow) day; on an existing summary day → **updates** the total; on a `detailed` day with no
+  calorie lines (Σ = 0) → **converts** it to summary (drops its empty meals). On a `detailed`
+  day **with** lines (Σ > 0) the Calories cell is read-only → **409 `calories_not_editable`**.
+  There is **no provenance distinction** — imported and self-made summary days behave identically
+  (the analysis "freeze imported archives" scoping was overridden; `DECISIONS.md` Gap 3).
+- Summary day: `PATCH` rejects `activity_level` (a detailed-day concept) → 409
+  `summary_day_readonly`. Adding meal detail converts a summary day back to `detailed`
+  (`logic/day-snapshot-verdict.md §9`).
 - `POST /days/:date/clear` — **clear the day** (B-046). No body. Atomically: deletes the
   day's leftover groups, deletes all non-pinned entries (custom lines + non-pinned
   referenced lines), and resets the **pinned** referenced lines (garde-manger) to qty 0;

@@ -147,6 +147,79 @@ describe('daily log — tenancy', () => {
   });
 });
 
+describe('daily log — PATCH upserts the day (day-model)', () => {
+  const FUTURE = '2026-12-31';
+
+  it('a comment on a never-touched future day auto-materializes a detailed day (no 404)', async () => {
+    const { agent, csrf, userId } = await authedAgent(app, 'alice');
+    await seedTarget(userId, '2026-01-01'); // 1900–2100
+    await seedWeight(userId, '2026-01-01', 80);
+
+    const patched = await csrfPatch(agent, csrf, `/api/v1/days/${FUTURE}`, {
+      comment: 'plan ahead',
+    });
+    expect(patched.status).toBe(200);
+    expect(patched.body.kind).toBe('detailed');
+    expect(patched.body.comment).toBe('plan ahead');
+    expect(patched.body.verdict_auto).toBe('NOK'); // Σ = 0 → SOUS
+
+    // Persisted: a fresh GET returns the materialized day with the comment.
+    const reread = await agent.get(`/api/v1/days/${FUTURE}`);
+    expect(reread.body.comment).toBe('plan ahead');
+  });
+
+  it('summary_kcal on an empty date creates a yellow (summary) day', async () => {
+    const { agent, csrf, userId } = await authedAgent(app, 'alice');
+    await seedTarget(userId, '2026-01-01');
+    await seedWeight(userId, '2026-01-01', 80);
+
+    const created = await csrfPatch(agent, csrf, `/api/v1/days/${TODAY}`, { summary_kcal: 1950 });
+    expect(created.status).toBe(200);
+    expect(created.body.kind).toBe('summary');
+    expect(created.body.summary_kcal).toBe(1950);
+    expect(created.body.totals.kcal).toBe(1950);
+    expect(created.body.verdict_auto).toBe('OK'); // 1900 ≤ 1950 ≤ 2100
+
+    // Updating the total on the existing summary day recomputes the verdict.
+    const updated = await csrfPatch(agent, csrf, `/api/v1/days/${TODAY}`, { summary_kcal: 2500 });
+    expect(updated.body.kind).toBe('summary');
+    expect(updated.body.summary_kcal).toBe(2500);
+    expect(updated.body.verdict_auto).toBe('NOK'); // 2500 > 2100 → DÉPASSÉ
+  });
+
+  it('converts a detailed day with no calorie lines (Σ=0) to summary', async () => {
+    const { agent, csrf, userId } = await authedAgent(app, 'alice');
+    await seedTarget(userId, '2026-01-01');
+    await seedWeight(userId, '2026-01-01', 80);
+    await csrfPost(agent, csrf, `/api/v1/days/${TODAY}`); // materialize a detailed day, no entries
+
+    const converted = await csrfPatch(agent, csrf, `/api/v1/days/${TODAY}`, { summary_kcal: 2000 });
+    expect(converted.status).toBe(200);
+    expect(converted.body.kind).toBe('summary');
+    expect(converted.body.summary_kcal).toBe(2000);
+    expect(converted.body.meals).toHaveLength(0); // empty meals dropped
+  });
+
+  it('rejects summary_kcal on a detailed day that has calorie lines (409)', async () => {
+    const { agent, csrf, userId } = await authedAgent(app, 'alice');
+    await seedTarget(userId, '2026-01-01');
+    await seedWeight(userId, '2026-01-01', 80);
+    const food = await seedFood(userId, 'Riz'); // 200 kcal / 100 g
+    const day = await csrfPost(agent, csrf, `/api/v1/days/${TODAY}`);
+    const mealId = day.body.meals[0].id as string;
+    await csrfPost(agent, csrf, `/api/v1/meals/${mealId}/entries`, {
+      kind: 'referenced',
+      food_id: food.id,
+      served_quantity: 100,
+      unit: 'g',
+    });
+
+    const blocked = await csrfPatch(agent, csrf, `/api/v1/days/${TODAY}`, { summary_kcal: 2000 });
+    expect(blocked.status).toBe(409);
+    expect(blocked.body.error.code).toBe('calories_not_editable');
+  });
+});
+
 describe('daily log — frozen past', () => {
   it('keeps a past day snapshot stable when a later weigh-in is added', async () => {
     const { agent, csrf, userId } = await authedAgent(app, 'alice');

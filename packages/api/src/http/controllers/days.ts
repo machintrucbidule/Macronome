@@ -26,13 +26,12 @@ export async function materialize(req: Request, res: Response): Promise<void> {
   res.status(201).json(await daysService.materialize(userId(res), pathDate(req)));
 }
 
-/** PATCH /days/:date — activity / comment / override (200; 409 on a summary day). */
+/** PATCH /days/:date — upsert: activity / comment / verdict / summary_kcal (200; the day is
+ *  auto-materialized when missing, so there is no 404; 409 on a read-only summary/Calories case). */
 export async function patch(req: Request, res: Response): Promise<void> {
   const parsed = PatchDaySchema.safeParse(req.body);
   if (!parsed.success) throw new ApiError(422, ErrorCode.ValidationError, zodDetails(parsed.error));
-  const day = await daysService.patch(userId(res), pathDate(req), parsed.data);
-  if (!day) throw new ApiError(404, ErrorCode.NotFound);
-  res.status(200).json(day);
+  res.status(200).json(await daysService.patch(userId(res), pathDate(req), parsed.data));
 }
 
 /** POST /days/:date/clear — empty the day, keeping pins@0 + comment + activity (200; 409 summary). */

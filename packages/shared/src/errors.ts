@@ -20,6 +20,7 @@ export enum ErrorCode {
   GrossBelowTare = 'gross_below_tare',
   LeftoverExceedsServed = 'leftover_exceeds_served',
   SummaryDayReadonly = 'summary_day_readonly',
+  CaloriesNotEditable = 'calories_not_editable',
   WeighInDateOccupied = 'weigh_in_date_occupied',
   WouldCreateCycle = 'would_create_cycle',
   PantryDuplicate = 'pantry_duplicate',
