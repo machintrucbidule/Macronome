@@ -788,3 +788,33 @@ hooks), `account.module.css`; targets `CiblesPage.tsx`, `components/EnginePanel.
 removed), `components/TargetFields.tsx` + `GoalFields.tsx` (new `DerivedField.tsx` replacing
 `DerivedRow.tsx`), `cibles.module.css`, `useTargets.ts` (profile hooks removed); i18n FR+EN. No
 DB/schema change, no API-contract change, no design-token change.
+
+## IMP-8 — Journal enhancements (B-066/B-067) — RESOLVED (author)
+
+Post-v1 backlog triage (batch IMP-8, improvement). Two Journal (`/history`) gaps. Decided with the
+author. No DB/schema change.
+
+- **B-066 — sortable columns.** The Journal table gains a sort control on **Jour · Calories ·
+  Verdict · Activité** (click toggles ascending/descending; default **Jour descending**). **Macros**
+  and **Commentaire** stay non-sortable. **Implementation decision (author/internal):** sorting is
+  **client-side** over the already-loaded year — the whole selected year (≤366 rows) is fetched in
+  one request, so an in-browser sort is instant and needs **no API sort params** (this is why the
+  backlog's _suggested_ "API sort parameters" delta was not taken; the API contract only documents
+  that sorting is client-side). Verdict nulls sort last in both directions; activity sorts along the
+  canonical sedentary→active scale.
+
+- **B-067 — year selector bounded to data.** Previously `▶` was capped at the current year while `◀`
+  walked back indefinitely into empty years. Now the stepper is bounded to the years that contain
+  data: `◀` stops at the earliest logged year, `▶` at the latest. **Forward-bound decision (author):**
+  `▶` reaches the most recent year with data **including a future year when days are planned there**
+  (consistent with IMP-4 future-day planning). The **current year is always reachable** even with no
+  data. The `GET /journal` response gains global **`min_year`/`max_year`** (across all years,
+  independent of the requested year; both `null` when no day is logged) to drive the bounds.
+
+**Spec impact:** `spec/api/days-meals-leftover.md` §Journal (response gains `min_year`/`max_year`;
+sorting noted as client-side); `specifications/screens/history.md` (sortable columns + bounded year
+selector). **Code:** shared `dto/day.ts` (`JournalResponse.min_year/max_year`); api
+`day-read.repo.ts` (`yearRange`), `services/journal.ts`; web `features/journal/sort.ts` (new),
+`JournalPage.tsx`, `components/JournalTable.tsx`, `components/JournalHeader.tsx`. Tests:
+`packages/api/test/integration/journal.test.ts` (new), `packages/web/src/features/journal/sort.test.ts`
+(new). No DB/schema change, no design-token change.

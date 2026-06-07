@@ -249,6 +249,10 @@ export interface JournalRow {
 export interface JournalResponse {
   data: JournalRow[];
   day_count: number;
+  /** Global span of the user's logged days (across all years, independent of the
+   *  requested year) — bounds the year selector (B-067). null when no day is logged. */
+  min_year: number | null;
+  max_year: number | null;
 }
 
 export { dateString as DayDateSchema };

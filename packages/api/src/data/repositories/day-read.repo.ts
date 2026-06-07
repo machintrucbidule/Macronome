@@ -97,6 +97,20 @@ export const dayReadRepo = {
     return (await aggregateFor([dayLog]))[0] ?? null;
   },
 
+  /** Earliest/latest logged-day year for the user (across all years) — bounds the
+   *  journal year selector (B-067). Both null when the user has no logged day. */
+  async yearRange(userId: string): Promise<{ minYear: number | null; maxYear: number | null }> {
+    const r = await prisma.dayLog.aggregate({
+      where: { userId },
+      _min: { date: true },
+      _max: { date: true },
+    });
+    return {
+      minYear: r._min.date ? r._min.date.getUTCFullYear() : null,
+      maxYear: r._max.date ? r._max.date.getUTCFullYear() : null,
+    };
+  },
+
   /** All logged days of a calendar year, newest first, with their aggregates (journal). */
   async readYear(userId: string, year: number): Promise<DayAggregate[]> {
     const dayLogs = await prisma.dayLog.findMany({

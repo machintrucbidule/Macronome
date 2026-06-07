@@ -36,9 +36,13 @@ function toRow(aggregate: DayAggregate): JournalRow {
   };
 }
 
-/** GET /journal?year=YYYY — one row per logged day, newest first. */
+/** GET /journal?year=YYYY — one row per logged day, newest first. The global
+ *  min/max year (across all years) bounds the year selector (B-067). */
 export async function listByYear(userId: string, year: number): Promise<JournalResponse> {
-  const aggregates = await dayReadRepo.readYear(userId, year);
+  const [aggregates, range] = await Promise.all([
+    dayReadRepo.readYear(userId, year),
+    dayReadRepo.yearRange(userId),
+  ]);
   const data = aggregates.map(toRow);
-  return { data, day_count: data.length };
+  return { data, day_count: data.length, min_year: range.minYear, max_year: range.maxYear };
 }

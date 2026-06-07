@@ -111,7 +111,11 @@ leftover_net_grams,entry_ids:[...]}`.
 
 - `GET /journal?year=YYYY` — one row per day, newest first.
   → 200 `{data:[{date,kcal,macros:{L,G,P}|null,verdict_auto,verdict_override,
-effective_verdict,activity_level,comment,kind}], day_count}`.
-  Macros are null for summary days. Row click resolves to `GET /days/:date`.
+effective_verdict,activity_level,comment,kind}], day_count, min_year, max_year}`.
+  Macros are null for summary days. `min_year`/`max_year` are the global span of the
+  user's logged days (across all years, independent of `year`; both `null` when no day
+  is logged) — they bound the year selector (B-067). Row click resolves to
+  `GET /days/:date`. Column sorting (date/calories/verdict/activity) is client-side over
+  the returned year; there are no sort query params.
 - Inline edits reuse `PATCH /days/:date` (verdict_override, activity_level,
   comment).
