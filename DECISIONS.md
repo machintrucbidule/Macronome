@@ -1410,3 +1410,37 @@ axes/gridlines/legend), `specifications/screens/stats.md §B–C`. **Code:** sha
 `components/Chart/ChartLegend.tsx` (generalized to a `series` prop) + `WeightChart.tsx` (passes its
 series), `features/stats/components/MonthCalorieBars.tsx` + `MonthlyBars.tsx` (polyline, axes/gridlines,
 styled tooltip, legend) + i18n `stats.legend.*`. No DB/schema change.
+
+---
+
+## DU-1 / B-109 — Repas: default unit on add follows the item's portion — RESOLVED (author, 2026-06-07)
+
+Post-v1 backlog triage (batch DU-1). Adding a food to a meal via the inline picker always created the
+line with `unit:'g'` hard-coded (`mealActions.ts` `pickFood`), so a food normally logged in a portion
+(or a garde-manger prefill unit) — and a **recipe**, whose natural unit is one part — still landed in
+grams, forcing a manual unit change every time. No contract specified the default unit on add (spec
+silent) → this is a contract delta (improvement), not a code bug.
+
+**Decision (improvement, web-only).** The default unit when **adding** a new line follows a precedence
+(quantity still starts at 0): **(1)** the garde-manger **pin's prefill unit** if the item is pinned in
+that meal's slot — _prefill wins_ (a pin with `unit='portion'` but null `portion_id`, i.e. a deleted
+portion, falls back to `g`, mirroring the server prefill); **(2)** else the item's **first named
+portion alphabetically** (the picker list is already `label asc`); **(3)** else `g`. **Recipes** need no
+special branch: a recipe-derived food carries exactly one auto portion `"portion"` (= batch/servings,
+`recipes-derived-food.md §5`), so tier 2 defaults a recipe to **one part**. Re-picking the food of an
+_existing_ line is unchanged (keeps that line's unit) — B-109 is about adding.
+
+**Rationale:** the default unit is an **input default**, not a nutrition computation, so resolving it on
+the web does not violate rule 2 (the API still receives an explicit `unit`/`portion_id` and snapshots on
+save; history untouched). The picker already holds each loggable item's `named_portions` in memory
+(`/search/loggable`), and the pantry list is the shared `['pantry']` query (reused via `usePantry`), so
+no new fetch, endpoint, schema or DTO is needed. Chosen over a server-side default (would add an endpoint
+behaviour and diverge from the existing "client resolves unit, server persists" model).
+
+**Spec impact:** `spec/logic/pantry-pin.md §3` (new "Default unit when adding a food/recipe" precedence
+
+- §5 oracle), `specifications/screens/meals.md` (Quantity-field default-unit note). No `spec/schema` /
+  `spec/api` change. **Code (web only):** `features/meals/hooks/mealActions.ts` (pure exported
+  `resolveEntryDefaultUnit` + `pickFood` resolves pin/portion, takes the picked item's portions) +
+  `mealActions.test.ts`; `useMealsController.ts` (threads `usePantry` pins into the actions);
+  `components/InlineFoodSearch.tsx` (passes the loggable item's `named_portions`). No DB/schema/API change.

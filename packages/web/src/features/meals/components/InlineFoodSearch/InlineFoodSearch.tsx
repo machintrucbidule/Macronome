@@ -74,6 +74,9 @@ export function InlineFoodSearch({
           void actions.pickFood(
             { mealId, mealIndex, entryId, orderIndex: orderIndex ?? null },
             item.id,
+            // Default-unit-on-add (B-109): the loggable item (food or recipe) already carries its
+            // named portions in memory; pass them so the new line defaults to a portion, not g.
+            search.data?.data.find((f) => f.id === item.id)?.named_portions,
           )
         }
         onCustom={() => actions.openCustom(mealId, mealIndex, entryId, orderIndex)}

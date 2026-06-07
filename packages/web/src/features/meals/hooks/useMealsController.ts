@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { DayDetail } from '@macronome/shared';
+import { usePantry } from '../../settings/usePantry';
 import { useDay } from './useDay';
 import { createMealActions, type CustomTarget, type EditTarget } from './mealActions';
 
@@ -10,6 +11,8 @@ export type { CustomTarget, CustomValues, EditTarget } from './mealActions';
 
 export function useMealsController(date: string) {
   const day = useDay(date);
+  // Pantry pins (shared ['pantry'] query) drive the default-unit-on-add precedence (B-109).
+  const pantry = usePantry();
   const [editing, setEditing] = useState<EditTarget | null>(null);
   const [customTarget, setCustomTarget] = useState<CustomTarget | null>(null);
   const [leftoverMealId, setLeftoverMealId] = useState<string | null>(null);
@@ -19,6 +22,7 @@ export function useMealsController(date: string) {
 
   const actions = createMealActions({
     day,
+    pantry: pantry.data?.data ?? [],
     date,
     setEditing,
     setCustomTarget,

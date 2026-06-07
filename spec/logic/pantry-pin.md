@@ -53,6 +53,21 @@ Repas — **the line drives the pin**, GM-2/B-093) re-syncs `pantry_item.unit/po
 the **unit cascade**: every qty-0 referenced line for `(S, F)` on `date >= today` is updated to the
 new unit (grams stay 0); past days and qty>0 lines are untouched.
 
+### Default unit when adding a food/recipe (B-109)
+
+When a **new** line is added to slot `S` via the Repas picker (not a prefilled pin line, and not a
+re-pick of an existing line), its starting `unit`/`portion_id` follow this precedence:
+
+1. **Pin prefill** — if `(S, F)` is pinned, use the pin's stored `unit`/`portion_id` (a pin with
+   `unit='portion'` but null `portion_id`, i.e. a deleted portion, falls back to `g`). Prefill wins.
+2. **First named portion** — else, if `F` declares portions, the **first alphabetically** (the
+   picker list is `label asc`). A **recipe** carries exactly one auto portion `"portion"` (§5,
+   `recipes-derived-food.md`), so a recipe defaults to **one part**, not grams.
+3. **Grams** — else `g`.
+
+Quantity starts at 0 (the user then types it). This is an input default only — no macro/total/verdict
+is computed here (the line is still server-validated and snapshotted on save).
+
 ## 4. Unpin cascade
 
 Unpinning `(slot S, food F)` (via Paramètres `DELETE /pantry/:id` or Repas unpin):
@@ -81,3 +96,8 @@ Setup: food `F` pinned to slot `Petit déjeuner`.
   After `PATCH /pantry/:id {unit:'kg'}`: today's + future qty-0 `F` lines become `unit='kg'`
   (grams still 0); a `D-1` line and any qty>0 `F` line keep their unit. If `P` is later deleted,
   the pin's `portion_id` → null and prefill falls back to `unit='g'`.
+- **Default unit on add (B-109):** in slot `Petit déjeuner`, adding food `G` with portions
+  `['assiette', 'bol']` (label-asc) and **not** pinned → new line `unit='portion'`,
+  `portion_id=(assiette)`. Adding plain food `H` with no portions → `unit='g'`. Adding **recipe**
+  `R` (single auto portion `"portion"`) → `unit='portion'` (one part). If `G` is pinned in that
+  slot with `unit='kg'`, adding `G` instead defaults to `unit='kg'` (pin prefill wins).

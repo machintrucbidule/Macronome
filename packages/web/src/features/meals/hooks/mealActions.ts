@@ -3,6 +3,8 @@ import type {
   EntryUnit,
   MacroSnap,
   MealEntry,
+  NamedPortion,
+  PantryItem,
   UpdateMealEntryRequest,
   Verdict,
 } from '@macronome/shared';
@@ -41,6 +43,8 @@ export interface CustomValues {
 
 export interface MealActionDeps {
   day: UseDay;
+  /** Garde-manger pins, for the default-unit-on-add precedence (B-109). */
+  pantry: PantryItem[];
   /** The current day's date (YYYY-MM-DD) — used to derive yesterday for copy (B-082). */
   date: string;
   setEditing: (t: EditTarget | null) => void;
@@ -61,6 +65,23 @@ type Run = (p: Promise<unknown>) => Promise<void>;
 
 const served = (g: number | null) =>
   g && g > 0 ? { served_quantity: g, unit: 'g' as EntryUnit } : {};
+
+/** Default unit when ADDING an item to a meal (B-109): the garde-manger pin's prefill unit
+ *  wins (deleted portion → g); else the first named portion (the picker list is `label asc`,
+ *  and a recipe carries a single "portion" → its part); else grams. Pure. */
+export function resolveEntryDefaultUnit(opts: {
+  pin: PantryItem | undefined;
+  portions: NamedPortion[];
+}): { unit: EntryUnit; portion_id: string | null } {
+  const { pin, portions } = opts;
+  if (pin) {
+    if (pin.unit === 'portion' && !pin.portion_id) return { unit: 'g', portion_id: null };
+    return { unit: pin.unit, portion_id: pin.portion_id };
+  }
+  const first = portions[0];
+  if (first) return { unit: 'portion', portion_id: first.id };
+  return { unit: 'g', portion_id: null };
+}
 
 /** Resolve a real meal id, materializing the day first when the slot is still a scaffold. */
 type ResolveMealId = (mealId: string, mealIndex: number) => Promise<string>;
@@ -115,7 +136,7 @@ function lineActions(
       })(),
     );
   return {
-    async pickFood(t: EditTarget, foodId: string): Promise<void> {
+    async pickFood(t: EditTarget, foodId: string, portions: NamedPortion[] = []): Promise<void> {
       d.setEditing(null);
       await run(
         (async () => {
@@ -127,6 +148,12 @@ function lineActions(
             });
             d.setPendingFocus(t.entryId);
           } else {
+            // Default unit on add (B-109): pin prefill → first portion → g.
+            const slot = d.day.query.data?.meals.find((m) => m.order_index === t.mealIndex);
+            const pin = d.pantry.find(
+              (p) => p.meal_slot_name === slot?.slot_name && p.food_id === foodId,
+            );
+            const def = resolveEntryDefaultUnit({ pin, portions });
             const mealId = await resolveMealId(t.mealId, t.mealIndex);
             const entry = await d.day.createEntry.mutateAsync({
               mealId,
@@ -134,7 +161,8 @@ function lineActions(
                 kind: 'referenced',
                 food_id: foodId,
                 served_quantity: 0,
-                unit: 'g',
+                unit: def.unit,
+                ...(def.portion_id ? { portion_id: def.portion_id } : {}),
                 ...(t.orderIndex == null ? {} : { order_index: t.orderIndex }),
               },
             });
