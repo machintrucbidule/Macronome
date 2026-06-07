@@ -126,6 +126,23 @@
     "confirm": {
       "title": "Archive this food?",
       "body": "\"<b>{{name}}</b>\" will disappear from search and this list, but stays in your past meal history and pantry. You can restore it."
+    },
+    "parse": {
+      "open": "Parse label",
+      "title": "Parse a label",
+      "sub": "Paste the nutrition table copied from a grocery site. The per-100 g values (kcal, fat, carbs, protein) will be deduced and filled in.",
+      "placeholder": "Paste the nutrition table here…",
+      "action": "Parse",
+      "error": {
+        "reconstituted_label": "\"As prepared\" (reconstituted) label: the as-sold dry value can't be deduced. Enter the macros by hand.",
+        "no_reference": "Per-serving reference with no gram weight: can't normalise to 100 g.",
+        "unparseable": "Couldn't recognise any nutrition values in this text."
+      },
+      "warning": {
+        "kcal_from_kj": "kcal derived from kJ (÷ 4.184)",
+        "scaled_from_ref": "values scaled to 100 g",
+        "macro_missing": "some values weren't found (field left unchanged)"
+      }
     }
   },
   "recipes": {

@@ -3,6 +3,7 @@ import {
   CreateFoodSchema,
   ErrorCode,
   FoodListQuerySchema,
+  FoodParseLabelRequestSchema,
   UpdateFoodSchema,
 } from '@macronome/shared';
 import * as foodsService from '../../services/foods.js';
@@ -45,6 +46,19 @@ export async function update(req: Request, res: Response): Promise<void> {
   res
     .status(200)
     .json({ data: result.food, ...(result.warnings.length ? { warnings: result.warnings } : {}) });
+}
+
+// Stateless macro-label parser (PM-1/B-114): pure text→numbers, no user scope, no async
+// work — Express forwards a synchronous throw to the error middleware. A structured parse
+// failure maps to 422 with the domain code (writes nothing).
+export function parseLabel(req: Request, res: Response): void {
+  const parsed = FoodParseLabelRequestSchema.safeParse(req.body);
+  if (!parsed.success) throw new ApiError(422, ErrorCode.ValidationError, zodDetails(parsed.error));
+  const out = foodsService.parseLabel(parsed.data.label_text);
+  if (!out.ok) throw new ApiError(422, out.code);
+  res
+    .status(200)
+    .json({ data: out.data, ...(out.warnings.length ? { warnings: out.warnings } : {}) });
 }
 
 export async function archive(req: Request, res: Response): Promise<void> {

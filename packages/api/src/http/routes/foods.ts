@@ -11,6 +11,7 @@ const router = Router();
 router.use(requireAuth);
 router.get('/', asyncHandler(foods.list));
 router.post('/', asyncHandler(foods.create));
+router.post('/parse-label', foods.parseLabel); // sync handler — Express catches throws
 router.get('/:id', asyncHandler(foods.get));
 router.patch('/:id', asyncHandler(foods.update));
 router.post('/:id/archive', asyncHandler(foods.archive));

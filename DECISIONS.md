@@ -1511,3 +1511,52 @@ semantic tokens). **Code:** shared `dto/about.ts` (`AboutInfo`); api `data/about
 `app.ts`; web `api/about.ts`, `features/about/{useAbout.ts,AboutPage.tsx,about.module.css,format.ts}`,
 route in `router.tsx`, menu entry + two separators in `AccountMenu.tsx`, i18n `menu.about` + `about.*`
 (fr/en). Tests: `about.test.ts` (integration: authed 200 shape + 401), `format.test.ts` (bytes/duration).
+
+---
+
+## PM-1 / B-114 — Food macro-label parser ("Parser macro") — RESOLVED (author, 2026-06-08)
+
+**Problem.** Creating/editing a food means typing the 4 per-100 g macros (kcal/L/G/P) by hand off a
+grocery-site nutrition table — tedious and error-prone. The author wanted to paste the copied label and
+have Macronome deduce the values. No contract specified parsing → contract delta (improvement, functional).
+
+**Decision (improvement; api domain + endpoint + web dialog; no DB/schema change).** A **"Parser macro"**
+button under the macro grid on the Aliments add/edit modal opens a paste sub-dialog (textarea). Parsing
+is **backend** logic (CLAUDE.md rule 2 — text→numbers is a computation, the web never derives a nutrition
+figure): a new **stateless** `POST /foods/parse-label` `{label_text}` → `{data:{kcal_per_100g?,
+fat_per_100g?, carb_per_100g?, protein_per_100g?}, warnings?}` or **422** `{error:{code}}`.
+
+**Behaviour decisions (author):**
+
+- **Apply + close direct.** A successful parse fills the found fields and closes the sub-dialog; an
+  error keeps it open and writes nothing.
+- **Show warnings.** When a value was guessed (kJ→kcal fallback, `kcal_from_kj`), scaled from an
+  explicit reference weight (`scaled_from_ref`), or some macros were not found (`macro_missing`), a
+  discreet non-blocking note appears on the modal after applying.
+- **Fill found, leave missing.** Only macros found are written; a missing line leaves its field
+  untouched (no zero, no error). Found values overwrite the field.
+- **Reference weight.** Per-100 g/ml as-is; an explicit other weight ("pour 30 g") scales ×100/ref; a
+  reconstituted / "après préparation" label is a **hard error** (`reconstituted_label`, dry value
+  unknowable); a serving-only reference with no gram weight → `no_reference`; nothing usable →
+  `unparseable`.
+- **Foods screen only** (not recipes).
+
+**Label recognition (the heart of it, from a survey of real FR/EN tables + the author's 13 pastes).**
+Case- and accent-insensitive, singular/plural, FR or EN; comma **or** dot decimals, thousands spaces
+(incl. NBSP). Fat ← _Matières grasses / Matière grasse / **Lipides** / Graisses / Fat / Fats_; carb ←
+_Glucides / Carbohydrate(s) / Carbs_; protein ← _Protéines / Protéine / Protein(s)_; energy ← _Énergie /
+Valeur énergétique / Energy / Calories_ (take kcal; else kJ ÷ 4.184). The **"dont…/of which…"** sub-lines
+(saturés, sucres, polyols…) and Sel/Sodium/Fibres/minerals/% columns are **skipped**; the main-macro line's
+**first** number is the value. Full rules + the 13 + 7 derived oracles live in the new logic spec.
+
+**Spec impact:** new `spec/logic/macro-label-parser.md` (rules + oracles EX-01…EX-13 + D-1…D-7) +
+`spec/api/foods-recipes.md §Foods` (the endpoint + `ParseLabel` payload) + `spec/api/00-conventions.md`
+(the 3 error codes) + `specifications/screens/food-db.md` (button + dialog) + `design/components/modals.md`
+(parse sub-dialog + `.parsenote`) + `forms-inputs.md` (paste textarea). **Code:** shared
+`constants/energy.ts` (`KCAL_PER_KJ`), `dto/food.ts` (`FoodParseLabelRequest/ParseLabel/Response`),
+`errors.ts` (3 codes); api new `domain/macro-label-parser/{labels,numbers,parse,index}.ts` + co-located
+`parse.test.ts` (the oracles), `services/foods.ts` (`parseLabel`), `http/controllers/foods.ts` +
+`routes/foods.ts` (the route), integration `foods.test.ts`; web `api/foods.ts` (`parseLabel`),
+`features/foods/useFoods.ts` (`useParseLabel`), new `modals/ParseLabelDialog.tsx`, wired into
+`modals/FoodModal.tsx` + `FoodModalFields.tsx`, i18n `foods.parse.*` (fr/en). **No DB/schema change**
+(additive API + new domain module only).

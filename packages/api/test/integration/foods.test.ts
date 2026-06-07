@@ -140,3 +140,35 @@ describe('foods', () => {
     expect(res.body.error.details).toHaveProperty('kcal_per_100g');
   });
 });
+
+describe('foods — parse-label (PM-1/B-114)', () => {
+  function parse(agent: Agent, csrf: string, label_text: string) {
+    return agent.post('/api/v1/foods/parse-label').set('x-csrf-token', csrf).send({ label_text });
+  }
+
+  it('parses a pasted nutrition table into per-100 g macros (no persistence)', async () => {
+    const { agent, csrf, userId } = await authedAgent('alice');
+    const res = await parse(
+      agent,
+      csrf,
+      'pour 100 g/100 ml\n1 510 kj/362 kcal 18 %/18 %\nMatières grasses 15 g\nGlucides 32 g\nProtéines 34 g',
+    );
+    expect(res.status).toBe(200);
+    expect(res.body.data).toEqual({
+      kcal_per_100g: 362,
+      fat_per_100g: 15,
+      carb_per_100g: 32,
+      protein_per_100g: 34,
+    });
+    expect(res.body.warnings).toBeUndefined();
+    // Stateless: nothing written.
+    expect(await prisma.food.count({ where: { ownerId: userId } })).toBe(0);
+  });
+
+  it('rejects a reconstituted "après préparation" label with 422', async () => {
+    const { agent, csrf } = await authedAgent('alice');
+    const res = await parse(agent, csrf, 'pour 100 ml etat après préparation\n154 kj/37 kcal');
+    expect(res.status).toBe(422);
+    expect(res.body.error.code).toBe('reconstituted_label');
+  });
+});

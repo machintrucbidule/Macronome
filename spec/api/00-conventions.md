@@ -47,6 +47,9 @@ Domain blocks (e.g. leftover incoherent) → **409** with a `code` the client ma
 to a warning (e.g. `leftover_exceeds_served`, `gross_below_tare`, `copy_source_empty`,
 `weigh_in_date_occupied`, `target_date_occupied` — both carry `{existing_id}`).
 Targets carb ceiling ≤ 0 is **not** an error — it returns 200 with a `warnings` array.
+The macro-label parser (`POST /foods/parse-label`, PM-1/B-114) returns **422**
+`{error:{code}}` for structurally-impossible input: `reconstituted_label`,
+`no_reference`, `unparseable` (see `foods-recipes.md` + `logic/macro-label-parser.md`).
 
 ## Status codes
 

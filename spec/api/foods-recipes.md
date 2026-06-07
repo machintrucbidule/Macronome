@@ -20,6 +20,19 @@ visibility?(default 'private'), named_portions:[{label,grams}]}`.
   meal_entry snapshots untouched). → 200 Food.
 - `POST /foods/:id/archive` → 200 (sets archived_at; removed from search/list).
 - `POST /foods/:id/restore` → 200.
+- `POST /foods/parse-label` — **stateless** macro-label parser (PM-1/B-114). Body
+  `{label_text}` (1..10000 chars) = nutrition text pasted from a grocery site. Deduces
+  the per-100 g figures per `logic/macro-label-parser.md`; persists nothing. Found macros
+  only (any of the four may be absent → the client leaves that field untouched). →
+  200 `{data: ParseLabel, warnings?:['kcal_from_kj'|'scaled_from_ref'|'macro_missing']}`.
+  Structurally-impossible input → **422** `{error:{code}}` with `code` ∈
+  `{reconstituted_label, no_reference, unparseable}` (writes nothing).
+
+**ParseLabel** payload (per 100 g; each field optional — only the macros found):
+
+```json
+{ "kcal_per_100g": 362, "fat_per_100g": 15, "carb_per_100g": 32, "protein_per_100g": 34 }
+```
 
 **Food** payload:
 

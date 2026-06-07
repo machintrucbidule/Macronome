@@ -54,12 +54,27 @@ States: add (empty) · edit ("Modifier la saisie manuelle") · save.
 
 ## Food add/edit modal (Aliments)
 
-md-size. Name (+ duplicate warning), 4 macro inputs /100g (`grid4`), named-
-portions editor (`.portions`: header + `.prow` label/grams/remove rows, or
+md-size. Name (+ duplicate warning), 4 macro inputs /100g (`grid4`), a ghost
+**"Parser macro"** button under the grid (opens the parse sub-dialog below, PM-1/B-114),
+named-portions editor (`.portions`: header + `.prow` label/grams/remove rows, or
 `.empty`), rating picker, visibility toggle, comment textarea, an `.editnote`
-(edit affects future days only), `.dupwarn` (accent inline warning). Footer:
-left Archiver (danger), right Annuler/Enregistrer.
-States: add · edit · duplicate-name warning · archive→confirm.
+(edit affects future days only), `.dupwarn` (accent inline warning). After a successful
+parse, a discreet non-blocking note `.parsenote` (`--font-num; --fs-11; --text-dim`) may
+appear under the grid (value guessed from kJ, scaled from a reference weight, or some
+macros not found). Footer: left Archiver (danger), right Annuler/Enregistrer.
+States: add · edit · duplicate-name warning · parse-note shown · archive→confirm.
+
+## Parse-label sub-dialog (Aliments, PM-1/B-114)
+
+confirm-size. A focused paste dialog over the Food add/edit modal. Anatomy: a `.sub`
+intro ("colle le tableau nutritionnel"), a full-width **paste textarea** (`min-height
+~140px`, `--font-body`, `resize:vertical` per `forms-inputs.md §Textarea`), an inline
+**error row** (`--nok`, hidden until a parse fails), and an actions footer with a ghost
+**Annuler** + primary **Parser**. **Parser** calls `POST /foods/parse-label`: on success
+it fills the modal's macro fields and **closes**; on a structured error
+(`reconstituted_label` / `no_reference` / `unparseable`) it shows the inline error and
+**stays open**, writing nothing. Click-outside / Annuler closes without applying.
+States: open (empty) · pending (button disabled) · error (inline, stays open) · applied (closes).
 
 ## Cook-mode modal (Repas) — full-screen touch takeover
 

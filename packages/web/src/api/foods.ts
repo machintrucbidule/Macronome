@@ -3,6 +3,8 @@ import type {
   Food,
   FoodListResponse,
   FoodMutationResponse,
+  FoodParseLabelRequest,
+  FoodParseLabelResponse,
   UpdateFoodRequest,
 } from '@macronome/shared';
 import { api } from './client';
@@ -38,4 +40,7 @@ export const foodsApi = {
     api.patch<FoodMutationResponse>(`/foods/${id}`, body),
   archive: (id: string) => api.post<{ ok: true }>(`/foods/${id}/archive`),
   restore: (id: string) => api.post<{ ok: true }>(`/foods/${id}/restore`),
+  // PM-1/B-114: deduce per-100 g macros from a pasted nutrition label (stateless).
+  parseLabel: (body: FoodParseLabelRequest) =>
+    api.post<FoodParseLabelResponse>('/foods/parse-label', body),
 };

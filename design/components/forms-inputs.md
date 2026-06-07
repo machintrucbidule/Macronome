@@ -35,7 +35,9 @@ color-mix(... nok 20% ...)`.
 ## Textarea
 
 Same field styling; `resize:vertical; min-height:54–120px; line-height:1.5;
---font-body`.
+--font-body`. Also the **macro-label paste** field (PM-1/B-114, parse-label sub-dialog,
+`modals.md`): a plain multi-line textarea the user pastes a nutrition table into; no new
+variant — same styling, `min-height ~140px`.
 
 ## Select (`<select>`)
 

@@ -12,3 +12,7 @@ export const KCAL_PER_G = {
 
 /** Energy equivalent of one kilogram of body mass. */
 export const KCAL_PER_KG = 7700;
+
+/** kcal per kJ (1 kcal = 4.184 kJ). Used by the macro-label parser (PM-1/B-114) to
+ * derive kcal from a kJ-only nutrition label. */
+export const KCAL_PER_KJ = 1 / 4.184;

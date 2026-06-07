@@ -98,6 +98,33 @@ export const UpdateFoodSchema = z
   });
 export type UpdateFoodRequest = z.infer<typeof UpdateFoodSchema>;
 
+// --- Macro-label parser (PM-1/B-114) --------------------------------------
+
+/** Request: the raw nutrition text pasted from a grocery site. */
+export const FoodParseLabelRequestSchema = z.object({
+  label_text: z.string().min(1).max(10000),
+});
+export type FoodParseLabelRequest = z.infer<typeof FoodParseLabelRequestSchema>;
+
+/** Deduced per-100 g figures; each field is optional — only the macros found are
+ * returned (the client leaves a missing field untouched). See
+ * spec/logic/macro-label-parser.md. */
+export const FoodParseLabelSchema = z.object({
+  kcal_per_100g: z.number().optional(),
+  fat_per_100g: z.number().optional(),
+  carb_per_100g: z.number().optional(),
+  protein_per_100g: z.number().optional(),
+});
+export type FoodParseLabel = z.infer<typeof FoodParseLabelSchema>;
+
+/** Non-blocking warnings the parser may attach (kJ→kcal fallback, ref scaling, partial). */
+export type FoodParseWarning = 'kcal_from_kj' | 'scaled_from_ref' | 'macro_missing';
+
+export interface FoodParseLabelResponse {
+  data: FoodParseLabel;
+  warnings?: FoodParseWarning[];
+}
+
 // --- List / search query --------------------------------------------------
 
 export const FOOD_SORT_FIELDS = [

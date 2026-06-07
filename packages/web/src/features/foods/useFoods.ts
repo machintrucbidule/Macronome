@@ -1,5 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { CreateFoodRequest, UpdateFoodRequest } from '@macronome/shared';
+import type {
+  CreateFoodRequest,
+  FoodParseLabelRequest,
+  UpdateFoodRequest,
+} from '@macronome/shared';
 import { foodsApi, type FoodListParams } from '../../api/foods';
 
 // Data hooks for the Aliments screen. The page owns filter/sort state and passes it
@@ -36,4 +40,12 @@ export function useFoodMutations() {
   });
 
   return { create, update, archive, restore };
+}
+
+/** Macro-label parser (PM-1/B-114): paste nutrition text → per-100 g macros. Stateless,
+ * so a plain mutation (no cache to invalidate). */
+export function useParseLabel() {
+  return useMutation({
+    mutationFn: (body: FoodParseLabelRequest) => foodsApi.parseLabel(body),
+  });
 }

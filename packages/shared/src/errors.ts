@@ -31,6 +31,11 @@ export enum ErrorCode {
   ImportInvalidFormat = 'import_invalid_format',
   ImportUnsupportedVersion = 'import_unsupported_version',
 
+  // macro-label parser (PM-1/B-114)
+  ReconstitutedLabel = 'reconstituted_label',
+  NoReference = 'no_reference',
+  Unparseable = 'unparseable',
+
   // reserved (inert in v1)
   NotImplemented = 'not_implemented',
 }

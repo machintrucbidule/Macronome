@@ -126,6 +126,23 @@
     "confirm": {
       "title": "Archiver l'aliment ?",
       "body": "« <b>{{name}}</b> » disparaîtra des recherches et de cette liste, mais restera dans l'historique de tes repas passés et dans ton garde-manger. Tu pourras le restaurer."
+    },
+    "parse": {
+      "open": "Parser macro",
+      "title": "Parser une étiquette",
+      "sub": "Colle le tableau des valeurs nutritionnelles copié depuis un site de courses. Les valeurs pour 100 g (kcal, lipides, glucides, protéines) seront déduites et renseignées.",
+      "placeholder": "Colle ici le tableau nutritionnel…",
+      "action": "Parser",
+      "error": {
+        "reconstituted_label": "Étiquette « après préparation » (reconstituée) : la valeur du produit sec ne peut pas être déduite. Saisis les macros à la main.",
+        "no_reference": "Référence par portion sans poids en grammes : impossible de ramener à 100 g.",
+        "unparseable": "Impossible de reconnaître des valeurs nutritionnelles dans ce texte."
+      },
+      "warning": {
+        "kcal_from_kj": "kcal déduit des kJ (÷ 4,184)",
+        "scaled_from_ref": "valeurs ramenées à 100 g",
+        "macro_missing": "certaines valeurs n'ont pas été trouvées (champ laissé inchangé)"
+      }
     }
   },
   "recipes": {

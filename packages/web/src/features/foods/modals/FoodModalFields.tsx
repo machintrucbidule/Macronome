@@ -1,8 +1,9 @@
 import { useTranslation } from 'react-i18next';
+import type { FoodParseWarning } from '@macronome/shared';
 import { TextInput } from '../../../components/Form/TextInput';
-import { NumberInput } from '../../../components/Form/NumberInput';
 import { RatingPicker } from '../../../components/RatingStars/RatingPicker';
 import { NamedPortionsEditor } from './NamedPortionsEditor';
+import { MacroInputs } from './MacroInputs';
 import type { Draft } from './draft';
 import styles from '../foods.module.css';
 
@@ -13,23 +14,19 @@ interface FoodModalFieldsProps {
   isEdit: boolean;
   showDup: boolean;
   set: (patch: Partial<Draft>) => void;
+  parseWarnings: FoodParseWarning[];
+  onParse: () => void;
 }
 
-export function FoodModalFields({ draft, isEdit, showDup, set }: FoodModalFieldsProps) {
+export function FoodModalFields({
+  draft,
+  isEdit,
+  showDup,
+  set,
+  parseWarnings,
+  onParse,
+}: FoodModalFieldsProps) {
   const { t } = useTranslation();
-  const macro = (label: string, key: 'kcal' | 'fat' | 'carb' | 'protein', suffix: string) => (
-    <NumberInput
-      label={
-        <>
-          {label} <span className="hint">/100g</span>
-        </>
-      }
-      suffix={suffix}
-      min={0}
-      value={draft[key]}
-      onChange={(e) => set({ [key]: e.target.value })}
-    />
-  );
 
   return (
     <>
@@ -44,12 +41,7 @@ export function FoodModalFields({ draft, isEdit, showDup, set }: FoodModalFields
         {showDup && <div className={styles.dupwarn}>⚠ {t('foods.modal.duplicate')}</div>}
       </div>
 
-      <div className={styles.grid4}>
-        {macro(t('foods.field.kcal'), 'kcal', 'kcal')}
-        {macro(t('foods.field.fat'), 'fat', 'g')}
-        {macro(t('foods.field.carb'), 'carb', 'g')}
-        {macro(t('foods.field.protein'), 'protein', 'g')}
-      </div>
+      <MacroInputs draft={draft} set={set} parseWarnings={parseWarnings} onParse={onParse} />
 
       <NamedPortionsEditor portions={draft.portions} onChange={(portions) => set({ portions })} />
 

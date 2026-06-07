@@ -155,6 +155,47 @@
   color: var(--accent);
   margin-top: var(--sp-2);
 }
+
+/* macro-label parser (PM-1/B-114): button under the macro grid + paste sub-dialog */
+.parsebtn {
+  align-self: flex-start;
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 0;
+  margin-top: calc(-1 * var(--sp-3));
+}
+.parsenote {
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  color: var(--text-dim);
+  line-height: var(--lh-snug);
+  margin-top: var(--sp-2);
+}
+.parsearea {
+  width: 100%;
+  min-height: 140px;
+  background: var(--bg-field);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-md);
+  color: var(--text);
+  font-family: var(--font-body);
+  line-height: var(--lh-normal);
+  padding: 9px 11px;
+  resize: vertical;
+}
+.parsearea:focus {
+  outline: none;
+  border-color: var(--focus);
+}
+.parseerror {
+  font-size: var(--fs-12);
+  color: var(--nok);
+  margin-top: var(--sp-3);
+}
 .editnote {
   font-size: var(--fs-12);
   color: var(--text-dim);

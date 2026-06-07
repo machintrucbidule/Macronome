@@ -3,6 +3,8 @@ import type {
   Food,
   FoodListQuery,
   FoodListResponse,
+  FoodParseLabel,
+  FoodParseWarning,
   UpdateFoodRequest,
 } from '@macronome/shared';
 import {
@@ -11,6 +13,7 @@ import {
   type FoodWriteData,
 } from '../data/repositories/food.repo.js';
 import { normalize } from '../domain/search/normalize.js';
+import { parseLabel as parseLabelDomain } from '../domain/macro-label-parser/index.js';
 
 // Foods service: orchestration only (CLAUDE.md — logic lives in the backend, but
 // this is wiring: normalize the search key, detect the non-blocking duplicate-name
@@ -105,6 +108,25 @@ export async function update(
   }
   const row = await foodRepo.update(userId, id, buildUpdateData(body, normalizedName));
   return row ? { food: toDto(row), warnings } : null;
+}
+
+// Stateless macro-label parser (PM-1/B-114). No DB, no user scope — pure text→numbers
+// delegated to the domain; the controller maps a failure to a 422. Shapes the per-100 g
+// DTO with only the macros found (a missing one is left out → the client leaves it).
+export type ParseLabelOutcome =
+  | { ok: true; data: FoodParseLabel; warnings: FoodParseWarning[] }
+  | { ok: false; code: 'reconstituted_label' | 'no_reference' | 'unparseable' };
+
+export function parseLabel(text: string): ParseLabelOutcome {
+  const r = parseLabelDomain(text);
+  if (!r.ok) return { ok: false, code: r.code };
+  const data: FoodParseLabel = {
+    ...(r.macros.kcal !== undefined ? { kcal_per_100g: r.macros.kcal } : {}),
+    ...(r.macros.fat !== undefined ? { fat_per_100g: r.macros.fat } : {}),
+    ...(r.macros.carb !== undefined ? { carb_per_100g: r.macros.carb } : {}),
+    ...(r.macros.protein !== undefined ? { protein_per_100g: r.macros.protein } : {}),
+  };
+  return { ok: true, data, warnings: r.warnings };
 }
 
 export function archive(userId: string, id: string): Promise<boolean> {
