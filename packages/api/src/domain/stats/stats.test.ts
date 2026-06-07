@@ -16,7 +16,13 @@ import type { DayStat } from './util.js';
 // Neutral oracles from spec/logic/stats-adherence.md (no personal data). Verdicts are the
 // effective values; only logged days appear (not-logged days are filtered out upstream).
 
-const d = (date: string, kcal: number, verdict: 'OK' | 'NOK'): DayStat => ({ date, kcal, verdict });
+const BAND = { cal_min: 1550, cal_max: 1650 };
+const d = (
+  date: string,
+  kcal: number,
+  verdict: 'OK' | 'NOK',
+  band: DayStat['band'] = BAND,
+): DayStat => ({ date, kcal, verdict, band });
 
 // §2 worked example: window 7, dates 27 May–2 Jun; 27 & 31 unlogged (absent).
 const WINDOW7: DayStat[] = [
@@ -28,16 +34,32 @@ const WINDOW7: DayStat[] = [
 ];
 
 test('rolling-7 averages over logged days, OK rate excludes the 2 unlogged (§2)', () => {
-  const res = rolling(WINDOW7, STATS_ROLLING_WINDOWS, { cal_min: 1550, cal_max: 1650 });
+  const res = rolling(WINDOW7, STATS_ROLLING_WINDOWS);
   expect(res.as_of).toBe('2026-06-02');
   const w7 = res.windows.find((w) => w.window === 7)!;
   expect(w7.avg_kcal).toBe(1600); // (1600+1700+1500+1620+1580)/5
   expect(w7.ok_rate).toBe(3 / 5); // 0.6 — 27 & 31 excluded
-  expect(w7.vs_target).toBe('in'); // 1600 within [1550, 1650]
+  expect(w7.vs_target).toBe('in'); // 1600 within the windowed mean band [1550, 1650]
+});
+
+test('rolling vs_target uses the window own bands, not the current one (B-100)', () => {
+  // Older days carried a higher band (1900–2100), recent ones a lower band (1500–1700); the
+  // average (1800) is above the CURRENT band but within the windowed MEAN band → 'in', not 'above'.
+  const win: DayStat[] = [
+    d('2026-05-27', 1800, 'OK', { cal_min: 1900, cal_max: 2100 }),
+    d('2026-05-28', 1800, 'OK', { cal_min: 1900, cal_max: 2100 }),
+    d('2026-05-29', 1800, 'OK', { cal_min: 1900, cal_max: 2100 }),
+    d('2026-06-01', 1800, 'NOK', { cal_min: 1500, cal_max: 1700 }),
+    d('2026-06-02', 1800, 'NOK', { cal_min: 1500, cal_max: 1700 }),
+  ];
+  const w7 = rolling(win, STATS_ROLLING_WINDOWS).windows.find((w) => w.window === 7)!;
+  expect(w7.avg_kcal).toBe(1800);
+  // mean band = [ (1900·3+1500·2)/5, (2100·3+1700·2)/5 ] = [1740, 1940]; 1800 ∈ → 'in'.
+  expect(w7.vs_target).toBe('in');
 });
 
 test('rolling reports null figures when no day falls in the window', () => {
-  const res = rolling([], STATS_ROLLING_WINDOWS, null);
+  const res = rolling([], STATS_ROLLING_WINDOWS);
   expect(res.as_of).toBeNull();
   expect(res.windows.every((w) => w.avg_kcal === null && w.ok_rate === null)).toBe(true);
 });

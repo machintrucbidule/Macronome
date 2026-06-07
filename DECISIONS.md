@@ -1311,3 +1311,33 @@ The `summary_day_readonly` thrown in `clear()` is left as-is — it is not reach
 **Spec impact:** `spec/api/days-meals-leftover.md` (summary-day activity rule rewritten: editable, no
 409), `spec/logic/day-snapshot-verdict.md §9` (editable-fields paragraph; Complet total stays Σ). Gap 3
 readonly principle confirmed. No DB/schema/API-shape change.
+
+---
+
+## SX-1 / B-100 — Rolling-card caption: per-window vs_target + two clear lines — RESOLVED (author, 2026-06-07)
+
+**Problem.** Under each Stats rolling card (avg kcal 7/14/30/365 j), the caption packed two
+independent metrics on one line — the average's position vs the calorie band and the % of OK days —
+read as one ("au-dessus 72% OK"). Worse, the position was computed against the **current** band, so a
+long window (e.g. 365 j) spanning older, higher targets read a false "au-dessus" (same family as
+B-099).
+
+**Decision (improvement, author 2026-06-07: "pourquoi tu calcules pas par rapport à la cible du
+moment ?").** `vs_target` is computed **per window against the targets that actually applied** — the
+mean of the per-day **frozen** bands (`target_snapshot`) over the window's logged days, not the
+current band. The indicator stays on all four windows and is no longer falsely alarmist. The web
+caption is split into **two stacked lines**: the colour-coded position, then "X % de jours OK".
+
+**Code (api).** `domain/stats/util.ts`: `DayStat` gains `band` (the day's frozen `{cal_min,cal_max}`
+or null); new pure `meanBand(days)`. `domain/stats/rolling.ts`: `rolling(logged, windows)` drops the
+`zone` param and sets `vs_target = vsTarget(avg, meanBand(daysInWindow))`. `services/day-stat.ts` fills
+`band` from the snapshot (`cal_max > 0 ? snapshot : null`). `services/stats.ts` `getRolling` no longer
+fetches the current zone for the rolling cards (adherence/signals/`target_zone` unchanged — the
+Signals "30-day avg vs target" stays vs the current band, out of scope). **Web:** `RollingCards`
+caption is two lines (`stats.module.css .rollNote` → column); i18n `stats.rolling.okRate` reworded
+("{{rate}} de jours OK" / "{{rate}} of days OK").
+
+**Spec impact:** `spec/logic/stats-adherence.md §2` (per-window `vs_target` + oracle),
+`spec/api/weight-targets-stats-settings.md §Stats` (vs_target semantics; shape unchanged),
+`specifications/screens/stats.md §A` (two-line caption + per-window target). No DB / no DTO-shape /
+no API-shape change.

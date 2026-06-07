@@ -587,7 +587,7 @@
     },
     "rolling": {
       "window": "{{n}} days",
-      "okRate": "{{rate}} OK"
+      "okRate": "{{rate}} of days OK"
     },
     "vsTarget": {
       "in": "in target",

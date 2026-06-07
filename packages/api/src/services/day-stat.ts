@@ -49,7 +49,10 @@ export function dayStat(day: LightDay): DayStat | null {
   if (!logged) return null;
   const auto = autoVerdict(kcal, day.snapshot.cal_min, day.snapshot.cal_max);
   const override = (day.verdictOverride ?? null) as Verdict | null;
-  return { date: day.date, kcal, verdict: effectiveVerdict(override, auto) as Verdict };
+  // Carry the day's frozen band (or null when it had no real target) so rolling vs_target is
+  // judged against the bands that actually applied (B-100).
+  const band = day.snapshot.cal_max > 0 ? day.snapshot : null;
+  return { date: day.date, kcal, verdict: effectiveVerdict(override, auto) as Verdict, band };
 }
 
 /** Map a list of light day records to DayStat, dropping not-logged days. */

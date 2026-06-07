@@ -12,6 +12,9 @@ export interface DayStat {
   kcal: number;
   /** Effective verdict (override ?? auto). */
   verdict: 'OK' | 'NOK';
+  /** The day's FROZEN calorie band (target_snapshot), or null when it had no real target.
+   * Used to judge a rolling average against the bands that actually applied (B-100). */
+  band: { cal_min: number; cal_max: number } | null;
 }
 
 /** Arithmetic mean, or null for an empty set. */
@@ -24,6 +27,20 @@ export function mean(values: number[]): number | null {
 export function okRate(stats: DayStat[]): number | null {
   if (stats.length === 0) return null;
   return stats.filter((s) => s.verdict === 'OK').length / stats.length;
+}
+
+/** Mean of the per-day frozen bands over the days that carried a real one (cal_max > 0), or
+ * null when none did. Lets a window's average be judged against the bands that actually
+ * applied, not today's band (B-100; robust to target changes over the window, cf. B-099). */
+export function meanBand(stats: DayStat[]): { cal_min: number; cal_max: number } | null {
+  const bands = stats
+    .map((s) => s.band)
+    .filter((b): b is { cal_min: number; cal_max: number } => b !== null && b.cal_max > 0);
+  if (bands.length === 0) return null;
+  return {
+    cal_min: mean(bands.map((b) => b.cal_min))!,
+    cal_max: mean(bands.map((b) => b.cal_max))!,
+  };
 }
 
 /** Where an average sits relative to the band; null when either input is missing. */

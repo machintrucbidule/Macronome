@@ -587,7 +587,7 @@
     },
     "rolling": {
       "window": "{{n}} jours",
-      "okRate": "{{rate}} OK"
+      "okRate": "{{rate}} de jours OK"
     },
     "vsTarget": {
       "in": "dans la cible",

@@ -56,12 +56,10 @@ export async function getRolling(userId: string): Promise<RollingResponse> {
   const latestRaw = await dayStatRepo.latestDate(userId);
   const cap = toDate(today);
   const latest = latestRaw && latestRaw > cap ? cap : latestRaw;
-  const [days, zone] = await Promise.all([
-    dayStatRepo.readLightweight(userId, latest ? rollingRange(latest) : undefined),
-    currentZone(userId),
-  ]);
+  const days = await dayStatRepo.readLightweight(userId, latest ? rollingRange(latest) : undefined);
+  // vs_target is judged per window against the days' own frozen bands (B-100) — no current zone.
   const logged = toDayStats(days).filter((s) => s.date <= today);
-  return rolling(logged, STATS_ROLLING_WINDOWS, zone);
+  return rolling(logged, STATS_ROLLING_WINDOWS);
 }
 
 /** GET /stats/adherence?year=YYYY — heatmap + monthly pivots + key figures + signals.

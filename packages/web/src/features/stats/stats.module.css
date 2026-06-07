@@ -88,10 +88,13 @@
 .keys {
   margin-bottom: var(--sp-6);
 }
+/* Two stacked lines (B-100): the position vs the window's target band, then the OK-day rate —
+   no longer concatenated on one line ("au-dessus 72% OK" misread as a single phrase). */
 .rollNote {
-  display: inline-flex;
-  gap: var(--sp-3);
-  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  align-items: flex-start;
 }
 .vIn {
   color: var(--in-band);

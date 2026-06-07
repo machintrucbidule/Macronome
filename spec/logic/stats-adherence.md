@@ -24,12 +24,23 @@ Once its date is ≤ today the same `DayLog` counts normally.
 - `ok_rate_N = (OK logged days within window) / (logged days within window)`,
   using each day's **effective verdict**. Unlogged days are **excluded**
   (never NOK).
+- `vs_target_N` (position of the average vs the band: `below` / `in` / `above`) compares
+  `avg_kcal_N` to the **mean of the per-day frozen bands** over the window's logged days that
+  carried a real target — `mean_band_N = [mean(cal_min), mean(cal_max)]` over those days —
+  **not** the current band. So a long window is never falsely "above" today's (possibly lower)
+  band when older, higher targets actually applied — the position reflects the targets that were
+  really in force (B-100; same family as the per-period weight rate, B-099). `null` when no logged
+  day in the window carried a band.
 - Rolling cards always reflect `L`, independent of the year selector.
 - **Worked example** (oracle): window 7, dates 27 May–2 Jun; logged days =
   {28 May 1600 OK, 29 1700 NOK, 30 1500 SOUS/NOK, 1 Jun 1620 OK, 2 Jun 1580 OK};
   27 & 31 unlogged.
   `avg_kcal_7 = (1600+1700+1500+1620+1580)/5 = 1600`
   `ok_rate_7 = 3/5 = 60%` (27 & 31 excluded).
+- **Worked example — `vs_target` per window** (oracle, B-100): 5 logged days at 1800 kcal, the
+  first 3 under a `1900–2100` band, the last 2 under a later `1500–1700` band.
+  `mean_band = [(1900·3+1500·2)/5, (2100·3+1700·2)/5] = [1740, 1940]`; `1800 ∈ [1740,1940]` →
+  `vs_target = in` (against the **current** 1500–1700 band it would wrongly read `above`).
 
 ## 3. Calendar heatmap
 

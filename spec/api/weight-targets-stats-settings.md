@@ -81,7 +81,10 @@ target_weight_kg,rate_kg_per_week,effective_from,until}]}`. `until` = the day be
   `[{window:7|14|30|365,avg_kcal,ok_rate,vs_target:'in'|'above'|'below'}]`,
   always as of the latest logged day (`as_of` in the response). Window = last N
   **calendar** days; averages over logged days within; OK rate over logged days
-  within (OPEN_GAPS #2, RECONCILIATION_LOG §E4).
+  within (OPEN_GAPS #2, RECONCILIATION_LOG §E4). `vs_target` is the average's position vs the
+  **window's own** target — the mean of the per-day frozen bands over the window, not the current
+  band — so long windows are not falsely alarmist when the target changed (B-100; field shape
+  unchanged). `null` when no logged day in the window carried a band.
 - `GET /stats/adherence?year=YYYY` — → 200
   `{heatmap:[{date,status:'OK'|'NOK'|'none',kcal:number|null}],
 monthly:[{month,ok_count,nok_count,ok_rate,avg_kcal_ok,avg_kcal_nok}],
