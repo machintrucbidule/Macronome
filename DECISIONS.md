@@ -941,3 +941,25 @@ allowed — it **drops the day's meal lines** and sets `summary_kcal := the curr
 `specifications/screens/meals.md` (chip menu + Partiel state + editable Calories). **No DB/schema
 change, no migration** (`kind`/`summary_kcal` already model both; CHECK holds, `summary_kcal=Σ≥0`).
 Gap 3 / day-model (all summary days uniform, no provenance) unchanged.
+
+---
+
+## JR-1 / B-077 — Journal per-row day-state band + state legend — RESOLVED (author, 2026-06-07)
+
+The Journal renders a **left colour band per row** keyed to the day's calorie-driven state
+(`spec/logic/day-snapshot-verdict.md §8`), not just the existing red one: **green** (Complet,
+`--ok`), **yellow** (Partiel, `--accent`), **red** (Rien, `--nok`). A small **state legend**
+(Complet · Partiel · Rien swatches) sits to the right of the year selector.
+
+**Decision (author, 2026-06-07): band-only for green/yellow; red keeps its soft full-row
+background.** Green/yellow rows get only the thin left band; the red (empty) row keeps its
+existing `--nok-soft` full-row tint as the "needs filling" emphasis. `none` (future empty) shows
+no band. **No new token** — the Partiel yellow reuses `--accent` (the calendar partial-dot colour
+established in DK-1; the JR-1 backlog note about possibly adding a semantic yellow is resolved by
+reusing `--accent`).
+
+**Code (web only):** `features/journal/components/JournalRow.tsx` (state→class map),
+`journal.module.css` (`.summaryRow`/`.detailedRow` bands + legend styles), new
+`features/journal/components/JournalLegend.tsx` (reuses the `ChartLegend` swatch pattern),
+`JournalHeader.tsx` (renders the legend), i18n `journal.legend.{green,yellow,red}`. No DB, schema,
+or API change. **Spec impact:** `specifications/screens/history.md` + `design/components/data-tables.md`.

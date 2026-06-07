@@ -37,6 +37,20 @@ tabular-nums; white-space:nowrap`; first/name cell left, `--font-body`. The **Jo
 `.mF→var(--c-fat)`, `.mC→var(--c-carb)`, `.mP→var(--c-prot)`; `.none →
 var(--text-faint)` em-dash when a day has no macro detail.
 
+## Day-state band + legend (Journal, JR-1 / B-077)
+
+Each Journal row carries a **left colour band** keyed to its calorie-driven state
+(`logic/day-snapshot-verdict.md §8`): a `box-shadow: inset 3px 0 0 var(--state)` on the
+**first cell** — **green** `--ok` (Complet), **yellow** `--accent` (Partiel), **red** `--nok`
+(Rien). The **red** row also keeps a soft full-row `background:var(--nok-soft)` (empty-day
+emphasis); green/yellow are **band-only** (no full-row tint) so the dense list stays scannable.
+`none` (future empty) shows no band. **No new token** — the Partiel yellow reuses `--accent`
+(the calendar partial-dot colour, established in DK-1).
+
+A small **state legend** sits in the header to the right of the year selector, reusing the
+`ChartLegend` swatch pattern (`legend`/`legendItem`): three items **Complet · Partiel · Rien**,
+each a small square swatch in the matching state colour. `--font-num; --fs-11; --text-dim`.
+
 ## Line-list grid (Repas meal column) — instance A
 
 A meal `.meal` is a flex column on `--bg-elev`, `min-height:200px`, first column

@@ -90,12 +90,42 @@
   background: var(--bg-field);
 }
 
-/* Empty (red) trame day: a past/present date with no calorie value (day-model §8). */
+/* Per-row day-state left band (JR-1 / B-077). green = Complet (--ok), yellow = Partiel
+   (--accent), red = Rien (--nok). Green/yellow are band-only; the red (empty) row also keeps a
+   soft full-row background as the "needs filling" emphasis (none = future empty → no band). */
+.detailedRow td:first-child {
+  box-shadow: inset 3px 0 0 var(--ok);
+}
+.summaryRow td:first-child {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
 .emptyRow td {
   background: var(--nok-soft);
 }
 .emptyRow td:first-child {
   box-shadow: inset 3px 0 0 var(--nok);
+}
+
+/* Day-state legend (next to the year selector): a small swatch + label per state. */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3) var(--sp-6);
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  color: var(--text-dim);
+}
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: currentColor;
 }
 
 .mFat {

@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { currentYear } from '../format';
+import { JournalLegend } from './JournalLegend';
 import styles from '../journal.module.css';
 
 // Journal header (history.md): title + a year selector that scopes the list, with the day
@@ -41,6 +42,7 @@ export function JournalHeader({ year, dayCount, minYear, maxYear, onYear }: Jour
           ▶
         </button>
       </div>
+      <JournalLegend />
       <span className={styles.count}>{t('journal.dayCount', { count: dayCount })}</span>
     </header>
   );

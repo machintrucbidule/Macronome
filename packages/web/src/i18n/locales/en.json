@@ -430,6 +430,11 @@
     "nextYear": "Next year",
     "commentPlaceholder": "Add a comment…",
     "kcalPlaceholder": "kcal…",
+    "legend": {
+      "green": "Complete",
+      "yellow": "Partial",
+      "red": "Empty"
+    },
     "col": {
       "day": "Day",
       "calories": "Calories",

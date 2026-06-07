@@ -19,8 +19,16 @@ import styles from '../journal.module.css';
 // the Calories cell is inline-editable on a no-detail day (creates/updates a summary day);
 // the verdict pill, activity select and comment field edit the day via PATCH (which upserts).
 // Macros show only on detailed days; summary/empty days show an em-dash. An empty (red) day is
-// a past/present date with no calorie value (day-model §8).
+// a past/present date with no calorie value (day-model §8). Each row carries a left colour band
+// keyed to its state (JR-1 / B-077): green Complet, yellow Partiel, red Rien (none = no band).
 const DASH = '—';
+
+const STATE_ROW_CLASS: Record<Row['state'], string | undefined> = {
+  green: styles.detailedRow,
+  yellow: styles.summaryRow,
+  red: styles.emptyRow,
+  none: undefined,
+};
 
 interface JournalRowProps {
   row: Row;
@@ -44,7 +52,7 @@ export function JournalRow({ row, onPatch }: JournalRowProps) {
   };
 
   return (
-    <tr data-date={row.date} className={row.state === 'red' ? styles.emptyRow : undefined}>
+    <tr data-date={row.date} className={STATE_ROW_CLASS[row.state]}>
       <td className={tableStyles.clickable} onClick={openDay}>
         {formatJournalDate(row.date, i18n.language)}{' '}
         <span className={styles.dow}>{formatDow(row.date, i18n.language)}</span>
