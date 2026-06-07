@@ -1,30 +1,27 @@
-/* Activity level → colour map (B-085). Non-linear: sedentary = red, a jump to lightly = yellow,
-   then a gradient through the upper three up to extremely = green. The colour rides a leading
-   dot so the label text stays at full contrast on any theme. Applied to both the menu item and
-   (for the current level) the SelectMenu trigger. */
-.dot::before {
-  content: '';
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  margin-right: 7px;
-  vertical-align: middle;
-  background: var(--act-dot, var(--text-faint));
+/* Activity level → colour map (B-085, recoloured B-101). Non-linear: sedentary = red, a jump to
+   lightly = yellow, then a gradient through the upper three up to extremely = green. Instead of a
+   leading dot, the whole control is tinted by level: `.act` turns `--act-color` into the SelectMenu
+   tint vars — soft background + accent border on the trigger, soft background + left band on each
+   option (mirroring the Journal day-state band, JR-1/B-077). Applied to the trigger (current level)
+   and every menu option; the label text keeps full contrast on any theme. */
+.act {
+  --sm-bg: color-mix(in srgb, var(--act-color, var(--text-faint)) 16%, transparent);
+  --sm-trigger-border: color-mix(in srgb, var(--act-color, var(--text-faint)) 45%, transparent);
+  --sm-band: var(--act-color, var(--text-faint));
 }
 
 .sedentary {
-  --act-dot: var(--nok);
+  --act-color: var(--nok);
 }
 .lightly {
-  --act-dot: var(--accent);
+  --act-color: var(--accent);
 }
 .moderate {
-  --act-dot: color-mix(in srgb, var(--ok) 45%, var(--accent));
+  --act-color: color-mix(in srgb, var(--ok) 45%, var(--accent));
 }
 .veryActive {
-  --act-dot: color-mix(in srgb, var(--ok) 75%, var(--accent));
+  --act-color: color-mix(in srgb, var(--ok) 75%, var(--accent));
 }
 .extreme {
-  --act-dot: var(--ok);
+  --act-color: var(--ok);
 }

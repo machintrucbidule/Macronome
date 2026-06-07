@@ -11,8 +11,9 @@
   gap: 6px;
   font-family: var(--font-num);
   font-size: var(--fs-11);
-  background: var(--bg-elev-2);
-  border: 1px solid var(--border);
+  /* Optional per-level tint supplied by the caller (B-101); neutral by default. */
+  background: var(--sm-bg, var(--bg-elev-2));
+  border: 1px solid var(--sm-trigger-border, var(--border));
   border-radius: var(--r-sm);
   color: var(--text);
   padding: 5px 8px;
@@ -46,7 +47,10 @@
   display: block;
   width: 100%;
   border: 0;
-  background: transparent;
+  /* Optional per-level tint + left band supplied by the caller (B-101); neutral by default.
+     The band is an inset shadow (no layout shift), mirroring the Journal day-state band. */
+  background: var(--sm-bg, transparent);
+  box-shadow: inset 3px 0 0 var(--sm-band, transparent);
   color: var(--text);
   font-family: var(--font-num);
   font-size: var(--fs-12);

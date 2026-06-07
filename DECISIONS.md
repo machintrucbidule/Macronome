@@ -1341,3 +1341,32 @@ caption is two lines (`stats.module.css .rollNote` → column); i18n `stats.roll
 `spec/api/weight-targets-stats-settings.md §Stats` (vs_target semantics; shape unchanged),
 `specifications/screens/stats.md §A` (two-line caption + per-window target). No DB / no DTO-shape /
 no API-shape change.
+
+---
+
+## AC-1 / B-101 — Activity selector: tint the whole control by level (not a dot) — RESOLVED (author, 2026-06-07)
+
+**Refinement of MX-1 / B-085.** B-085 colour-coded the five activity levels via an 8px leading dot.
+The author asked to mirror the verdict-list treatment: **colour the whole control by level** — the
+trigger badge and every dropdown option — instead of the dot.
+
+**Decision (improvement, web-only; no new token).** The level **tints the whole control**, reusing
+the **same non-linear B-085 palette** (Sédentaire `--nok` → Léger `--accent` → `color-mix(--ok 45%,
+--accent)` → `color-mix(--ok 75%, --accent)` → Très intense `--ok`): the **trigger badge** gets a soft
+background (`color-mix(level 16%, transparent)`) + a level border (`color-mix(level 45%, transparent)`,
+like the verdict badge), and **each menu option** gets the same soft background + a 3px **left band**
+in the level colour (inset shadow — mirroring the Journal day-state band, JR-1/B-077; no layout shift).
+The 8px dot is removed. The **OK/NOK `VerdictBadge` is unchanged**; row height unchanged (the width
+shrinks as the dot goes).
+
+**Code (web only).** `components/ActivitySelect/ActivitySelect.module.css` drops `.dot::before`; the
+shared `.act` class turns `--act-color` (the level) into the SelectMenu tint vars `--sm-bg` /
+`--sm-trigger-border` / `--sm-band`. `ActivitySelect.tsx` passes `${styles.act} ${level}` (was
+`${styles.dot} …`). `components/SelectMenu/SelectMenu.module.css` reads those vars on `.trigger`
+(background + border) and `.menu button` (background + left-band inset shadow) with **neutral
+defaults**, so any other SelectMenu use is unchanged. `SelectMenu.tsx`, `VerdictBadge*` and the
+Repas/Journal call-sites untouched.
+
+**Spec impact:** `design/components/metric-cards.md` (Verdict cluster — whole-control tint, no dot),
+`specifications/screens/meals.md` + `history.md` (activity selector colour). No new design token; no
+DB / API / DTO change. Visual + lint (CSS-only; no dedicated test, per the item's acceptance).

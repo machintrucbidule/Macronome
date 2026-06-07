@@ -3,10 +3,11 @@ import { ACTIVITY_LABEL_KEYS, ACTIVITY_LEVELS, type ActivityLevel } from '@macro
 import { SelectMenu, type SelectMenuOption } from '../SelectMenu/SelectMenu';
 import styles from './ActivitySelect.module.css';
 
-// Day activity-level picker (B-085): the verdict-style dropdown (SelectMenu) with the five
-// levels colour-coded on a non-linear scale — Sédentaire red, a jump to Léger yellow, then a
-// gradient up to Très intense green. The colour rides a leading dot (see the CSS map). Shared
-// by the Repas verdict cluster and the Journal activity cell so both read identically.
+// Day activity-level picker (B-085; recoloured B-101): the verdict-style dropdown (SelectMenu)
+// with the five levels colour-coded on a non-linear scale — Sédentaire red, a jump to Léger
+// yellow, then a gradient up to Très intense green. The level tints the whole control (soft
+// background + border on the trigger, soft background + left band on each option), not a dot
+// (see the CSS map). Shared by the Repas verdict cluster and the Journal activity cell.
 const LEVEL_CLASS: Record<ActivityLevel, string | undefined> = {
   sedentary: styles.sedentary,
   lightly_active: styles.lightly,
@@ -26,7 +27,7 @@ export function ActivitySelect({ value, onChange, ariaLabel }: ActivitySelectPro
   const options: SelectMenuOption<ActivityLevel>[] = ACTIVITY_LEVELS.map((lvl) => ({
     value: lvl,
     label: t(ACTIVITY_LABEL_KEYS[lvl].label),
-    className: `${styles.dot} ${LEVEL_CLASS[lvl]}`,
+    className: `${styles.act} ${LEVEL_CLASS[lvl]}`,
   }));
 
   return <SelectMenu value={value} options={options} onChange={onChange} ariaLabel={ariaLabel} />;
