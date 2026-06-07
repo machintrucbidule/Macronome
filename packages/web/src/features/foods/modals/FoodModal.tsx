@@ -21,7 +21,7 @@ interface FoodModalProps {
 export function FoodModal({ food, isDuplicate, onClose, onArchive }: FoodModalProps) {
   const { t } = useTranslation();
   const [draft, setDraft] = useState<Draft>(() => initialDraft(food));
-  const { create, update } = useFoodMutations();
+  const { create, update, restore } = useFoodMutations();
   const set = (patch: Partial<Draft>): void => setDraft((d) => ({ ...d, ...patch }));
 
   const isEdit = food !== null;
@@ -47,6 +47,10 @@ export function FoodModal({ food, isDuplicate, onClose, onArchive }: FoodModalPr
         {isEdit && food.archived_at === null ? (
           <Button variant="danger" onClick={() => onArchive(food)}>
             {t('foods.archive')}
+          </Button>
+        ) : isEdit && food.archived_at !== null ? (
+          <Button variant="ghost" onClick={() => restore.mutate(food.id, { onSuccess: onClose })}>
+            {t('foods.restore')}
           </Button>
         ) : (
           <span />

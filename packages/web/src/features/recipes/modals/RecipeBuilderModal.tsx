@@ -18,6 +18,32 @@ interface RecipeBuilderModalProps {
   onArchive: (recipe: RecipeSummary) => void;
 }
 
+// Footer left action: archive (active recipe), restore (archived recipe), or nothing
+// (add mode / not yet loaded). Extracted to keep the modal's complexity in check.
+function FooterLeftAction({
+  full,
+  onArchive,
+  onRestore,
+}: {
+  full: RecipeSummary | null;
+  onArchive: (recipe: RecipeSummary) => void;
+  onRestore: () => void;
+}) {
+  const { t } = useTranslation();
+  if (!full) return <span />;
+  if (full.archived_at === null)
+    return (
+      <Button variant="danger" onClick={() => onArchive(full)}>
+        {t('recipes.archive')}
+      </Button>
+    );
+  return (
+    <Button variant="ghost" onClick={onRestore}>
+      {t('recipes.restore')}
+    </Button>
+  );
+}
+
 export function RecipeBuilderModal({ recipeId, onClose, onArchive }: RecipeBuilderModalProps) {
   const { t } = useTranslation();
   const isEdit = recipeId !== null;
@@ -26,7 +52,7 @@ export function RecipeBuilderModal({ recipeId, onClose, onArchive }: RecipeBuild
   const [draft, setDraft] = useState<RecipeDraft>(emptyRecipeDraft);
   const [hydrated, setHydrated] = useState(!isEdit);
   const [error, setError] = useState<string | null>(null);
-  const { create, update } = useRecipeMutations();
+  const { create, update, restore } = useRecipeMutations();
   const preview = useRecipePreview(draft);
 
   useEffect(() => {
@@ -66,13 +92,11 @@ export function RecipeBuilderModal({ recipeId, onClose, onArchive }: RecipeBuild
       </div>
 
       <div className={modalStyles.actions}>
-        {isEdit && full && full.archived_at === null ? (
-          <Button variant="danger" onClick={() => onArchive(full)}>
-            {t('recipes.archive')}
-          </Button>
-        ) : (
-          <span />
-        )}
+        <FooterLeftAction
+          full={full}
+          onArchive={onArchive}
+          onRestore={() => full && restore.mutate(full.id, { onSuccess: onClose })}
+        />
         <div className={modalStyles.actionsRight}>
           <Button variant="ghost" onClick={onClose}>
             {t('common.cancel')}

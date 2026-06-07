@@ -35,7 +35,7 @@ export function RecipeRow({ recipe, onOpen, onArchive, onRestore }: RecipeRowPro
       <td className={tableStyles.numc}>{gramsDisplay(recipe.total_batch_grams)}</td>
       <td className={tableStyles.numc}>{recipe.servings}</td>
       <td className={tableStyles.numc}>{gramsDisplay(recipe.weight_per_portion_g)}</td>
-      <td className={tableStyles.c}>
+      <td className={tableStyles.numc}>
         <Stars rating={recipe.rating} />
       </td>
       <td>
