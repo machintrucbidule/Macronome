@@ -1,0 +1,21 @@
+/* Typed-confirmation field (design/components/modals.md). Sits inside the confirm Modal body. */
+
+.prompt {
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  color: var(--text-dim);
+}
+
+.field {
+  height: 36px;
+  background: var(--bg-field);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-md);
+  color: var(--text);
+  font-size: var(--fs-13);
+  padding: 0 var(--sp-3);
+}
+.field:focus {
+  outline: none;
+  border-color: var(--focus);
+}

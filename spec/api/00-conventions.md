@@ -77,4 +77,11 @@ Targets carb ceiling ≤ 0 is **not** an error — it returns 200 with a `warnin
   not_implemented** in v1. When enabled it accepts a curated payload (recent
   intake, macro adherence, weight trend, deficit) and the configured
   OpenAI-compatible endpoint from `app_user.settings.llm_endpoint`.
-- No import/export endpoints in v1 (migration is the one-shot ETL script).
+
+## Data management (IMP-1)
+
+User-facing account data round-trip — export / wipe / import (REPLACE/restore) under
+`/api/v1/data`; see `data-export-import.md`. This is **distinct from O1** (the one-shot Excel → DB
+ETL script, out of the dev plan): O1 ingests a spreadsheet, this round-trips Macronome's own
+extract. Credentials are never exported/imported/wiped. Error codes: `import_invalid_format`,
+`import_unsupported_version`.

@@ -37,3 +37,4 @@ export * from './dto/settings.js';
 export * from './dto/container.js';
 export * from './dto/meal-template.js';
 export * from './dto/pantry.js';
+export * from './dto/data.js';

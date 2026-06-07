@@ -1159,3 +1159,44 @@ time: B-085 becomes a **custom clickable menu** (not a styled native select), an
 state; card density), `design/tokens.md` (density floor note), `design/components/modals.md`
 (Enter = primary action), `specifications/screens/meals.md` + `history.md`. **No DB/schema/API
 change.**
+
+## IMP-1 / B-001, B-002, B-003 — Settings data management: wipe / export / import — RESOLVED (author, 2026-06-07)
+
+Improvement batch. Adds a **Données** section to Paramètres with three account-wide actions,
+reversing the earlier v1 decision recorded in `specifications/screens/settings.md` ("no in-app
+import/export"). The author approved adding all three to the app. **No DB/schema change** (data
+layer only); one approved global change: the Express JSON body limit is raised to 25 MB so a full
+import fits. New `spec/api/data-export-import.md` is the authoritative contract.
+
+A behaviour decision was taken with the author at plan time: **import = REPLACE / restore**, not
+merge. Importing wipes the account's data and re-inserts the extract verbatim, giving a
+deterministic round-trip with export and avoiding the whole class of merge-conflict bugs (duplicate
+foods, two day_logs for one date, id collisions). No "merge" mode.
+
+- **B-001 — Wipe.** `POST /data/wipe` deletes all tracked data (foods + portions, recipes +
+  ingredients + derived `source='recipe'` foods, user containers, pantry, day_logs/meals/entries/
+  leftovers, weigh-ins, targets) in child→parent order (RESTRICT FKs) and **preserves the seed**:
+  the owner `app_user` (credentials + profile + settings), the `meal_slot_template` rows, and the
+  locked built-in "Rien" container. Strong **typed confirmation** client-side.
+- **B-002 — Export.** `GET /data/export` downloads a versioned JSON envelope
+  (`format_version: 1`) of all the user's content **minus credentials**: profile, settings,
+  template, containers, catalog, pantry, the full journal (with frozen snapshots), weigh-ins and
+  targets. Decimals → numbers, DATE → `YYYY-MM-DD`, instants → ISO-8601; `created_at` preserved.
+- **B-003 — Import.** `POST /data/import` validates the envelope (shape → 422
+  `import_invalid_format`; bad `format_version` → 422 `import_unsupported_version`; a referentially
+  broken file's DB violation → 422 `import_invalid_format`, not a 500), then in one transaction
+  wipes everything (structure included), restores profile + settings (**never credentials**), and
+  re-inserts the extract verbatim — original ids kept (post-wipe, no collision; so the same file
+  also restores into a fresh install), owner/user columns re-pointed at the current account, and
+  **frozen snapshots carried across unchanged** (`snap_*`, `target_snapshot`, `leftover_group`
+  values). A defensive ensureBuiltin guarantees a "Rien" container afterwards. Strong **typed
+  confirmation**; the page reloads on success (restored theme/locale applied).
+
+New design pattern: a **typed-confirmation modal** (`design/components/modals.md`) — the danger
+button stays disabled until the user types the localized word ("EFFACER"/"REMPLACER" etc.).
+
+**Spec impact:** new `spec/api/data-export-import.md`; `spec/api/00-conventions.md` (reversed the
+"no import/export in v1" line; new error codes); `spec/api/weight-targets-stats-settings.md`
+(pointer); `design/components/modals.md` (typed-confirmation variant);
+`specifications/screens/settings.md` (Données section + reversed removal note). **No DB/schema
+change.**

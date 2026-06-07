@@ -67,3 +67,30 @@ export const api = {
   patch: <T>(path: string, body?: unknown) => request<T>('PATCH', path, body),
   del: <T>(path: string) => request<T>('DELETE', path),
 };
+
+/** Filename from a `Content-Disposition: attachment; filename="…"` header, if present. */
+function filenameFromDisposition(header: string | null): string | null {
+  const match = header?.match(/filename="?([^"]+)"?/);
+  return match?.[1] ?? null;
+}
+
+// Download a file response (e.g. the data export, IMP-1): fetch with the session cookie, then
+// hand the blob to the browser via a transient object URL. Separate from `request` because the
+// body is a binary file, not the JSON contract envelope.
+export async function downloadFile(path: string, fallbackName: string): Promise<void> {
+  const res = await fetch(`${BASE}${path}`, { method: 'GET', credentials: 'include' });
+  if (!res.ok) {
+    const data: unknown = await res.json().catch(() => null);
+    raiseError(res, data, path);
+  }
+  const blob = await res.blob();
+  const name = filenameFromDisposition(res.headers.get('Content-Disposition')) ?? fallbackName;
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = name;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+}

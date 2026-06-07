@@ -84,6 +84,16 @@ pointer-events:none; filter:grayscale(.45)}`) or an **A–Z on-screen keyboard**
   States: idle (keypad disabled) · qty-edit (keypad active, row `.sel.qmode`) ·
   name-edit (A–Z + `.cook-ac` open) · unit-menu open · validate/cancel.
 
+## Typed-confirmation modal (irreversible actions)
+
+confirm-size. A stronger confirm for **irreversible, account-wide** actions (the Données
+wipe / import-replace, IMP-1). Same shell as the archive confirm, plus a single text field:
+the danger button stays **disabled until the user types the exact word** shown in the prompt
+(`common.typedConfirm` — e.g. "EFFACER"/"DELETE", "REMPLACER"/"REPLACE"; the word is localized).
+Body = a short consequence statement (the destroyed scope bolded) + the prompt label + the field;
+Enter submits when the word matches. Footer: right-aligned ghost **Annuler** + danger confirm.
+States: open (button disabled) · word matches (button enabled) · pending (both disabled) · confirm.
+
 ## States (all modals)
 
 closed · open (scrim + panel) · scroll (long body) · blocked/warn (where the

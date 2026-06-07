@@ -96,6 +96,8 @@ target_zone:{cal_min,cal_max}, signals:[{code,value,text}]}`.
 
 - `GET/PATCH /settings` — `{locale,theme,llm_endpoint?}` (llm_endpoint stored,
   unused in v1).
+- **Data management** (the Paramètres "Données" section — export / wipe / import) lives under
+  `/api/v1/data`; see `data-export-import.md` (IMP-1).
 - `GET /meal-template` · `POST /meal-template` (add) ·
   `PATCH /meal-template/:id` (rename/reorder) · `DELETE /meal-template/:id`.
 - `GET /pantry?meal_slot_name=` — list. `POST /pantry`

@@ -62,7 +62,8 @@
     "close": "Close",
     "optional": "(optional)",
     "loading": "Loading…",
-    "loadError": "Couldn't load. Showing cached data; try again later."
+    "loadError": "Couldn't load. Showing cached data; try again later.",
+    "typedConfirm": "Type “{{word}}” to confirm."
   },
   "foods": {
     "title": "Foods",
@@ -684,6 +685,36 @@
       "label": "AI advice & analysis",
       "note": "Optional, isolated module — not available in v1. The app works fully without it.",
       "configure": "Configure"
+    },
+    "data": {
+      "title": "Data",
+      "export": {
+        "label": "Export my data",
+        "desc": "Download a JSON file with all your content (foods, recipes, journal, weigh-ins, targets…), excluding credentials.",
+        "button": "Export"
+      },
+      "import": {
+        "label": "Import an extract",
+        "desc": "Restore a previously exported file. Replaces all your current data with the file's contents.",
+        "button": "Import…",
+        "modalTitle": "Import and replace?",
+        "modalBody": "All your current content will be <b>permanently replaced</b> by the file's. Your sign-in credentials are unchanged. This cannot be undone.",
+        "word": "REPLACE",
+        "confirm": "Import and replace"
+      },
+      "wipe": {
+        "label": "Delete all my data",
+        "desc": "Removes foods, recipes, journal, weigh-ins, targets and containers. Your account, profile and default day structure are kept.",
+        "button": "Delete all",
+        "modalTitle": "Delete all my data?",
+        "modalBody": "All your content (foods, recipes, days, weigh-ins, targets, containers) will be <b>permanently deleted</b>. Your account, profile and default day structure are kept. This cannot be undone.",
+        "word": "DELETE",
+        "confirm": "Delete all"
+      },
+      "exportError": "Export failed. Please try again.",
+      "parseError": "Unreadable file: not a valid Macronome extract.",
+      "importError": "Import failed: invalid or incompatible extract.",
+      "wipeError": "Deletion failed. Please try again."
     }
   },
   "containers": {

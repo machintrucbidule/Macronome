@@ -10,6 +10,7 @@ import { applyTrustProxy } from './http/middleware/trustProxy.js';
 import { serveSpa } from './http/spa.js';
 import authRoutes from './http/routes/auth.js';
 import containersRoutes from './http/routes/containers.js';
+import dataRoutes from './http/routes/data.js';
 import daysRoutes from './http/routes/days.js';
 import foodsRoutes from './http/routes/foods.js';
 import healthRoutes from './http/routes/health.js';
@@ -36,7 +37,8 @@ export function createApp(): Express {
   applyTrustProxy(app);
   app.use(securityHeaders());
   app.use(pinoHttp({ logger }));
-  app.use(express.json());
+  // 25 MB body cap so a full data import (IMP-1) fits; ordinary payloads are tiny.
+  app.use(express.json({ limit: '25mb' }));
   app.use(sessionMiddleware);
   app.use(csrf);
   app.use(tenantContext);
@@ -59,6 +61,7 @@ export function createApp(): Express {
   app.use('/api/v1/containers', containersRoutes);
   app.use('/api/v1/meal-template', mealTemplateRoutes);
   app.use('/api/v1/pantry', pantryRoutes);
+  app.use('/api/v1/data', dataRoutes);
 
   // Serve the built SPA from the same origin in prod (ADR-0001); inert in dev.
   if (env.WEB_DIST) serveSpa(app, env.WEB_DIST);

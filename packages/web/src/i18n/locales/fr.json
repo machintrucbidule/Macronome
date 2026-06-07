@@ -62,7 +62,8 @@
     "close": "Fermer",
     "optional": "(optionnel)",
     "loading": "Chargement…",
-    "loadError": "Échec du chargement. Affichage des données en cache ; réessayez plus tard."
+    "loadError": "Échec du chargement. Affichage des données en cache ; réessayez plus tard.",
+    "typedConfirm": "Tape « {{word}} » pour confirmer."
   },
   "foods": {
     "title": "Aliments",
@@ -684,6 +685,36 @@
       "label": "Conseils & analyses par IA",
       "note": "Module optionnel et isolé, non disponible en v1. L'app fonctionne entièrement sans.",
       "configure": "Configurer"
+    },
+    "data": {
+      "title": "Données",
+      "export": {
+        "label": "Exporter mes données",
+        "desc": "Télécharge un fichier JSON avec tout ton contenu (aliments, recettes, journal, pesées, cibles…), hors identifiants.",
+        "button": "Exporter"
+      },
+      "import": {
+        "label": "Importer un extrait",
+        "desc": "Restaure un fichier précédemment exporté. Remplace l'intégralité de tes données actuelles par celles du fichier.",
+        "button": "Importer…",
+        "modalTitle": "Importer et remplacer ?",
+        "modalBody": "Tout ton contenu actuel sera <b>définitivement remplacé</b> par celui du fichier. Tes identifiants de connexion ne changent pas. Cette action est irréversible.",
+        "word": "REMPLACER",
+        "confirm": "Importer et remplacer"
+      },
+      "wipe": {
+        "label": "Effacer toutes mes données",
+        "desc": "Supprime aliments, recettes, journal, pesées, cibles et contenants. Ton compte, ton profil et la structure de journée par défaut sont conservés.",
+        "button": "Tout effacer",
+        "modalTitle": "Effacer toutes mes données ?",
+        "modalBody": "Tout ton contenu (aliments, recettes, journées, pesées, cibles, contenants) sera <b>définitivement supprimé</b>. Ton compte, ton profil et la structure de journée par défaut sont conservés. Cette action est irréversible.",
+        "word": "EFFACER",
+        "confirm": "Tout effacer"
+      },
+      "exportError": "L'export a échoué. Réessaye.",
+      "parseError": "Fichier illisible : ce n'est pas un extrait Macronome valide.",
+      "importError": "L'import a échoué : extrait invalide ou incompatible.",
+      "wipeError": "La suppression a échoué. Réessaye."
     }
   },
   "containers": {

@@ -27,6 +27,10 @@ export enum ErrorCode {
   PantryDuplicate = 'pantry_duplicate',
   CopySourceEmpty = 'copy_source_empty',
 
+  // data export / import (IMP-1)
+  ImportInvalidFormat = 'import_invalid_format',
+  ImportUnsupportedVersion = 'import_unsupported_version',
+
   // reserved (inert in v1)
   NotImplemented = 'not_implemented',
 }
