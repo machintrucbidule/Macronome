@@ -3,10 +3,12 @@ import type { DayAggregate } from '../data/repositories/day-read.repo.js';
 import { dayReadRepo } from '../data/repositories/day-read.repo.js';
 import {
   autoVerdict,
+  dayState,
   effectiveVerdict,
   type ResolvedSnapshot,
 } from '../domain/day-verdict/index.js';
 import { computeDayTotals } from './day-assembler.js';
+import { isFuture } from './day-context.js';
 
 // Journal service (spec/api/days-meals-leftover.md §Journal). A read-only history view:
 // one row per logged day of a year, newest first. Verdicts use each day's STORED snapshot
@@ -23,8 +25,14 @@ function toRow(aggregate: DayAggregate): JournalRow {
   const kcal = isSummary ? num(dayLog.summaryKcal ?? 0) : totals!.kcal;
   const auto = autoVerdict(kcal, snapshot.cal_min, snapshot.cal_max);
   const override = (dayLog.verdictOverride ?? null) as Verdict | null;
+  const date = dayLog.date.toISOString().slice(0, 10);
+  const kind = dayLog.kind as 'detailed' | 'summary';
+  const state = dayState({ kind, dayKcal: kcal, isFuture: isFuture(date) });
+  // The Calories cell is inline-editable on any day with no real detail (not green) — typing
+  // a total creates/updates a summary day (no provenance distinction; see logic §9).
+  const editableKcal = state !== 'green';
   return {
-    date: dayLog.date.toISOString().slice(0, 10),
+    date,
     kcal,
     macros: totals ? { L: totals.fat, G: totals.carb, P: totals.protein } : null,
     verdict_auto: auto,
@@ -32,7 +40,9 @@ function toRow(aggregate: DayAggregate): JournalRow {
     effective_verdict: effectiveVerdict(override, auto),
     activity_level: dayLog.activityLevel,
     comment: dayLog.comment,
-    kind: dayLog.kind as 'detailed' | 'summary',
+    kind,
+    state,
+    editable_kcal: editableKcal,
   };
 }
 

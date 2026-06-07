@@ -15,6 +15,8 @@ function row(p: Partial<JournalRow> & { date: string }): JournalRow {
     activity_level: p.activity_level ?? 'sedentary',
     comment: p.comment ?? null,
     kind: p.kind ?? 'detailed',
+    state: p.state ?? 'green',
+    editable_kcal: p.editable_kcal ?? false,
   };
 }
 

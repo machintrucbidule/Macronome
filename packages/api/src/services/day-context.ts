@@ -20,6 +20,11 @@ export function isPast(date: string): boolean {
   return date < todayString();
 }
 
+/** A planned/future date (strictly after today) — drives the day-state derivation (§8). */
+export function isFuture(date: string): boolean {
+  return date > todayString();
+}
+
 export interface DayContext {
   profile: ProfileRow;
   weightKg: number | null;

@@ -16,6 +16,12 @@ export type Verdict = z.infer<typeof VerdictSchema>;
 export const EntryUnitSchema = z.enum(['g', 'ml', 'kg', 'portion']);
 export type EntryUnit = z.infer<typeof EntryUnitSchema>;
 
+/** A day's calorie-driven state (spec/logic/day-snapshot-verdict.md §8): none (future,
+ *  no data) · green (detailed Σ>0) · yellow (summary) · red (past/present, no calorie value).
+ *  Derived server-side; the web only renders it (CLAUDE.md rule 2). */
+export const DayStateSchema = z.enum(['none', 'green', 'yellow', 'red']);
+export type DayState = z.infer<typeof DayStateSchema>;
+
 // --- Response shapes -------------------------------------------------------
 
 /** The target values frozen on a day (cal range + macro thresholds; OPEN_GAPS #1). */
@@ -244,6 +250,11 @@ export interface JournalRow {
   activity_level: string;
   comment: string | null;
   kind: 'detailed' | 'summary';
+  /** Calorie-driven state for the trame coloring (spec/logic/day-snapshot-verdict.md §8). */
+  state: DayState;
+  /** Whether the Journal Calories cell is inline-editable: any day with no real meal detail
+   *  (not green) — typing a total creates/updates a summary (yellow) day. */
+  editable_kcal: boolean;
 }
 
 export interface JournalResponse {
