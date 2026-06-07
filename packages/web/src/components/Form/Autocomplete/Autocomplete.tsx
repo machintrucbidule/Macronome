@@ -80,7 +80,7 @@ function AutocompleteList({
           onMouseEnter={() => onHover(i)}
         >
           <span className={styles.nm}>
-            {highlightMatch(item.name, query, styles.em)}
+            <span className={styles.name}>{highlightMatch(item.name, query, styles.em)}</span>
             {item.tag && <span className={styles.tag}>{item.tag}</span>}
           </span>
           {item.meta && <span className={styles.meta}>{item.meta}</span>}

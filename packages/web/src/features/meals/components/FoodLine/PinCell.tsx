@@ -32,6 +32,7 @@ export function PinCell({ mealId, entryId, isPinned, show }: PinCellProps) {
     <button
       type="button"
       className={className}
+      tabIndex={-1}
       title={title}
       aria-pressed={isPinned}
       onClick={() => void actions.togglePin(mealId, entryId, isPinned)}

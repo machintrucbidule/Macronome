@@ -85,6 +85,11 @@
   align-items: center;
   gap: 4px;
 }
+.nm:focus-visible {
+  outline: 1px solid var(--focus);
+  outline-offset: -1px;
+  border-radius: var(--r-sm);
+}
 .pen {
   color: var(--text-faint);
   font-size: var(--fs-10);

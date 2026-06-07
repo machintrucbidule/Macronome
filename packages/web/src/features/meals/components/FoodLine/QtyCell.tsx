@@ -77,6 +77,10 @@ export function QtyCell({ mealId, mealIndex, entry }: QtyCellProps) {
   // gates the commit so focus+blur without a keystroke never overwrites served with consumed.
   const [dirty, setDirty] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  // B-104: select-on-focus alone is unreliable — the click's mouseup collapses the selection.
+  // Flag a focusing click on mousedown so its mouseup keeps the focus-time selection (a click
+  // on an already-focused field still places the caret normally). Conforms meals.md §119.
+  const selectOnUp = useRef(false);
 
   useEffect(() => {
     setValue(restValue(entry));
@@ -139,6 +143,15 @@ export function QtyCell({ mealId, mealIndex, entry }: QtyCellProps) {
         inputMode="decimal"
         onChange={(e) => onChange(e.target.value)}
         onFocus={(e) => e.target.select()}
+        onMouseDown={() => {
+          selectOnUp.current = document.activeElement !== inputRef.current;
+        }}
+        onMouseUp={(e) => {
+          if (selectOnUp.current) {
+            e.preventDefault(); // keep the focus-time selection (B-104)
+            selectOnUp.current = false;
+          }
+        }}
         onBlur={commit}
         onKeyDown={onKeyDown}
         onClick={(e) => e.stopPropagation()}

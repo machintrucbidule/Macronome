@@ -67,6 +67,42 @@ function EmptyLine({
   );
 }
 
+// The food-name cell: a keyboard tab stop in the name↔qty serpentine (meals.md §113, B-105).
+// Enter/Space opens its editor, like the click. Custom lines show the manual pen.
+function NameCell({
+  name,
+  isCustom,
+  onOpen,
+}: {
+  name: string;
+  isCustom: boolean;
+  onOpen: () => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <div
+      className={styles.nm}
+      title={name}
+      role="button"
+      tabIndex={0}
+      onClick={onOpen}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onOpen();
+        }
+      }}
+    >
+      {name}
+      {isCustom && (
+        <span className={styles.pen} title={t('meals.line.manual')}>
+          ✎
+        </span>
+      )}
+    </div>
+  );
+}
+
 function EntryRow({
   mealId,
   mealIndex,
@@ -90,6 +126,10 @@ function EntryRow({
   // A pinned line is a garde-manger food: accent left-border + filled pin. Pantry is food-based,
   // so the pin only shows on referenced lines (custom lines have no food_id; see PinCell).
   const showPin = !isCustom;
+  const openEdit = (): void =>
+    isCustom
+      ? actions.openCustom(mealId, mealIndex, entry.id)
+      : actions.startEdit(mealId, mealIndex, entry.id);
 
   return (
     <div
@@ -103,22 +143,7 @@ function EntryRow({
         onDragEnd={dnd.onDragEnd}
         title={t('meals.line.dragHint')}
       />
-      <div
-        className={styles.nm}
-        title={name}
-        onClick={() =>
-          isCustom
-            ? actions.openCustom(mealId, mealIndex, entry.id)
-            : actions.startEdit(mealId, mealIndex, entry.id)
-        }
-      >
-        {name}
-        {isCustom && (
-          <span className={styles.pen} title={t('meals.line.manual')}>
-            ✎
-          </span>
-        )}
-      </div>
+      <NameCell name={name} isCustom={isCustom} onOpen={openEdit} />
       {isCustom ? (
         <span className={styles.qtyCustom}>
           {entry.served_grams ? `${r0(entry.served_grams)} g` : '—'}
@@ -136,6 +161,7 @@ function EntryRow({
       <button
         type="button"
         className={styles.del}
+        tabIndex={-1}
         title={t('common.remove')}
         onClick={() => void actions.deleteEntry(mealId, entry.id)}
       >

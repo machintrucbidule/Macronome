@@ -58,6 +58,16 @@
   display: flex;
   align-items: center;
   gap: var(--sp-3);
+  min-width: 0;
+}
+/* B-106: the name fragments (prefix / <em> / suffix from highlightMatch) live in one inline
+   span so the .nm flex gap no longer opens a hole between the highlight and the rest; the gap
+   now only spaces name↔tag. The name ellipsizes instead of wrapping on long entries. */
+.name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 .em {
   color: var(--accent);
