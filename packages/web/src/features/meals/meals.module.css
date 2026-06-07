@@ -440,8 +440,12 @@
 }
 
 @media (max-width: 900px) {
+  /* Calorie card full-width, the three macro cards in a row, verdict below. */
   .totals {
     grid-template-columns: 1fr 1fr 1fr;
+  }
+  .totals > :first-child {
+    grid-column: 1 / -1;
   }
   .verdict {
     grid-column: 1 / -1;
@@ -452,14 +456,41 @@
   .scroller {
     flex-direction: column;
     overflow-x: visible;
+    gap: var(--sp-6);
   }
   .navArrow,
   .hbar {
     display: none !important;
   }
+  /* B-055: each meal full-width; flex-basis must not become a fixed height when the scroller
+     stacks vertically (the inline width/flexBasis would otherwise clip & overlap the next meal). */
+  .col {
+    width: 100% !important;
+    flex-basis: auto !important;
+  }
+  /* B-053: only the date line stays pinned on mobile; the totals block scrolls with the page.
+     Un-stick the wrapper and make the daybar a full-bleed sticky strip with its own background. */
+  .sticky {
+    position: static;
+    box-shadow: none;
+    padding-top: 0;
+  }
+  .daybar {
+    position: sticky;
+    top: var(--appbar-h);
+    z-index: var(--z-sticky-sub);
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    margin: 0 calc(-1 * var(--page-gutter)) var(--sp-5);
+    padding: 11px var(--page-gutter);
+  }
 }
 @media (max-width: 520px) {
+  /* B-054: kcal full-width (from ≤900), then lipides|glucides, then protéines|verdict. */
   .totals {
     grid-template-columns: 1fr 1fr;
+  }
+  .verdict {
+    grid-column: auto;
   }
 }

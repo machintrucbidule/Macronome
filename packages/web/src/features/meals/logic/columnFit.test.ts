@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { columnFit, TARGET_COL_WIDTH } from './columnFit';
+import { columnFit, hasOverflow, TARGET_COL_WIDTH } from './columnFit';
 
 // View-only geometry oracle: n = round(width / 400), colWidth = floor(width / n).
 describe('columnFit', () => {
@@ -24,5 +24,22 @@ describe('columnFit', () => {
   it('uses the canonical 400px target width by default', () => {
     expect(TARGET_COL_WIDTH).toBe(400);
     expect(columnFit(800).columns).toBe(2);
+  });
+});
+
+// B-075: overflow ⇔ more meals than fitting columns. These cases stay correct even when the
+// `floor` leaves a sub-pixel residual (width=1000), where the old DOM scrollWidth check flagged
+// a phantom scrollbar.
+describe('hasOverflow', () => {
+  it('reports no overflow when meals fit the integer-fit columns', () => {
+    expect(hasOverflow(1200, 3)).toBe(false); // 3 columns, 3 meals
+    expect(hasOverflow(1000, 3)).toBe(false); // 3 columns (floor residual), 3 meals — no phantom
+    expect(hasOverflow(360, 1)).toBe(false); // 1 column, 1 meal
+  });
+
+  it('reports overflow when meals exceed the fitting columns', () => {
+    expect(hasOverflow(1200, 4)).toBe(true); // 3 columns, 4 meals
+    expect(hasOverflow(1000, 4)).toBe(true);
+    expect(hasOverflow(360, 2)).toBe(true); // 1 column, 2 meals
   });
 });

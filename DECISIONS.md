@@ -818,3 +818,29 @@ selector). **Code:** shared `dto/day.ts` (`JournalResponse.min_year/max_year`); 
 `JournalPage.tsx`, `components/JournalTable.tsx`, `components/JournalHeader.tsx`. Tests:
 `packages/api/test/integration/journal.test.ts` (new), `packages/web/src/features/journal/sort.test.ts`
 (new). No DB/schema change, no design-token change.
+
+## BF-10 — Meals mobile responsive (B-053/B-054) — RESOLVED (author)
+
+Post-v1 backlog triage (batch BF-10, mixed). Two of the four items diverged from the local Meals
+spec's §Responsive section and needed a contract amendment (the other two, B-055/B-075, are pure
+bug-fixes that already conformed). Decided with the author. No DB/schema/API change.
+
+- **B-053 — totals not pinned on mobile.** The spec previously said "the sticky day header +
+  totals remain pinned in all sizes", but on mobile the stacked totals banner ate almost the whole
+  viewport. **Decision (author):** on mobile (≤ 760px) **only the date line stays pinned**; the
+  totals block scrolls with the page. Desktop/tablet keep the full sticky header. Rationale: keep a
+  fixed date reference while logging without a tall pinned banner crowding out the meals.
+
+- **B-054 — mobile totals layout.** The spec's reflow text put the verdict on its own row.
+  **Decision (author):** on small screens (≤ 520px) the totals reflow to **kcal full-width**, then
+  **lipides | glucides**, then **protéines | (activité · OK/NOK · dépense)** — i.e. the
+  activity/verdict cluster shares a row with the protein card (more compact, fewer stacked rows).
+
+**Spec impact:** `specifications/screens/meals.md` §Responsive (≤ 760px date-line-only pinning;
+≤ 520px protein|verdict layout; pinning bullet reworded). **Code (web only):**
+`features/meals/meals.module.css` (the three `@media` blocks). B-055 (full-width stacked meals via
+`.col { width:100% !important; flex-basis:auto !important }`) and B-075 (phantom scrollbar — gate
+the scroller chrome on a DOM-free `hasOverflow(width, mealCount)` instead of reading `scrollWidth`)
+are bug-fixes: `features/meals/logic/columnFit.ts` (`hasOverflow`),
+`components/MealScroller/MealScroller.tsx`, test `logic/columnFit.test.ts`. No DB/schema/API change,
+no design-token change.
