@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render } from '@testing-library/react';
+import { cleanup, fireEvent, render } from '@testing-library/react';
 import type { DayConstat } from '@macronome/shared';
 import i18n from '../../../../i18n/config';
 import { MealsProvider } from '../../MealsContext';
@@ -26,18 +26,22 @@ function renderCluster(activityLevel: string, constat: DayConstat) {
   );
 }
 
-describe('VerdictCluster (B-033/B-038)', () => {
-  it('has no "Non définie" activity option and selects the given level', () => {
+describe('VerdictCluster (B-033/B-038, B-085)', () => {
+  it('renders the 5 activity levels in a verdict-style menu and reflects the current level', () => {
     const { container } = renderCluster('sedentary', {
       estimated_burn: null,
       deficit: null,
       kg_per_week: null,
       per_level_activity_burn: null,
     });
-    const select = container.querySelector('select') as HTMLSelectElement;
-    expect([...select.options].some((o) => o.value === '')).toBe(false);
-    expect(select.options.length).toBe(5);
-    expect(select.value).toBe('sedentary');
+    // B-085: the native <select> is gone — it is now a clickable badge + dropdown menu.
+    expect(container.querySelector('select')).toBeNull();
+    const trigger = container.querySelector('[aria-haspopup="listbox"]') as HTMLElement;
+    expect(trigger.textContent).toContain(i18n.t('activity.sedentary.label'));
+    fireEvent.click(trigger);
+    const options = container.querySelectorAll('[role="option"]');
+    expect(options.length).toBe(5);
+    expect([...options].filter((o) => o.getAttribute('aria-selected') === 'true').length).toBe(1);
   });
 
   it('renders the burn/deficit readout when a burn exists (no "constat" caption)', () => {

@@ -55,10 +55,6 @@
   flex: 1;
   min-width: 180px;
 }
-.dcIcon {
-  color: var(--text-faint);
-  font-size: var(--fs-12);
-}
 .dayComment input {
   flex: 1;
   background: var(--bg-field);
@@ -182,7 +178,7 @@
 .totals {
   display: grid;
   grid-template-columns: 1.5fr 1fr 1fr 1fr auto;
-  gap: var(--sp-5);
+  gap: var(--sp-4);
   align-items: stretch;
 }
 .verdict {
@@ -288,20 +284,6 @@
 .actHelpDesc {
   font-size: var(--fs-11);
   color: var(--text-dim);
-}
-.actSelect {
-  font-family: var(--font-num);
-  font-size: var(--fs-11);
-  background: var(--bg-elev-2);
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  color: var(--text);
-  padding: 5px 8px;
-  cursor: pointer;
-}
-.actSelect:focus {
-  outline: none;
-  border-color: var(--focus);
 }
 .constat {
   font-family: var(--font-num);

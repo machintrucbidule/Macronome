@@ -18,9 +18,6 @@ export function DayCommentField({ comment }: Props) {
 
   return (
     <div className={styles.dayComment}>
-      <span className={styles.dcIcon} title={t('meals.commentTitle')}>
-        ✎
-      </span>
       <input
         value={value}
         placeholder={t('meals.commentPlaceholder')}

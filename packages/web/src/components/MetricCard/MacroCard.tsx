@@ -2,7 +2,7 @@ import { formatInt } from '../../lib/format/number';
 import styles from './BandCard.module.css';
 
 // Macro card with a directional threshold bar (design/components/metric-cards.md):
-// floor (protein, fat) → OK when value ≥ threshold; ceiling (carb) → OK when value ≤ threshold.
+// floor (protein, fat) → OK when value ≥ threshold; ceiling (carb) → OK when value ≥/≤ threshold.
 // Value (consumed) and threshold come from the server; this positions the bar and picks the word.
 
 interface MacroCardProps {
@@ -13,6 +13,41 @@ interface MacroCardProps {
   thresholdText: string;
   status: { ok: string; bad: string };
   unit: string;
+  /** Partiel (summary) day: only kcal is meaningful, so show "—" and no bar/status (B-086). */
+  muted?: boolean;
+}
+
+// The directional zone/fill bar, extracted so MacroCard itself stays simple. The notch (B-044)
+// sits above the fill so the threshold stays legible over any zone colour.
+function MacroBar({
+  value,
+  threshold,
+  ceiling,
+  ok,
+}: {
+  value: number;
+  threshold: number;
+  ceiling: boolean;
+  ok: boolean;
+}) {
+  const scaleMax = threshold * 1.7 || 1;
+  const thrPct = (threshold / scaleMax) * 100;
+  const fillPct = (Math.min(value, scaleMax) / scaleMax) * 100;
+  const okMix = 'color-mix(in srgb, var(--ok) 22%, transparent)';
+  const nokMix = 'color-mix(in srgb, var(--nok) 22%, transparent)';
+  const band = ceiling
+    ? `linear-gradient(90deg, ${okMix} 0 ${thrPct}%, ${nokMix} ${thrPct}% 100%)`
+    : `linear-gradient(90deg, ${nokMix} 0 ${thrPct}%, ${okMix} ${thrPct}% 100%)`;
+
+  return (
+    <div className={styles.bar} style={{ background: band }}>
+      <span
+        className={styles.fill}
+        style={{ width: `${fillPct}%`, background: ok ? 'var(--ok)' : 'var(--nok)' }}
+      />
+      <span className={styles.tick} style={{ left: `${thrPct}%` }} />
+    </div>
+  );
 }
 
 export function MacroCard({
@@ -23,42 +58,24 @@ export function MacroCard({
   thresholdText,
   status,
   unit,
+  muted = false,
 }: MacroCardProps) {
-  const hasThreshold = threshold !== null;
   const ceiling = mode === 'ceiling';
-  const ok = !hasThreshold || (ceiling ? value <= threshold : value >= threshold);
-
-  const base = threshold ?? 0;
-  const scaleMax = base * 1.7 || 1;
-  const thrPct = (base / scaleMax) * 100;
-  const fillPct = (Math.min(value, scaleMax) / scaleMax) * 100;
-
-  const okMix = 'color-mix(in srgb, var(--ok) 22%, transparent)';
-  const nokMix = 'color-mix(in srgb, var(--nok) 22%, transparent)';
-  const band = ceiling
-    ? `linear-gradient(90deg, ${okMix} 0 ${thrPct}%, ${nokMix} ${thrPct}% 100%)`
-    : `linear-gradient(90deg, ${nokMix} 0 ${thrPct}%, ${okMix} ${thrPct}% 100%)`;
+  const ok = threshold === null || (ceiling ? value <= threshold : value >= threshold);
+  const stateClass = muted ? '' : ok ? styles.good : styles.bad;
 
   return (
-    <div className={[styles.card, ok ? styles.good : styles.bad].join(' ')}>
+    <div className={[styles.card, stateClass].filter(Boolean).join(' ')}>
       <div className={styles.top}>
         <span className={styles.label}>{label}</span>
         <span className={styles.thr}>{thresholdText}</span>
       </div>
-      {hasThreshold && (
-        <div className={styles.bar} style={{ background: band }}>
-          <span
-            className={styles.fill}
-            style={{ width: `${fillPct}%`, background: ok ? 'var(--ok)' : 'var(--nok)' }}
-          />
-          <span className={styles.tick} style={{ left: `${thrPct}%` }} />
-        </div>
+      {threshold !== null && !muted && (
+        <MacroBar value={value} threshold={threshold} ceiling={ceiling} ok={ok} />
       )}
       <div className={styles.bot}>
-        <span className={styles.val}>
-          {formatInt(value)} {unit}
-        </span>
-        <span className={styles.status}>{ok ? status.ok : status.bad}</span>
+        <span className={styles.val}>{muted ? '—' : `${formatInt(value)} ${unit}`}</span>
+        {!muted && <span className={styles.status}>{ok ? status.ok : status.bad}</span>}
       </div>
     </div>
   );

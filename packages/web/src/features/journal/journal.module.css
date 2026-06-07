@@ -142,21 +142,6 @@
   color: var(--c-prot);
 }
 
-.activity {
-  font-family: var(--font-num);
-  font-size: var(--fs-11);
-  background: var(--bg-elev-2);
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  color: var(--text);
-  padding: 4px 7px;
-  cursor: pointer;
-}
-.activity:focus {
-  outline: none;
-  border-color: var(--focus);
-}
-
 .commentCell {
   width: 32%;
 }

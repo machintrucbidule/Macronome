@@ -31,7 +31,7 @@
   display: flex;
   align-items: center;
   gap: var(--sp-2);
-  padding: 11px 12px;
+  padding: 8px 12px;
   border-bottom: 1px solid var(--border);
   background: var(--bg-elev);
 }
@@ -119,7 +119,7 @@
 }
 .totalRow {
   composes: row from '../FoodLine/food-line.module.css';
-  padding: 9px 10px;
+  padding: 7px 10px;
 }
 .restes {
   grid-column: 1 / span 2;

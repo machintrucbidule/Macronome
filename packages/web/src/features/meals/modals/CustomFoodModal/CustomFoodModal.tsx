@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { useId, useState, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal, modalStyles } from '../../../../components/Modal/Modal';
 import { Button } from '../../../../components/Button/Button';
@@ -30,6 +30,8 @@ export function CustomFoodModal({ target, initial }: CustomFoodModalProps) {
   const [carb, setCarb] = useState(initial ? String(initial.snap.carb) : '');
   const [protein, setProtein] = useState(initial ? String(initial.snap.protein) : '');
 
+  const isValid = numOr0(kcal) > 0;
+
   const save = (): void => {
     const k = numOr0(kcal);
     const w = numOr0(weight);
@@ -39,6 +41,15 @@ export function CustomFoodModal({ target, initial }: CustomFoodModalProps) {
       servedGrams: w > 0 ? w : null,
       snap: { kcal: k, fat: numOr0(fat), carb: numOr0(carb), protein: numOr0(protein) },
     });
+  };
+
+  // Enter submits when the form is valid (B-087); no-op otherwise. The Modal is a div, not a
+  // <form>, so the key is caught on the body wrapper rather than via native form submission.
+  const onKeyDown = (e: KeyboardEvent): void => {
+    if (e.key === 'Enter' && isValid) {
+      e.preventDefault();
+      save();
+    }
   };
 
   const field = (
@@ -72,7 +83,7 @@ export function CustomFoodModal({ target, initial }: CustomFoodModalProps) {
       title={t(initial ? 'meals.custom.editTitle' : 'meals.custom.addTitle')}
       onClose={actions.closeCustom}
     >
-      <div className={modalStyles.body}>
+      <div className={modalStyles.body} onKeyDown={onKeyDown}>
         <p className={styles.sub}>{t('meals.custom.sub')}</p>
         <div className={styles.cuGrid}>
           {field('name', t('meals.custom.name'), name, setName, false, true)}

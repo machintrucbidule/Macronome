@@ -12,7 +12,8 @@ At `lg`(≤900) → `1fr 1fr 1fr` with kcal and verdict spanning full width; at
 ## Card anatomy `.card`
 
 `border:1px solid var(--border); border-radius:var(--r-md);
-background:var(--bg-elev); padding:9px 12px; flex column; gap:7px`.
+background:var(--bg-elev); padding:7px 10px; flex column; gap:5px` (Repas density trim,
+B-089 — was `9px 12px`/`gap:7px`).
 
 - **c-top**: label (`--font-num; --fs-11; uppercase; ls .05em; color:var(--text)`)
   - threshold text (`.c-thr`, `--fs-10; color:var(--text-faint)`,
@@ -72,13 +73,24 @@ Three modes:
   (B-037; was `SOUS`). EN: `Below`.
 - **negative carb ceiling** (carb ceiling ≤ 0): show the **real** value + the
   inconsistency warning — not clamped. See `toasts-warnings.md`.
+- **no value (Partiel/summary day macros, B-086)**: on a Partiel day only the calorie total
+  is meaningful (DK-1 / B-079), so each macro card keeps its label + target text but renders
+  the value as **`—`**, **hides the bar**, and **omits the status word** — the card stays
+  neutral (no `.good`/`.bad`). Only the editable Calories card shows a band on a Partiel day.
 
 ## Verdict cluster (right cell)
 
 `.verdict` column, right-aligned, `min-width:150px`:
 
-- **Activity select** (`.act-wrap` + `.act-select`): a tiny labelled `<select>`
-  (`--font-num; --fs-11; bg-elev-2`), per-day activity multiplier. A **"?" help button**
+- **Activity select** (`.act-wrap` + the shared `SelectMenu`): per-day activity multiplier,
+  styled like the OK/NOK/Auto verdict menu (B-085) — a clickable badge trigger
+  (`--font-num; --fs-11; bg-elev-2; border; r-sm` + caret) opening a dropdown (`bg-elev-2;
+border-strong; r-md; shadow`; closes on outside-click / Escape), **not** a native `<select>`.
+  The five levels carry a leading colour dot on a **non-linear scale**: **Sédentaire →
+  `--nok`** (red), a jump to **Léger → `--accent`** (yellow), then a gradient through
+  **Modéré** (`color-mix(--ok 45%, --accent)`) and **Intense** (`color-mix(--ok 75%, --accent)`)
+  up to **Très intense → `--ok`** (green). The current level is highlighted in the menu.
+  The same control + colour map renders the Journal activity cell (`history.md`). A **"?" help button**
   beside it opens a legend popover (B-026) listing the five levels, each with a real
   **daily-activity** example (step counts where relevant) and the per-level **calories from
   activity alone** (kcal/day above the BMR, from `constat.per_level_activity_burn`); the kcal

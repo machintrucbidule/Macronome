@@ -26,7 +26,7 @@
 .line {
   composes: row;
   border-bottom: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
-  min-height: 32px;
+  min-height: 28px;
   position: relative;
 }
 .line:hover {

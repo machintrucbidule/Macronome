@@ -1,0 +1,30 @@
+/* Activity level → colour map (B-085). Non-linear: sedentary = red, a jump to lightly = yellow,
+   then a gradient through the upper three up to extremely = green. The colour rides a leading
+   dot so the label text stays at full contrast on any theme. Applied to both the menu item and
+   (for the current level) the SelectMenu trigger. */
+.dot::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 7px;
+  vertical-align: middle;
+  background: var(--act-dot, var(--text-faint));
+}
+
+.sedentary {
+  --act-dot: var(--nok);
+}
+.lightly {
+  --act-dot: var(--accent);
+}
+.moderate {
+  --act-dot: color-mix(in srgb, var(--ok) 45%, var(--accent));
+}
+.veryActive {
+  --act-dot: color-mix(in srgb, var(--ok) 75%, var(--accent));
+}
+.extreme {
+  --act-dot: var(--ok);
+}

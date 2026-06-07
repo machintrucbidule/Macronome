@@ -1123,3 +1123,39 @@ editor modes + freeze notice/recompute), new `components/TargetHistory.tsx`,
 **Spec impact:** `spec/api/weight-targets-stats-settings.md`, `spec/api/00-conventions.md`,
 `spec/logic/day-snapshot-verdict.md §3`, `specifications/screens/targets.md`,
 `design/components/data-tables.md`. **No DB/schema change.**
+
+## MX-1 / B-085, B-086, B-087, B-088, B-089 — Meals UX polish — RESOLVED (author, 2026-06-07)
+
+Improvement batch (web-only; **no DB/schema/API change**). Five Repas/Journal refinements where
+the behaviour/appearance differed from (or was unspecified by) the contract; the contract was
+amended first, then the code followed. Two behaviour decisions were taken with the author at plan
+time: B-085 becomes a **custom clickable menu** (not a styled native select), and B-089 is
+**applied** (it explicitly reverses the archived B-043 density decision).
+
+- **B-085 — Activity selector: verdict-style menu + level colours.** The per-day activity
+  selector (Repas) and the Journal activity cell stop being native `<select>`s and become a
+  clickable badge + dropdown menu styled like the OK/NOK/Auto verdict control (open/close +
+  outside-click + Escape). The five levels are colour-coded on a **non-linear scale** via a
+  leading dot: Sédentaire `--nok` (red) → a jump to Léger `--accent` (yellow) → Modéré
+  `color-mix(--ok 45%, --accent)` → Intense `color-mix(--ok 75%, --accent)` → Très intense
+  `--ok` (green). Implemented as a generic `components/SelectMenu` + an `components/ActivitySelect`
+  wrapper (the colour map) reused by both call sites.
+- **B-086 — Partiel day macro cards show "—".** On a Partiel (summary) day only the calorie
+  total is meaningful (DK-1/B-079), so each macro card keeps its label + target but renders the
+  value as `—`, hides the bar, and omits the status word (neutral card). New optional `muted`
+  prop on `MacroCard`, set from `day.kind === 'summary'` in `TotalsRow`.
+- **B-087 — Custom-food modal: Enter submits when valid.** Pressing Enter saves the custom food
+  when the form is valid (a positive kcal), no-op otherwise. The modal is a `<div>`, so the key
+  is handled on the body (`onKeyDown`), not via native form submission; the Save button is
+  unchanged.
+- **B-088 — Remove the pen (✎) icon left of the comment box.** Cosmetic; the glyph was never
+  specified. No real contract delta.
+- **B-089 — Reduce Repas vertical density (reverses B-043).** Metric-card padding `9px 12px →
+7px 10px` (gap `7 → 5`), meal-column header `11px 12px → 8px 12px`, food-line rows `32 → 28px`,
+  totals grid gap `--sp-5 → --sp-4`. Archived B-043 deliberately left density "as-is"; **this
+  reverses that** per the author's decision.
+
+**Spec impact:** `design/components/metric-cards.md` (activity menu + colour map; macro "no value"
+state; card density), `design/tokens.md` (density floor note), `design/components/modals.md`
+(Enter = primary action), `specifications/screens/meals.md` + `history.md`. **No DB/schema/API
+change.**

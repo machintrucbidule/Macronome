@@ -18,6 +18,7 @@ export function TotalsRow({ day }: TotalsRowProps) {
   const { actions } = useMeals();
   const s = day.target_snapshot;
   const macroStatus = { ok: t('meals.status.ok'), bad: t('meals.status.sous') };
+  const partiel = day.kind === 'summary';
 
   return (
     <div className={styles.totals}>
@@ -33,7 +34,7 @@ export function TotalsRow({ day }: TotalsRowProps) {
           over: t('meals.status.over'),
         }}
         unit="kcal"
-        editable={day.kind === 'summary'}
+        editable={partiel}
         onSave={(k) => void actions.setSummaryKcal(k)}
         placeholder={t('meals.card.caloriesPlaceholder')}
       />
@@ -47,6 +48,7 @@ export function TotalsRow({ day }: TotalsRowProps) {
         }
         status={macroStatus}
         unit="g"
+        muted={partiel}
       />
       <MacroCard
         label={t('meals.card.carb')}
@@ -58,6 +60,7 @@ export function TotalsRow({ day }: TotalsRowProps) {
         }
         status={{ ok: t('meals.status.ok'), bad: t('meals.status.depasse') }}
         unit="g"
+        muted={partiel}
       />
       <MacroCard
         label={t('meals.card.protein')}
@@ -71,6 +74,7 @@ export function TotalsRow({ day }: TotalsRowProps) {
         }
         status={macroStatus}
         unit="g"
+        muted={partiel}
       />
       <VerdictCluster activityLevel={day.activity_level} constat={day.constat} />
     </div>

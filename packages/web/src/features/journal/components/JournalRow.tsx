@@ -1,14 +1,13 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
-  ACTIVITY_LABEL_KEYS,
-  ACTIVITY_LEVELS,
   type ActivityLevel,
   type JournalRow as Row,
   type PatchDayRequest,
   type Verdict,
 } from '@macronome/shared';
 import { VerdictBadge } from '../../../components/VerdictBadge/VerdictBadge';
+import { ActivitySelect } from '../../../components/ActivitySelect/ActivitySelect';
 import { tableStyles } from '../../../components/DataTable/SortableTh';
 import { CommentCell } from './CommentCell';
 import { CaloriesCell } from './CaloriesCell';
@@ -85,21 +84,11 @@ export function JournalRow({ row, onPatch }: JournalRowProps) {
         />
       </td>
       <td>
-        <select
-          className={styles.activity}
-          value={row.activity_level}
-          onChange={(e) =>
-            onPatch(row.date, {
-              activity_level: e.target.value as ActivityLevel,
-            })
-          }
-        >
-          {ACTIVITY_LEVELS.map((lvl) => (
-            <option key={lvl} value={lvl}>
-              {t(ACTIVITY_LABEL_KEYS[lvl].label)}
-            </option>
-          ))}
-        </select>
+        <ActivitySelect
+          value={row.activity_level as ActivityLevel}
+          onChange={(lvl) => onPatch(row.date, { activity_level: lvl })}
+          ariaLabel={t('journal.col.activity')}
+        />
       </td>
       <td className={styles.commentCell}>
         <CommentCell

@@ -4,10 +4,10 @@
   border: 1px solid var(--border);
   border-radius: var(--r-md);
   background: var(--bg-elev);
-  padding: 9px 12px;
+  padding: 7px 10px;
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 5px;
 }
 .kcal {
   background: var(--bg-elev-2);

@@ -1,0 +1,63 @@
+/* Clickable-badge single-select, styled like the verdict OK/NOK/Auto menu
+   (VerdictBadge.module.css). Generic; option colour-coding is supplied by the caller. */
+.wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  padding: 5px 8px;
+  cursor: pointer;
+}
+.trigger:hover {
+  border-color: var(--border-strong);
+}
+.trigger:focus-visible {
+  outline: none;
+  border-color: var(--focus);
+}
+.caret {
+  font-size: var(--fs-10);
+  opacity: 0.6;
+}
+
+.menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: var(--z-menu);
+  min-width: 160px;
+  overflow: hidden;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow);
+}
+.menu button {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-num);
+  font-size: var(--fs-12);
+  padding: 9px 13px;
+  cursor: pointer;
+  text-align: left;
+}
+.menu button:hover {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+.menu button.selected {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  font-weight: var(--fw-bold);
+}

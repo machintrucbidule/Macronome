@@ -1,11 +1,7 @@
 import { useTranslation } from 'react-i18next';
-import {
-  ACTIVITY_LABEL_KEYS,
-  ACTIVITY_LEVELS,
-  type ActivityLevel,
-  type DayConstat,
-} from '@macronome/shared';
+import { type ActivityLevel, type DayConstat } from '@macronome/shared';
 import { useMeals } from '../../MealsContext';
+import { ActivitySelect } from '../../../../components/ActivitySelect/ActivitySelect';
 import { ActivityHelp } from './ActivityHelp';
 import { r0 } from '../../format';
 import { formatFixed } from '../../../../lib/format/number';
@@ -30,17 +26,11 @@ export function VerdictCluster({ activityLevel, constat }: VerdictClusterProps) 
           <span className={styles.actLabel}>{t('meals.activity.label')}</span>
           <ActivityHelp perLevelBurn={constat.per_level_activity_burn} />
         </div>
-        <select
-          className={styles.actSelect}
-          value={activityLevel}
-          onChange={(e) => void actions.setActivity(e.target.value as ActivityLevel)}
-        >
-          {ACTIVITY_LEVELS.map((lvl) => (
-            <option key={lvl} value={lvl}>
-              {t(ACTIVITY_LABEL_KEYS[lvl].label)}
-            </option>
-          ))}
-        </select>
+        <ActivitySelect
+          value={activityLevel as ActivityLevel}
+          onChange={(lvl) => void actions.setActivity(lvl)}
+          ariaLabel={t('meals.activity.label')}
+        />
       </div>
 
       <div className={styles.constat}>
