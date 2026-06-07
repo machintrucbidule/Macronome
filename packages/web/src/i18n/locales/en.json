@@ -45,6 +45,11 @@
     "female": "Female",
     "birthdate": "Date of birth",
     "height": "Height",
+    "targetsTitle": "My targets",
+    "calorieMin": "Calories min",
+    "calorieMax": "Calories max",
+    "proteinRatio": "Protein",
+    "fatRatio": "Fat",
     "back": "Back",
     "next": "Continue",
     "create": "Create account",
@@ -196,15 +201,12 @@
       "ratios": "Macro ratios",
       "proteinRatio": "Protein",
       "fatRatio": "Fat",
-      "carbNote": "Carbs are never entered: they are the computed remainder (ceiling on the right).",
-      "carbLabel": "Carbs — ceiling",
-      "carbValue": "= {{value}} g (computed)",
-      "carbPending": "computed",
+      "carbLabel": "Carbs",
+      "calculated": "computed",
       "goal": "Weight goal",
       "targetWeight": "Target weight",
       "rate": "Desired rate",
       "targetBmi": "Target BMI",
-      "targetBmiHint": "Derived from target weight and height",
       "presets": {
         "hint": "Click a suggestion to fill the field.",
         "aria": "Use {{value}} g/kg",
@@ -215,14 +217,6 @@
         "fatNormal": "Common — balanced intake for most people",
         "fatHigh": "Higher — better satiety, more fat-forward diet"
       }
-    },
-    "profile": {
-      "sex": "Sex",
-      "male": "Male",
-      "female": "Female",
-      "birthdate": "Birth date",
-      "height": "Height",
-      "save": "Update profile"
     },
     "engine": {
       "title": "Metabolic engine",
@@ -659,11 +653,20 @@
   "account": {
     "title": "Account",
     "credentials": "Credentials",
+    "profileInfo": "My information",
     "username": "Username",
     "password": "Password",
     "changePassword": "Change password",
     "session": "Session",
     "logout": "Log out",
+    "info": {
+      "sex": "Sex",
+      "male": "Male",
+      "female": "Female",
+      "birthdate": "Birth date",
+      "height": "Height",
+      "save": "Update profile"
+    },
     "modal": {
       "title": "Change password",
       "current": "Current password",

@@ -44,6 +44,39 @@
   font-size: var(--fs-13);
   color: var(--text-dim);
 }
+/* "Mes informations" frame — metabolic profile editor (sex / birth date / height), moved off
+   Cibles (B-060). A compact field grid + a save button, inside the account card body. */
+.infoForm {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr) auto;
+  gap: var(--sp-5);
+  align-items: end;
+  padding: var(--sp-5) 0;
+}
+@media (max-width: 520px) {
+  .infoForm {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.fieldLabel {
+  font-size: var(--fs-12);
+  color: var(--text-dim);
+}
+.select {
+  height: var(--control-h-md);
+  background: var(--bg-field);
+  border: var(--bw) solid var(--border-strong);
+  border-radius: var(--r-md);
+  color: var(--text);
+  padding: 0 10px;
+  font-family: var(--font-body);
+  font-size: var(--fs-13);
+}
 .modalBody {
   padding: var(--sp-6);
   display: flex;

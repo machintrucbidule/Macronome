@@ -749,3 +749,42 @@ mealActions.ts` (`clearDay`), new `components/ClearDayConfirm.tsx`, `MealsPage.t
 `components/DayHeader/DayHeader.tsx` (+ new `DayCommentField.tsx`, `DayVerdictBadge.tsx`),
 `components/TotalsRow/VerdictCluster.tsx` (badge removed), `meals.module.css`, i18n FR+EN. No
 DB/schema change, no design-token change.
+
+## IMP-7 — Cibles / Compte / Setup restructure (B-059/B-060/B-071) — RESOLVED (author)
+
+Post-v1 backlog triage (batch IMP-7, improvement). Three changes across the boundary between the
+Cibles screen, the Compte screen and the first-run setup wizard. Decided with the author. No
+DB/schema change and **no API-contract change** (`PATCH /profile` and `POST /target` already exist).
+
+- **B-059 — 3rd "Mes cibles" setup step.** The first-run wizard gains a third step after
+  credentials and profile, mirroring the Cibles ratios with the **same clickable guidance presets**.
+  Fields = calorie min/max + protein g/kg + fat g/kg, **pre-filled** with sensible defaults
+  (**1950 / 2050 kcal, 1.8 g/kg protein, 0.8 g/kg fat**) and editable. **Behaviour (author):** the
+  step is **required** — initial targets are **always** created. The web posts `POST /auth/setup`
+  as before, then (session now open) posts `POST /target` with the collected values
+  (`target_weight_kg`/`rate_kg_per_week` null, `effective_from` = today). A `POST /target` failure
+  is **non-blocking** (the account exists; targets stay editable on Cibles) — the user still enters
+  the app.
+
+- **B-060 — profile moves from Cibles to Compte.** Sexe / Date de naissance / Taille are _profile_
+  data, not _targets_. Their **editor moves** to the Compte screen in a new **"Mes informations"**
+  frame below "Identifiants" (`PATCH /profile`, unchanged). **Scope decision (author):** Cibles
+  **drops the profile editor entirely** — only the derived read-out (age, current weight, recent
+  activity) remains in the engine column; the engine still reads the profile server-side.
+
+- **B-071 — derived-fields layout (amends B-042 presentation).** On Cibles, the carb ceiling and
+  the target BMI now render **like the editable g/kg fields**: a caption, a **disabled/greyed field
+  box** holding the server-computed value, and a **"calculé"** tag just to its right. The
+  explanatory sentence "Les glucides ne se saisissent pas : ils sont le reste calculé (plafond à
+  droite)." and the target-BMI inline hint are removed; the carb label shortens to "Glucides".
+
+**Spec impact:** `specifications/screens/login.md` (setup wizard now three steps; targets step
+documented); `specifications/screens/targets.md` (profile no longer edited here → points to Compte;
+derived-fields layout); `specifications/screens/account.md` ("Mes informations" frame).
+**Code:** web setup `useSetup.ts` (+`targetsValid`, defaults, `POST /target` on create),
+`SetupWizard.tsx` (3 steps), new `steps/TargetsStep.tsx`, `setup.module.css`; account
+`AccountPage.tsx`, new `components/ProfileForm.tsx` (moved from targets) + `useProfile.ts` (moved
+hooks), `account.module.css`; targets `CiblesPage.tsx`, `components/EnginePanel.tsx` (profile
+removed), `components/TargetFields.tsx` + `GoalFields.tsx` (new `DerivedField.tsx` replacing
+`DerivedRow.tsx`), `cibles.module.css`, `useTargets.ts` (profile hooks removed); i18n FR+EN. No
+DB/schema change, no API-contract change, no design-token change.

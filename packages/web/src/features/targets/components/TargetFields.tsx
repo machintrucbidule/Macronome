@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import type { EngineReadout } from '@macronome/shared';
 import { NumberInput } from '../../../components/Form/NumberInput';
-import { DerivedRow } from './DerivedRow';
+import { DerivedField } from './DerivedField';
 import { GoalFields } from './GoalFields';
 import { RatioPresets, PROTEIN_PRESETS, FAT_PRESETS } from './RatioPresets';
 import { macroG } from '../format';
@@ -20,10 +20,7 @@ interface TargetFieldsProps {
 
 export function TargetFields({ draft, set, engine }: TargetFieldsProps) {
   const { t } = useTranslation();
-  const carbText =
-    engine.carb_ceiling_g === null
-      ? t('cibles.targets.carbPending')
-      : t('cibles.targets.carbValue', { value: macroG(engine.carb_ceiling_g) });
+  const carbText = engine.carb_ceiling_g === null ? '—' : `${macroG(engine.carb_ceiling_g)} g`;
   return (
     <>
       <div className={styles.group}>
@@ -76,8 +73,7 @@ export function TargetFields({ draft, set, engine }: TargetFieldsProps) {
             <RatioPresets presets={FAT_PRESETS} onPick={(v) => set({ fatGPerKg: v })} />
           </div>
         </div>
-        <DerivedRow label={t('cibles.targets.carbLabel')} value={carbText} />
-        <div className="hint">{t('cibles.targets.carbNote')}</div>
+        <DerivedField label={t('cibles.targets.carbLabel')} value={carbText} />
       </div>
 
       <GoalFields draft={draft} set={set} engine={engine} />

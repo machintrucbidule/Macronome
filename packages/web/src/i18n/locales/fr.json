@@ -45,6 +45,11 @@
     "female": "Femme",
     "birthdate": "Date de naissance",
     "height": "Taille",
+    "targetsTitle": "Mes cibles",
+    "calorieMin": "Calories min",
+    "calorieMax": "Calories max",
+    "proteinRatio": "Protéines",
+    "fatRatio": "Lipides",
     "back": "Retour",
     "next": "Continuer",
     "create": "Créer le compte",
@@ -196,15 +201,12 @@
       "ratios": "Ratios de macros",
       "proteinRatio": "Protéines",
       "fatRatio": "Lipides",
-      "carbNote": "Les glucides ne se saisissent pas : ils sont le reste calculé (plafond à droite).",
-      "carbLabel": "Glucides — plafond",
-      "carbValue": "= {{value}} g (calculé)",
-      "carbPending": "calculé",
+      "carbLabel": "Glucides",
+      "calculated": "calculé",
       "goal": "Objectif de poids",
       "targetWeight": "Poids cible",
       "rate": "Rythme visé",
       "targetBmi": "IMC cible",
-      "targetBmiHint": "Dérivé du poids cible et de la taille",
       "presets": {
         "hint": "Cliquez une suggestion pour remplir le champ.",
         "aria": "Utiliser {{value}} g/kg",
@@ -215,14 +217,6 @@
         "fatNormal": "Courant — apport équilibré pour la plupart des gens",
         "fatHigh": "Élevé — meilleure satiété, régime plus riche en lipides"
       }
-    },
-    "profile": {
-      "sex": "Sexe",
-      "male": "Homme",
-      "female": "Femme",
-      "birthdate": "Date de naissance",
-      "height": "Taille",
-      "save": "Mettre à jour le profil"
     },
     "engine": {
       "title": "Moteur métabolique",
@@ -659,11 +653,20 @@
   "account": {
     "title": "Compte",
     "credentials": "Identifiants",
+    "profileInfo": "Mes informations",
     "username": "Nom d'utilisateur",
     "password": "Mot de passe",
     "changePassword": "Changer le mot de passe",
     "session": "Session",
     "logout": "Se déconnecter",
+    "info": {
+      "sex": "Sexe",
+      "male": "Homme",
+      "female": "Femme",
+      "birthdate": "Date de naissance",
+      "height": "Taille",
+      "save": "Mettre à jour le profil"
+    },
     "modal": {
       "title": "Changer le mot de passe",
       "current": "Mot de passe actuel",

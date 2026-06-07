@@ -1,13 +1,7 @@
 import { useTranslation } from 'react-i18next';
-import {
-  TargetWarning,
-  type EngineReadout,
-  type Profile,
-  type TargetWarningCode,
-} from '@macronome/shared';
+import { TargetWarning, type EngineReadout, type TargetWarningCode } from '@macronome/shared';
 import { MetricCard } from '../../../components/MetricCard/MetricCard';
 import { Banner } from '../../../components/Banner/Banner';
-import { ProfileForm } from './ProfileForm';
 import { MacroFloorTiles } from './MacroFloorTiles';
 import { DeficitBar } from './DeficitBar';
 import { grams1, kcal, multiplier2, rate2, signedKcal } from '../format';
@@ -22,10 +16,9 @@ const showKcal = (n: number | null): string => (n === null ? DASH : kcal(n));
 interface EnginePanelProps {
   engine: EngineReadout;
   warnings: TargetWarningCode[];
-  profile: Profile;
 }
 
-export function EnginePanel({ engine, warnings, profile }: EnginePanelProps) {
+export function EnginePanel({ engine, warnings }: EnginePanelProps) {
   const { t } = useTranslation();
   const carbWarn = warnings.includes(TargetWarning.CarbCeilingNonPositive);
   const noWeight = warnings.includes(TargetWarning.NoWeight);
@@ -37,8 +30,6 @@ export function EnginePanel({ engine, warnings, profile }: EnginePanelProps) {
         <h2>{t('cibles.engine.title')}</h2>
         <span className={styles.badge}>{t('cibles.badge.computed')}</span>
       </header>
-
-      <ProfileForm profile={profile} />
 
       <div className={styles.readout}>
         <span>

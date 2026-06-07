@@ -37,6 +37,12 @@
   font-family: var(--font-body);
   font-size: var(--fs-13);
 }
+/* A ratio cell = the g/kg field stacked over its guidance presets (B-059 targets step). */
+.ratioField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
 .actions {
   display: flex;
   justify-content: flex-end;

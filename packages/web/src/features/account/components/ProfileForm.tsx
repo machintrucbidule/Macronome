@@ -3,11 +3,11 @@ import { useTranslation } from 'react-i18next';
 import type { Profile, Sex } from '@macronome/shared';
 import { NumberInput } from '../../../components/Form/NumberInput';
 import { Button } from '../../../components/Button/Button';
-import { useProfileMutation } from '../useTargets';
-import styles from '../cibles.module.css';
+import { useProfileMutation } from '../useProfile';
+import styles from '../account.module.css';
 
-// Metabolic profile (sex / birth date / height) — the Cibles screen is its home. Edits
-// PATCH /profile and invalidate the engine readout (age is derived server-side).
+// Metabolic profile (sex / birth date / height) — the Compte screen is its home (B-060). Edits
+// PATCH /profile and invalidate the Cibles engine readout (age is derived server-side).
 interface ProfileDraft {
   sex: Sex;
   birthdate: string;
@@ -32,20 +32,20 @@ export function ProfileForm({ profile }: { profile: Profile }) {
   };
 
   return (
-    <div className={styles.profileForm}>
+    <div className={styles.infoForm}>
       <label className={styles.field}>
-        <span className={styles.fieldLabel}>{t('cibles.profile.sex')}</span>
+        <span className={styles.fieldLabel}>{t('account.info.sex')}</span>
         <select
           className={styles.select}
           value={draft.sex}
           onChange={(e) => setDraft((d) => ({ ...d, sex: e.target.value as Sex }))}
         >
-          <option value="male">{t('cibles.profile.male')}</option>
-          <option value="female">{t('cibles.profile.female')}</option>
+          <option value="male">{t('account.info.male')}</option>
+          <option value="female">{t('account.info.female')}</option>
         </select>
       </label>
       <label className={styles.field}>
-        <span className={styles.fieldLabel}>{t('cibles.profile.birthdate')}</span>
+        <span className={styles.fieldLabel}>{t('account.info.birthdate')}</span>
         <input
           type="date"
           className={styles.select}
@@ -54,14 +54,14 @@ export function ProfileForm({ profile }: { profile: Profile }) {
         />
       </label>
       <NumberInput
-        label={t('cibles.profile.height')}
+        label={t('account.info.height')}
         suffix="cm"
         min={0}
         value={draft.heightCm}
         onChange={(e) => setDraft((d) => ({ ...d, heightCm: e.target.value }))}
       />
       <Button variant="ghost" onClick={save} disabled={mutation.isPending}>
-        {t('cibles.profile.save')}
+        {t('account.info.save')}
       </Button>
     </div>
   );

@@ -6,7 +6,7 @@ import { TargetForm } from './components/TargetForm';
 import { EnginePanel } from './components/EnginePanel';
 import { SuggestDialog } from './components/SuggestDialog';
 import { draftToBody, initialTargetDraft, isSavable, type TargetDraft } from './draft';
-import { useProfile, useTarget, useTargetMutations, useTargetPreview } from './useTargets';
+import { useTarget, useTargetMutations, useTargetPreview } from './useTargets';
 import styles from './cibles.module.css';
 
 // Cibles screen (specifications/screens/targets.md): manual targets on the left, the
@@ -17,7 +17,6 @@ import styles from './cibles.module.css';
 export function CiblesPage() {
   const { t } = useTranslation();
   const target = useTarget();
-  const profile = useProfile();
   const { save } = useTargetMutations();
   const [draft, setDraft] = useState<TargetDraft>(() => initialTargetDraft(null));
   const [suggesting, setSuggesting] = useState(false);
@@ -29,7 +28,7 @@ export function CiblesPage() {
   }, [target.data]);
 
   const set = (patch: Partial<TargetDraft>): void => setDraft((d) => ({ ...d, ...patch }));
-  const ready = target.data && profile.data;
+  const ready = target.data;
   // Live readout while editing (POST /target/preview); the persisted GET /target readout
   // is the fallback before the first preview resolves.
   const live =
@@ -55,7 +54,7 @@ export function CiblesPage() {
             canSave={isSavable(draft)}
             saving={save.isPending}
           />
-          <EnginePanel engine={live.engine} warnings={live.warnings} profile={profile.data.data} />
+          <EnginePanel engine={live.engine} warnings={live.warnings} />
         </div>
       )}
 

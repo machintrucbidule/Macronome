@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import type { EngineReadout } from '@macronome/shared';
 import { NumberInput } from '../../../components/Form/NumberInput';
-import { DerivedRow } from './DerivedRow';
+import { DerivedField } from './DerivedField';
 import { bmi1 } from '../format';
 import type { TargetDraft } from '../draft';
 import styles from '../cibles.module.css';
@@ -50,9 +50,8 @@ export function GoalFields({ draft, set, engine }: GoalFieldsProps) {
           onChange={(e) => set({ rateKgPerWeek: e.target.value })}
         />
       </div>
-      <DerivedRow
+      <DerivedField
         label={t('cibles.targets.targetBmi')}
-        hint={t('cibles.targets.targetBmiHint')}
         value={engine.target_bmi === null ? '—' : bmi1(engine.target_bmi)}
       />
     </div>

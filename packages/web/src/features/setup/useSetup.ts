@@ -4,12 +4,14 @@ import { useQueryClient } from '@tanstack/react-query';
 import type { Sex } from '@macronome/shared';
 import { ApiError } from '../../api/client';
 import { authApi } from '../../api/auth';
+import { targetApi } from '../../api/target';
 import { SESSION_KEY } from '../../app/useSession';
 import { SETUP_STATE_KEY } from '../../app/useSetupState';
 
-// First-run wizard state (M8). Two steps — credentials then profile — collected as a
-// string draft; on submit the owner account is created and the session opened, then we
-// route home. If an owner already exists (409) the wizard hands off to /login.
+// First-run wizard state (M8). Three steps — credentials, profile, then targets (B-059) —
+// collected as a string draft; on submit the owner account is created, the session opened, the
+// initial targets persisted, then we route home. If an owner already exists (409) the wizard
+// hands off to /login.
 export interface SetupDraft {
   username: string;
   password: string;
@@ -17,8 +19,14 @@ export interface SetupDraft {
   sex: Sex | '';
   birthdate: string;
   heightCm: string;
+  calorieMin: string;
+  calorieMax: string;
+  proteinGPerKg: string;
+  fatGPerKg: string;
 }
 
+// Sensible starting targets (B-059), pre-filled and editable. They mirror the Cibles guidance
+// presets (protein "actif", fat "minimum") and a ~2000 kcal range.
 const EMPTY: SetupDraft = {
   username: '',
   password: '',
@@ -26,6 +34,10 @@ const EMPTY: SetupDraft = {
   sex: '',
   birthdate: '',
   heightCm: '',
+  calorieMin: '1950',
+  calorieMax: '2050',
+  proteinGPerKg: '1.8',
+  fatGPerKg: '0.8',
 };
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -38,6 +50,27 @@ export function credentialsValid(d: SetupDraft): boolean {
 
 export function profileValid(d: SetupDraft): boolean {
   return d.sex !== '' && DATE_RE.test(d.birthdate) && Number(d.heightCm) > 0;
+}
+
+// The targets step (B-059) needs a valid calorie range and non-negative ratios before the owner
+// account can be created. Mirrors the Cibles `isSavable` rule (min > 0, max ≥ min).
+export function targetsValid(d: SetupDraft): boolean {
+  const fields = [d.calorieMin, d.calorieMax, d.proteinGPerKg, d.fatGPerKg];
+  if (fields.some((f) => f.trim() === '')) return false; // a blank field is not "0"
+  const min = Number(d.calorieMin);
+  const max = Number(d.calorieMax);
+  const protein = Number(d.proteinGPerKg);
+  const fat = Number(d.fatGPerKg);
+  return (
+    Number.isFinite(min) &&
+    Number.isFinite(max) &&
+    min > 0 &&
+    max >= min &&
+    Number.isFinite(protein) &&
+    protein >= 0 &&
+    Number.isFinite(fat) &&
+    fat >= 0
+  );
 }
 
 export function useSetup() {
@@ -53,7 +86,7 @@ export function useSetup() {
 
   async function create(): Promise<void> {
     if (submitting.current) return; // guard against a double submit racing the redirect
-    if (!credentialsValid(draft) || !profileValid(draft)) return;
+    if (!credentialsValid(draft) || !profileValid(draft) || !targetsValid(draft)) return;
     submitting.current = true;
     setFailed(false);
     setPending(true);
@@ -65,6 +98,22 @@ export function useSetup() {
         birthdate: draft.birthdate,
         height_cm: Number(draft.heightCm),
       });
+      // The account now exists and the session is open: persist the initial targets (B-059).
+      // A failure here must not strand the owner on /setup — the account exists and targets stay
+      // editable on Cibles — so we swallow it and still enter the app.
+      try {
+        await targetApi.create({
+          calorie_min: Number(draft.calorieMin),
+          calorie_max: Number(draft.calorieMax),
+          protein_g_per_kg: Number(draft.proteinGPerKg),
+          fat_g_per_kg: Number(draft.fatGPerKg),
+          target_weight_kg: null,
+          rate_kg_per_week: null,
+          effective_from: new Date().toISOString().slice(0, 10),
+        });
+      } catch {
+        // Non-blocking — the owner can set targets later on Cibles.
+      }
       // The owner now exists. Flip the cached first-run probe and route home in the same
       // synchronous tick so AppGate never sees the transient "setup done but still on
       // /setup" state (which its second rule would bounce to /login). Refresh the session
@@ -88,8 +137,8 @@ export function useSetup() {
     draft,
     set,
     step,
-    next: () => setStep(1),
-    back: () => setStep(0),
+    next: () => setStep((s) => Math.min(s + 1, 2)),
+    back: () => setStep((s) => Math.max(s - 1, 0)),
     create,
     pending,
     failed,
