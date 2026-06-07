@@ -8,19 +8,18 @@ import styles from '../settings.module.css';
 // One pinned garde-manger food (GM-2/B-094): name + a unit chip opening the Repas UnitMenu
 // (SI units + this food's named portions) + a remove button. Choosing a unit persists the
 // pin's prefill unit and cascades to today/future placeholder lines (the API does the cascade).
-// The food is only fetched when its label needs a portion name or the menu is open.
+// The food name + portions are resolved per id via useFood (the Repas pattern), so every
+// pinned food is named regardless of how many foods exist (B-102: no capped foods index).
 interface Props {
   item: PantryItem;
-  foodName: (id: string) => string;
   onRemove: () => void;
   onSetUnit: (unit: EntryUnit, portionId: string | null) => void;
 }
 
-export function PantryFoodChip({ item, foodName, onRemove, onSetUnit }: Props) {
+export function PantryFoodChip({ item, onRemove, onSetUnit }: Props) {
   const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
-  const needsFood = item.unit === 'portion' || menuOpen;
-  const food = useFood(needsFood ? item.food_id : null);
+  const food = useFood(item.food_id);
   const portions = food.data?.data.named_portions ?? [];
 
   const unitLabel =
@@ -30,7 +29,7 @@ export function PantryFoodChip({ item, foodName, onRemove, onSetUnit }: Props) {
 
   return (
     <span className={styles.chip}>
-      {foodName(item.food_id)}
+      {food.data?.data.name ?? '…'}
       <span className={styles.unitWrap}>
         <button
           type="button"

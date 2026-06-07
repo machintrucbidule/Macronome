@@ -15,10 +15,9 @@ import styles from '../settings.module.css';
 interface Props {
   mealSlotName: string;
   items: PantryItem[];
-  foodName: (id: string) => string;
 }
 
-export function PantryEditor({ mealSlotName, items, foodName }: Props) {
+export function PantryEditor({ mealSlotName, items }: Props) {
   const { t } = useTranslation();
   const { create, update, remove } = usePantryMutations();
   const [picking, setPicking] = useState(false);
@@ -66,7 +65,6 @@ export function PantryEditor({ mealSlotName, items, foodName }: Props) {
           <PantryFoodChip
             key={item.id}
             item={item}
-            foodName={foodName}
             onRemove={() => remove.mutate(item.id)}
             onSetUnit={(unit, portionId) => setUnit(item.id, unit, portionId)}
           />

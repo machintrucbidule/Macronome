@@ -1,15 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
-import type { Food } from '@macronome/shared';
 import { foodsApi } from '../../api/foods';
 
-// Food lookups for the garde-manger editor: a full index (id → name, to label pinned
-// chips) and a search query (to pick a food to pin). Both read the foods catalog only.
-
-export function useFoodIndex() {
-  const query = useQuery({ queryKey: ['foods', 'index'], queryFn: () => foodsApi.list({}) });
-  const map = new Map<string, string>((query.data?.data ?? []).map((f: Food) => [f.id, f.name]));
-  return (id: string): string => map.get(id) ?? '—';
-}
+// Food search for the garde-manger editor (to pick a food to pin). Pinned-chip names are
+// resolved per id via useFood in PantryFoodChip (the Repas pattern), so there is no capped
+// foods "index" here — every pinned food is named regardless of catalog size (B-102).
 
 export function useFoodSearch(q: string, enabled: boolean) {
   return useQuery({

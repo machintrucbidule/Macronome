@@ -23,6 +23,13 @@
 .card.soon {
   opacity: 0.6;
 }
+/* B-103: the garde-manger card hosts absolutely-positioned popovers (unit menu to the left,
+   food search below) that must escape the card edges. overflow:hidden here is not load-bearing
+   (children are inset, no full-bleed background at the rounded corners), so let them overflow —
+   mirrors the Repas scroller's overflow-y:visible. Scoped so other settings cards keep clipping. */
+.card.flow {
+  overflow: visible;
+}
 .ch {
   display: flex;
   align-items: center;

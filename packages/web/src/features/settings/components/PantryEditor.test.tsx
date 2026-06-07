@@ -13,7 +13,11 @@ const mocks = vi.hoisted(() => ({
   update: { mutate: vi.fn() },
   remove: { mutate: vi.fn() },
   search: { data: { data: [{ id: 'f9', name: 'Banane' }] } },
-  food: { data: { data: { named_portions: [{ id: 'p1', label: 'tranche', grams: 30 }] } } },
+  food: {
+    data: {
+      data: { name: 'Flocons', named_portions: [{ id: 'p1', label: 'tranche', grams: 30 }] },
+    },
+  },
 }));
 
 vi.mock('../usePantry', () => ({
@@ -40,10 +44,18 @@ function renderEditor(items: PantryItem[] = [item]) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={qc}>
-      <PantryEditor mealSlotName="Petit déjeuner" items={items} foodName={() => 'Flocons'} />
+      <PantryEditor mealSlotName="Petit déjeuner" items={items} />
     </QueryClientProvider>,
   );
 }
+
+describe('PantryEditor — pinned food name resolved per id (B-102)', () => {
+  it('labels each pinned chip with the food name from useFood, not a capped index', () => {
+    renderEditor();
+    // The chip shows the real food name (resolved per id via useFood), never a "—" dash.
+    expect(screen.getByText('Flocons')).toBeTruthy();
+  });
+});
 
 describe('PantryEditor — per-food prefill unit (B-094)', () => {
   it('opens the food unit menu and persists the chosen unit', () => {

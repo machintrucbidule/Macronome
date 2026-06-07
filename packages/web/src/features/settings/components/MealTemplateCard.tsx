@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import type { MealTemplateItem as Item, PantryItem } from '@macronome/shared';
 import { useMealTemplate, useMealTemplateMutations } from '../useMealTemplate';
 import { usePantry } from '../usePantry';
-import { useFoodIndex } from '../useFoodPicker';
 import { MealTemplateItem } from './MealTemplateItem';
 import styles from '../settings.module.css';
 
@@ -15,7 +14,6 @@ export function MealTemplateCard() {
   const list = useMealTemplate();
   const { create, update, remove } = useMealTemplateMutations();
   const pantry = usePantry();
-  const foodName = useFoodIndex();
   const [newName, setNewName] = useState('');
 
   const items = list.data?.data ?? [];
@@ -39,7 +37,7 @@ export function MealTemplateCard() {
   };
 
   return (
-    <div className={styles.card}>
+    <div className={`${styles.card} ${styles.flow}`}>
       <div className={styles.ch}>
         <span className={styles.t}>{t('settings.template.title')}</span>
         <span className={styles.meta}>{t('settings.template.meta')}</span>
@@ -58,7 +56,6 @@ export function MealTemplateCard() {
                 index={index}
                 count={items.length}
                 pantry={pantryBySlot(item.name)}
-                foodName={foodName}
                 onMove={move}
                 onRename={rename}
                 onDelete={del}

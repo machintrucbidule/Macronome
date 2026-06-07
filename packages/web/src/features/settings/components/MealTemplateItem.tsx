@@ -13,7 +13,6 @@ interface Props {
   index: number;
   count: number;
   pantry: PantryItem[];
-  foodName: (id: string) => string;
   onMove: (index: number, dir: -1 | 1) => void;
   onRename: (item: Item, name: string) => void;
   onDelete: (item: Item) => void;
@@ -24,7 +23,6 @@ export function MealTemplateItem({
   index,
   count,
   pantry,
-  foodName,
   onMove,
   onRename,
   onDelete,
@@ -76,7 +74,7 @@ export function MealTemplateItem({
           ×
         </button>
       </div>
-      <PantryEditor mealSlotName={item.name} items={pantry} foodName={foodName} />
+      <PantryEditor mealSlotName={item.name} items={pantry} />
       {confirming && (
         <MealTemplateDeleteConfirm
           item={item}
