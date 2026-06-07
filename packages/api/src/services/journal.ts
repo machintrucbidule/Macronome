@@ -97,7 +97,9 @@ export async function listByYear(userId: string, year: number): Promise<JournalR
   const end = today < dec31 ? today : dec31;
 
   const rows: JournalRow[] = [];
-  if (start <= end) {
+  // No trame before the user's first record ever (a brand-new account shows the empty state,
+  // not a wall of red days). Future planned rows below are still listed when present.
+  if (range.minDate !== null && start <= end) {
     for (const date of eachDate(start, end)) {
       const agg = byDate.get(date);
       rows.push(agg ? toRow(agg) : emptyRow(date));

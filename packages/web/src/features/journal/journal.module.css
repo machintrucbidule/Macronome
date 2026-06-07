@@ -66,6 +66,38 @@
   text-transform: uppercase;
 }
 
+/* Inline-editable Calories cell (day-model): typing a total creates/updates a summary day. */
+.kcalInput {
+  width: 64px;
+  text-align: right;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  color: var(--text);
+  font-family: var(--font-num);
+  font-size: var(--fs-12);
+  padding: 3px 6px;
+}
+.kcalInput::placeholder {
+  color: var(--text-faint);
+}
+.kcalInput:hover {
+  border-color: var(--border);
+}
+.kcalInput:focus {
+  outline: none;
+  border-color: var(--focus);
+  background: var(--bg-field);
+}
+
+/* Empty (red) trame day: a past/present date with no calorie value (day-model §8). */
+.emptyRow td {
+  background: var(--nok-soft);
+}
+.emptyRow td:first-child {
+  box-shadow: inset 3px 0 0 var(--nok);
+}
+
 .mFat {
   color: var(--c-fat);
 }

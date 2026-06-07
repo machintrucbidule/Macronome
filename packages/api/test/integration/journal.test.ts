@@ -100,11 +100,12 @@ describe('GET /journal (B-067 year bounds)', () => {
     expect(res.body.max_year).toBe(2025);
   });
 
-  it('returns null bounds when the user has no logged day', async () => {
+  it('returns null bounds and NO trame rows when the user has no day at all', async () => {
     const { agent } = await authedAgent(app, 'carol');
 
     const res = await agent.get('/api/v1/journal?year=2026');
     expect(res.status).toBe(200);
+    expect(res.body.data).toHaveLength(0); // no first record → no red trame for a new account
     expect(res.body.day_count).toBe(0);
     expect(res.body.min_year).toBeNull();
     expect(res.body.max_year).toBeNull();

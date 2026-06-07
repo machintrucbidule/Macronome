@@ -11,12 +11,15 @@ import {
 import { VerdictBadge } from '../../../components/VerdictBadge/VerdictBadge';
 import { tableStyles } from '../../../components/DataTable/SortableTh';
 import { CommentCell } from './CommentCell';
+import { CaloriesCell } from './CaloriesCell';
 import { formatDow, formatJournalDate, r0 } from '../format';
 import styles from '../journal.module.css';
 
-// One Journal day row (history.md): clickable Jour/Calories/Macros open that day's Repas;
-// the verdict pill, activity select and comment field edit the day via PATCH. Macros show
-// only on detailed days; summary/empty days show an em-dash.
+// One Journal day row (history.md + day-model): clickable Jour/Macros open that day's Repas;
+// the Calories cell is inline-editable on a no-detail day (creates/updates a summary day);
+// the verdict pill, activity select and comment field edit the day via PATCH (which upserts).
+// Macros show only on detailed days; summary/empty days show an em-dash. An empty (red) day is
+// a past/present date with no calorie value (day-model §8).
 const DASH = '—';
 
 interface JournalRowProps {
@@ -41,14 +44,18 @@ export function JournalRow({ row, onPatch }: JournalRowProps) {
   };
 
   return (
-    <tr data-date={row.date}>
+    <tr data-date={row.date} className={row.state === 'red' ? styles.emptyRow : undefined}>
       <td className={tableStyles.clickable} onClick={openDay}>
         {formatJournalDate(row.date, i18n.language)}{' '}
         <span className={styles.dow}>{formatDow(row.date, i18n.language)}</span>
       </td>
-      <td className={`${tableStyles.num} ${tableStyles.clickable}`} onClick={openDay}>
-        {r0(row.kcal)}
-      </td>
+      <CaloriesCell
+        kcal={row.kcal}
+        editable={row.editable_kcal}
+        placeholder={t('journal.kcalPlaceholder')}
+        onOpen={openDay}
+        onSave={(k) => onPatch(row.date, { summary_kcal: k })}
+      />
       <td className={`${tableStyles.num} ${tableStyles.clickable}`} onClick={openDay}>
         {row.macros ? (
           <>
