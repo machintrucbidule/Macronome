@@ -45,7 +45,7 @@ export function LoginPage() {
   const { state, lockSeconds, submit } = useLogin();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [stay, setStay] = useState(false);
+  const [stay, setStay] = useState(true);
 
   const locked = state === 'lockout';
   const invalid = state === 'error';

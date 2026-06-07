@@ -36,12 +36,47 @@
   margin-bottom: 4px;
 }
 
+/* Brand mark — metronome "tick": ring + swinging needle (design/components/00-foundations.md;
+   login variant = 26px ring, 10px needle, swing ±22deg). */
 .tick {
   width: 26px;
   height: 26px;
   flex: none;
   border: 1.5px solid var(--accent);
   border-radius: 50%;
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.tick::after {
+  content: '';
+  position: absolute;
+  width: 1.5px;
+  height: 10px;
+  background: var(--accent);
+  top: 3px;
+  left: 50%;
+  transform-origin: bottom center;
+  transform: translateX(-50%) rotate(-22deg);
+  animation: swing 2.6s var(--ease) infinite;
+}
+
+@keyframes swing {
+  0%,
+  100% {
+    transform: translateX(-50%) rotate(-22deg);
+  }
+  50% {
+    transform: translateX(-50%) rotate(22deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tick::after {
+    animation: none;
+    transform: translateX(-50%) rotate(0deg);
+  }
 }
 
 .wordmark {
