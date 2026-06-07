@@ -605,6 +605,14 @@
     "heatmap": { "label": "Adherence calendar" },
     "status": { "OK": "OK", "NOK": "NOK", "none": "not logged" },
     "monthly": { "tooltip": "{{ok}} OK · {{nok}} NOK" },
+    "legend": {
+      "ok": "OK days",
+      "nok": "NOK days",
+      "avgOk": "Avg OK days",
+      "avgNok": "Avg NOK days",
+      "avgGlobal": "Global average",
+      "zone": "Target zone"
+    },
     "signal": {
       "none": "No signals right now.",
       "avg30_above_target": "30-day average {{value}} kcal above target",

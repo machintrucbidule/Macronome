@@ -605,6 +605,14 @@
     "heatmap": { "label": "Calendrier d'adhérence" },
     "status": { "OK": "OK", "NOK": "NOK", "none": "non saisi" },
     "monthly": { "tooltip": "{{ok}} OK · {{nok}} NOK" },
+    "legend": {
+      "ok": "Jours OK",
+      "nok": "Jours NOK",
+      "avgOk": "Moy. jours OK",
+      "avgNok": "Moy. jours NOK",
+      "avgGlobal": "Moyenne globale",
+      "zone": "Zone cible"
+    },
     "signal": {
       "none": "Aucun signal pour le moment.",
       "avg30_above_target": "Moyenne 30 j : {{value}} kcal au-dessus de la cible",

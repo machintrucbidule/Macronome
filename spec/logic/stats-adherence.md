@@ -64,6 +64,14 @@ Per month: `avg_kcal_ok = mean(day_kcal over OK logged days)`,
 `avg_kcal_nok = mean(day_kcal over NOK logged days)`; grouped bars over the
 shaded target zone `[cal_min, cal_max]`.
 
+A third figure, `avg_kcal_global = mean(day_kcal over ALL logged days of the
+month)` (OK **and** NOK combined), feeds a global-average polyline + dots over the
+bars. It is never null — a month present in the pivot has ≥ 1 logged day.
+
+> **Worked example.** A month with three logged days — OK `1600`, OK `1500`,
+> NOK `1800` — gives `avg_kcal_ok = (1600+1500)/2 = 1550`,
+> `avg_kcal_nok = 1800`, and `avg_kcal_global = (1600+1500+1800)/3 = 1633.33…`.
+
 ## 6. Key figures
 
 - **Year OK rate** = OK / logged days in the selected year.

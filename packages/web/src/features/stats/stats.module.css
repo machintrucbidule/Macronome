@@ -136,6 +136,15 @@
 .zone {
   fill: color-mix(in srgb, var(--accent) 16%, transparent);
 }
+/* Global-average polyline + dots over the avg-kcal bars (B-111). */
+.avgLine {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 1.6;
+}
+.avgDot {
+  fill: var(--text);
+}
 
 /* ---- Signals (design/components/charts.md §Signals: responsive grid of .sig cards
    with a status dot) ---- */

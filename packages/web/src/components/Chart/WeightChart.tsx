@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { WeighIn, WeightPoint, WeightRange } from '@macronome/shared';
 import { ChartAxes } from './ChartAxes';
-import { ChartLegend } from './ChartLegend';
+import { ChartLegend, type Series } from './ChartLegend';
 import { ChartTooltip } from './ChartTooltip';
 import { HitAreas, type HitPoint } from './HitAreas';
 import { RangeControl } from './RangeControl';
@@ -12,6 +12,13 @@ import styles from './Chart.module.css';
 // Weight chart (design/components/charts.md §Weight chart): one inline SVG, layered
 // back-to-front (goal · trajectory · raw · EMA · dots · waist), every stroke a theme
 // token (never baked hex). The maths is server-side; this only projects + renders.
+const LEGEND: Series[] = [
+  { shape: 'dot', token: '--weight', labelKey: 'weight.legend.weighed' },
+  { shape: 'line', token: '--trend', labelKey: 'weight.legend.trend' },
+  { shape: 'dash', token: '--traj', labelKey: 'weight.legend.trajectory' },
+  { shape: 'dash', token: '--ok', labelKey: 'weight.legend.goal' },
+];
+const WAIST_LEGEND: Series = { shape: 'line', token: '--waistc', labelKey: 'weight.legend.waist' };
 interface WeightChartProps {
   weighIns: WeighIn[];
   ema: WeightPoint[];
@@ -153,7 +160,7 @@ export function WeightChart(props: WeightChartProps) {
         </svg>
         {hovered && <ChartTooltip point={hovered} box={B} />}
       </div>
-      <ChartLegend showWaist={showWaist} />
+      <ChartLegend series={showWaist ? [...LEGEND, WAIST_LEGEND] : LEGEND} />
     </div>
   );
 }

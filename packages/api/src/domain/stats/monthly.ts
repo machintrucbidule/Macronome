@@ -26,6 +26,7 @@ export function monthlyPivot(loggedOfYear: DayStat[]): MonthlyStat[] {
         ok_rate: ok.length / days.length,
         avg_kcal_ok: mean(ok.map((d) => d.kcal)),
         avg_kcal_nok: mean(nok.map((d) => d.kcal)),
+        avg_kcal_global: mean(days.map((d) => d.kcal))!, // days is non-empty for a present month
       };
     });
 }

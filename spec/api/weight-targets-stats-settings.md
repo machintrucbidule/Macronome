@@ -87,10 +87,13 @@ target_weight_kg,rate_kg_per_week,effective_from,until}]}`. `until` = the day be
   unchanged). `null` when no logged day in the window carried a band.
 - `GET /stats/adherence?year=YYYY` — → 200
   `{heatmap:[{date,status:'OK'|'NOK'|'none',kcal:number|null}],
-monthly:[{month,ok_count,nok_count,ok_rate,avg_kcal_ok,avg_kcal_nok}],
+monthly:[{month,ok_count,nok_count,ok_rate,avg_kcal_ok,avg_kcal_nok,avg_kcal_global}],
 key:{year_ok_rate,overall_ok_rate,current_ok_streak,best_month},
 target_zone:{cal_min,cal_max}, signals:[{code,value,text}]}`.
   Best month: highest ok_rate among months with ≥ 5 logged days (OPEN_GAPS #12).
+  Monthly `avg_kcal_global` = mean kcal over all logged days of the month (OK + NOK),
+  never null — feeds the avg-kcal chart's global-average polyline
+  (`spec/logic/stats-adherence.md` §5).
   Heatmap `kcal` = that day's calorie value for logged cells, `null` when
   `status:'none'` (not logged) — feeds the cell tooltip `(date · status · kcal)`
   per `specifications/screens/stats.md`.

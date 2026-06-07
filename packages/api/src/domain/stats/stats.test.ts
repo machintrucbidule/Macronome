@@ -117,6 +117,8 @@ test('monthly pivot splits counts + avg kcal over OK / NOK days (§4–5)', () =
     avg_kcal_nok: 1800,
   });
   expect(m!.ok_rate).toBe(2 / 3);
+  // Global mean over ALL logged days of the month (OK + NOK): (1600+1500+1800)/3 (§5).
+  expect(m!.avg_kcal_global).toBeCloseTo((1600 + 1500 + 1800) / 3, 6);
 });
 
 test('heatmap fills every calendar date of the year, none/null where not logged (§3)', () => {

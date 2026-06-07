@@ -53,6 +53,9 @@ export interface MonthlyStat {
   ok_rate: number;
   avg_kcal_ok: number | null;
   avg_kcal_nok: number | null;
+  /** Mean kcal over ALL logged days of the month (OK + NOK); feeds the global-average
+   * polyline on the avg-kcal chart. Never null — a month present here has ≥1 logged day. */
+  avg_kcal_global: number;
 }
 
 /** Best month = highest ok_rate among months with ≥ BEST_MONTH_MIN_DAYS logged days. */

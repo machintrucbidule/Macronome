@@ -1370,3 +1370,43 @@ Repas/Journal call-sites untouched.
 **Spec impact:** `design/components/metric-cards.md` (Verdict cluster — whole-control tint, no dot),
 `specifications/screens/meals.md` + `history.md` (activity selector colour). No new design token; no
 DB / API / DTO change. Visual + lint (CSS-only; no dedicated test, per the item's acceptance).
+
+---
+
+## SC-1 / B-111, B-112 — Stats monthly charts: global-average curve, styled tooltip, axes — RESOLVED (author, 2026-06-07)
+
+Post-v1 backlog triage (batch SC-1, two related items on the same two Stats chart components).
+**B-111:** `design/components/charts.md` already mandated a **global-average polyline + dots in
+`var(--text)`** on the avg-kcal/month chart, but the code only drew the OK/NOK bars (code lagging the
+contract). The per-month global mean is a nutrition figure → rule 2 forbids the web from deriving it,
+so it must be server-computed. The author also asked for the **styled HTML tooltip** (the B-056
+weight-chart card) in place of the native `<title>`. **B-112:** neither monthly chart had axes,
+gridlines or a legend.
+
+**Decision (improvement/mixed batch).**
+
+- **`avg_kcal_global`** (additive, server-computed): per month, `mean(day_kcal over ALL logged days)`
+  (OK + NOK combined), never null (a month present in the pivot has ≥ 1 logged day). Feeds the global
+  polyline. Worked example: OK `1600`, OK `1500`, NOK `1800` → `1633.33…`.
+- **Styled tooltip on BOTH monthly charts** (author decision this session, for visual consistency):
+  the B-056 styled card now also covers the OK/NOK stacked bars **and** the avg-kcal grouped bars,
+  via a transparent per-month **column hit-area** carrying the month's summary. The dense **heatmap
+  keeps the native `<title>`**.
+- **Axes + gridlines + legend on both monthly charts:** a left value axis (`.axislbl` — day count /
+  kcal) with horizontal gridlines (`.gridline`), reusing the weight-chart primitives, plus a `.legend`
+  below each chart.
+
+**Rationale:** `avg_kcal_global` only surfaces an existing per-day figure (kcal already on `DayStat`),
+no new domain concept and no schema change — honours rule 2 (web renders, never computes). Reusing the
+existing `Chart` primitives (`scale.ts`, `Chart.module.css` `.gridline`/`.axislbl`/`.tooltip`/`.legend`,
+`ChartTooltip`) avoids duplication and keeps theming correct. Styling both charts (over the narrower
+triage scope of the avg-kcal chart alone) was chosen for consistency between the two side-by-side charts.
+
+**Spec impact:** `spec/logic/stats-adherence.md §5` (`avg_kcal_global` def + worked example),
+`spec/api/weight-targets-stats-settings.md §Stats` (monthly entry gains `avg_kcal_global`),
+`design/components/charts.md` (Tooltips exception extended to both Stats bar charts; Stats bars gain
+axes/gridlines/legend), `specifications/screens/stats.md §B–C`. **Code:** shared `dto/stats.ts`
+(`MonthlyStat.avg_kcal_global`); api `domain/stats/monthly.ts` (+ test oracle); web
+`components/Chart/ChartLegend.tsx` (generalized to a `series` prop) + `WeightChart.tsx` (passes its
+series), `features/stats/components/MonthCalorieBars.tsx` + `MonthlyBars.tsx` (polyline, axes/gridlines,
+styled tooltip, legend) + i18n `stats.legend.*`. No DB/schema change.

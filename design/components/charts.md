@@ -9,9 +9,11 @@ tokens** (never baked hex) — critical for the trend line (see theming.md).
 - **Gridlines** `.gridline`: `stroke:var(--grid); stroke-width:1`.
 - **Axis labels** `.axislbl`: `--font-num; --fs-10; fill:var(--text-faint)`.
 - **Tooltips**: native SVG `<title>` per point/cell (date · value · status) — used by
-  the heatmap and bars. **Exception (B-056):** the **weight chart** uses a **styled HTML
+  the heatmap. **Exception (B-056, extended SC-1/B-111):** the **weight chart** and the
+  **two Stats bar charts** (OK/NOK stacked + avg kcal/month) use a **styled HTML
   tooltip** instead — a floating card (`--bg-elev-2`, `--border`, `--r-md`, shadow,
-  `--font-num`/`--fs-11`) anchored to the hovered point, content `date · value`.
+  `--font-num`/`--fs-11`) anchored to the hovered point/column, content `date · value`
+  (bars: a per-month summary). The dense heatmap keeps the native `<title>`.
 - **Legend** `.legend`: `--font-num; --fs-11; color:var(--text-dim)`; swatches —
   line `i` (`border-top:2px solid currentColor`), dashed `i.dash`
   (`border-top:2px dashed`), dot `i.dot` (8px circle). Colour set inline per
@@ -62,6 +64,11 @@ Key figures `.keyfigs`: inline `.kf` blocks (label `--fs-10` + value
 - **Avg kcal/month grouped bars** (`viewBox 740×230`): OK bar `var(--ok)`, NOK
   bar `var(--nok)`; a **target zone** rect `fill: color-mix(in srgb, var(--accent)
 16%, transparent)`; a **global average** polyline + dots in `var(--text)`.
+- **Axes (SC-1/B-112):** both Stats bar charts draw a **left value axis** (`.axislbl` —
+  day count for the OK/NOK chart, kcal for the avg-kcal chart) with **horizontal
+  gridlines** (`.gridline`), plus the existing month labels along the bottom.
+- **Legend (SC-1/B-112):** a `.legend` below each chart — OK/NOK chart: OK · NOK; avg-kcal
+  chart: OK · NOK · Moyenne globale (line, `--text`) · Zone cible (`--accent`).
 - **Signals** `.signals`: responsive grid of `.sig` cards (`--bg-elev-2`,
   `--r-md`); a status dot — `.ok→--ok`, `.warn→--nok`, `.info→--under` — + text
   `--fs-12.5`.
