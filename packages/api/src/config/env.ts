@@ -17,6 +17,9 @@ const EnvSchema = z.object({
   // Absolute path to the built SPA (packages/web/dist) the API serves in prod.
   // Set in the Docker image; absent in dev where Vite serves the SPA (ADR-0001).
   WEB_DIST: z.string().optional(),
+  // App version, surfaced at /api/v1/health. Baked into the image at build from the git tag
+  // (the single source of truth — ADR-0002); 'dev' when running outside the image.
+  APP_VERSION: z.string().default('dev'),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

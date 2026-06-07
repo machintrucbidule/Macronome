@@ -16,6 +16,20 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # full history + tags, so `git describe` can resolve the version on main
+
+      # Single source of truth = the git tag (ADR-0002). On a `vX.Y.Z` tag → that number; on a
+      # main build → `git describe` (e.g. 0.9.0-5-g1a2b3c4, or the short sha before the first tag).
+      - name: Resolve version
+        id: ver
+        run: |
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            v="${GITHUB_REF_NAME#v}"
+          else
+            v="$(git describe --tags --always | sed 's/^v//')"
+          fi
+          echo "value=$v" >> "$GITHUB_OUTPUT"
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -40,5 +54,7 @@ jobs:
           context: .
           file: packages/api/Dockerfile
           push: true
+          build-args: |
+            APP_VERSION=${{ steps.ver.outputs.value }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

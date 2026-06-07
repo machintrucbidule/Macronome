@@ -29,6 +29,9 @@ WORKDIR /app
 ENV NODE_ENV=production
 # Absolute path to the SPA build the API serves (consumed by config/env.ts).
 ENV WEB_DIST=/app/packages/web/dist
+# App version baked from the git tag at build (ADR-0002); surfaced at /api/v1/health.
+ARG APP_VERSION=dev
+ENV APP_VERSION=${APP_VERSION}
 COPY package.json package-lock.json ./
 COPY packages/shared/package.json packages/shared/package.json
 COPY packages/api/package.json packages/api/package.json

@@ -158,6 +158,22 @@ the repo is scaffolded in milestone 3b).
 
 ---
 
+## Versioning (ADR-0002 — authoritative)
+
+The **annotated git tag `vX.Y.Z` is the single source of truth** for the app version
+(semver: **major** = breaking/behaviour change, **minor** = feature, **patch** = fix). It
+flows automatically to the Docker image tags (`:vX.Y.Z` + `:vX.Y`) and is **baked into the
+image at build** (`APP_VERSION` build-arg → `ENV` → `config/env.ts`), surfaced at
+`GET /api/v1/health`. `package.json` versions are **not** authoritative (left at `0.0.0`); do
+not hand-edit a version anywhere — only the tag matters. Web display is deferred.
+
+**Agent rule:** you may **propose** a version bump (e.g. when finishing a batch), but **never
+create/push a tag or pick the number yourself** — the owner decides, like every push. To cut a
+release the owner runs `git tag -a vX.Y.Z -m "vX.Y.Z" && git push origin vX.Y.Z`. See
+`docs/architecture/decisions/0002-versioning.md`.
+
+---
+
 ## Git & CI
 
 - **Push directly to `main`.** This is a single-developer project — **no feature
