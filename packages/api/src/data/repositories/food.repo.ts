@@ -60,6 +60,32 @@ async function withPortions(foods: FoodModel[]): Promise<FoodWithPortions[]> {
   return foods.map((f) => ({ ...f, portions: byFood.get(f.id) ?? [] }));
 }
 
+/** Persist a food's named portions **id-stably** (B-113). A portion is identified by its
+ *  `label` (UNIQUE(food_id,label)), so an unchanged label KEEPS its row id — references to it
+ *  (pantry_item / meal_entry `portion_id`, both `ON DELETE SET NULL`) survive an edit that only
+ *  touches OTHER portions. Only genuinely-removed labels are deleted (correctly nulling their
+ *  refs); grams are updated in place. Renaming a label is remove+add → a new id, by design. */
+async function syncPortions(
+  tx: Prisma.TransactionClient,
+  foodId: string,
+  portions: { label: string; grams: number }[],
+): Promise<void> {
+  const existing = await tx.foodPortion.findMany({
+    where: { foodId },
+    select: { id: true, label: true },
+  });
+  const incoming = new Set(portions.map((p) => p.label));
+  const removed = existing.filter((e) => !incoming.has(e.label));
+  if (removed.length > 0)
+    await tx.foodPortion.deleteMany({ where: { id: { in: removed.map((e) => e.id) } } });
+  const idByLabel = new Map(existing.map((e) => [e.label, e.id]));
+  for (const p of portions) {
+    const id = idByLabel.get(p.label);
+    if (id) await tx.foodPortion.update({ where: { id }, data: { grams: p.grams } });
+    else await tx.foodPortion.create({ data: { foodId, label: p.label, grams: p.grams } });
+  }
+}
+
 /** `q.normalized` is the pre-normalized search term, injected by the service. */
 type ListQuery = FoodListQuery & { normalized?: string };
 
@@ -161,14 +187,7 @@ export const foodRepo = {
           ...(data.visibility !== undefined ? { visibility: data.visibility } : {}),
         },
       });
-      if (data.portions) {
-        await tx.foodPortion.deleteMany({ where: { foodId: id } });
-        if (data.portions.length > 0) {
-          await tx.foodPortion.createMany({
-            data: data.portions.map((p) => ({ foodId: id, label: p.label, grams: p.grams })),
-          });
-        }
-      }
+      if (data.portions) await syncPortions(tx, id, data.portions);
     });
     return this.findById(userId, id);
   },

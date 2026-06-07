@@ -135,9 +135,21 @@ export const recipeDerivedFoodRepo = {
       });
       if (existing) {
         await tx.food.update({ where: { id: existing.id }, data: macros });
-        await tx.foodPortion.deleteMany({ where: { foodId: existing.id } });
-        await tx.foodPortion.create({
-          data: { foodId: existing.id, label: DERIVED_PORTION_LABEL, grams: portionGrams },
+        // Keep the "portion" row's id stable across recipe saves (B-113) so a pin on the recipe
+        // (and logged recipe lines' portion_id, ON DELETE SET NULL) survives an edit. Update the
+        // grams in place; drop any stray non-canonical labels defensively.
+        const portion = await tx.foodPortion.findFirst({
+          where: { foodId: existing.id, label: DERIVED_PORTION_LABEL },
+          select: { id: true },
+        });
+        if (portion)
+          await tx.foodPortion.update({ where: { id: portion.id }, data: { grams: portionGrams } });
+        else
+          await tx.foodPortion.create({
+            data: { foodId: existing.id, label: DERIVED_PORTION_LABEL, grams: portionGrams },
+          });
+        await tx.foodPortion.deleteMany({
+          where: { foodId: existing.id, label: { not: DERIVED_PORTION_LABEL } },
         });
         return existing.id;
       }

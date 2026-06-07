@@ -228,3 +228,71 @@ describe('GM-2 — line drives the pin + clear-the-day', () => {
     });
   });
 });
+
+describe('B-113 — portion ids stay stable across food/recipe edits (pins survive)', () => {
+  it('editing a food keeps OTHER portions stable so a pin on one survives', async () => {
+    const { agent, csrf, userId } = await authedAgent(app, 'alice');
+    const food = await seedFood(userId, "Huile d'olive");
+    const spoon = await seedPortion(food.id, 'cuillère', 15);
+    const spray = await seedPortion(food.id, 'vaporisation', 1.5);
+
+    // Pin the food on the "vaporisation" portion.
+    await csrfPost(agent, csrf, '/api/v1/pantry', {
+      meal_slot_name: 'Petit déjeuner',
+      food_id: food.id,
+      unit: 'portion',
+      portion_id: spray.id,
+    });
+
+    // Remove ONLY "cuillère" via the foods PATCH (replace the portion set).
+    const patched = await csrfPatch(agent, csrf, `/api/v1/foods/${food.id}`, {
+      named_portions: [{ label: 'vaporisation', grams: 1.5 }],
+    });
+    expect(patched.status).toBe(200);
+    expect(patched.body.data.named_portions).toHaveLength(1);
+    // "vaporisation" kept its id (not delete+recreate)…
+    expect(patched.body.data.named_portions[0].id).toBe(spray.id);
+
+    // …so the pin still points at it — no silent revert to g.
+    const pantry = await agent.get('/api/v1/pantry');
+    expect(pantry.body.data[0]).toMatchObject({ unit: 'portion', portion_id: spray.id });
+    void spoon;
+  });
+
+  it("re-saving a recipe keeps its derived 'portion' id stable so a pin survives", async () => {
+    const { agent, csrf, userId } = await authedAgent(app, 'alice');
+    const flour = await seedFood(userId, 'Flour');
+    const created = await agent
+      .post('/api/v1/recipes')
+      .set('x-csrf-token', csrf)
+      .send({
+        name: 'Sauce',
+        servings: 2,
+        ingredients: [
+          { ref_type: 'food', ref_id: flour.id, quantity: 100, unit: 'g', order_index: 0 },
+        ],
+      });
+    const recipeId = created.body.data.id as string;
+    const derivedFoodId = created.body.data.derived_food_id as string;
+    const before = await agent.get(`/api/v1/foods/${derivedFoodId}`);
+    const portionId = before.body.data.named_portions[0].id as string;
+
+    await csrfPost(agent, csrf, '/api/v1/pantry', {
+      meal_slot_name: 'Déjeuner',
+      food_id: derivedFoodId,
+      unit: 'portion',
+      portion_id: portionId,
+    });
+
+    // Re-save the recipe (servings change rebuilds the derived food + portion grams).
+    const edit = await csrfPatch(agent, csrf, `/api/v1/recipes/${recipeId}`, { servings: 4 });
+    expect(edit.status).toBe(200);
+
+    // The "portion" kept its id…
+    const after = await agent.get(`/api/v1/foods/${derivedFoodId}`);
+    expect(after.body.data.named_portions[0].id).toBe(portionId);
+    // …so the pin survives.
+    const pantry = await agent.get('/api/v1/pantry');
+    expect(pantry.body.data[0]).toMatchObject({ unit: 'portion', portion_id: portionId });
+  });
+});
