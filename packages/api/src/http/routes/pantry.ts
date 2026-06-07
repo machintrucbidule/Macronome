@@ -10,6 +10,7 @@ const router = Router();
 router.use(requireAuth);
 router.get('/', asyncHandler(pantry.list));
 router.post('/', asyncHandler(pantry.create));
+router.patch('/:id', asyncHandler(pantry.update));
 router.delete('/:id', asyncHandler(pantry.remove));
 
 export default router;

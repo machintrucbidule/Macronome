@@ -247,21 +247,31 @@ export async function clear(userId: string, date: string): Promise<DayDetail | n
     pantryRepo.list(userId),
   ]);
   if (!aggregate) return get(userId, date);
-  const pinnedKeys = new Set(pins.map((p) => pinKey(p.mealSlotName, p.foodId)));
+  // Each pinned (slot, food) carries the prefill unit a cleared line resets to (GM-2/B-092;
+  // unit='portion' without a portion → fall back to g, the deleted-portion case).
+  const pinByKey = new Map(
+    pins.map((p) => [
+      pinKey(p.mealSlotName, p.foodId),
+      p.unit === 'portion' && p.portionId
+        ? { unit: 'portion', portionId: p.portionId }
+        : { unit: p.unit === 'portion' ? 'g' : p.unit, portionId: null },
+    ]),
+  );
 
   const groupIds: string[] = [];
   const deleteEntryIds: string[] = [];
-  const zeroEntryIds: string[] = [];
+  const zeroEntries: { id: string; unit: string; portionId: string | null }[] = [];
   for (const { meal, entries, groups } of aggregate.meals) {
     for (const g of groups) groupIds.push(g.group.id);
     for (const e of entries) {
-      const pinned =
-        e.kind === 'referenced' &&
-        e.foodId !== null &&
-        pinnedKeys.has(pinKey(meal.slotName, e.foodId));
-      (pinned ? zeroEntryIds : deleteEntryIds).push(e.id);
+      const pin =
+        e.kind === 'referenced' && e.foodId !== null
+          ? pinByKey.get(pinKey(meal.slotName, e.foodId))
+          : undefined;
+      if (pin) zeroEntries.push({ id: e.id, unit: pin.unit, portionId: pin.portionId });
+      else deleteEntryIds.push(e.id);
     }
   }
-  await dayRepo.clearDay(userId, date, { groupIds, deleteEntryIds, zeroEntryIds });
+  await dayRepo.clearDay(userId, date, { groupIds, deleteEntryIds, zeroEntries });
   return get(userId, date);
 }

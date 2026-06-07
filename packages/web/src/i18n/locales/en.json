@@ -677,7 +677,9 @@
       "add": "+ Food",
       "searchPlaceholder": "Search a food…",
       "searchEmpty": "No food found",
-      "duplicate": "This food is already pinned on this meal."
+      "duplicate": "This food is already pinned on this meal.",
+      "unit": "Prefill unit",
+      "portion": "portion"
     },
     "ai": {
       "title": "AI assistant",

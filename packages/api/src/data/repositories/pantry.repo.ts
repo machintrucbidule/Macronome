@@ -4,7 +4,14 @@ import { prisma } from '../prisma.js';
 // Repository for `pantry_item` (garde-manger pins). User-scoped (CLAUDE.md rule 3). The
 // same row is toggled by the Repas 📌 and edited from Paramètres. Dedup is the UNIQUE
 // (user_id, meal_slot_name, food_id); the service maps a duplicate to 409. Prefill reads
-// only active (non-archived) foods (spec/schema/indexes.md §Referential cleanup).
+// only active (non-archived) foods (spec/schema/indexes.md §Referential cleanup). Each pin
+// stores the unit a new day's qty-0 line is created with (GM-2/B-092).
+
+/** A pin's prefill unit (g/ml/kg or a named portion via portionId; GM-2/B-092). */
+export interface PrefillUnit {
+  unit: string;
+  portionId: string | null;
+}
 
 export const pantryRepo = {
   /** The user's pins, optionally filtered to one meal slot, in insertion order. */
@@ -41,8 +48,31 @@ export const pantryRepo = {
     mealSlotName: string,
     foodId: string,
     orderIndex: number,
+    prefill: PrefillUnit = { unit: 'g', portionId: null },
   ): Promise<PantryItemModel> {
-    return prisma.pantryItem.create({ data: { userId, mealSlotName, foodId, orderIndex } });
+    return prisma.pantryItem.create({
+      data: {
+        userId,
+        mealSlotName,
+        foodId,
+        orderIndex,
+        unit: prefill.unit,
+        portionId: prefill.portionId,
+      },
+    });
+  },
+
+  /** Change a pin's prefill unit/portion (GM-2/B-094, B-093). Scoped; null if not owned. */
+  async updateUnit(
+    userId: string,
+    id: string,
+    prefill: PrefillUnit,
+  ): Promise<PantryItemModel | null> {
+    const result = await prisma.pantryItem.updateMany({
+      where: { id, userId },
+      data: { unit: prefill.unit, portionId: prefill.portionId },
+    });
+    return result.count > 0 ? this.findOwned(userId, id) : null;
   },
 
   async deleteOwned(userId: string, id: string): Promise<boolean> {

@@ -42,8 +42,9 @@ day's current Σ consumed kcal` **server-side**, then **drops the day's meals** 
   day; materializes a never-touched day as summary (`summary_kcal=0`). → 200 DayDetail.
 - `POST /days/:date/clear` — **clear the day** (B-046). No body. Atomically: deletes the
   day's leftover groups, deletes all non-pinned entries (custom lines + non-pinned
-  referenced lines), and resets the **pinned** referenced lines (garde-manger) to qty 0;
-  **keeps** `comment` and `activity_level`; resets `verdict_override` to null (back to
+  referenced lines), and resets the **pinned** referenced lines (garde-manger) to qty 0 **with the
+  pin's stored prefill `unit`/`portion_id`** (GM-2/B-092; not forced to `g`); **keeps** `comment`
+  and `activity_level`; resets `verdict_override` to null (back to
   Auto). Pin membership is the live `pantry_item` set (`logic/pantry-pin.md`). A
   never-materialized scaffold (nothing logged) is a no-op. → 200 DayDetail. Summary day
   → 409 `summary_day_readonly`.

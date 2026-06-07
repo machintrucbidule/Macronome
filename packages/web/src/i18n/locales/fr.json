@@ -677,7 +677,9 @@
       "add": "+ Aliment",
       "searchPlaceholder": "Rechercher un aliment…",
       "searchEmpty": "Aucun aliment trouvé",
-      "duplicate": "Cet aliment est déjà épinglé sur ce repas."
+      "duplicate": "Cet aliment est déjà épinglé sur ce repas.",
+      "unit": "Unité de pré-remplissage",
+      "portion": "portion"
     },
     "ai": {
       "title": "Assistant IA",

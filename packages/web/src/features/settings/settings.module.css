@@ -211,6 +211,26 @@
 .chip button:hover {
   color: var(--nok);
 }
+/* per-food prefill unit chip + its popover anchor (GM-2/B-094) */
+.unitWrap {
+  position: relative;
+  display: inline-flex;
+}
+.chip button.unitChip {
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  color: var(--text-faint);
+  max-width: 64px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-radius: var(--r-sm);
+  padding: 0 var(--sp-2);
+}
+.chip button.unitChip:hover {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
 .addChip {
   border: var(--bw) dashed var(--border-strong);
   background: transparent;

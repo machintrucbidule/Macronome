@@ -201,6 +201,8 @@ model PantryItem {
   userId       String   @map("user_id") @db.Uuid
   mealSlotName String   @map("meal_slot_name")
   foodId       String   @map("food_id") @db.Uuid
+  unit         String   @default("g")
+  portionId    String?  @map("portion_id") @db.Uuid
   orderIndex   Int      @map("order_index")
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz()

@@ -12,6 +12,7 @@ import { foodRepo, type FoodWithPortions } from '../data/repositories/food.repo.
 import { resolveServedGrams, snapshotMacros, type ServingUnit } from '../domain/serving/index.js';
 import { ApiError } from '../http/errors.js';
 import { mealEntryDto } from './day-assembler.js';
+import { syncUnitFromPinnedEntry } from './pantry.js';
 
 // Meal-entries service (spec/api/days-meals-leftover.md §Meal entries). The server
 // RESOLVES served_grams and the macro SNAPSHOT at write time (domain/serving), freezing
@@ -165,7 +166,20 @@ export async function update(
   const existing = await entryRepo.ownedEntry(userId, entryId);
   if (!existing) return null;
   const data = await buildUpdateData(userId, existing, body);
-  return mealEntryDto(await entryRepo.update(entryId, data));
+  const updated = await entryRepo.update(entryId, data);
+  // The line drives the pin (GM-2/B-093): if the user changed a pinned line's unit, re-sync
+  // the stored pantry unit + cascade to today/future qty-0 placeholders.
+  const unitChanged = body.unit !== undefined || body.portion_id !== undefined;
+  if (unitChanged && data.kind === 'referenced' && data.foodId) {
+    const meal = await dayRepo.ownedMeal(userId, existing.mealId);
+    if (meal) {
+      await syncUnitFromPinnedEntry(userId, meal.slotName, data.foodId, {
+        unit: data.unit,
+        portionId: data.portionId,
+      });
+    }
+  }
+  return mealEntryDto(updated);
 }
 
 export function remove(userId: string, entryId: string): Promise<boolean> {

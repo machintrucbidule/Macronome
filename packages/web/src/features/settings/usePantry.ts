@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { CreatePantryRequest } from '@macronome/shared';
+import type { CreatePantryRequest, UpdatePantryRequest } from '@macronome/shared';
 import { pantryApi } from '../../api/pantry';
 
 // Garde-manger data hooks (spec/api §Settings). The full pantry is fetched once and grouped
@@ -21,6 +21,11 @@ export function usePantryMutations() {
   return {
     create: useMutation({
       mutationFn: (body: CreatePantryRequest) => pantryApi.create(body),
+      onSuccess: invalidate,
+    }),
+    update: useMutation({
+      mutationFn: (vars: { id: string; body: UpdatePantryRequest }) =>
+        pantryApi.update(vars.id, vars.body),
       onSuccess: invalidate,
     }),
     remove: useMutation({

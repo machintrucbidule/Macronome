@@ -79,12 +79,14 @@ export const entryRepo = {
 
   /** Pin cascade (B-045, Option C): append a qty-0 referenced line for (slot, food) to
    *  every day with date >= today whose slot meal does not already list the food. Past
-   *  days are untouched; future uncreated days are covered by prefill at creation. */
+   *  days are untouched; future uncreated days are covered by prefill at creation. The line
+   *  carries the pin's stored prefill unit/portion (GM-2/B-092; quantity & grams stay 0). */
   async addZeroQtyLineToCurrentAndFuture(
     userId: string,
     slotName: string,
     foodId: string,
     today: string,
+    prefill: { unit: string; portionId: string | null } = { unit: 'g', portionId: null },
   ): Promise<void> {
     const days = await prisma.dayLog.findMany({
       where: { userId, date: { gte: toDate(today) } },
@@ -115,7 +117,8 @@ export const entryRepo = {
         kind: 'referenced',
         foodId,
         servedQuantity: 0,
-        unit: 'g',
+        unit: prefill.unit,
+        portionId: prefill.portionId,
         servedGrams: 0,
         snapKcal: 0,
         snapFat: 0,
@@ -124,6 +127,38 @@ export const entryRepo = {
         orderIndex: nextIndex.get(m.id) ?? 0,
       })),
     });
+  },
+
+  /** Unit cascade (GM-2/B-093, B-094): set the prefill unit/portion of every qty-0 referenced
+   *  line for (slot, food) on date >= today. Past days and qty>0 lines are untouched (grams
+   *  stay 0). Returns the number of lines updated. */
+  async updateZeroQtyLineUnitCurrentAndFuture(
+    userId: string,
+    slotName: string,
+    foodId: string,
+    today: string,
+    prefill: { unit: string; portionId: string | null },
+  ): Promise<number> {
+    const days = await prisma.dayLog.findMany({
+      where: { userId, date: { gte: toDate(today) } },
+      select: { id: true },
+    });
+    if (days.length === 0) return 0;
+    const meals = await prisma.meal.findMany({
+      where: { dayLogId: { in: days.map((d) => d.id) }, slotName },
+      select: { id: true },
+    });
+    if (meals.length === 0) return 0;
+    const res = await prisma.mealEntry.updateMany({
+      where: {
+        mealId: { in: meals.map((m) => m.id) },
+        kind: 'referenced',
+        foodId,
+        servedQuantity: 0,
+      },
+      data: { unit: prefill.unit, portionId: prefill.portionId },
+    });
+    return res.count;
   },
 
   /** Meal ids for the user with the given slot name (day_log → meal scoping helper). */

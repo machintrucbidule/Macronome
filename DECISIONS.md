@@ -1200,3 +1200,39 @@ button stays disabled until the user types the localized word ("EFFACER"/"REMPLA
 (pointer); `design/components/modals.md` (typed-confirmation variant);
 `specifications/screens/settings.md` (Données section + reversed removal note). **No DB/schema
 change.**
+
+---
+
+## GM-2 / B-092, B-093, B-094, B-095 — Garde-manger prefill unit per food + picker outside-click — RESOLVED (author, 2026-06-07)
+
+Mixed batch (precedent BF-9, BF-11). B-092/093/094 are improvements with one **additive DB
+migration**; B-095 is a code-only bug-fix. Until now `pantry_item` stored no unit and the two
+prefill paths (`entry.repo.ts:addZeroQtyLineToCurrentAndFuture`, `day.repo.ts:seedMealsTx`)
+hard-coded `unit:'g'`, so a food usually logged in portions/ml was always prefilled in grams.
+
+Two behaviour decisions taken with the author at intake (Run #8): **(A)** changing a pin's unit
+cascades to **today + future** qty-0 placeholder lines only (past/frozen and qty>0 lines untouched);
+**(B)** **the line drives the pin** — editing a pinned line's unit on Repas re-syncs the stored
+pantry unit, then cascades per (A). At plan time the author additionally required that **clear-the-day
+(B-046) reset pinned lines to the pin's stored unit**, not to `g`.
+
+- **B-092 — Prefill unit on `pantry_item`.** New columns `unit` (NOT NULL DEFAULT `'g'`) and
+  `portion_id` (NULL REFERENCES `food_portion(id)` ON DELETE SET NULL; set iff `unit='portion'`).
+  `POST /pantry` accepts `unit?`/`portion_id?` (invalid portion → 422 `portion_id: invalid_portion`).
+  Both prefill paths and clear-the-day read the stored unit/portion; fallback `g` when
+  `unit='portion'` and `portion_id` is null (deleted portion). Quantity & grams stay 0 — history
+  unaffected.
+- **B-093 — Pin captures the line's unit + re-sync on edit.** Pinning from a day captures the
+  entry's `unit`/`portion_id`. Editing a pinned line's unit re-syncs `pantry_item` and runs the
+  unit cascade (decision A/B).
+- **B-094 — Paramètres per-food unit selector.** New `PATCH /pantry/:id {unit,portion_id}` (persist
+  - unit cascade). The editor shows a unit chip/menu (reuses the Repas `UnitMenu`).
+- **B-095 — Picker outside-click.** `PantryEditor` wraps the food picker in a ref + document
+  `mousedown` listener (the B-049 pattern); an outside click closes it with no food added.
+
+**Spec impact:** `spec/schema/tables-logging.md` (pantry_item `unit`/`portion_id`); Prisma schema +
+**additive migration** `pantry_item_prefill_unit` (back-fills `g`/null); `spec/api/weight-targets-
+stats-settings.md` (POST body + new PATCH); `spec/api/days-meals-leftover.md` (clear resets to the
+pin's unit); `spec/logic/pantry-pin.md` §3 + §5 oracle; `specifications/screens/settings.md`
+(per-food unit selector + picker outside-click); `packages/shared/src/dto/pantry.ts`. DB migration
+(additive, non-destructive).

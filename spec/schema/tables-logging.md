@@ -27,11 +27,17 @@ user's days.
 | user_id | uuid | NOT NULL REFERENCES app_user(id) |
 | meal_slot_name | text | NOT NULL (matches a template meal name) |
 | food_id | uuid | NOT NULL REFERENCES food(id) |
+| unit | text | NOT NULL DEFAULT 'g' — prefill unit (`g`/`ml`/`kg`/`portion`); GM-2/B-092 |
+| portion_id | uuid | NULL REFERENCES food_portion(id) ON DELETE SET NULL — set iff `unit='portion'` |
 | order_index | integer | NOT NULL (insertion order) |
 | created_at, updated_at | timestamptz | |
 | | | UNIQUE (user_id, meal_slot_name, food_id) — dedup |
 
 An archived food's pantry_item is retained but **not** prefilled on new days.
+
+The **prefill unit** (GM-2/B-092) is the unit a new day's qty-0 line is created with (quantity &
+grams stay 0). When `unit='portion'` and `portion_id` is null (the named portion was deleted →
+`ON DELETE SET NULL`), prefill falls back to `g`. See `logic/pantry-pin.md` §3.
 
 ## day_log
 

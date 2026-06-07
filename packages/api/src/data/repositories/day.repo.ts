@@ -8,10 +8,13 @@ import { toDate } from './day-read.repo.js';
 // files. Every method is user-scoped (CLAUDE.md rule 3) — sub-entity ownership is
 // verified by walking meal → day_log.user_id (the schema has no Prisma relations).
 
-/** A garde-manger pre-fill line materialized with a new day (qty 0; pin derived live). */
+/** A garde-manger pre-fill line materialized with a new day (qty 0; pin derived live). The
+ *  unit/portionId come from the pin's stored prefill unit (GM-2/B-092). */
 export interface PrefillEntry {
   foodId: string;
   orderIndex: number;
+  unit: string;
+  portionId: string | null;
 }
 
 export interface CreateDayData {
@@ -54,7 +57,8 @@ async function seedMealsTx(
           kind: 'referenced',
           foodId: p.foodId,
           servedQuantity: 0,
-          unit: 'g',
+          unit: p.unit,
+          portionId: p.portionId,
           servedGrams: 0,
           snapKcal: 0,
           snapFat: 0,
@@ -188,12 +192,17 @@ export const dayRepo = {
 
   /** Clear-the-day (B-046): in one transaction drop the day's leftover groups (links
    *  cascade), delete the non-pinned entries, reset the pinned (garde-manger) lines to
-   *  qty 0, and clear `verdict_override` (back to Auto). The caller (service) resolves
-   *  which ids fall in each bucket from the user-scoped aggregate + live pantry pins. */
+   *  qty 0 — restoring each pin's stored prefill unit/portion (GM-2/B-092), not forcing g —
+   *  and clear `verdict_override` (back to Auto). The caller (service) resolves which ids fall
+   *  in each bucket from the user-scoped aggregate + live pantry pins. */
   async clearDay(
     userId: string,
     date: string,
-    ids: { groupIds: string[]; deleteEntryIds: string[]; zeroEntryIds: string[] },
+    ids: {
+      groupIds: string[];
+      deleteEntryIds: string[];
+      zeroEntries: { id: string; unit: string; portionId: string | null }[];
+    },
   ): Promise<void> {
     await prisma.$transaction(async (tx) => {
       if (ids.groupIds.length > 0) {
@@ -202,13 +211,21 @@ export const dayRepo = {
       if (ids.deleteEntryIds.length > 0) {
         await tx.mealEntry.deleteMany({ where: { id: { in: ids.deleteEntryIds } } });
       }
-      if (ids.zeroEntryIds.length > 0) {
+      // Group the reset by (unit, portionId) so one updateMany handles each prefill unit.
+      const byUnit = new Map<string, { unit: string; portionId: string | null; ids: string[] }>();
+      for (const e of ids.zeroEntries) {
+        const key = `${e.unit}|${e.portionId ?? ''}`;
+        const bucket = byUnit.get(key) ?? { unit: e.unit, portionId: e.portionId, ids: [] };
+        bucket.ids.push(e.id);
+        byUnit.set(key, bucket);
+      }
+      for (const { unit, portionId, ids: entryIds } of byUnit.values()) {
         await tx.mealEntry.updateMany({
-          where: { id: { in: ids.zeroEntryIds } },
+          where: { id: { in: entryIds } },
           data: {
             servedQuantity: 0,
-            unit: 'g',
-            portionId: null,
+            unit,
+            portionId,
             servedGrams: 0,
             snapKcal: 0,
             snapFat: 0,

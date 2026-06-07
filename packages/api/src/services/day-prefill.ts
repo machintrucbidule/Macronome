@@ -1,9 +1,19 @@
-import type { MealEntry as MealEntryDto } from '@macronome/shared';
+import type { EntryUnit, MealEntry as MealEntryDto } from '@macronome/shared';
 import type { PantryItem as PantryItemModel } from '@prisma/client';
 import { mealTemplateRepo } from '../data/repositories/mealTemplate.repo.js';
 import { pantryRepo } from '../data/repositories/pantry.repo.js';
 import type { PrefillEntry } from '../data/repositories/day.repo.js';
 import { DEFAULT_MEAL_SLOTS } from './defaults.js';
+
+/** The pin's stored prefill unit/portion, with the deleted-portion fallback to g
+ *  (GM-2/B-092; unit='portion' but portion_id null → the named portion was deleted). */
+function prefillUnit(item: PantryItemModel): { unit: EntryUnit; portionId: string | null } {
+  if (item.unit === 'portion')
+    return item.portionId
+      ? { unit: 'portion', portionId: item.portionId }
+      : { unit: 'g', portionId: null };
+  return { unit: item.unit as EntryUnit, portionId: null };
+}
 
 // New-day seeding (spec/api §Day): meals come from the user's meal_slot_template (falling
 // back to the default slots until one is seeded), and each slot is pre-filled with its
@@ -39,21 +49,26 @@ export function seedToMeals(
   return seed.slots.map((slot, orderIndex) => ({
     slotName: slot.name,
     orderIndex,
-    prefill: slot.pantry.map((p, idx) => ({ foodId: p.foodId, orderIndex: idx })),
+    prefill: slot.pantry.map((p, idx) => ({
+      foodId: p.foodId,
+      orderIndex: idx,
+      ...prefillUnit(p),
+    })),
   }));
 }
 
 /** An unsaved qty-0 preview entry for the GET scaffold (no DB row yet; id ''). */
 function previewEntry(item: PantryItemModel, orderIndex: number): MealEntryDto {
   const zero = { kcal: 0, fat: 0, carb: 0, protein: 0 };
+  const { unit, portionId } = prefillUnit(item);
   return {
     id: '',
     kind: 'referenced',
     food_id: item.foodId,
     custom_name: null,
     served_quantity: 0,
-    unit: 'g',
-    portion_id: null,
+    unit,
+    portion_id: portionId,
     served_grams: 0,
     snap: zero,
     consumed: { grams: 0, quantity: 0, ...zero },

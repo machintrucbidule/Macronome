@@ -100,9 +100,15 @@ target_zone:{cal_min,cal_max}, signals:[{code,value,text}]}`.
   `/api/v1/data`; see `data-export-import.md` (IMP-1).
 - `GET /meal-template` · `POST /meal-template` (add) ·
   `PATCH /meal-template/:id` (rename/reorder) · `DELETE /meal-template/:id`.
-- `GET /pantry?meal_slot_name=` — list. `POST /pantry`
-  `{meal_slot_name,food_id}` (dedup → 409 `pantry_duplicate`) — pins and runs the **add
-  cascade** (qty-0 line on today + future days lacking the food; `logic/pantry-pin.md`,
-  B-045). `DELETE /pantry/:id` — unpins and runs the **delete cascade** (drops qty-0
-  lines for (slot, food) everywhere, keeps qty > 0). The Repas pin endpoints and these
-  are two views of the same live `pantry_item` data.
+- `GET /pantry?meal_slot_name=` — list (each item carries `unit` + `portion_id`). `POST /pantry`
+  `{meal_slot_name,food_id,unit?,portion_id?}` (dedup → 409 `pantry_duplicate`) — pins and runs the
+  **add cascade** (qty-0 line on today + future days lacking the food; `logic/pantry-pin.md`,
+  B-045). `unit` defaults to `g`; a `unit='portion'` whose `portion_id` is not one of the food's
+  named portions → 422 (`portion_id: invalid_portion`). The prefilled qty-0 line carries the stored
+  `unit`/`portion_id` (GM-2/B-092). `PATCH /pantry/:id` `{unit,portion_id}` — change a pin's prefill
+  unit; persists then runs the **unit cascade** over today + future qty-0 placeholder lines
+  (past + qty>0 lines untouched; `logic/pantry-pin.md` §3, GM-2/B-094). `DELETE /pantry/:id` —
+  unpins and runs the **delete cascade** (drops qty-0 lines for (slot, food) everywhere, keeps
+  qty > 0). The Repas pin endpoints and these are two views of the same live `pantry_item` data;
+  pinning from a day captures **that line's** `unit`/`portion_id` onto the new pin, and editing a
+  pinned line's unit re-syncs the pin + cascades (GM-2/B-093, `logic/pantry-pin.md` §3).
