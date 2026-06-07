@@ -474,6 +474,7 @@
   "journal": {
     "title": "Journal",
     "empty": "No days logged for this year.",
+    "error": "Operation failed ({{code}}).",
     "dayCount": "{{count}} day",
     "dayCount_other": "{{count}} days",
     "prevYear": "Previous year",

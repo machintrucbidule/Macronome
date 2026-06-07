@@ -2,6 +2,11 @@
    chrome is shared (DataTable.module.css); these are the page header + cell-specific
    styles. Semantic tokens only (CLAUDE.md rule 6). */
 
+/* PATCH error banner — surfaces a rejected day edit like Repas (B-098). */
+.errorBar {
+  margin-bottom: var(--sp-5);
+}
+
 /* ---- Header ---- */
 .head {
   display: flex;

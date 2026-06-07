@@ -474,6 +474,7 @@
   "journal": {
     "title": "Journal",
     "empty": "Aucun jour enregistré pour cette année.",
+    "error": "Échec de l'opération ({{code}}).",
     "dayCount": "{{count}} jour",
     "dayCount_other": "{{count}} jours",
     "prevYear": "Année précédente",
