@@ -120,13 +120,21 @@ leftover_net_grams,entry_ids:[...]}`.
 
 ## Journal (day history)
 
-- `GET /journal?year=YYYY` — one row per day, newest first.
+- `GET /journal?year=YYYY` — the full calendar **trame** for the year, newest first (day-model):
+  **one row per calendar day** from `max(first record, Jan 1 of year)` to `min(today, Dec 31)`,
+  with **empty (never-touched) days included as `red` rows**, **plus** any **future** day
+  (> today, ≤ Dec 31) that already has a row (listed inline — author decision). Future days are
+  never generated as empties.
   → 200 `{data:[{date,kcal,macros:{L,G,P}|null,verdict_auto,verdict_override,
-effective_verdict,activity_level,comment,kind}], day_count, min_year, max_year}`.
-  Macros are null for summary days. `min_year`/`max_year` are the global span of the
-  user's logged days (across all years, independent of `year`; both `null` when no day
-  is logged) — they bound the year selector (B-067). Row click resolves to
-  `GET /days/:date`. Column sorting (date/calories/verdict/activity) is client-side over
-  the returned year; there are no sort query params.
-- Inline edits reuse `PATCH /days/:date` (verdict_override, activity_level,
-  comment).
+effective_verdict,activity_level,comment,kind,state,editable_kcal}], day_count, min_year, max_year}`.
+  `kind` is `null` for an empty row; `state` is the calorie-driven colour
+  (`none|green|yellow|red`, `logic/day-snapshot-verdict.md §8`); `editable_kcal` is true on any
+  non-`green` day (the Calories cell creates/updates a summary day). Macros are null for summary
+  and empty days. `day_count` is the number of **logged** days (calorie-bearing, date ≤ today) —
+  distinct from the rendered row count. `min_year`/`max_year` are the global span of the user's
+  day rows (across all years, independent of `year`; both `null` when none) — they bound the year
+  selector (B-067). Row click resolves to `GET /days/:date`. Column sorting
+  (date/calories/verdict/activity) is client-side over the returned year; there are no sort query
+  params.
+- Inline edits reuse `PATCH /days/:date` (verdict_override, activity_level, comment, and
+  `summary_kcal` on a no-detail day — typing a total creates/updates a summary day).

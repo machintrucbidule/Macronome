@@ -249,7 +249,8 @@ export interface JournalRow {
   effective_verdict: Verdict | null;
   activity_level: string;
   comment: string | null;
-  kind: 'detailed' | 'summary';
+  /** The day's kind, or null for an empty (never-touched) trame row (day-model). */
+  kind: 'detailed' | 'summary' | null;
   /** Calorie-driven state for the trame coloring (spec/logic/day-snapshot-verdict.md §8). */
   state: DayState;
   /** Whether the Journal Calories cell is inline-editable: any day with no real meal detail

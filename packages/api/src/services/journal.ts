@@ -1,4 +1,5 @@
 import type { JournalResponse, JournalRow, Verdict } from '@macronome/shared';
+import { DEFAULT_ACTIVITY_LEVEL } from '@macronome/shared';
 import type { DayAggregate } from '../data/repositories/day-read.repo.js';
 import { dayReadRepo } from '../data/repositories/day-read.repo.js';
 import {
@@ -8,15 +9,19 @@ import {
   type ResolvedSnapshot,
 } from '../domain/day-verdict/index.js';
 import { computeDayTotals } from './day-assembler.js';
-import { isFuture } from './day-context.js';
+import { isFuture, todayString } from './day-context.js';
 
-// Journal service (spec/api/days-meals-leftover.md §Journal). A read-only history view:
-// one row per logged day of a year, newest first. Verdicts use each day's STORED snapshot
-// (a frozen history; later target/weight edits never move a past row). Macros are null for
-// summary days. Row click resolves to GET /days/:date (the full sheet).
+// Journal service (spec/api/days-meals-leftover.md §Journal). The history view returns the
+// full calendar TRAME (day-model): one row per calendar day from max(first record, Jan 1) to
+// today — empty days flagged `red` — PLUS any future day that already has a row (listed inline,
+// author decision). Verdicts use each day's STORED snapshot (frozen history). `day_count` stays
+// the number of LOGGED days (calorie-bearing, date ≤ today), distinct from the rendered rows.
 
 const num = (d: { toString(): string }): number => Number(d.toString());
 
+const isoOf = (aggregate: DayAggregate): string => aggregate.dayLog.date.toISOString().slice(0, 10);
+
+/** Map a stored day to its Journal row (state + editable_kcal derived server-side, §8). */
 function toRow(aggregate: DayAggregate): JournalRow {
   const { dayLog } = aggregate;
   const snapshot = dayLog.targetSnapshot as unknown as ResolvedSnapshot;
@@ -25,12 +30,9 @@ function toRow(aggregate: DayAggregate): JournalRow {
   const kcal = isSummary ? num(dayLog.summaryKcal ?? 0) : totals!.kcal;
   const auto = autoVerdict(kcal, snapshot.cal_min, snapshot.cal_max);
   const override = (dayLog.verdictOverride ?? null) as Verdict | null;
-  const date = dayLog.date.toISOString().slice(0, 10);
+  const date = isoOf(aggregate);
   const kind = dayLog.kind as 'detailed' | 'summary';
   const state = dayState({ kind, dayKcal: kcal, isFuture: isFuture(date) });
-  // The Calories cell is inline-editable on any day with no real detail (not green) — typing
-  // a total creates/updates a summary day (no provenance distinction; see logic §9).
-  const editableKcal = state !== 'green';
   return {
     date,
     kcal,
@@ -42,17 +44,73 @@ function toRow(aggregate: DayAggregate): JournalRow {
     comment: dayLog.comment,
     kind,
     state,
-    editable_kcal: editableKcal,
+    // Calories cell is inline-editable on any non-green day (typing a total → summary day).
+    editable_kcal: state !== 'green',
   };
 }
 
-/** GET /journal?year=YYYY — one row per logged day, newest first. The global
- *  min/max year (across all years) bounds the year selector (B-067). */
+/** A never-touched calendar day in the trame: a red, empty (not logged) row (§8). The trame
+ *  only spans dates ≤ today, so an empty trame day is always `red` (never future `none`). */
+function emptyRow(date: string): JournalRow {
+  return {
+    date,
+    kcal: 0,
+    macros: null,
+    verdict_auto: null,
+    verdict_override: null,
+    effective_verdict: null,
+    activity_level: DEFAULT_ACTIVITY_LEVEL,
+    comment: null,
+    kind: null,
+    state: 'red',
+    editable_kcal: true,
+  };
+}
+
+/** Calendar dates from `start` to `end` inclusive (YYYY-MM-DD), oldest first. */
+function eachDate(start: string, end: string): string[] {
+  const out: string[] = [];
+  const d = new Date(`${start}T00:00:00.000Z`);
+  const last = new Date(`${end}T00:00:00.000Z`);
+  while (d <= last) {
+    out.push(d.toISOString().slice(0, 10));
+    d.setUTCDate(d.getUTCDate() + 1);
+  }
+  return out;
+}
+
+const isLogged = (r: JournalRow, today: string): boolean =>
+  (r.state === 'green' || r.state === 'yellow') && r.date <= today;
+
+/** GET /journal?year=YYYY — the full calendar trame for the year, newest first (day-model). */
 export async function listByYear(userId: string, year: number): Promise<JournalResponse> {
   const [aggregates, range] = await Promise.all([
     dayReadRepo.readYear(userId, year),
     dayReadRepo.yearRange(userId),
   ]);
-  const data = aggregates.map(toRow);
-  return { data, day_count: data.length, min_year: range.minYear, max_year: range.maxYear };
+  const byDate = new Map(aggregates.map((a) => [isoOf(a), a]));
+  const today = todayString();
+  const jan1 = `${year}-01-01`;
+  const dec31 = `${year}-12-31`;
+  // Trame: max(first record, Jan 1) → min(today, Dec 31). Empty days are red.
+  const start = range.minDate && range.minDate > jan1 ? range.minDate : jan1;
+  const end = today < dec31 ? today : dec31;
+
+  const rows: JournalRow[] = [];
+  if (start <= end) {
+    for (const date of eachDate(start, end)) {
+      const agg = byDate.get(date);
+      rows.push(agg ? toRow(agg) : emptyRow(date));
+    }
+  }
+  // Future days (> today, within the year) that already carry data — listed inline, never
+  // generated as empties (author decision; they stay excluded from stats until their date).
+  for (const agg of aggregates) {
+    const date = isoOf(agg);
+    if (date > today && date <= dec31) rows.push(toRow(agg));
+  }
+  rows.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0)); // newest first
+
+  const day_count = rows.filter((r) => isLogged(r, today)).length;
+  return { data: rows, day_count, min_year: range.minYear, max_year: range.maxYear };
 }

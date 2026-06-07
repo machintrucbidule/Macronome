@@ -97,9 +97,12 @@ export const dayReadRepo = {
     return (await aggregateFor([dayLog]))[0] ?? null;
   },
 
-  /** Earliest/latest logged-day year for the user (across all years) — bounds the
-   *  journal year selector (B-067). Both null when the user has no logged day. */
-  async yearRange(userId: string): Promise<{ minYear: number | null; maxYear: number | null }> {
+  /** Earliest/latest day-row year for the user (across all years) — bounds the journal year
+   *  selector (B-067) — plus the earliest day-row date (YYYY-MM-DD) that anchors the journal
+   *  trame start (day-model). All null when the user has no day_log row. */
+  async yearRange(
+    userId: string,
+  ): Promise<{ minYear: number | null; maxYear: number | null; minDate: string | null }> {
     const r = await prisma.dayLog.aggregate({
       where: { userId },
       _min: { date: true },
@@ -108,6 +111,7 @@ export const dayReadRepo = {
     return {
       minYear: r._min.date ? r._min.date.getUTCFullYear() : null,
       maxYear: r._max.date ? r._max.date.getUTCFullYear() : null,
+      minDate: r._min.date ? r._min.date.toISOString().slice(0, 10) : null,
     };
   },
 
