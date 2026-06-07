@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { EntryUnit, MealEntry } from '@macronome/shared';
+import { evalQuantity } from '../../../../lib/format/parse';
 import { useMeals } from '../../MealsContext';
 import { useFood } from '../../hooks/useFoodLookup';
 import { caretAtEdge, focusSiblingQty } from '../../hooks/useMealKeyboardNav';
@@ -70,6 +71,34 @@ function restValue(entry: MealEntry): string {
   return String(Math.round(quantity));
 }
 
+// Keyboard nav for the quantity input (kept module-level to keep QtyCell within the line cap):
+// Enter/Tab/arrows commit + walk between qty cells (meals.md §113); Escape resets the edit.
+function onQtyKeyDown(
+  e: KeyboardEvent<HTMLInputElement>,
+  commit: () => void,
+  reset: () => void,
+): void {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    commit();
+    focusSiblingQty(e.currentTarget, 1);
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    reset();
+    e.currentTarget.blur();
+  } else if (e.key === 'Tab') {
+    commit();
+  } else if (e.key === 'ArrowUp' || (e.key === 'ArrowLeft' && caretAtEdge(e.currentTarget, -1))) {
+    e.preventDefault();
+    commit();
+    focusSiblingQty(e.currentTarget, -1);
+  } else if (e.key === 'ArrowDown' || (e.key === 'ArrowRight' && caretAtEdge(e.currentTarget, 1))) {
+    e.preventDefault();
+    commit();
+    focusSiblingQty(e.currentTarget, 1);
+  }
+}
+
 export function QtyCell({ mealId, mealIndex, entry }: QtyCellProps) {
   const { actions, pendingFocus } = useMeals();
   const [value, setValue] = useState(() => restValue(entry));
@@ -94,10 +123,17 @@ export function QtyCell({ mealId, mealIndex, entry }: QtyCellProps) {
     }
   }, [pendingFocus, entry.id, actions]);
 
+  const reset = (): void => {
+    setValue(restValue(entry));
+    setDirty(false);
+  };
   const commit = (): void => {
     if (!dirty) return;
-    const n = Number(value.replace(',', '.'));
-    const qty = Number.isFinite(n) ? n : 0;
+    // Accept an arithmetic expression (B-108): store the result, reject invalid (keep previous).
+    const qty = evalQuantity(value);
+    if (qty === null || qty < 0) return reset();
+    setValue(String(qty)); // show the evaluated result in place of the expression
+    setDirty(false);
     if (qty !== entry.served_quantity)
       void actions.setQty(mealId, mealIndex, entry, qty, entry.unit, entry.portion_id);
   };
@@ -105,32 +141,6 @@ export function QtyCell({ mealId, mealIndex, entry }: QtyCellProps) {
   const onChange = (v: string): void => {
     setValue(v);
     setDirty(true);
-  };
-
-  const onKeyDown = (e: KeyboardEvent<HTMLInputElement>): void => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      commit();
-      focusSiblingQty(e.currentTarget, 1);
-    } else if (e.key === 'Escape') {
-      e.preventDefault();
-      setValue(restValue(entry));
-      setDirty(false);
-      e.currentTarget.blur();
-    } else if (e.key === 'Tab') {
-      commit();
-    } else if (e.key === 'ArrowUp' || (e.key === 'ArrowLeft' && caretAtEdge(e.currentTarget, -1))) {
-      e.preventDefault();
-      commit();
-      focusSiblingQty(e.currentTarget, -1);
-    } else if (
-      e.key === 'ArrowDown' ||
-      (e.key === 'ArrowRight' && caretAtEdge(e.currentTarget, 1))
-    ) {
-      e.preventDefault();
-      commit();
-      focusSiblingQty(e.currentTarget, 1);
-    }
   };
 
   return (
@@ -153,7 +163,7 @@ export function QtyCell({ mealId, mealIndex, entry }: QtyCellProps) {
           }
         }}
         onBlur={commit}
-        onKeyDown={onKeyDown}
+        onKeyDown={(e) => onQtyKeyDown(e, commit, reset)}
         onClick={(e) => e.stopPropagation()}
       />
       <UnitChip mealId={mealId} mealIndex={mealIndex} entry={entry} />

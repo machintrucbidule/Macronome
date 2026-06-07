@@ -32,11 +32,22 @@
 .line:hover {
   background: color-mix(in srgb, var(--bg-elev-2) 70%, transparent);
 }
-.zero .nm {
-  color: var(--text-dim);
+/* Quantity-0 line = clearly muted across the WHOLE line (B-107), so unused garde-manger
+   placeholder lines read as inactive; reverts to normal the moment qty > 0 (the row drops
+   `.zero`). Text cells use the faint token; the 📌/× glyphs ignore `color`, so they're dimmed
+   with opacity. */
+.zero .nm,
+.zero .qty,
+.zero .unit {
+  color: var(--text-faint);
 }
 .zero .v {
   color: var(--text-faint);
+}
+.zero .gripDrag,
+.zero .pin,
+.zero .del {
+  opacity: 0.45;
 }
 .empty {
   cursor: text;

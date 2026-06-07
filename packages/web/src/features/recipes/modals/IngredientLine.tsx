@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { RecipeUnit } from '@macronome/shared';
+import { evalQuantity } from '../../../lib/format/parse';
 import { UnitMenu } from './UnitMenu';
 import type { IngredientDraft } from './draft';
 import styles from '../recipes.module.css';
@@ -28,6 +29,14 @@ export function IngredientLine({ ingredient, onChange, onEdit, onRemove }: Ingre
     onChange({ unit, portionId });
   };
 
+  // Arithmetic quantity (B-108): on blur, replace an expression like "950/2" with its result;
+  // invalid input is left as typed (the save-time conversion keeps the previous fallback).
+  const commitQuantity = (): void => {
+    const q = evalQuantity(ingredient.quantity);
+    if (q !== null && q >= 0 && String(q) !== ingredient.quantity)
+      onChange({ quantity: String(q) });
+  };
+
   return (
     <div className={styles.ingLine}>
       <span
@@ -46,6 +55,7 @@ export function IngredientLine({ ingredient, onChange, onEdit, onRemove }: Ingre
           aria-label={t('recipes.builder.quantity')}
           onChange={(e) => onChange({ quantity: e.target.value })}
           onFocus={(e) => e.target.select()}
+          onBlur={commitQuantity}
         />
         <span className={styles.unitChip} title={unitLabel} onClick={() => setMenuOpen((o) => !o)}>
           {unitLabel}

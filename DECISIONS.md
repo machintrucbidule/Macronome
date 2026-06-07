@@ -1444,3 +1444,42 @@ behaviour and diverge from the existing "client resolves unit, server persists" 
   `resolveEntryDefaultUnit` + `pickFood` resolves pin/portion, takes the picked item's portions) +
   `mealActions.test.ts`; `useMealsController.ts` (threads `usePantry` pins into the actions);
   `components/InlineFoodSearch.tsx` (passes the loggable item's `named_portions`). No DB/schema/API change.
+
+---
+
+## DZ-1 / B-107 — Repas: mute a quantity-0 food line across the whole line — RESOLVED (author, 2026-06-07)
+
+Post-v1 backlog triage (batch FN-1). A qty-0 line (mainly a garde-manger pinned placeholder) was only
+partially dimmed (`.zero .nm`/`.zero .v`), so the qty/unit/grip/📌/× stayed full-contrast and the line
+didn't read as inactive. `design/components/data-tables.md` listed `.zero` as merely "(dimmed)".
+
+**Decision (improvement, UX; web-only, CSS only).** A qty-0 line is **muted across the whole line**:
+the text cells (name, qty, unit, macros) use `var(--text-faint)`, and the grip / 📌 / × glyphs (which
+ignore `color`) are dimmed with `opacity:.45`. It reverts to normal the instant quantity > 0 (the row
+already toggles the `.zero` class on `served_quantity === 0`). Reuses existing tokens — no new token.
+
+**Spec impact:** `design/components/data-tables.md` (`.zero` = whole-line muted, detailed) +
+`specifications/screens/meals.md` (muted qty-0 line). **Code:** `features/meals/components/FoodLine/
+food-line.module.css` (`.zero` extended to `.qty`/`.unit` + `.gripDrag`/`.pin`/`.del`). Test:
+`FoodLine.test.tsx` (qty-0 row has `.zero`, qty>0 doesn't). No DB/API/DTO change.
+
+## QC-1 / B-108 — Arithmetic expressions in quantity fields — RESOLVED (author, 2026-06-07)
+
+Post-v1 backlog triage (batch FN-1). Quantity fields accepted only a plain number; the author wanted to
+type a calculation (e.g. `950/2`) and have the field store the result. No contract specified input
+behaviour → contract delta (improvement).
+
+**Decision (improvement; web-only).** The **quantity** inputs — **Repas food qty + recipe ingredient
+qty only** (not weight/measurement fields) — accept an arithmetic expression (`+ - * / ( )` + decimals,
+French comma), **evaluated on commit** (Enter/blur/Tab/arrow); the **result replaces the expression**
+(no formula kept), e.g. `950/2` → 475. **Invalid** input is **rejected** (previous value kept on Repas;
+left as typed on the recipe draft, where the save-time conversion falls back as before). Parsing is a
+**safe local recursive-descent evaluator — never `eval`**; the API still receives a plain number, so
+rule 2 is intact (input convenience, not a nutrition computation).
+
+**Spec impact:** `design/components/forms-inputs.md` (quantity input accepts an arithmetic expression) +
+`specifications/screens/meals.md` + `specifications/screens/recipe.md`. **Code:** new
+`lib/format/parse.ts` `evalQuantity` (+ `parse.test.ts`); wired into `features/meals/components/FoodLine/
+QtyCell.tsx` (commit evaluates, reject→revert; key handler extracted to keep the line cap),
+`features/recipes/modals/IngredientLine.tsx` (blur evaluates) + `draft.ts` `ingredientInput` (safety net
+for preview/save). Tests: `QtyCell.test.tsx`, `IngredientBlock.test.tsx`. No DB/API/DTO change.

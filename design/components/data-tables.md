@@ -67,7 +67,10 @@ gets `--r-lg` left corners. Header `.meal-head` (name in `--font-display
 `grid-template-columns: 7px 1fr 74px 34px 26px 26px 26px 15px 15px`
 (grip · name · qty+unit · kcal · L · G · P · pin · del). `.lhead` row `--fs-9`
 uppercase. Line `min-height:32px`. Footer `.meal-foot` = totals on `--bg-elev-2`.
-Line states: `.empty` (italic faint "+ aliment"), `.zero` (dimmed), `.pinned`
+Line states: `.empty` (italic faint "+ aliment"), `.zero` (**whole-line muted**:
+text cells name/qty/unit/macros in `--text-faint`, grip/📌/× at `opacity:.45` — a
+quantity-0 line, e.g. a garde-manger placeholder, reads as inactive; reverts to normal
+the instant qty > 0; B-107), `.pinned`
 (`box-shadow: inset 3px 0 0 color-mix(--accent 70%)` + accent 📌), `.editing`
 (`background:var(--bg-field)`, inline search input), `.dragging` (`opacity:.4`).
 Hover reveals grip/pin/del. A meal keeps ≥2 trailing empty lines, ≥15 lines min.

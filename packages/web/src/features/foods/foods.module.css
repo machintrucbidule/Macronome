@@ -188,7 +188,9 @@
 }
 .prow {
   display: grid;
-  grid-template-columns: 1fr 90px 28px;
+  /* Weight column wide enough for ≥4 chars after the ~62px suffix+stepper (B-110: was 90px,
+     which clipped "1000" / "1,5"). */
+  grid-template-columns: 1fr 128px 28px;
   gap: var(--sp-4);
   padding: 8px 11px;
   align-items: center;

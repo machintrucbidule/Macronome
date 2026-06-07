@@ -98,4 +98,24 @@ describe('QtyCell consumed display (B-047)', () => {
     fireEvent.blur(input);
     expect(setQty).not.toHaveBeenCalled();
   });
+
+  it('evaluates an arithmetic expression and stores the result (B-108)', () => {
+    const e = entry();
+    const { getByRole, setQty } = renderQty(e);
+    const input = getByRole('textbox') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: '950/2' } });
+    fireEvent.blur(input);
+    expect(setQty).toHaveBeenCalledWith('m1', 0, e, 475, 'g', null);
+    expect(input.value).toBe('475'); // the expression is replaced by its result
+  });
+
+  it('rejects an invalid expression and keeps the previous value (B-108)', () => {
+    const e = entry({ served_quantity: 200 });
+    const { getByRole, setQty } = renderQty(e);
+    const input = getByRole('textbox') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: 'abc' } });
+    fireEvent.blur(input);
+    expect(setQty).not.toHaveBeenCalled();
+    expect(input.value).toBe('200'); // reverted
+  });
 });

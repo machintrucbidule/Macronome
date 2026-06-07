@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -54,5 +55,26 @@ describe('IngredientBlock — change picker pre-fill & outside-click (B-049)', (
     fireEvent.mouseDown(document.body);
     expect(screen.queryByRole('combobox')).toBeNull();
     expect(onChange).not.toHaveBeenCalled();
+  });
+});
+
+// B-108: an arithmetic expression typed in an ingredient quantity is evaluated on blur.
+describe('IngredientBlock — arithmetic quantity (B-108)', () => {
+  function Stateful() {
+    const [ings, setIngs] = useState<IngredientDraft[]>([draft]);
+    return <IngredientBlock ingredients={ings} disabledFoodId={null} onChange={setIngs} />;
+  }
+
+  it('evaluates the expression on blur and stores the result', () => {
+    const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={qc}>
+        <Stateful />
+      </QueryClientProvider>,
+    );
+    const qty = screen.getByRole<HTMLInputElement>('textbox');
+    fireEvent.change(qty, { target: { value: '950/2' } });
+    fireEvent.blur(qty);
+    expect(qty.value).toBe('475');
   });
 });

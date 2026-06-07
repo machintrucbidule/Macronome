@@ -6,6 +6,7 @@ import type {
   RecipePreviewRequest,
   RecipeUnit,
 } from '@macronome/shared';
+import { evalQuantity } from '../../../lib/format/parse';
 
 // Editable form state for the recipe builder. Numeric fields are strings while editing;
 // converted to the request body on save. Derived macros are NOT held here — they are read
@@ -69,7 +70,9 @@ function ingredientInput(ing: IngredientDraft, index: number): RecipeIngredientI
   return {
     ref_type: ing.refType,
     ref_id: ing.refId,
-    quantity: Number(ing.quantity) || 0,
+    // Evaluate an arithmetic expression (B-108) so the preview/save use the result even if the
+    // field was not blurred; invalid → 0 (the previous fallback).
+    quantity: evalQuantity(String(ing.quantity)) ?? 0,
     unit: ing.unit,
     ...(ing.unit === 'portion' && ing.portionId ? { portion_id: ing.portionId } : {}),
     order_index: index,

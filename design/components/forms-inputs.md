@@ -25,6 +25,12 @@ color-mix(... nok 20% ...)`.
   stays the labelled control (keyboard ↑/↓ unchanged); the buttons are `aria-hidden`.
 - **label**: `--font-num; --fs-10–11; uppercase; ls .05–.1em; color:var(--text-dim)`;
   optional `.hintlabel`/`.opt` in `--text-faint`, non-uppercase, for "(optionnel)".
+- **arithmetic expression** (B-108): the **quantity** inputs (Repas food qty + recipe
+  ingredient qty only — not weight/measurement fields) accept a calculation typed in the
+  field (`+ - * / ( )` + decimals, French comma). It is **evaluated on commit** (Enter/blur/
+  Tab/arrow), and the **result replaces the expression** (no formula kept), e.g. `950/2` →
+  `475`. An **invalid** expression is **rejected** (the previous value is kept). Parsing is a
+  safe local evaluator — never `eval`; the field still submits a plain number (rule 2 intact).
 
 ## Textarea
 

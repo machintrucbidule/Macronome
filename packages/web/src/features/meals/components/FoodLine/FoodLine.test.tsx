@@ -7,6 +7,7 @@ import { MealsProvider } from '../../MealsContext';
 import type { MealsController } from '../../hooks/useMealsController';
 import type { LineDnd } from '../../hooks/useLineDnd';
 import { FoodLine } from './FoodLine';
+import styles from './food-line.module.css';
 
 // B-105: Tab follows the name↔qty serpentine (meals.md §113) — the food name is a keyboard
 // tab stop, while the pin (📌) and delete (×) icons are out of the tab order (tabindex=-1).
@@ -84,6 +85,20 @@ describe('FoodLine keyboard tab order (B-105)', () => {
     const name = container.querySelector('[role="button"]') as HTMLElement;
     fireEvent.keyDown(name, { key: 'Enter' });
     expect(startEdit).toHaveBeenCalledWith('m1', 0, 'e1', undefined, undefined);
+  });
+});
+
+describe('FoodLine muted quantity-0 line (B-107)', () => {
+  it('marks a quantity-0 line muted (.zero) and a qty>0 line not', () => {
+    const zero = renderLine({
+      ...entry(),
+      served_quantity: 0,
+      consumed: { grams: 0, quantity: 0, kcal: 0, fat: 0, carb: 0, protein: 0 },
+    });
+    expect(zero.container.querySelector(`.${styles.zero}`)).not.toBeNull();
+    cleanup();
+    const filled = renderLine(entry());
+    expect(filled.container.querySelector(`.${styles.zero}`)).toBeNull();
   });
 });
 
