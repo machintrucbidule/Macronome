@@ -28,6 +28,7 @@ export interface RecipeWriteData {
   name: string;
   normalizedName: string;
   instructions: string | null;
+  rating: number | null;
   totalBatchGrams: number;
   servings: number;
   ingredients: IngredientWriteData[];
@@ -37,6 +38,7 @@ const SORT_COLUMN: Record<RecipeListQuery['sort'], keyof RecipeModel> = {
   name: 'name',
   batch: 'totalBatchGrams',
   servings: 'servings',
+  rating: 'rating',
 };
 
 type ListQuery = RecipeListQuery & { normalized?: string };
@@ -45,6 +47,7 @@ function buildWhere(userId: string, q: ListQuery): Prisma.RecipeWhereInput {
   const where: Prisma.RecipeWhereInput = { ownerId: userId };
   if (!q.include_archived) where.archivedAt = null;
   if (q.normalized) where.normalizedName = { contains: q.normalized };
+  if (q.min_rating) where.rating = { gte: q.min_rating }; // excludes Bof(0) and unrated(null)
   return where;
 }
 
@@ -133,6 +136,7 @@ export const recipeRepo = {
           name: data.name,
           normalizedName: data.normalizedName,
           instructions: data.instructions,
+          rating: data.rating,
           totalBatchGrams: data.totalBatchGrams,
           servings: data.servings,
         },
@@ -160,6 +164,7 @@ export const recipeRepo = {
           name: data.name,
           normalizedName: data.normalizedName,
           instructions: data.instructions,
+          rating: data.rating,
           totalBatchGrams: data.totalBatchGrams,
           servings: data.servings,
         },

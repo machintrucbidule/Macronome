@@ -75,7 +75,8 @@ model FoodPortion {
 /// here — they live on the derived `food` row (source='recipe', food.recipe_id → this).
 /// `total_batch_grams` defaults to Σ ingredient grams but is overridable to the measured
 /// cooked weight. Soft delete via archived_at (history of meals that logged it is frozen).
-/// CHECKs (servings ≥ 1, total_batch_grams > 0) and the owner FK live in migration SQL.
+/// CHECKs (servings ≥ 1, total_batch_grams > 0, rating ∈ 0..3) and the owner FK live in
+/// migration SQL. `rating`: null=unrated, else a 0..3 grade (mirrors food.rating, Gap #7).
 model Recipe {
   id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   ownerId         String    @map("owner_id") @db.Uuid
@@ -84,6 +85,7 @@ model Recipe {
   instructions    String?
   totalBatchGrams Decimal   @map("total_batch_grams") @db.Decimal
   servings        Int       @default(1)
+  rating          Int?      @db.SmallInt
   archivedAt      DateTime? @map("archived_at") @db.Timestamptz()
   createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz()

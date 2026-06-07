@@ -15,6 +15,7 @@ import { api } from './client';
 
 export interface RecipeListParams {
   q?: string;
+  min_rating?: 1 | 2 | 3;
   include_archived?: boolean;
   sort?: string;
   dir?: 'asc' | 'desc';

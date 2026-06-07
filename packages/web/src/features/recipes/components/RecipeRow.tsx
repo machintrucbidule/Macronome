@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import type { RecipeSummary } from '@macronome/shared';
 import { tableStyles } from '../../../components/DataTable/SortableTh';
+import { Stars } from '../../../components/RatingStars/Stars';
 import { gramsDisplay, kcalDisplay } from '../format';
 import styles from '../recipes.module.css';
 
@@ -34,6 +35,9 @@ export function RecipeRow({ recipe, onOpen, onArchive, onRestore }: RecipeRowPro
       <td className={tableStyles.numc}>{gramsDisplay(recipe.total_batch_grams)}</td>
       <td className={tableStyles.numc}>{recipe.servings}</td>
       <td className={tableStyles.numc}>{gramsDisplay(recipe.weight_per_portion_g)}</td>
+      <td className={tableStyles.c}>
+        <Stars rating={recipe.rating} />
+      </td>
       <td>
         <button
           type="button"

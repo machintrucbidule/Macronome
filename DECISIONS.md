@@ -1034,3 +1034,42 @@ transaction) + `services/day-copy.ts` (`copyFromDay`) + `http/controllers/days.t
 
 **Spec impact:** `spec/api/days-meals-leftover.md` (§Day endpoint), `spec/api/00-conventions.md`
 (error-code example), `specifications/screens/meals.md` (controls row + behaviour).
+
+## RT-1 / B-080, B-081 — Recipe rating (0–3) + archived-recipes filter — RESOLVED (author, 2026-06-07)
+
+Recipes gain the same **0–3 star rating** as foods, and the recipes list gains the **show-archived**
+filter that foods already has. The rating semantics, the `RatingStars`/`RatingPicker` components and
+the "note minimale" chip behaviour are **already specified** (`design/components/rating-stars.md`,
+`DECISIONS.md` Gap #7); RT-1 only extends the **recipe** surface to mirror foods. Full foods parity
+chosen by the user: rating is a read-only, **sortable** column in the list, an editable picker in the
+builder, and a `min_rating` filter chip row.
+
+**B-080 (improvement, contract + migration):**
+
+- **Schema:** `recipe.rating smallint NULL` + `CHECK (rating IS NULL OR rating IN (0,1,2,3))`
+  (`spec/schema/tables-catalog.md`), Prisma `Recipe.rating Int? @db.SmallInt`, migration
+  `recipe_rating` (column + `recipe_rating_check`, mirroring `food`).
+- **API:** `GET /recipes` gains `min_rating` (1|2|3 — excludes Bof 0 and unrated when ≥1, mirrors
+  foods) and `rating` added to the sortable set {name,batch,servings,rating}; `POST/PATCH /recipes`
+  accept `rating?(null|0..3)`; `RecipeSummary`/`RecipeFull` return `rating`
+  (`spec/api/foods-recipes.md`).
+- **ETL (doc-only, O1 out-of-plan):** `spec/logic/migration-etl.md §5` records the "Avis" → rating map.
+
+**B-081 (code-only bug-fix, no contract change):** the recipe archive modal already promised "Tu
+pourras la restaurer" but no UI surfaced archived recipes; the API (`include_archived` +
+archive/restore) already existed. RT-1 adds the missing web toggle in the **same `FiltersPopover`**
+as B-080's min-rating row — that shared component is why the two items batch together.
+
+**Code:** `packages/shared/src/dto/recipe.ts` (reuse `RatingSchema`; `rating` on Summary/Full + body;
+`min_rating` on the list query; `'rating'` in `RECIPE_SORT_FIELDS`); api
+`data/repositories/recipe.repo.ts` (write + `min_rating` where + rating sort column),
+`services/recipes.ts` (map + pass-through); web `features/recipes/` — new
+`components/FiltersPopover.tsx` (min-rating chips + show-archived; no visibility row), `RecipesToolbar`,
+`RecipesPage` (state + `buildListParams`), `RecipesTable`/`RecipeRow` (sortable Note column + `Stars`),
+`modals/BuilderFields`+`draft.ts` (`RatingPicker`), `api/recipes.ts` (`min_rating`), i18n
+`recipes.field.rating`/`recipes.filters.*`/`recipes.col.rating`. **DB migration; no API behaviour
+change beyond the additive fields.**
+
+**Spec impact:** `spec/schema/tables-catalog.md`, `spec/api/foods-recipes.md`,
+`spec/logic/migration-etl.md`, `specifications/screens/recipe.md`.
+`design/components/rating-stars.md` unchanged (applies to recipes identically).

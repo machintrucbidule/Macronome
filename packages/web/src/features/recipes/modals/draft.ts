@@ -1,5 +1,6 @@
 import type {
   CreateRecipeRequest,
+  Rating,
   RecipeFull,
   RecipeIngredientInput,
   RecipePreviewRequest,
@@ -28,6 +29,7 @@ export interface IngredientDraft {
 
 export interface RecipeDraft {
   name: string;
+  rating: Rating;
   servings: string;
   /** '' = let the server default to Σ ingredient grams. */
   batch: string;
@@ -36,13 +38,14 @@ export interface RecipeDraft {
 }
 
 export function emptyRecipeDraft(): RecipeDraft {
-  return { name: '', servings: '1', batch: '', instructions: '', ingredients: [] };
+  return { name: '', rating: null, servings: '1', batch: '', instructions: '', ingredients: [] };
 }
 
 export function initialRecipeDraft(recipe: RecipeFull | null): RecipeDraft {
   if (!recipe) return emptyRecipeDraft();
   return {
     name: recipe.name,
+    rating: recipe.rating,
     servings: String(recipe.servings),
     batch: String(recipe.total_batch_grams),
     instructions: recipe.instructions ?? '',
@@ -81,6 +84,7 @@ export function draftToBody(draft: RecipeDraft): CreateRecipeRequest {
   const batch = draft.batch.trim();
   return {
     name: draft.name.trim(),
+    rating: draft.rating,
     servings: servingsOf(draft),
     instructions: draft.instructions.trim() || null,
     ...(batch ? { total_batch_grams: Number(batch) } : {}),

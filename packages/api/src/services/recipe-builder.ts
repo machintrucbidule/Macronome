@@ -221,6 +221,7 @@ export async function buildFullDto(
     total_batch_grams: batch,
     servings: recipe.servings,
     weight_per_portion_g: weightPerPortion(batch, recipe.servings),
+    rating: (recipe.rating ?? null) as RecipeFull['rating'],
     derived_food_id: derivedId ?? null,
     archived_at: recipe.archivedAt ? recipe.archivedAt.toISOString() : null,
     instructions: recipe.instructions,

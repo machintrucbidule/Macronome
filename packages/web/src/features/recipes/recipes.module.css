@@ -24,6 +24,74 @@
   padding: 0 14px;
 }
 
+/* builder: name + rating on one row (RT-1 B-080) */
+.nameRow {
+  display: flex;
+  gap: var(--sp-6);
+  align-items: flex-end;
+}
+.nameRow > :first-child {
+  flex: 1;
+}
+
+/* filters popover (mirrors foods.module.css; RT-1 B-080/B-081) */
+.filterAnchor {
+  position: relative;
+}
+.filterbtn {
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  background: var(--bg-elev-2);
+  border: var(--bw) solid var(--border-strong);
+  color: var(--text);
+  border-radius: var(--r-md);
+  height: var(--control-h-md);
+  padding: 0 12px;
+  cursor: pointer;
+}
+.filterbtn:hover,
+.filterbtn.on {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.filterpop {
+  position: absolute;
+  top: calc(var(--control-h-md) + 6px);
+  right: 0;
+  z-index: var(--z-popover);
+  width: 240px;
+  background: var(--bg-elev-2);
+  border: var(--bw) solid var(--border-strong);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow);
+  padding: var(--sp-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+.filterpop h4 {
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-caps);
+  color: var(--text-dim);
+  margin: var(--sp-3) 0 0;
+}
+.chipRow {
+  display: flex;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+.archivedToggle {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  font-size: var(--fs-12);
+  color: var(--text-dim);
+  margin-top: var(--sp-4);
+  cursor: pointer;
+}
+
 /* table cells */
 .iconbtn {
   background: none;

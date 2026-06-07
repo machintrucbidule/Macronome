@@ -4,9 +4,9 @@ import { SortableTh, tableStyles } from '../../../components/DataTable/SortableT
 import { RecipeRow } from './RecipeRow';
 
 // Sortable recipes table (specifications/screens/recipe.md). Server-sortable columns:
-// Nom · Lot · Portions (recipe-native). Derived macro columns (kcal/L/G/P, weight/portion)
-// are display-only — they live on the derived food, not the recipe table.
-export type SortField = 'name' | 'batch' | 'servings';
+// Nom · Lot · Portions · Note (recipe-native). Derived macro columns (kcal/L/G/P,
+// weight/portion) are display-only — they live on the derived food, not the recipe table.
+export type SortField = 'name' | 'batch' | 'servings' | 'rating';
 
 interface RecipesTableProps {
   recipes: RecipeSummary[];
@@ -52,6 +52,7 @@ export function RecipesTable({
             {th('batch', 'center')}
             {th('servings', 'center')}
             <th className={tableStyles.c}>{t('recipes.col.weightPerPortion')}</th>
+            {th('rating', 'center')}
             <th aria-label="actions" />
           </tr>
         </thead>

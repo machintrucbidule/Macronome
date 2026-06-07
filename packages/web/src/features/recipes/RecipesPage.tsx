@@ -6,24 +6,45 @@ import { EmptyState } from '../../components/states/EmptyState';
 import { SkeletonRows } from '../../components/states/SkeletonRows';
 import { RecipesToolbar } from './components/RecipesToolbar';
 import { RecipesTable, type SortField } from './components/RecipesTable';
+import type { MinRating } from './components/FiltersPopover';
 import { RecipeBuilderModal } from './modals/RecipeBuilderModal';
 import { RecipeArchiveConfirm } from './modals/RecipeArchiveConfirm';
 import { useRecipeMutations, useRecipesList } from './useRecipes';
 
-// Recettes page (specifications/screens/recipe.md): owns search/sort/modal state, fetches
-// via TanStack Query (server-side search/sort), and renders the table + builder + archive
-// confirm. It renders; it never computes (derived figures come from the API).
+// Recettes page (specifications/screens/recipe.md): owns search/filter/sort/modal state,
+// fetches via TanStack Query (server-side search/filter/sort), and renders the table +
+// builder + archive confirm. It renders; it never computes (derived figures come from the API).
 type ModalState = { mode: 'add' } | { mode: 'edit'; id: string } | null;
+
+interface FilterState {
+  q: string;
+  minRating: MinRating;
+  showArchived: boolean;
+  sort: SortField;
+  dir: 'asc' | 'desc';
+}
+
+function buildListParams(s: FilterState) {
+  return {
+    ...(s.q.trim() ? { q: s.q.trim() } : {}),
+    ...(s.minRating > 0 ? { min_rating: s.minRating as 1 | 2 | 3 } : {}),
+    ...(s.showArchived ? { include_archived: true } : {}),
+    sort: s.sort,
+    dir: s.dir,
+  };
+}
 
 export function RecipesPage() {
   const { t } = useTranslation();
   const [q, setQ] = useState('');
+  const [minRating, setMinRating] = useState<MinRating>(0);
+  const [showArchived, setShowArchived] = useState(false);
   const [sort, setSort] = useState<SortField>('name');
   const [dir, setDir] = useState<'asc' | 'desc'>('asc');
   const [modal, setModal] = useState<ModalState>(null);
   const [archiveTarget, setArchiveTarget] = useState<RecipeSummary | null>(null);
 
-  const list = useRecipesList({ ...(q.trim() ? { q: q.trim() } : {}), sort, dir });
+  const list = useRecipesList(buildListParams({ q, minRating, showArchived, sort, dir }));
   const { archive, restore } = useRecipeMutations();
   const recipes = useMemo(() => list.data?.data ?? [], [list.data]);
 
@@ -40,7 +61,11 @@ export function RecipesPage() {
       <RecipesToolbar
         count={recipes.length}
         q={q}
+        minRating={minRating}
+        showArchived={showArchived}
         onQ={setQ}
+        onMinRating={setMinRating}
+        onShowArchived={setShowArchived}
         onAdd={() => setModal({ mode: 'add' })}
       />
 

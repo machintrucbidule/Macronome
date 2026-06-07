@@ -216,6 +216,109 @@ describe('recipes — forward-only cascade & frozen history', () => {
   });
 });
 
+describe('recipes — rating (RT-1 / B-080)', () => {
+  async function rated(agent: Agent, csrf: string, foodId: string, name: string, rating: unknown) {
+    return createRecipe(agent, csrf, {
+      name,
+      servings: 1,
+      ...(rating === undefined ? {} : { rating }),
+      ingredients: [{ ref_type: 'food', ref_id: foodId, quantity: 100, unit: 'g', order_index: 0 }],
+    });
+  }
+
+  it('defaults rating to null, round-trips 0..3 on POST/PATCH, returns it on GET', async () => {
+    const { agent, csrf, userId } = await authedAgent(app, 'alice');
+    const flour = await seedFood(userId, 'Flour');
+
+    const created = await rated(agent, csrf, flour.id, 'Unrated bake', undefined);
+    expect(created.status).toBe(201);
+    expect(created.body.data.rating).toBeNull();
+    const id = created.body.data.id as string;
+
+    const patched = await csrfPatch(agent, csrf, `/api/v1/recipes/${id}`, { rating: 2 });
+    expect(patched.status).toBe(200);
+    expect(patched.body.data.rating).toBe(2);
+
+    const got = await agent.get(`/api/v1/recipes/${id}`);
+    expect(got.body.data.rating).toBe(2);
+
+    // Summary (list) row also carries it.
+    const list = await agent.get('/api/v1/recipes');
+    expect(list.body.data[0].rating).toBe(2);
+
+    // Bof (0) is a real grade, distinct from unrated.
+    const zeroed = await csrfPatch(agent, csrf, `/api/v1/recipes/${id}`, { rating: 0 });
+    expect(zeroed.body.data.rating).toBe(0);
+  });
+
+  it('rejects an out-of-range rating (422)', async () => {
+    const { agent, csrf, userId } = await authedAgent(app, 'alice');
+    const flour = await seedFood(userId, 'Flour');
+    const res = await rated(agent, csrf, flour.id, 'Bad rating', 4);
+    expect(res.status).toBe(422);
+  });
+
+  it('filters by min_rating (≥1 excludes Bof 0 and unrated)', async () => {
+    const { agent, csrf, userId } = await authedAgent(app, 'alice');
+    const flour = await seedFood(userId, 'Flour');
+    await rated(agent, csrf, flour.id, 'R unrated', undefined);
+    await rated(agent, csrf, flour.id, 'R zero', 0);
+    await rated(agent, csrf, flour.id, 'R one', 1);
+    await rated(agent, csrf, flour.id, 'R two', 2);
+    await rated(agent, csrf, flour.id, 'R three', 3);
+
+    const r1 = await agent.get('/api/v1/recipes').query({ min_rating: 1 });
+    expect(r1.body.data.map((x: { rating: number }) => x.rating).sort()).toEqual([1, 2, 3]);
+
+    const r2 = await agent.get('/api/v1/recipes').query({ min_rating: 2 });
+    expect(r2.body.data.map((x: { rating: number }) => x.rating).sort()).toEqual([2, 3]);
+
+    const r3 = await agent.get('/api/v1/recipes').query({ min_rating: 3 });
+    expect(r3.body.data.map((x: { rating: number }) => x.rating)).toEqual([3]);
+  });
+
+  it('sorts by rating', async () => {
+    const { agent, csrf, userId } = await authedAgent(app, 'alice');
+    const flour = await seedFood(userId, 'Flour');
+    await rated(agent, csrf, flour.id, 'A', 3);
+    await rated(agent, csrf, flour.id, 'B', 1);
+    await rated(agent, csrf, flour.id, 'C', 2);
+
+    const asc = await agent.get('/api/v1/recipes').query({ sort: 'rating', dir: 'asc' });
+    expect(asc.body.data.map((x: { rating: number }) => x.rating)).toEqual([1, 2, 3]);
+  });
+});
+
+describe('recipes — archived filter (RT-1 / B-081)', () => {
+  it('hides archived recipes by default and shows them with include_archived', async () => {
+    const { agent, csrf, userId } = await authedAgent(app, 'alice');
+    const flour = await seedFood(userId, 'Flour');
+    const created = await createRecipe(agent, csrf, {
+      name: 'To archive',
+      servings: 1,
+      ingredients: [
+        { ref_type: 'food', ref_id: flour.id, quantity: 100, unit: 'g', order_index: 0 },
+      ],
+    });
+    const id = created.body.data.id as string;
+
+    const archived = await csrfPost(agent, csrf, `/api/v1/recipes/${id}/archive`);
+    expect(archived.status).toBe(200);
+
+    const list = await agent.get('/api/v1/recipes');
+    expect(list.body.data).toHaveLength(0);
+
+    const withArchived = await agent.get('/api/v1/recipes').query({ include_archived: 'true' });
+    expect(withArchived.body.data).toHaveLength(1);
+    expect(withArchived.body.data[0].archived_at).not.toBeNull();
+
+    const restored = await csrfPost(agent, csrf, `/api/v1/recipes/${id}/restore`);
+    expect(restored.status).toBe(200);
+    const afterRestore = await agent.get('/api/v1/recipes');
+    expect(afterRestore.body.data).toHaveLength(1);
+  });
+});
+
 describe('recipes — tenancy', () => {
   it("returns 404 on another user's recipe", async () => {
     const alice = await authedAgent(app, 'alice');

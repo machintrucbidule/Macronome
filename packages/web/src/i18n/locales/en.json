@@ -144,11 +144,19 @@
       "protein": "P",
       "batch": "Batch (g)",
       "servings": "Servings",
-      "weightPerPortion": "g/portion"
+      "weightPerPortion": "g/portion",
+      "rating": "Rating"
+    },
+    "filters": {
+      "title": "Filters",
+      "minRating": "Minimum rating",
+      "all": "All",
+      "showArchived": "Show archived"
     },
     "field": {
       "name": "Name",
       "namePlaceholder": "Apple cake",
+      "rating": "Rating",
       "instructions": "Instructions",
       "instructionsPlaceholder": "Preparation steps (optional)…"
     },

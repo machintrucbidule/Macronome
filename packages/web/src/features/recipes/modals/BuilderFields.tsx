@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import type { RecipeFull, RecipePreview } from '@macronome/shared';
 import { Banner } from '../../../components/Banner/Banner';
 import { TextInput } from '../../../components/Form/TextInput';
+import { RatingPicker } from '../../../components/RatingStars/RatingPicker';
 import { IngredientBlock } from './IngredientBlock';
 import { YieldPanel } from './YieldPanel';
 import type { RecipeDraft } from './draft';
@@ -22,12 +23,20 @@ export function BuilderFields({ draft, full, preview, error, set }: BuilderField
   const { t } = useTranslation();
   return (
     <>
-      <TextInput
-        label={t('recipes.field.name')}
-        value={draft.name}
-        placeholder={t('recipes.field.namePlaceholder')}
-        onChange={(e) => set({ name: e.target.value })}
-      />
+      <div className={styles.nameRow}>
+        <TextInput
+          label={t('recipes.field.name')}
+          value={draft.name}
+          placeholder={t('recipes.field.namePlaceholder')}
+          onChange={(e) => set({ name: e.target.value })}
+        />
+        <div>
+          <div className="hint" style={{ marginBottom: 6 }}>
+            {t('recipes.field.rating')}
+          </div>
+          <RatingPicker value={draft.rating} onChange={(rating) => set({ rating })} />
+        </div>
+      </div>
       {error && (
         <Banner tone="warning">
           {error === 'would_create_cycle'

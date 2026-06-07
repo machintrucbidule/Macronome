@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { NamedPortionSchema } from './food.js';
+import { NamedPortionSchema, RatingSchema } from './food.js';
 
 // Recipe DTOs (spec/api/foods-recipes.md §Recipes). One source for controller
 // validation and the web client's types. Field names stay snake_case to match the API
@@ -76,6 +76,7 @@ export const RecipeSummarySchema = z.object({
   total_batch_grams: z.number(),
   servings: z.number().int(),
   weight_per_portion_g: z.number(),
+  rating: RatingSchema,
   derived_food_id: z.string().uuid().nullable(),
   archived_at: z.string().datetime().nullable(),
 });
@@ -96,6 +97,7 @@ export type RecipeFull = z.infer<typeof RecipeFullSchema>;
 const recipeBody = {
   name: z.string().min(1).max(255),
   instructions: z.string().max(10000).nullish(),
+  rating: RatingSchema.optional().default(null),
   total_batch_grams: z.number().positive().optional(),
   servings: z.number().int().min(1),
   ingredients: z.array(RecipeIngredientInputSchema),
@@ -146,10 +148,15 @@ export interface RecipePreviewResponse {
 // Recipe-native sort fields only. Derived macro columns live on the derived food row,
 // not the recipe table, so they are not keyset-sortable here (cf. foods' "Portion NOT
 // sortable", OPEN_GAPS #10); the screen shows them as non-sortable columns.
-export const RECIPE_SORT_FIELDS = ['name', 'batch', 'servings'] as const;
+export const RECIPE_SORT_FIELDS = ['name', 'batch', 'servings', 'rating'] as const;
 
 export const RecipeListQuerySchema = z.object({
   q: z.string().trim().max(255).optional(),
+  min_rating: z.coerce
+    .number()
+    .int()
+    .pipe(z.union([z.literal(1), z.literal(2), z.literal(3)]))
+    .optional(),
   include_archived: z
     .union([z.boolean(), z.enum(['true', 'false'])])
     .optional()

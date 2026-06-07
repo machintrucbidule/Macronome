@@ -116,6 +116,7 @@ function toSummary(
     name: string;
     totalBatchGrams: unknown;
     servings: number;
+    rating: number | null;
     archivedAt: Date | null;
   },
   derived:
@@ -135,6 +136,7 @@ function toSummary(
     total_batch_grams: batch,
     servings: recipe.servings,
     weight_per_portion_g: batch / recipe.servings,
+    rating: (recipe.rating ?? null) as RecipeSummary['rating'],
     derived_food_id: derived?.foodId ?? null,
     archived_at: recipe.archivedAt ? recipe.archivedAt.toISOString() : null,
   };
@@ -178,6 +180,7 @@ export async function create(
     name: body.name,
     normalizedName,
     instructions: body.instructions ?? null,
+    rating: body.rating ?? null,
     totalBatchGrams: batch,
     servings: body.servings,
     ingredients: toWriteData(ings),
@@ -215,6 +218,7 @@ export async function update(
     normalizedName,
     instructions:
       body.instructions !== undefined ? (body.instructions ?? null) : existing.instructions,
+    rating: body.rating !== undefined ? body.rating : existing.rating,
     totalBatchGrams: batch,
     servings: body.servings ?? existing.servings,
     ingredients: toWriteData(finalIngredients),

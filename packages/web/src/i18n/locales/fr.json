@@ -144,11 +144,19 @@
       "protein": "P",
       "batch": "Lot (g)",
       "servings": "Portions",
-      "weightPerPortion": "g/portion"
+      "weightPerPortion": "g/portion",
+      "rating": "Note"
+    },
+    "filters": {
+      "title": "Filtres",
+      "minRating": "Note minimale",
+      "all": "Toutes",
+      "showArchived": "Afficher les archivées"
     },
     "field": {
       "name": "Nom",
       "namePlaceholder": "Gâteau aux pommes",
+      "rating": "Note",
       "instructions": "Instructions",
       "instructionsPlaceholder": "Étapes de préparation (optionnel)…"
     },

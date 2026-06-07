@@ -32,19 +32,22 @@ visibility?(default 'private'), named_portions:[{label,grams}]}`.
 
 ## Recipes
 
-- `GET /recipes` — recipes only. Query: `q`, `include_archived`, sort/limit/cursor.
+- `GET /recipes` — recipes only. Query: `q`, `min_rating` (1|2|3 — excludes Bof 0
+  and unrated when ≥1, mirrors foods), `include_archived`, `sort` ∈
+  {name,batch,servings,rating} (derived macro columns NOT sortable, cf. OPEN_GAPS #10),
+  `dir`, `limit`, `cursor`.
   → 200 `{data:[RecipeSummary], next_cursor}` (incl. derived per-100 g, batch,
-  servings, weight/portion).
-- `GET /recipes/:id` → 200 RecipeFull (ingredients + instructions + derived).
-- `POST /recipes` — `{name, instructions?, total_batch_grams?, servings(≥1),
-ingredients:[{ref_type,ref_id,quantity,unit,portion_id?,order_index}]}`.
+  servings, weight/portion, rating).
+- `GET /recipes/:id` → 200 RecipeFull (ingredients + instructions + derived + rating).
+- `POST /recipes` — `{name, instructions?, rating?(null|0..3), total_batch_grams?,
+servings(≥1), ingredients:[{ref_type,ref_id,quantity,unit,portion_id?,order_index}]}`.
   Validation: servings ≥ 1; total_batch_grams > 0 (default Σ ingredient grams);
   **transitive cycle check** — reject an ingredient that makes the graph cyclic
   → 422 `{details:{ingredient:'would_create_cycle'}}`. No custom-inline
   ingredients. On save (re)builds the derived food + auto "portion" named
   portion (= batch/servings). → 201.
-- `PATCH /recipes/:id` — same; edits recompute the derived food **going forward**;
-  nested-recipe edits cascade to parents going forward. → 200.
+- `PATCH /recipes/:id` — same (incl. `rating`); edits recompute the derived food
+  **going forward**; nested-recipe edits cascade to parents going forward. → 200.
 - `POST /recipes/:id/archive` · `POST /recipes/:id/restore`.
 - `POST /recipes/preview` — **stateless** live recompute for the builder (an
   unsaved draft). Body = the recipe body **without `name`**: `{servings(≥1),
