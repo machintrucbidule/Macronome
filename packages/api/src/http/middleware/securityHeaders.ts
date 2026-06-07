@@ -14,6 +14,10 @@ export function securityHeaders(): RequestHandler {
         imgSrc: ["'self'", 'data:'],
         styleSrc: ["'self'", "'unsafe-inline'"],
         connectSrc: ["'self'"],
+        // Same-origin SPA served over the operator's chosen scheme (may be plain HTTP on
+        // a LAN). Do NOT force-upgrade subresources to https — the app has no TLS listener,
+        // so it would break direct HTTP exposure (ADR-0001 allows "expose it directly").
+        'upgrade-insecure-requests': null,
       },
     },
     hsts: { maxAge: 31536000, includeSubDomains: true },
