@@ -301,3 +301,18 @@ describe('daily log — frozen past', () => {
     expect(reread.body.target_snapshot.protein_floor_g).toBe(144);
   });
 });
+
+describe('daily log — retroactive earliest target (B-090)', () => {
+  it('a day before the earliest target reads its range → empty day NOK, not OK', async () => {
+    const { agent, userId } = await authedAgent(app, 'alice');
+    await seedTarget(userId, '2026-01-01'); // 1900–2100, earliest target
+
+    // A never-touched date BEFORE the earliest effective_from: the range used to be 0/0,
+    // so autoVerdict(0,0,0) → OK. The earliest target is now retroactive → real range, NOK.
+    const before = await agent.get('/api/v1/days/2025-12-15');
+    expect(before.status).toBe(200);
+    expect(before.body.target_snapshot.cal_min).toBe(1900);
+    expect(before.body.target_snapshot.cal_max).toBe(2100);
+    expect(before.body.verdict_auto).toBe('NOK'); // 0 < 1900 → SOUS
+  });
+});

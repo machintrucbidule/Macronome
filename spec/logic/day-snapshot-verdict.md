@@ -16,7 +16,11 @@ At creation the DayLog freezes a snapshot of the targets **in effect on that
 day's own date**:
 
 - `cal_min`, `cal_max` — from the `Target` whose `effective_from` is the latest
-  one ≤ the day's date.
+  one ≤ the day's date. **If the day's date precedes every target, the earliest
+  target applies** — it is retroactive to all dates before its own `effective_from`,
+  so once any target exists no day ever resolves to a degenerate 0/0 range (and an
+  empty pre-target day reads NOK, not OK). A target range is null only when the user
+  has no target at all (B-090; `DECISIONS.md` "VR-1 / B-090").
 - `protein_floor_g`, `fat_floor_g`, `carb_ceiling_g` — computed (per
   `targets-macros.md`) on the **body weight in effect on that date** (most recent
   weigh-in dated ≤ the day).

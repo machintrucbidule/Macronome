@@ -17,11 +17,21 @@ export interface TargetWriteData {
 }
 
 export const targetRepo = {
-  /** The target in effect as of `date` (latest effective_from ≤ date), or null. */
-  currentAsOf(userId: string, date: Date): Promise<TargetModel | null> {
-    return prisma.target.findFirst({
+  /**
+   * The target in effect as of `date`: the latest `effective_from ≤ date`. When `date`
+   * precedes every target, the **earliest** target applies (it is retroactive to all dates
+   * before its own `effective_from` — B-090 / `day-snapshot-verdict.md §2`), so a range is
+   * null only when the user has no target at all.
+   */
+  async currentAsOf(userId: string, date: Date): Promise<TargetModel | null> {
+    const inEffect = await prisma.target.findFirst({
       where: { userId, effectiveFrom: { lte: date } },
       orderBy: { effectiveFrom: 'desc' },
+    });
+    if (inEffect) return inEffect;
+    return prisma.target.findFirst({
+      where: { userId },
+      orderBy: { effectiveFrom: 'asc' },
     });
   },
 

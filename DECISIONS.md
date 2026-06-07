@@ -963,3 +963,34 @@ reusing `--accent`).
 `features/journal/components/JournalLegend.tsx` (reuses the `ChartLegend` swatch pattern),
 `JournalHeader.tsx` (renders the legend), i18n `journal.legend.{green,yellow,red}`. No DB, schema,
 or API change. **Spec impact:** `specifications/screens/history.md` + `design/components/data-tables.md`.
+
+---
+
+## VR-1 / B-090 — Retroactive earliest target — RESOLVED (author, 2026-06-07)
+
+The **earliest** target is retroactive to every date before its own `effective_from`.
+The day target-snapshot rule (`spec/logic/day-snapshot-verdict.md §2`) resolves the target
+in effect on a day's date as: the latest `Target` with `effective_from ≤ the day's date`,
+**falling back to the earliest target overall when the day precedes every target**. A null
+range now means only "the user has no target at all".
+
+**Why:** before this, a day dated before the first target resolved to `cal_min = cal_max = 0`,
+and the calorie-only auto verdict `autoVerdict(0, 0, 0)` → `0 ∈ [0,0]` → **OK**. An empty
+pre-target day therefore showed **OK Auto** when it should show **NOK Auto** (a day _with_ a
+target already computes NOK at kcal=0, spec §5). The §5 verdict formula is correct; the bug
+was the degenerate 0/0 range. Making the earliest target retroactive gives those days a real
+calorie range so they correctly read NOK, without touching the verdict formula.
+
+**Code (api only):** `data/repositories/target.repo.ts` — `currentAsOf` adds an earliest-target
+fallback (still user-scoped). `resolveSnapshotForDate` (the day GET / scaffold path) is the
+relevant consumer; the other call-sites pass today and are unaffected unless every target is
+future-dated (then "today" correctly shows the upcoming earliest target — consistent with the
+rule). **No DB/schema change, no migration, no API-shape change.**
+
+**Freeze rule unchanged (CLAUDE.md rule 4):** already-materialized past days keep their frozen
+`target_snapshot` (the GET path uses the stored snapshot for `date < today`); pre-existing
+frozen 0/0 rows stay 0/0. Only unlogged/scaffold past days (resolved live) pick up the
+retroactive range. **Stats/Weight unaffected** — red days (Σ=0) are already excluded from
+aggregates; only the displayed verdict changes.
+
+**Spec impact:** `spec/logic/day-snapshot-verdict.md §2`.
