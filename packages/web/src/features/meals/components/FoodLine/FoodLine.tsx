@@ -49,13 +49,20 @@ function EmptyLine({
 }: {
   row: number;
   dnd: LineDnd;
-  onAdd: () => void;
+  onAdd: (initialQuery?: string) => void;
   label: string;
 }) {
+  // The "+ Aliment" placeholder is a keyboard tab stop too (meals.md §117, B-105): Tab can land
+  // on it and Enter/typing opens the picker to add a food here — even when every line below is
+  // empty, so the keyboard flow never dead-ends (Excel parity).
   return (
-    <div className={`${styles.line} ${styles.empty}`} onClick={onAdd} {...dropProps(row, dnd)}>
+    <div
+      className={`${styles.line} ${styles.empty}`}
+      onClick={() => onAdd()}
+      {...dropProps(row, dnd)}
+    >
       <span className={styles.grip} />
-      <div className={styles.nm}>{label}</div>
+      <NameCell name={label} isCustom={false} onOpen={onAdd} />
       <span />
       <span />
       <span />
@@ -86,7 +93,10 @@ function NameCell({
       title={name}
       role="button"
       tabIndex={0}
-      onClick={() => onOpen()}
+      onClick={(e) => {
+        e.stopPropagation();
+        onOpen();
+      }}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
@@ -205,7 +215,7 @@ export function FoodLine({ mealId, mealIndex, row, entry, editing, dnd }: FoodLi
         row={row}
         dnd={dnd}
         label={t('meals.line.addFood')}
-        onAdd={() => actions.startEdit(mealId, mealIndex, null, row)}
+        onAdd={(q) => actions.startEdit(mealId, mealIndex, null, row, q)}
       />
     );
   }

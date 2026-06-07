@@ -12,18 +12,20 @@ const ITEMS: AutocompleteItem[] = [
   { id: 'c', name: 'Carotte' },
 ];
 
-function renderAc(items: AutocompleteItem[], onPick = vi.fn()) {
+function renderAc(items: AutocompleteItem[], onPick = vi.fn(), opts: { query?: string } = {}) {
+  const onClose = vi.fn();
   const { container } = render(
     <Autocomplete
-      query="a"
+      query={opts.query ?? 'a'}
       onQueryChange={vi.fn()}
       items={items}
       emptyLabel="Aucun"
       onPick={onPick}
-      onClose={vi.fn()}
+      onClose={onClose}
+      pickOnTab
     />,
   );
-  return { input: container.querySelector('input') as HTMLInputElement, onPick };
+  return { input: container.querySelector('input') as HTMLInputElement, onPick, onClose };
 }
 
 describe('Autocomplete Enter selection (B-023)', () => {
@@ -51,5 +53,21 @@ describe('Autocomplete Enter selection (B-023)', () => {
     const { input, onPick } = renderAc([{ id: 'x', name: 'Indispo', disabled: true }, ITEMS[1]!]);
     fireEvent.keyDown(input, { key: 'Enter' });
     expect(onPick).not.toHaveBeenCalled();
+  });
+});
+
+describe('Autocomplete Tab (Excel-like meal flow, B-105)', () => {
+  it('picks the first suggestion on Tab when the query is non-empty', () => {
+    const { input, onPick, onClose } = renderAc(ITEMS, vi.fn(), { query: 'a' });
+    fireEvent.keyDown(input, { key: 'Tab' });
+    expect(onPick).toHaveBeenCalledWith(ITEMS[0]);
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('closes without picking on Tab when the query is empty (advance to next field)', () => {
+    const { input, onPick, onClose } = renderAc(ITEMS, vi.fn(), { query: '   ' });
+    fireEvent.keyDown(input, { key: 'Tab' });
+    expect(onPick).not.toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });

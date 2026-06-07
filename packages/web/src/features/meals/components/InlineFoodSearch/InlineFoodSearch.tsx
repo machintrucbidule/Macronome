@@ -79,6 +79,7 @@ export function InlineFoodSearch({
         onCustom={() => actions.openCustom(mealId, mealIndex, entryId, orderIndex)}
         onClose={actions.closeEdit}
         selectOnMount={seed == null}
+        pickOnTab
       />
     </div>
   );

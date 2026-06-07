@@ -34,6 +34,9 @@ interface AutocompleteProps {
   /** On mount, select the seeded text (default) so typing replaces it; false places the caret
    *  at the end instead — used for type-to-search where the seed is a char to keep typing (B-105). */
   selectOnMount?: boolean;
+  /** Forward Tab picks the highlighted suggestion (then the caller advances focus) when the query
+   *  is non-empty, else closes and lets focus advance — the Excel-like meal flow (B-105). */
+  pickOnTab?: boolean;
 }
 
 interface ListProps {
@@ -105,6 +108,49 @@ function AutocompleteList({
   );
 }
 
+// Input key handling, kept at module scope so the component stays under the size/complexity caps.
+// ↑/↓ move the highlight, Enter/click select; Tab (when pickOnTab) picks the highlighted item on a
+// non-empty query (caller advances focus) or closes on an empty one (B-105); other keys bubble.
+const NOOP = (): void => {};
+interface KeyCtx {
+  items: AutocompleteItem[];
+  activeIndex: number;
+  query: string;
+  pickOnTab: boolean;
+  setHi: (fn: (h: number) => number) => void;
+  onPick: (item: AutocompleteItem) => void;
+  onClose: () => void;
+  onInputKeyDown: (e: KeyboardEvent<HTMLInputElement>) => void;
+}
+function handleAcKeyDown(e: KeyboardEvent<HTMLInputElement>, c: KeyCtx): void {
+  const pickActive = (): boolean => {
+    const item = c.items[c.activeIndex];
+    if (item && !item.disabled) {
+      c.onPick(item);
+      return true;
+    }
+    return false;
+  };
+  if (e.key === 'ArrowDown' && c.items.length) {
+    e.preventDefault();
+    c.setHi((h) => Math.min(h + 1, c.items.length - 1));
+  } else if (e.key === 'ArrowUp' && c.items.length) {
+    e.preventDefault();
+    c.setHi((h) => Math.max(h - 1, 0));
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    pickActive();
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    c.onClose();
+  } else if (e.key === 'Tab' && c.pickOnTab && !e.shiftKey) {
+    if (!c.query.trim()) c.onClose();
+    else if (pickActive()) e.preventDefault();
+  } else {
+    c.onInputKeyDown(e);
+  }
+}
+
 export function Autocomplete({
   query,
   onQueryChange,
@@ -118,6 +164,7 @@ export function Autocomplete({
   onClose,
   onInputKeyDown,
   selectOnMount = true,
+  pickOnTab = false,
 }: AutocompleteProps) {
   // Highlight defaults to the first suggestion (B-023): so Enter selects the first match
   // without an explicit ↑/↓. `activeIndex` clamps `hi` to the (async) item list.
@@ -135,24 +182,17 @@ export function Autocomplete({
   }, [selectOnMount]);
   useEffect(() => setHi(0), [query]);
 
-  const onKeyDown = (e: KeyboardEvent<HTMLInputElement>): void => {
-    if (items.length && e.key === 'ArrowDown') {
-      e.preventDefault();
-      setHi((h) => Math.min(h + 1, items.length - 1));
-    } else if (items.length && e.key === 'ArrowUp') {
-      e.preventDefault();
-      setHi((h) => Math.max(h - 1, 0));
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      const item = items[activeIndex];
-      if (item && !item.disabled) onPick(item);
-    } else if (e.key === 'Escape') {
-      e.preventDefault();
-      onClose();
-    } else {
-      onInputKeyDown?.(e);
-    }
-  };
+  const onKeyDown = (e: KeyboardEvent<HTMLInputElement>): void =>
+    handleAcKeyDown(e, {
+      items,
+      activeIndex,
+      query,
+      pickOnTab,
+      setHi,
+      onPick,
+      onClose,
+      onInputKeyDown: onInputKeyDown ?? NOOP,
+    });
 
   return (
     <div className={styles.wrap}>

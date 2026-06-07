@@ -36,7 +36,7 @@ function entry(): MealEntry {
   };
 }
 
-function renderLine() {
+function renderLine(e: MealEntry | null = entry()) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const startEdit = vi.fn();
   const ctrl = {
@@ -53,7 +53,7 @@ function renderLine() {
   const utils = render(
     <QueryClientProvider client={qc}>
       <MealsProvider value={ctrl}>
-        <FoodLine mealId="m1" mealIndex={0} row={0} entry={entry()} editing={false} dnd={dnd} />
+        <FoodLine mealId="m1" mealIndex={0} row={0} entry={e} editing={false} dnd={dnd} />
       </MealsProvider>
     </QueryClientProvider>,
   );
@@ -84,5 +84,18 @@ describe('FoodLine keyboard tab order (B-105)', () => {
     const name = container.querySelector('[role="button"]') as HTMLElement;
     fireEvent.keyDown(name, { key: 'Enter' });
     expect(startEdit).toHaveBeenCalledWith('m1', 0, 'e1', undefined, undefined);
+  });
+});
+
+describe('FoodLine empty "+ Aliment" line (B-105)', () => {
+  it('is a keyboard tab stop and type-to-search adds a food on its row', () => {
+    const { container, startEdit } = renderLine(null);
+    const name = container.querySelector('[role="button"]') as HTMLElement;
+    expect(name.getAttribute('tabindex')).toBe('0'); // not skipped by Tab
+    expect(container.querySelectorAll('button')).toHaveLength(0); // no pin/delete on an empty line
+
+    fireEvent.keyDown(name, { key: 'p' });
+    // startEdit(mealId, mealIndex, entryId=null (add), orderIndex=row, initialQuery)
+    expect(startEdit).toHaveBeenCalledWith('m1', 0, null, 0, 'p');
   });
 });
