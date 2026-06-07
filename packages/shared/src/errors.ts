@@ -24,6 +24,7 @@ export enum ErrorCode {
   WeighInDateOccupied = 'weigh_in_date_occupied',
   WouldCreateCycle = 'would_create_cycle',
   PantryDuplicate = 'pantry_duplicate',
+  CopySourceEmpty = 'copy_source_empty',
 
   // reserved (inert in v1)
   NotImplemented = 'not_implemented',

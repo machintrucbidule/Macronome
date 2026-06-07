@@ -16,6 +16,7 @@ router.patch('/:date', asyncHandler(days.patch));
 router.post('/:date/detail', asyncHandler(days.convertToDetailed));
 router.post('/:date/summary', asyncHandler(days.convertToSummary));
 router.post('/:date/clear', asyncHandler(days.clear));
+router.post('/:date/copy-from', asyncHandler(days.copyFrom));
 router.post('/:date/meals', asyncHandler(meals.create));
 router.patch('/:date/meals/:mealId', asyncHandler(meals.patch));
 router.delete('/:date/meals/:mealId', asyncHandler(meals.remove));

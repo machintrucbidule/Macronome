@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import type { CustomValues } from '../hooks/useMealsController';
 import { useMeals } from '../MealsContext';
 import { ClearDayConfirm } from './ClearDayConfirm';
+import { CopyYesterdayConfirm } from './CopyYesterdayConfirm';
 import { LeftoverModal } from '../modals/LeftoverModal/LeftoverModal';
 import { CustomFoodModal } from '../modals/CustomFoodModal/CustomFoodModal';
 import { CookModeModal } from '../modals/CookModeModal/CookModeModal';
@@ -11,9 +12,11 @@ import { CookModeModal } from '../modals/CookModeModal/CookModeModal';
 interface Props {
   clearing: boolean;
   onCloseClear: () => void;
+  copying: boolean;
+  onCloseCopy: () => void;
 }
 
-export function MealsOverlays({ clearing, onCloseClear }: Props) {
+export function MealsOverlays({ clearing, onCloseClear, copying, onCloseCopy }: Props) {
   const ctl = useMeals();
 
   const customInitial = useMemo<CustomValues | null>(() => {
@@ -40,6 +43,15 @@ export function MealsOverlays({ clearing, onCloseClear }: Props) {
           onConfirm={() => {
             onCloseClear();
             void ctl.actions.clearDay();
+          }}
+        />
+      )}
+      {copying && (
+        <CopyYesterdayConfirm
+          onCancel={onCloseCopy}
+          onConfirm={() => {
+            onCloseCopy();
+            void ctl.actions.copyYesterday();
           }}
         />
       )}

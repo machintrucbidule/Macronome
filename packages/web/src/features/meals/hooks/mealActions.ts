@@ -7,6 +7,7 @@ import type {
   Verdict,
 } from '@macronome/shared';
 import { ApiError } from '../../../api/client';
+import { shiftIso } from '../format';
 import type { UseDay } from './useDay';
 
 // Action builder for the Repas controller: ergonomic wrappers over the useDay mutations, kept
@@ -37,6 +38,8 @@ export interface CustomValues {
 
 export interface MealActionDeps {
   day: UseDay;
+  /** The current day's date (YYYY-MM-DD) — used to derive yesterday for copy (B-082). */
+  date: string;
   setEditing: (t: EditTarget | null) => void;
   setCustomTarget: (t: CustomTarget | null) => void;
   setLeftoverMealId: (id: string | null) => void;
@@ -231,6 +234,8 @@ function dayActions(d: MealActionDeps, run: Run) {
     setSummaryKcal: (summary_kcal: number) => run(d.day.patchDay.mutateAsync({ summary_kcal })),
     // Tout effacer (B-046): server clears foods/leftovers, keeps pins@0 + comment + activity.
     clearDay: () => run(d.day.clearDay.mutateAsync()),
+    // Copier hier (B-082): server replaces today with a faithful copy of yesterday (date−1).
+    copyYesterday: () => run(d.day.copyDay.mutateAsync({ from: shiftIso(d.date, -1) })),
     // Convert a summary (light) day to a detailed day so the user can log meal lines (day-model §9).
     convertToDetailed: () => run(d.day.convertToDetailed.mutateAsync()),
     // Convert a detailed (Complet) day to a summary (Partiel) day (DK-1 / B-078): discards lines,

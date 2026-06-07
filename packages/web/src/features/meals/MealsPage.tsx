@@ -23,11 +23,19 @@ export function MealsPage() {
   const date = params.date ?? todayIso();
   const ctl = useMealsController(date);
   const [clearing, setClearing] = useState(false);
+  const [copying, setCopying] = useState(false);
+
+  // A copy from an empty yesterday is an expected no-op, shown as a plain info banner;
+  // any other failure keeps the generic error message (B-082).
+  const errorMessage =
+    ctl.error === 'copy_source_empty'
+      ? t('meals.copyEmpty')
+      : t('meals.error', { code: ctl.error });
 
   return (
     <AppShell flush>
       <MealsProvider value={ctl}>
-        {ctl.error && <Banner tone="warning">{t('meals.error', { code: ctl.error })}</Banner>}
+        {ctl.error && <Banner tone="warning">{errorMessage}</Banner>}
 
         {ctl.isLoading || !ctl.day ? (
           <SkeletonRows />
@@ -40,6 +48,7 @@ export function MealsPage() {
               <>
                 <MealsControls
                   onClear={() => setClearing(true)}
+                  onCopyYesterday={() => setCopying(true)}
                   onAddMeal={(name) => void ctl.actions.addMeal(name, ctl.day?.meals.length ?? 0)}
                 />
                 <MealScroller meals={ctl.day.meals} />
@@ -48,7 +57,12 @@ export function MealsPage() {
           </>
         )}
 
-        <MealsOverlays clearing={clearing} onCloseClear={() => setClearing(false)} />
+        <MealsOverlays
+          clearing={clearing}
+          onCloseClear={() => setClearing(false)}
+          copying={copying}
+          onCloseCopy={() => setCopying(false)}
+        />
       </MealsProvider>
     </AppShell>
   );

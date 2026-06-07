@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
-import { DayDateSchema, ErrorCode, PatchDaySchema } from '@macronome/shared';
+import { CopyDaySchema, DayDateSchema, ErrorCode, PatchDaySchema } from '@macronome/shared';
 import * as daysService from '../../services/days.js';
+import { copyFromDay } from '../../services/day-copy.js';
 import { ApiError, zodDetails } from '../errors.js';
 
 // THIN controllers (api-CLAUDE.md): validate path/body → call the service → serialise.
@@ -43,6 +44,19 @@ export async function convertToDetailed(req: Request, res: Response): Promise<vo
  *  summary_kcal := current Σ (200 DayDetail; DK-1 / B-078). The destructive confirm is client-side. */
 export async function convertToSummary(req: Request, res: Response): Promise<void> {
   res.status(200).json(await daysService.convertToSummary(userId(res), pathDate(req)));
+}
+
+/** POST /days/:date/copy-from — replace the day with a faithful copy of `from` (CP-1 / B-082;
+ *  200 DayDetail). 422 when `from` is invalid or equals the target; 409 copy_source_empty when
+ *  the source has nothing to copy. The destructive replace is confirmed client-side. */
+export async function copyFrom(req: Request, res: Response): Promise<void> {
+  const date = pathDate(req);
+  const parsed = CopyDaySchema.safeParse(req.body);
+  if (!parsed.success) throw new ApiError(422, ErrorCode.ValidationError, zodDetails(parsed.error));
+  if (parsed.data.from === date) {
+    throw new ApiError(422, ErrorCode.ValidationError, { from: 'same_as_target' });
+  }
+  res.status(200).json(await copyFromDay(userId(res), date, parsed.data.from));
 }
 
 /** POST /days/:date/clear — empty the day, keeping pins@0 + comment + activity (200; 409 summary). */

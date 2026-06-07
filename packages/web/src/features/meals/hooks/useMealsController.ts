@@ -19,6 +19,7 @@ export function useMealsController(date: string) {
 
   const actions = createMealActions({
     day,
+    date,
     setEditing,
     setCustomTarget,
     setLeftoverMealId,

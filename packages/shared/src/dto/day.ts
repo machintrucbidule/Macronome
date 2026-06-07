@@ -125,6 +125,11 @@ export const PatchDaySchema = z
   .refine((b) => Object.keys(b).length > 0, { message: 'empty_patch' });
 export type PatchDayRequest = z.infer<typeof PatchDaySchema>;
 
+/** POST /days/:date/copy-from — replace the day with a copy of `from` (CP-1 / B-082).
+ *  `from` must differ from the target date (checked at the controller). */
+export const CopyDaySchema = z.object({ from: dateString });
+export type CopyDayRequest = z.infer<typeof CopyDaySchema>;
+
 export const CreateMealSchema = z.object({
   slot_name: z.string().min(1).max(255),
   order_index: z.number().int().nonnegative(),

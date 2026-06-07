@@ -47,6 +47,18 @@ day's current Σ consumed kcal` **server-side**, then **drops the day's meals** 
   Auto). Pin membership is the live `pantry_item` set (`logic/pantry-pin.md`). A
   never-materialized scaffold (nothing logged) is a no-op. → 200 DayDetail. Summary day
   → 409 `summary_day_readonly`.
+- `POST /days/:date/copy-from` — **replace the day with a faithful copy of another day**
+  (CP-1 / B-082). Body `{from:"YYYY-MM-DD"}`. Atomically rebuilds `:date` from `from`:
+  a **detailed** source copies its meals → entries (frozen macro snapshots) → leftover
+  groups verbatim; a **summary** (Partiel) source makes the target a summary with the same
+  `summary_kcal`. The target's existing content is dropped first (clear-then-copy, like
+  `/summary`), behind a client-side strong confirmation (`design/components/modals.md`).
+  **Keeps** the target's own `comment` and `activity_level`; recomputes `verdict_auto`
+  against the **target's** `target_snapshot` (frozen if past, live otherwise) and resets
+  `verdict_override` to null. The **garde-manger is not re-applied** — a copy reproduces the
+  source exactly (a food pinned after `from` is not injected). An **empty / absent source**
+  (no served line, or a summary with no kcal) → **409 `copy_source_empty`** (nothing
+  written); `from == :date` or an invalid date → **422**. → 200 DayDetail.
 
 **DayDetail** payload (detailed):
 

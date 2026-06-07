@@ -263,6 +263,13 @@
     "hint": "Clique une ligne pour choisir l'aliment · Tab / flèches pour naviguer",
     "addMeal": "+ Repas",
     "clearAll": "Tout effacer",
+    "copyYesterday": "Copier hier",
+    "copy": {
+      "title": "Copier les repas d'hier ?",
+      "prompt": "Le contenu de ce jour sera remplacé par une copie de la veille (repas, quantités et restes ; ou le total de calories si hier était un jour partiel). Le commentaire et l'activité du jour sont conservés, et le verdict repasse en Auto.",
+      "confirm": "Copier hier"
+    },
+    "copyEmpty": "Aucun repas hier à copier.",
     "clear": {
       "title": "Tout effacer ?",
       "prompt": "Tous les aliments et quantités de ce jour seront effacés (et les restes déduits). Les aliments du garde-manger restent à 0, le commentaire et l'activité sont conservés, et le verdict repasse en Auto.",

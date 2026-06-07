@@ -263,6 +263,13 @@
     "hint": "Click a line to choose the food · Tab / arrows to navigate",
     "addMeal": "+ Meal",
     "clearAll": "Clear all",
+    "copyYesterday": "Copy yesterday",
+    "copy": {
+      "title": "Copy yesterday's meals?",
+      "prompt": "This day's content will be replaced with a copy of yesterday (meals, quantities and leftovers; or the calorie total if yesterday was a partial day). The day's comment and activity are kept, and the verdict reverts to Auto.",
+      "confirm": "Copy yesterday"
+    },
+    "copyEmpty": "Nothing to copy from yesterday.",
     "clear": {
       "title": "Clear everything?",
       "prompt": "Every food and quantity for this day will be cleared (and any leftovers removed). Pantry foods stay at 0, the comment and activity are kept, and the verdict reverts to Auto.",

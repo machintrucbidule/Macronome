@@ -10,6 +10,10 @@ export const daysApi = {
   patch: (date: string, body: PatchDayRequest) => api.patch<DayDetail>(`/days/${date}`, body),
   // Clear the day (B-046): keeps pins@0 + comment + activity, resets the verdict to Auto.
   clear: (date: string) => api.post<DayDetail>(`/days/${date}/clear`),
+  // Copy another day into this one (CP-1 / B-082): replaces the day with a faithful copy of
+  // `from` (yesterday). 409 copy_source_empty when the source has nothing to copy.
+  copyFrom: (date: string, from: string) =>
+    api.post<DayDetail>(`/days/${date}/copy-from`, { from }),
   // Convert a summary (light) day to a detailed day (day-model §9): seeds meals to log lines.
   convertToDetailed: (date: string) => api.post<DayDetail>(`/days/${date}/detail`),
   // Convert a detailed (Complet) day to a summary (Partiel) day (DK-1 / B-078): discards the

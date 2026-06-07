@@ -994,3 +994,43 @@ retroactive range. **Stats/Weight unaffected** — red days (Σ=0) are already e
 aggregates; only the displayed verdict changes.
 
 **Spec impact:** `spec/logic/day-snapshot-verdict.md §2`.
+
+---
+
+## CP-1 / B-082 — Copy yesterday's meals into the current day — RESOLVED (author, 2026-06-07)
+
+A **Copier hier** control on the Repas screen **replaces** the current day with a faithful
+copy of the previous day (date−1), behind a strong confirm. New endpoint
+`POST /days/:date/copy-from` `{from:"YYYY-MM-DD"}` rebuilds `:date` atomically from `from`:
+a **detailed** source copies its meals → entries (frozen macro snapshots) → leftover groups
+verbatim; a **summary** (Partiel) source makes the target Partiel with the same
+`summary_kcal`. The target's existing content is dropped first (clear-then-copy, modelled on
+`POST /days/:date/summary` and `/clear`).
+
+**Behaviour decisions (user):**
+
+- **Faithful copy — the garde-manger is NOT re-applied.** A food pinned _after_ the source
+  day (so absent from it) is not injected into the copy; today equals yesterday exactly. The
+  user can still re-add it. (Chosen over "re-seed pins" for predictability.)
+- **Empty source → no-op + info.** If yesterday has nothing to copy (no served line, or a
+  summary with no kcal, or the day does not exist), the API returns **409 `copy_source_empty`**
+  (nothing written) and the web shows a small info banner ("Aucun repas hier à copier"); the
+  current day is unchanged.
+- **Target's own comment + activity_level are kept** (only the meal/calorie content is
+  copied — same spirit as B-046 clear). `verdict_auto` is recomputed against the **target's**
+  `target_snapshot` (frozen if the target day is past, live otherwise); `verdict_override`
+  resets to null. `from == :date` or an invalid date → **422**.
+
+**Why an explicit `from` (not hard-coded yesterday):** the endpoint takes the source date so
+it is general and directly testable; the UI passes `date − 1`.
+
+**Code:** new `packages/shared` DTO `CopyDaySchema`/`CopyDayRequest` + error code
+`copy_source_empty`; new api `data/repositories/day-copy.repo.ts` (`copyInto`, one
+transaction) + `services/day-copy.ts` (`copyFromDay`) + `http/controllers/days.ts`
+(`copyFrom`) + route `POST /days/:date/copy-from`; web `api/days.ts` (`copyFrom`),
+`useDay`/`mealActions` (`copyDay`/`copyYesterday`), `MealsControls` (2nd button),
+`MealsPage`/`MealsOverlays` (state + overlay), new `CopyYesterdayConfirm`, i18n
+`meals.copyYesterday`/`meals.copy.*`/`meals.copyEmpty`. **No DB/schema change, no migration.**
+
+**Spec impact:** `spec/api/days-meals-leftover.md` (§Day endpoint), `spec/api/00-conventions.md`
+(error-code example), `specifications/screens/meals.md` (controls row + behaviour).

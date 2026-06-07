@@ -44,8 +44,8 @@ avoid existence leaks).
 
 Validation failures → **422** with per-field `details`.
 Domain blocks (e.g. leftover incoherent) → **409** with a `code` the client maps
-to a warning (e.g. `leftover_exceeds_served`, `gross_below_tare`). Targets carb
-ceiling ≤ 0 is **not** an error — it returns 200 with a `warnings` array.
+to a warning (e.g. `leftover_exceeds_served`, `gross_below_tare`, `copy_source_empty`).
+Targets carb ceiling ≤ 0 is **not** an error — it returns 200 with a `warnings` array.
 
 ## Status codes
 

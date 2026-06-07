@@ -39,6 +39,11 @@ function useLeftoverMutations(onSuccess: () => void) {
  *  the per-function line cap; each invalidates the day + journal via onSuccess. */
 function useDayKindMutations(date: string, onSuccess: () => void) {
   const clearDay = useMutation({ mutationFn: () => daysApi.clear(date), onSuccess });
+  // Copy another day (yesterday) into this one (CP-1 / B-082): replaces the current day.
+  const copyDay = useMutation({
+    mutationFn: (v: { from: string }) => daysApi.copyFrom(date, v.from),
+    onSuccess,
+  });
   const convertToDetailed = useMutation({
     mutationFn: () => daysApi.convertToDetailed(date),
     onSuccess,
@@ -47,7 +52,7 @@ function useDayKindMutations(date: string, onSuccess: () => void) {
     mutationFn: () => daysApi.convertToSummary(date),
     onSuccess,
   });
-  return { clearDay, convertToDetailed, convertToSummary };
+  return { clearDay, copyDay, convertToDetailed, convertToSummary };
 }
 
 export function useDay(date: string) {
@@ -66,7 +71,10 @@ export function useDay(date: string) {
     mutationFn: (b: PatchDayRequest) => daysApi.patch(date, b),
     onSuccess,
   });
-  const { clearDay, convertToDetailed, convertToSummary } = useDayKindMutations(date, onSuccess);
+  const { clearDay, copyDay, convertToDetailed, convertToSummary } = useDayKindMutations(
+    date,
+    onSuccess,
+  );
   const createMeal = useMutation({
     mutationFn: (b: CreateMealRequest) => mealsApi.create(date, b),
     onSuccess,
@@ -116,6 +124,7 @@ export function useDay(date: string) {
     materializeRaw,
     patchDay,
     clearDay,
+    copyDay,
     convertToDetailed,
     convertToSummary,
     createMeal,

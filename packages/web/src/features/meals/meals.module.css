@@ -364,6 +364,21 @@
   border-color: var(--nok);
   color: var(--nok);
 }
+/* Copier hier (B-082): same chrome as Tout effacer but a non-destructive accent hover. */
+.copyDay {
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-elev-2);
+  color: var(--text-dim);
+  border-radius: var(--r-md);
+  padding: 7px 12px;
+  cursor: pointer;
+}
+.copyDay:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
 
 /* Partiel (summary) day: no meal breakdown — a small muted hint (DK-1 / B-078). The kind
    switch lives in the date-line chip menu; the calorie total is editable in the header. */
