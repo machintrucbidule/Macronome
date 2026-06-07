@@ -646,7 +646,41 @@
   },
   "menu": {
     "account": "Compte",
+    "about": "À propos",
     "logout": "Se déconnecter"
+  },
+  "about": {
+    "title": "À propos",
+    "lead": "Informations sur l'application et le serveur qui l'héberge.",
+    "error": "Impossible de charger les informations.",
+    "cores": "cœurs",
+    "group": {
+      "app": "Application",
+      "runtime": "Exécution",
+      "system": "Serveur",
+      "process": "Mémoire du processus",
+      "database": "Base de données"
+    },
+    "row": {
+      "name": "Nom",
+      "version": "Version",
+      "environment": "Environnement",
+      "node": "Node.js",
+      "startedAt": "Démarré le",
+      "procUptime": "Uptime du processus",
+      "pid": "PID",
+      "platform": "Système",
+      "arch": "Architecture",
+      "hostname": "Hôte",
+      "cpu": "Processeur",
+      "loadAvg": "Charge moyenne (1/5/15 min)",
+      "memory": "Mémoire (utilisée / totale)",
+      "sysUptime": "Uptime du serveur",
+      "rss": "RSS",
+      "heap": "Heap (utilisé / total)",
+      "postgres": "PostgreSQL",
+      "dbSize": "Taille de la base"
+    }
   },
   "settings": {
     "title": "Paramètres",

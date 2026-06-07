@@ -1,0 +1,58 @@
+/* À propos screen — mirrors the Paramètres page frame + card/row pattern (data-tables.md
+   key→value). Semantic tokens only (CLAUDE.md rule 6). */
+.wrap {
+  max-width: 760px;
+  margin: 0 auto;
+}
+.h1 {
+  font-family: var(--font-display);
+  font-size: var(--fs-22);
+  font-weight: var(--fw-bold);
+  margin-bottom: var(--sp-1);
+}
+.lead {
+  font-size: var(--fs-13);
+  color: var(--text-dim);
+  margin-bottom: var(--sp-7);
+}
+.card {
+  background: var(--bg-elev);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-lg);
+  margin-bottom: var(--sp-5);
+  overflow: hidden;
+}
+.ch {
+  padding: var(--sp-4) var(--sp-6);
+  border-bottom: var(--bw) solid var(--border);
+}
+.t {
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-14);
+}
+.cb {
+  padding: 0 var(--sp-6);
+}
+.row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-6);
+  padding: var(--sp-4) 0;
+  border-bottom: var(--bw) solid var(--border);
+}
+.row:last-child {
+  border-bottom: 0;
+}
+.lab {
+  flex: none;
+  font-size: var(--fs-13);
+  color: var(--text-dim);
+}
+.val {
+  font-family: var(--font-num);
+  font-size: var(--fs-13);
+  text-align: right;
+  word-break: break-word;
+}

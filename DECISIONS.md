@@ -1483,3 +1483,31 @@ rule 2 is intact (input convenience, not a nutrition computation).
 QtyCell.tsx` (commit evaluates, reject→revert; key handler extracted to keep the line cap),
 `features/recipes/modals/IngredientLine.tsx` (blur evaluates) + `draft.ts` `ingredientInput` (safety net
 for preview/save). Tests: `QtyCell.test.tsx`, `IngredientBlock.test.tsx`. No DB/API/DTO change.
+
+---
+
+## ABT-1 — "À propos" screen + GET /api/v1/about (app + server/runtime info) — RESOLVED (author, 2026-06-08)
+
+Direct owner request (after the versioning work, ADR-0002). The owner wanted an **À propos** entry in
+the account menu — **between Paramètres and Se déconnecter, isolated by a separator on both sides** —
+showing "Macronome" + the version, plus a rich set of live **server/runtime** facts ("sois créatif").
+
+**Decision (improvement; api + web; no DB/schema change).** A new **authenticated** read-only endpoint
+`GET /api/v1/about` returns `{data: AboutInfo}` — `app` (name, version=`APP_VERSION`, environment),
+`runtime` (node version, started_at, uptime, pid), `system` (platform/OS, arch, hostname, CPU model +
+cores, load average, total/free memory, host uptime), `process_memory` (rss, heap used/total), and
+`database` (PostgreSQL `version()` + `pg_database_size`). The API gathers everything (env + node
+`os`/`process` + Postgres `$queryRaw`); the web only renders + formats bytes/durations (rule 2). It is
+behind `requireAuth` (exposes host internals to the single owner only); the public readiness probe stays
+at `/api/v1/health`. **Privacy:** no secrets, DB connection string, filesystem paths, or dependency tree
+(security.md §7/§9). The version reads `0.9.0` in the released image, `dev` locally (consistent with
+`/health`, ADR-0002).
+
+**Spec impact:** new `spec/api/system-info.md` (the endpoint), `specifications/screens/about.md` (local
+screen spec), `docs/architecture/module-map.md` (about feature + `system-info.md` row). No
+`spec/schema`/design-component change (the page reuses the card + key/value table conventions and
+semantic tokens). **Code:** shared `dto/about.ts` (`AboutInfo`); api `data/about.ts` (`dbInfo` +
+`STARTED_AT`), `services/about.ts`, `http/controllers/about.ts`, `http/routes/about.ts`, mounted in
+`app.ts`; web `api/about.ts`, `features/about/{useAbout.ts,AboutPage.tsx,about.module.css,format.ts}`,
+route in `router.tsx`, menu entry + two separators in `AccountMenu.tsx`, i18n `menu.about` + `about.*`
+(fr/en). Tests: `about.test.ts` (integration: authed 200 shape + 401), `format.test.ts` (bytes/duration).

@@ -8,6 +8,7 @@ import { sessionMiddleware } from './http/middleware/session.js';
 import { tenantContext } from './http/middleware/tenant.js';
 import { applyTrustProxy } from './http/middleware/trustProxy.js';
 import { serveSpa } from './http/spa.js';
+import aboutRoutes from './http/routes/about.js';
 import authRoutes from './http/routes/auth.js';
 import containersRoutes from './http/routes/containers.js';
 import dataRoutes from './http/routes/data.js';
@@ -44,6 +45,7 @@ export function createApp(): Express {
   app.use(tenantContext);
 
   app.use('/api/v1/health', healthRoutes);
+  app.use('/api/v1/about', aboutRoutes);
   app.use('/api/v1/auth', authRoutes);
   app.use('/api/v1/foods', foodsRoutes);
   app.use('/api/v1/recipes', recipesRoutes);

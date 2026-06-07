@@ -39,6 +39,10 @@ export function AccountMenu() {
           {t('settings.title')}
         </NavLink>
         <div className={styles.acctSep} />
+        <NavLink to="/about" className={item} onClick={close}>
+          {t('menu.about')}
+        </NavLink>
+        <div className={styles.acctSep} />
         <button type="button" className={`${item} ${styles.logout}`} onClick={() => void logout()}>
           {t('menu.logout')}
         </button>

@@ -12,6 +12,7 @@ import { WeightPage } from '../features/weight/WeightPage';
 import { SettingsPage } from '../features/settings/SettingsPage';
 import { ContainersPage } from '../features/containers/ContainersPage';
 import { AccountPage } from '../features/account/AccountPage';
+import { AboutPage } from '../features/about/AboutPage';
 import { AppShell } from './AppShell';
 import { AppGate } from './AppGate';
 import { RequireAuth } from './RequireAuth';
@@ -35,6 +36,7 @@ const PROTECTED: ReadonlyArray<[string, ReactElement]> = [
   ['/parametres', <SettingsPage />],
   ['/containers', <ContainersPage />],
   ['/account', <AccountPage />],
+  ['/about', <AboutPage />],
   [
     '/health',
     <AppShell>

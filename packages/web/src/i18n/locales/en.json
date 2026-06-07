@@ -646,7 +646,41 @@
   },
   "menu": {
     "account": "Account",
+    "about": "About",
     "logout": "Log out"
+  },
+  "about": {
+    "title": "About",
+    "lead": "Information about the app and the server hosting it.",
+    "error": "Could not load the information.",
+    "cores": "cores",
+    "group": {
+      "app": "Application",
+      "runtime": "Runtime",
+      "system": "Server",
+      "process": "Process memory",
+      "database": "Database"
+    },
+    "row": {
+      "name": "Name",
+      "version": "Version",
+      "environment": "Environment",
+      "node": "Node.js",
+      "startedAt": "Started at",
+      "procUptime": "Process uptime",
+      "pid": "PID",
+      "platform": "System",
+      "arch": "Architecture",
+      "hostname": "Host",
+      "cpu": "CPU",
+      "loadAvg": "Load average (1/5/15 min)",
+      "memory": "Memory (used / total)",
+      "sysUptime": "Server uptime",
+      "rss": "RSS",
+      "heap": "Heap (used / total)",
+      "postgres": "PostgreSQL",
+      "dbSize": "Database size"
+    }
   },
   "settings": {
     "title": "Settings",
