@@ -59,6 +59,30 @@ a hover-revealed delete (×, `--nok`). Numeric columns right-aligned (`.num`). T
 **loaded into the editor** carries an `--accent`-tinted background
 (`color-mix(--accent 12%)`), distinct from the plain hover fill. **No new token.**
 
+## Period-table colour coding (Poids, WV-1 / B-115)
+
+The Poids recap (Period) table layers **server-fact-driven** colour/iconography on the
+existing numeric cells (figures already on the `Period` DTO; the web only picks a class).
+Reuses existing tokens — **no new token**.
+
+- **Trend tone** (Δ, écart-trajectoire, déficit/j): a `.pos`/`.neg` colour class on the
+  numeric cell — `.pos → var(--delta-pos)` (green), `.neg → var(--delta-neg)` (red), no
+  class when the value is 0 or null. "Good" = the **lower** value: weight ↓, **below**
+  the trajectory (negative écart = ahead of plan), and a calorie **deficit** (negative
+  `deficit_per_day`); déficit/j is coloured by sign **in both régime and Maintien**. The
+  **Δ** cell also prepends a small arrow span (`--fs-10`): **▼** when losing, **▲** when
+  gaining (none at 0).
+- **Activity pill** (activité moyenne): the `avg_activity` PAL multiplier is bucketed to
+  the nearest of the five levels and shown in an inline `.actTint` pill — soft background
+  `color-mix(--act-color 16%, transparent)` + inset border `color-mix(--act-color 45%,
+transparent)`, where `--act-color` is set per level by the **same B-085/B-101 palette**
+  as `ActivitySelect` (Sédentaire `--nok` → Léger `--accent` → `color-mix(--ok 45%,
+--accent)` → `color-mix(--ok 75%, --accent)` → Très intense `--ok`). null → plain em
+  dash, untinted.
+- **Régime badge** (régime): a pill with **two distinct neutral tints** (no good/bad
+  sense) — `.flagDiet` (En régime) = accent soft bg + accent border; `.flagMaint`
+  (Maintien) = `--bg-elev-2` bg + `--text-dim` text + `--border`.
+
 ## Line-list grid (Repas meal column) — instance A
 
 A meal `.meal` is a flex column on `--bg-elev`, `min-height:200px`, first column

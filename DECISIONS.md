@@ -1580,3 +1580,44 @@ its display are untouched. The recipe-builder line grid (instance B, `data-table
 **Spec impact:** `design/components/data-tables.md §62` (meal column grid 74→54 + rationale). **Code:**
 `features/meals/components/FoodLine/food-line.module.css` (`.row` grid, `.qtyCell` gap, `.unit`
 min-width). No DB/API/DTO change; no behaviour change beyond the column widths.
+
+---
+
+## WV-1 / B-115 — Poids Period-table visual & colour coding — RESOLVED (author, 2026-06-08)
+
+**Problem.** The Poids screen's bottom recap ("Period") table renders 15 numeric columns with
+no visual cues (`specifications/screens/weight.md §Period table`), so trends are hard to scan.
+
+**Decision (improvement, UX; web-only).** Layer **server-fact-driven** colour/iconography on the
+existing figures — the web only chooses a colour/arrow class from values already on the `Period`
+DTO (`GET /weight`); it computes no nutrition figure (CLAUDE.md rule 2 preserved). Three
+treatments, **reusing existing tokens — no new token**:
+
+1. **Trend colours.** **Δ** (`delta`): weight ↓ (negative) → green `--delta-pos` + a **▼**;
+   weight ↑ (positive) → red `--delta-neg` + a **▲**; 0 → neutral, no arrow. **Écart à la
+   trajectoire** (`ecart_trajectoire` = real − trajectory): **below** the trajectory (negative =
+   ahead of plan) → green; **above** (positive = behind) → red; 0/null → neutral, no arrow. Same
+   sign→colour rule as Δ (lower is "good").
+2. **Activity tint.** `avg_activity` is a PAL **multiplier** (×1.2–1.9), so the web buckets it to
+   the **nearest of the five canonical levels** (`ACTIVITY_MULTIPLIERS`, `@macronome/shared`) and
+   shows the value in an inline pill tinted with the **B-085/B-101 activity palette** (soft bg +
+   soft border, Sédentaire `--nok` → Très intense `--ok`). null → plain em dash, untinted.
+3. **Deficit & régime.** **Déficit/j** (`deficit_per_day`) is coloured **by sign in all modes**
+   (author decision, 2026-06-08): negative (deficit) green, positive (surplus) red, 0/null
+   neutral — **régime/Maintien does not change the colour rule** (kept simple; the mode is
+   already conveyed by the régime badge). **Régime** (`diet_flag`) becomes a **badge with two
+   distinct neutral tints** (author decision; no good/bad judgment): `En régime` (`in_diet`) =
+   warm accent tint (`color-mix(--accent …)`), `Maintien` (`not_in_diet`) = neutral grey
+   (`--bg-elev-2` / `--text-dim` / `--border`).
+
+**Excluded this run (author decision):** structural readability (zebra striping, frozen first
+column, apport/dépense/déficit column grouping) — re-add only if requested later.
+
+**Spec impact:** `specifications/screens/weight.md` (new "Period-table colour coding" subsection)
+
+- `design/components/data-tables.md` (new "Period-table colour coding (Poids, WV-1 / B-115)"
+  section). **Code (web-only):** new `features/weight/period-style.ts` (pure `signTone` /
+  `deltaArrow` / `activityLevelFromMultiplier`) + co-located `period-style.test.ts`;
+  `features/weight/components/PeriodRow.tsx` (apply classes/arrow/pill/badge);
+  `features/weight/weight.module.css` (tone, activity-pill palette, régime-badge classes). **No
+  DB/schema/API/DTO change** — every figure is already server-computed on the `Period` DTO.
