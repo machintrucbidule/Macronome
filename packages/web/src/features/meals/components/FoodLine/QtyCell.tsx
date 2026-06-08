@@ -159,6 +159,7 @@ export function QtyCell({ mealId, mealIndex, entry }: QtyCellProps) {
         onMouseUp={(e) => {
           if (selectOnUp.current) {
             e.preventDefault(); // keep the focus-time selection (B-104)
+            e.currentTarget.select(); // re-assert it if a micro-drag changed it (B-116)
             selectOnUp.current = false;
           }
         }}
