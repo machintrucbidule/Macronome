@@ -61,6 +61,7 @@ function mapCatalog(
       rating: f.rating,
       visibility: f.visibility,
       source: f.source,
+      ai_proposable: f.aiProposable,
       recipe_id: f.recipeId,
       archived_at: isoN(f.archivedAt),
       created_at: iso(f.createdAt),

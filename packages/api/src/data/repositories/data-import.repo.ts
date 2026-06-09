@@ -64,6 +64,7 @@ async function insertCatalog(tx: Tx, userId: string, env: DataExportEnvelope): P
         rating: f.rating,
         visibility: f.visibility,
         source: f.source,
+        aiProposable: f.ai_proposable,
         recipeId: f.recipe_id,
         archivedAt: dn(f.archived_at),
         createdAt: d(f.created_at),

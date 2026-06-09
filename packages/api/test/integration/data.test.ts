@@ -36,7 +36,9 @@ async function seedAccount(userId: string): Promise<void> {
   await seedTarget(userId, '2026-01-01');
   await seedWeight(userId, '2026-01-01', 80);
   const rice = await seedFood(userId, 'Riz');
-  await seedFood(userId, 'Poulet');
+  const chicken = await seedFood(userId, 'Poulet');
+  // B-123 "Dispo IA" flag — a non-default value that must survive the round-trip (anti-omission).
+  await prisma.food.update({ where: { id: chicken.id }, data: { aiProposable: false } });
 
   // A recipe + its derived food (source='recipe') + an ingredient — exercises the FK ordering.
   const recipe = await prisma.recipe.create({
@@ -132,6 +134,11 @@ describe('data export / wipe / import (IMP-1)', () => {
     const pantry = before.pantry_items as { unit: string }[];
     expect(pantry).toHaveLength(1);
     expect(pantry[0]!.unit).toBe('ml');
+    // Envelope audit: the non-default ai_proposable flag is carried (not reset to true).
+    const chickenBefore = (before.foods as { name: string; ai_proposable: boolean }[]).find(
+      (f) => f.name === 'Poulet',
+    );
+    expect(chickenBefore?.ai_proposable).toBe(false);
 
     const wiped = await csrfPost(agent, csrf, `/api/v1/data/wipe`);
     expect(wiped.status).toBe(200);
@@ -156,6 +163,9 @@ describe('data export / wipe / import (IMP-1)', () => {
     // GM-2 follow-up: the restored pantry pin keeps its prefill unit (not reset to 'g').
     const pin = await prisma.pantryItem.findFirst({ where: { userId } });
     expect(pin?.unit).toBe('ml');
+    // Envelope audit: the restored food keeps ai_proposable=false (not reset to the default true).
+    const chicken = await prisma.food.findFirst({ where: { ownerId: userId, name: 'Poulet' } });
+    expect(chicken?.aiProposable).toBe(false);
   });
 
   it('keeps credentials on import (login still works)', async () => {

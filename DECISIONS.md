@@ -2161,3 +2161,25 @@ now carries `unit` + `portion_id`. The schema fields are **optional with default
 `portion_id → null`) so pre-fix envelopes still import (restored as `g`). No DB/migration change (the columns
 already exist). Test: `test/integration/data.test.ts` round-trip now seeds a non-default prefill unit and
 asserts it survives. Completes GM-2's contract surface (no new B-number).
+
+## Export/import envelope audit — `food.ai_proposable` + anti-omission guard — RESOLVED (user, 2026-06-10)
+
+A full column-by-column audit (16 Prisma tables vs `export.ts` vs `DataExportEnvelopeSchema` vs
+`data-import.repo.ts`) after the RW-1/GM-2 silent gaps found **one more omission**: `food.ai_proposable`
+(B-123 "Dispo IA"). It was exported/validated/imported nowhere, so an export → wipe → import reset every
+food to `ai_proposable = true`, losing any food the user excluded from AI proposals. Now carried in the
+envelope (optional+default `true` so pre-B-123 envelopes still import). All other non-exported columns are
+**intentional**: `updated_at` everywhere (regenerated), `owner_id`/`user_id` (re-pointed on import), and
+`app_user` identity/credentials (`id`/`username`/`password_hash`/`created_at`).
+
+**Anti-omission guard (user decision: full).** Root cause of the recurrence: the round-trip test only catches
+an omission when the fixture uses a **non-default** value (`g`, `true` hid the bugs). Two guards added:
+
+- **Coverage gate** — a Prisma-DMMF ↔ envelope test (`packages/api/src/services/data/export-coverage.test.ts`)
+  asserts every scalar column of every exportable table is either in `DataExportEnvelopeSchema` or in an
+  explicit, documented exclusion whitelist (`updated_at`, `owner_id`, `user_id`; `app_user` identity). A new
+  column that escapes the envelope **fails the build** — no human vigilance required.
+- **Strengthened round-trip** — `data.test.ts` seeds non-default values on the loseable flag columns
+  (`ai_proposable = false` alongside the GM-2 `unit = 'ml'`) and asserts they survive export + restore.
+
+No DB/migration change. Completes the IMP-1 envelope's coverage (no new B-number).

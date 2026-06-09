@@ -47,6 +47,8 @@ const FoodSchema = z.object({
   rating: z.number().int().nullable(),
   visibility: z.string(),
   source: z.string(),
+  // B-123 "Dispo IA"; optional+default so pre-B-123 envelopes still import (restored as true).
+  ai_proposable: z.boolean().optional().default(true),
   recipe_id: z.string().nullable(),
   archived_at: dateStr.nullable(),
   created_at: dateStr,
