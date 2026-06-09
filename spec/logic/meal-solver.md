@@ -34,6 +34,13 @@ carb_room    = carb_ceiling_g − totals.carb   // soft
 - **Already over.** If `rem_cal_max < 0` (the day is already above `cal_max`), the only feasible
   proposal is the empty set; the solver adds nothing and surfaces a `calorie` gap (`delta_kcal` =
   the existing overshoot). The UI shows "déjà au-dessus de la cible".
+- **Already on target (B-124 / AIP-2).** If the day is already **within the calorie band**
+  (`rem_cal_min ≤ 0` _and_ `rem_cal_max ≥ 0`) **and the protein/fat floors are met**
+  (`need_protein = 0` _and_ `need_fat = 0` — the carb ceiling is soft and ignored), there is nothing
+  useful to add. The endpoint **short-circuits before calling the model** and returns a graceful
+  **on-target** state — a normal **200** with `status: "on_target"` and `proposals: []` (never a
+  `422` or `ai_bad_response`; the assistant must not refuse). The UI shows "déjà dans la cible, rien à
+  proposer". (Distinct from _Already over_: the band is over only when `rem_cal_max < 0`.)
 
 ## 2. The solver (pure, deterministic)
 

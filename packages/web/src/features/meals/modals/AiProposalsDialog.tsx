@@ -218,6 +218,8 @@ function DialogBody(props: BodyProps) {
     );
   }
   if (props.result) {
+    // B-124: the day is already within the band + floors met → graceful no-op, no proposals.
+    if (props.result.status === 'on_target') return <OnTargetStep />;
     return (
       <ProposalsList
         proposals={props.result.proposals}
@@ -249,6 +251,20 @@ function AppliedStep() {
       </span>
       <strong>{t('meals.proposals.applied')}</strong>
       <span>{t('meals.proposals.appliedBody')}</span>
+    </div>
+  );
+}
+
+/** B-124: the day is already within the band + floors met — a serene "nothing to propose" state. */
+function OnTargetStep() {
+  const { t } = useTranslation();
+  return (
+    <div className={styles.proposalsBusy}>
+      <span className={styles.appliedMark} aria-hidden="true">
+        ✓
+      </span>
+      <strong>{t('meals.proposals.onTarget')}</strong>
+      <span>{t('meals.proposals.onTargetBody')}</span>
     </div>
   );
 }

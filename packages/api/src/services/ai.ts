@@ -16,7 +16,7 @@ import {
   type DayUsedMeal,
   type ParsedItem,
 } from '../domain/ai-meal-suggestions/index.js';
-import { computeRemaining } from '../domain/meal-solver/remaining.js';
+import { computeRemaining, isOnTarget } from '../domain/meal-solver/remaining.js';
 import { penalty } from '../domain/meal-solver/penalty.js';
 import { solve } from '../domain/meal-solver/solve.js';
 import { aggregate, verifyProposal } from '../domain/meal-solver/verify.js';
@@ -132,6 +132,23 @@ export async function mealSuggestions(
   const rem = computeRemaining(ctx);
   if (!rem.ok) throw new ApiError(422, ErrorCode.ValidationError, { reason: rem.reason });
 
+  // null only when the carb ceiling is dropped (Target but no weigh-in); the DTO requires a number
+  // — 0 mirrors `need_*_g = 0` for dropped floors (meal-solver.md §1).
+  const remaining = {
+    cal_min: rem.remaining.rem_cal_min,
+    cal_max: rem.remaining.rem_cal_max,
+    need_protein_g: rem.remaining.need_protein,
+    need_fat_g: rem.remaining.need_fat,
+    carb_room_g: rem.remaining.carb_room ?? 0,
+    entered: ctx.entered,
+  };
+
+  // B-124: the day is already within the band + floors met → nothing useful to add. Short-circuit
+  // before the model call and return a graceful on-target state (never refuse, never call the LLM).
+  if (isOnTarget(rem.remaining)) {
+    return { status: 'on_target', remaining, proposals: [] };
+  }
+
   const usedMeals = toDayUsedMeals(day);
   const referencedFoodIds = [
     ...new Set(
@@ -192,17 +209,5 @@ export async function mealSuggestions(
     };
   });
 
-  return {
-    remaining: {
-      cal_min: rem.remaining.rem_cal_min,
-      cal_max: rem.remaining.rem_cal_max,
-      need_protein_g: rem.remaining.need_protein,
-      need_fat_g: rem.remaining.need_fat,
-      // null only when the carb ceiling is dropped (Target but no weigh-in); the DTO requires a
-      // number — 0 mirrors `need_*_g = 0` for dropped floors (meal-solver.md §1).
-      carb_room_g: rem.remaining.carb_room ?? 0,
-      entered: ctx.entered,
-    },
-    proposals,
-  };
+  return { status: 'proposals', remaining, proposals };
 }

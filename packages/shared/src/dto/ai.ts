@@ -112,8 +112,11 @@ export const MealProposalSchema = z.object({
   ),
 });
 
-/** The full response payload: the day-wide remaining targets + the 3 (or fewer) proposals. */
+/** The full response payload: the day-wide remaining targets + the 3 (or fewer) proposals. `status`
+ *  is `on_target` when the day is already within the band + floors met (B-124): a graceful no-op
+ *  with `proposals: []` (never a refusal), else `proposals`. */
 export const MealSuggestionsSchema = z.object({
+  status: z.enum(['proposals', 'on_target']),
   remaining: z.object({
     cal_min: z.number(),
     cal_max: z.number(),

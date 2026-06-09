@@ -1,11 +1,12 @@
 import { describe, expect, test } from 'vitest';
-import { computeRemaining } from './remaining.js';
+import { computeRemaining, isOnTarget } from './remaining.js';
 import { penalty } from './penalty.js';
 import { solve } from './solve.js';
 import { aggregate, itemSnap, verifyProposal } from './verify.js';
 import type {
   DayContext,
   Macros,
+  Remaining,
   SolverCandidate,
   SolvedQuantity,
   TargetSnapshot,
@@ -93,6 +94,27 @@ describe('remaining (§1)', () => {
     if (!r.ok) return;
     expect(r.remaining.need_protein).toBe(0);
     expect(r.remaining.carb_room).toBeNull();
+  });
+});
+
+describe('isOnTarget (§1 already on target, B-124)', () => {
+  const rem = (
+    rem_cal_min: number,
+    rem_cal_max: number,
+    need_protein = 0,
+    need_fat = 0,
+    carb_room: number | null = 0,
+  ): Remaining => ({ rem_cal_min, rem_cal_max, need_protein, need_fat, carb_room });
+
+  test('within band + floors met → true (incl. exact band edges + a soft carb overshoot)', () => {
+    expect(isOnTarget(rem(-50, 50))).toBe(true);
+    expect(isOnTarget(rem(0, 0))).toBe(true); // exactly at both band edges
+    expect(isOnTarget(rem(-50, 50, 0, 0, -20))).toBe(true); // carb ceiling soft → ignored
+  });
+  test('under band / over cal_max / floor shortfall → false', () => {
+    expect(isOnTarget(rem(100, 200))).toBe(false); // under the band (rem_cal_min > 0)
+    expect(isOnTarget(rem(-200, -50))).toBe(false); // over cal_max (the "already over" case)
+    expect(isOnTarget(rem(-50, 50, 12))).toBe(false); // protein-floor shortfall
   });
 });
 

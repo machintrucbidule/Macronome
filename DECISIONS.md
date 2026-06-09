@@ -1920,3 +1920,36 @@ new §3.1 exclusion + oracle 8) + `spec/api/ai.md` (day-awareness note, no shape
 (`DAY_REPROPOSE_THRESHOLD_G = 25`). Code: new pure `domain/ai-meal-suggestions/day-used.ts`
 (+ test), `ChefContext.alreadyOnDay`, `assemble.ts` section, `aiSuggestionsRepo.foodNamesByIds`,
 service wiring in `services/ai.ts`. No DB/schema/DTO/API-shape/solver change.
+
+---
+
+## AIP-2 / B-124 — Graceful "already on target" state for AI meal suggestions — RESOLVED (author, 2026-06-09)
+
+When the day was **already on target** (within the calorie band **and** protein/fat floors met), the
+assistant refused: the chef (LLM) was called even though there was nothing useful to add and returned
+an unusable reply → `502 ai_bad_response` (or a prose refusal). Bad UX.
+
+**Decision (author — option a).** The assistant must **not** refuse; it shows a graceful "déjà dans la
+cible, rien à proposer" state — **no proposals, no error**. (Rejected: (b) propose within the remaining
+band width; (c) keep refusing.)
+
+- **Detection (pure):** new `isOnTarget(remaining)` in `domain/meal-solver/remaining.ts` —
+  `rem_cal_min ≤ 0 && rem_cal_max ≥ 0 && need_protein === 0 && need_fat === 0` (within band + floors;
+  carb ceiling soft, ignored). Distinct from "already over" (`rem_cal_max < 0`), which is unchanged.
+- **Server short-circuit (before the LLM):** `services/ai.ts` returns immediately
+  `{ status: 'on_target', remaining, proposals: [] }` — no candidate pool, **no model call**
+  (deterministic, cheaper, removes the refusal).
+- **Response discriminator:** `MealSuggestions` gains `status: 'proposals' | 'on_target'` (explicit,
+  self-documenting — preferred over inferring from an empty `proposals` array). The normal path sets
+  `'proposals'`.
+- **Web:** `AiProposalsDialog` renders an `OnTargetStep` (serene "Déjà dans la cible" message, mirrors
+  `AppliedStep`) when `status === 'on_target'`; no cards, no error banner. New i18n
+  `meals.proposals.onTarget` / `onTargetBody` (fr/en).
+
+_Rationale:_ a graceful 200 (not a 422) keeps the dialog calm and honest — the day genuinely needs
+nothing. Short-circuiting before the model avoids a pointless call and the spurious `ai_bad_response`.
+
+**Contract delta:** `spec/logic/meal-solver.md` §1 ("Already on target") + `spec/api/ai.md`
+(`status` field + on-target 200 example, explicitly not a 422) + `packages/shared/src/dto/ai.ts`
+(`MealSuggestionsSchema.status`) + `specifications/features/ai-meal-proposals/spec.md`. No
+DB/schema/solver change. Code: `isOnTarget` + service short-circuit + DTO field + web `OnTargetStep`.

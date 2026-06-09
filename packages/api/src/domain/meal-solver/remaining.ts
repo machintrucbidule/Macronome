@@ -8,6 +8,14 @@ export type RemainingResult =
   | { ok: true; remaining: Remaining }
   | { ok: false; reason: 'no_target' };
 
+/** True when the day is already on target (B-124, §1 "Already on target"): within the calorie band
+ *  (`rem_cal_min ≤ 0` and `rem_cal_max ≥ 0`) AND the protein/fat floors met (`need_* = 0`). The carb
+ *  ceiling is soft and ignored. Lets the service short-circuit with a graceful on-target state
+ *  instead of calling the model — distinct from "already over" (`rem_cal_max < 0`). */
+export function isOnTarget(r: Remaining): boolean {
+  return r.rem_cal_min <= 0 && r.rem_cal_max >= 0 && r.need_protein === 0 && r.need_fat === 0;
+}
+
 /** Compute day-wide remaining-to-target, or signal `no_target` when the day has no calorie band. */
 export function computeRemaining(ctx: DayContext): RemainingResult {
   const { targets, entered } = ctx;

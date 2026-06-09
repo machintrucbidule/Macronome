@@ -214,3 +214,34 @@ describe('POST /ai/meal-suggestions — refine constraints (B-123)', () => {
     expect(pinned?.served_grams).toBe(100); // pinned → held fixed
   });
 });
+
+describe('POST /ai/meal-suggestions — already on target (B-124)', () => {
+  it('200 status=on_target with no proposals, and the provider is NOT called', async () => {
+    const a = await authedAgent(app, 'alice');
+    await configureAi(a);
+    // entered 1600 kcal is within [1550,1650], protein 150 ≥ 140, fat 55 ≥ 50 → on target.
+    const mealId = await seedDay(a.userId, '2026-05-01', [1550, 1650], FLOORS, {
+      kcal: 1600,
+      fat: 55,
+      carb: 100,
+      protein: 150,
+    });
+    const fetchSpy = vi.fn(() =>
+      Promise.resolve(
+        new Response(JSON.stringify({ choices: [{ message: { content: '{"proposals":[]}' } }] }), {
+          status: 200,
+        }),
+      ),
+    );
+    vi.stubGlobal('fetch', fetchSpy);
+
+    const res = await csrfPost(a.agent, a.csrf, '/api/v1/ai/meal-suggestions', {
+      date: '2026-05-01',
+      meal_ids: [mealId],
+    });
+    expect(res.status).toBe(200);
+    expect(res.body.data.status).toBe('on_target');
+    expect(res.body.data.proposals).toEqual([]);
+    expect(fetchSpy).not.toHaveBeenCalled(); // short-circuited before any model call
+  });
+});

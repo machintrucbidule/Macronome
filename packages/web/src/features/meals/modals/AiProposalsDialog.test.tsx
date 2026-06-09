@@ -56,6 +56,7 @@ const DAY: DayDetail = {
 
 const RESPONSE: MealSuggestionsResponse = {
   data: {
+    status: 'proposals',
     remaining: {
       cal_min: 630,
       cal_max: 730,
@@ -63,6 +64,22 @@ const RESPONSE: MealSuggestionsResponse = {
       need_fat_g: 22,
       carb_room_g: 80,
       entered: { kcal: 920, fat: 28, carb: 70, protein: 78 },
+    },
+    proposals: [],
+  },
+};
+
+// B-124: the day is already within the band + floors met → graceful on-target no-op.
+const ON_TARGET: MealSuggestionsResponse = {
+  data: {
+    status: 'on_target',
+    remaining: {
+      cal_min: -20,
+      cal_max: 80,
+      need_protein_g: 0,
+      need_fat_g: 0,
+      carb_room_g: 30,
+      entered: { kcal: 1600, fat: 55, carb: 120, protein: 150 },
     },
     proposals: [],
   },
@@ -166,6 +183,23 @@ describe('AiProposalsDialog — request popup (S9 / B-123)', () => {
       meal_ids: ['m2'],
       note: 'pas de laitages',
     });
+  });
+
+  it('renders the graceful "already on target" state (no cards, no error) when status=on_target', async () => {
+    vi.spyOn(aiApi, 'mealSuggestions').mockResolvedValue(ON_TARGET);
+    const { getByRole, getByText, queryByText } = render(
+      <AiProposalsDialog day={DAY} date="2026-06-09" onClose={vi.fn()} />,
+      { wrapper },
+    );
+
+    fireEvent.click(getByRole('checkbox', { name: /Dîner/ }));
+    fireEvent.click(getByRole('button', { name: i18n.t('meals.proposals.propose') }));
+
+    await waitFor(() => expect(getByText(i18n.t('meals.proposals.onTarget'))).toBeTruthy());
+    expect(getByText(i18n.t('meals.proposals.onTargetBody'))).toBeTruthy();
+    // No proposal cards and no error banner.
+    expect(queryByText(i18n.t('meals.proposals.resultsIntro'))).toBeNull();
+    expect(queryByText(i18n.t('meals.proposals.errors.ai_bad_response'))).toBeNull();
   });
 
   it('refine re-invokes with accumulated excluded / pinned / avoid; day targets unchanged', async () => {

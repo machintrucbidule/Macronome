@@ -74,6 +74,7 @@ These calls make an **outbound request** to the user's configured OpenAI-compati
 
   ```json
   {
+    "status": "proposals",
     "remaining": {
       "cal_min": 630,
       "cal_max": 730,
@@ -111,6 +112,16 @@ These calls make an **outbound request** to the user's configured OpenAI-compati
   `day_total`, `targets_met`, and `gaps` are **computed server-side** from the chosen quantities
   (never from the model). `gaps` items: `{ "target": "protein_floor"|"fat_floor", "short_g": n }`
   or `{ "target": "calorie", "delta_kcal": n }`. Empty for a full fit.
+
+  **`status`** discriminates the outcome: `"proposals"` (the normal case — 1–3 proposals) or
+  `"on_target"` (B-124). When the day is **already within the calorie band and its protein/fat floors
+  are met** (`spec/logic/meal-solver.md` §1 "Already on target"), the server **short-circuits before
+  calling the model** and returns a graceful **200** with `status: "on_target"` and `proposals: []` —
+  it must **not** refuse. `remaining` is still returned. Example:
+
+  ```json
+  { "status": "on_target", "remaining": { "...": "..." }, "proposals": [] }
+  ```
 
   The architecture is the **hybrid** (`spec/logic/ai-meal-suggestions.md`,
   `spec/logic/meal-solver.md`): the LLM (chef) picks foods qualitatively and outputs **no

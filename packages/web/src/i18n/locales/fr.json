@@ -362,6 +362,8 @@
       "choose": "Choisir",
       "applied": "Proposition appliquée",
       "appliedBody": "Les aliments ont été ajoutés à tes repas. Tu peux les ajuster comme n'importe quelle ligne.",
+      "onTarget": "Déjà dans la cible",
+      "onTargetBody": "La journée est déjà dans la bande calorique et les planchers de protéines et lipides sont atteints — rien à proposer.",
       "applyError": "Impossible d'appliquer la proposition. Réessaie.",
       "resultsIntro": "Trois propositions distinctes. Les totaux affichés sont ceux du jour entier (déjà saisi + proposition), vérifiés côté serveur — jamais lus depuis l'IA.",
       "proposalTitle": "Proposition {{n}}",

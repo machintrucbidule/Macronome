@@ -362,6 +362,8 @@
       "choose": "Choose",
       "applied": "Proposal applied",
       "appliedBody": "The foods were added to your meals. You can adjust them like any other line.",
+      "onTarget": "Already on target",
+      "onTargetBody": "The day is already within the calorie band and the protein and fat floors are met — nothing to propose.",
       "applyError": "Could not apply the proposal. Try again.",
       "resultsIntro": "Three distinct proposals. The totals shown are for the whole day (already logged + proposal), verified server-side — never read from the AI.",
       "proposalTitle": "Proposal {{n}}",
