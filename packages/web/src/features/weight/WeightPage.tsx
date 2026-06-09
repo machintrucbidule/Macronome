@@ -2,6 +2,9 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { GetWeightResponse } from '@macronome/shared';
 import { AppShell } from '../../app/AppShell';
+import { dataApi } from '../../api/data';
+import { Banner } from '../../components/Banner/Banner';
+import { useCsvExport } from '../../lib/useCsvExport';
 import { RangeControl } from '../../components/Chart/RangeControl';
 import { WeightChart } from '../../components/Chart/WeightChart';
 import { EmptyState } from '../../components/states/EmptyState';
@@ -65,6 +68,7 @@ export function WeightPage() {
   const query = useWeight(ctl.range);
   const { mode, setMode } = ctl;
   const serverMode = query.data?.current_mode ?? null;
+  const csv = useCsvExport(dataApi.exportWeightCsv);
 
   // Seed the screen-local mode from the server default once (latest period's flag).
   useEffect(() => {
@@ -74,7 +78,14 @@ export function WeightPage() {
   const empty = query.data && query.data.cartouche.current === null;
   return (
     <AppShell>
-      <WeightHeader mode={mode} onMode={setMode} onAdd={ctl.openAdd} />
+      {csv.error && (
+        <div className={styles.errorBar}>
+          <Banner tone="warning" onDismiss={csv.dismiss}>
+            {t('weight.exportError')}
+          </Banner>
+        </div>
+      )}
+      <WeightHeader mode={mode} onMode={setMode} onAdd={ctl.openAdd} onExport={csv.start} />
       {query.isLoading ? (
         <SkeletonRows />
       ) : !query.data || empty ? (

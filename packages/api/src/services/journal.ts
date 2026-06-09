@@ -116,3 +116,11 @@ export async function listByYear(userId: string, year: number): Promise<JournalR
   const day_count = rows.filter((r) => isLogged(r, today)).length;
   return { data: rows, day_count, min_year: range.minYear, max_year: range.maxYear };
 }
+
+/** Every stored day mapped to its Journal row, oldest first — the per-day CSV export (EX-1 /
+ *  B-132). Reuses `toRow` so the export can never drift from the screen; no calendar trame here
+ *  (only real day_log rows), so each row is an actually-logged day. */
+export async function listAllLogged(userId: string): Promise<JournalRow[]> {
+  const aggregates = await dayReadRepo.readAll(userId);
+  return aggregates.map(toRow);
+}

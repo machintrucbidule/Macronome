@@ -606,6 +606,8 @@
     "error": "Échec de l'opération ({{code}}).",
     "dayCount": "{{count}} jour",
     "dayCount_other": "{{count}} jours",
+    "exportCsv": "Exporter CSV",
+    "exportError": "L'export CSV a échoué.",
     "prevYear": "Année précédente",
     "nextYear": "Année suivante",
     "commentPlaceholder": "Ajouter un commentaire…",
@@ -635,6 +637,8 @@
   "weight": {
     "title": "Poids",
     "add": "+ Pesée",
+    "exportCsv": "Exporter CSV",
+    "exportError": "L'export CSV a échoué.",
     "empty": "Aucune pesée. Ajoute ta première pesée.",
     "single": "Une seule pesée : pas encore de période.",
     "rangeEmpty": "Aucune pesée sur cette plage.",

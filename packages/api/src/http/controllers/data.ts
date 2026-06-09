@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import { DataExportEnvelopeSchema, ErrorCode, type DataMutationResult } from '@macronome/shared';
 import { buildExport } from '../../services/data/export.js';
+import { buildJournalCsv, buildWeightCsv } from '../../services/data/export-csv.js';
 import { importData } from '../../services/data/import.js';
 import { wipeData } from '../../services/data/wipe.js';
 import { ApiError, zodDetails } from '../errors.js';
@@ -22,6 +23,24 @@ export async function exportData(_req: Request, res: Response): Promise<void> {
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
   res.status(200).send(JSON.stringify(envelope));
+}
+
+/** Send a CSV string as a downloadable attachment (EX-1 / B-132). */
+function sendCsv(res: Response, name: string, csv: string): void {
+  const filename = `macronome-${name}-${new Date().toISOString().slice(0, 10)}.csv`;
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.status(200).send(csv);
+}
+
+/** GET /data/export/journal.csv — one recap row per logged day, all years (B-132). */
+export async function exportJournalCsv(_req: Request, res: Response): Promise<void> {
+  sendCsv(res, 'journal', await buildJournalCsv(userId(res)));
+}
+
+/** GET /data/export/weight.csv — one row per weigh-in, full history (B-132). */
+export async function exportWeightCsv(_req: Request, res: Response): Promise<void> {
+  sendCsv(res, 'weight', await buildWeightCsv(userId(res)));
 }
 
 /** POST /data/import — validate then REPLACE all data with the uploaded snapshot (B-003). */

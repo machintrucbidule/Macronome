@@ -11,9 +11,10 @@ interface WeightHeaderProps {
   mode: DietFlag | null;
   onMode: (m: DietFlag) => void;
   onAdd: () => void;
+  onExport: () => void;
 }
 
-export function WeightHeader({ mode, onMode, onAdd }: WeightHeaderProps) {
+export function WeightHeader({ mode, onMode, onAdd, onExport }: WeightHeaderProps) {
   const { t } = useTranslation();
   return (
     <div className={styles.head}>
@@ -25,6 +26,9 @@ export function WeightHeader({ mode, onMode, onAdd }: WeightHeaderProps) {
             <FlagToggle value={mode} onChange={onMode} />
           </span>
         )}
+        <Button variant="ghost" onClick={onExport}>
+          {t('weight.exportCsv')}
+        </Button>
         <Button onClick={onAdd}>{t('weight.add')}</Button>
       </div>
     </div>

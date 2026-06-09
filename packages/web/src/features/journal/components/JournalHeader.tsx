@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { Button } from '../../../components/Button/Button';
 import { currentYear } from '../format';
 import { JournalLegend } from './JournalLegend';
 import styles from '../journal.module.css';
@@ -13,9 +14,17 @@ interface JournalHeaderProps {
   minYear: number | null;
   maxYear: number | null;
   onYear: (year: number) => void;
+  onExport: () => void;
 }
 
-export function JournalHeader({ year, dayCount, minYear, maxYear, onYear }: JournalHeaderProps) {
+export function JournalHeader({
+  year,
+  dayCount,
+  minYear,
+  maxYear,
+  onYear,
+  onExport,
+}: JournalHeaderProps) {
   const { t } = useTranslation();
   const now = currentYear();
   const lower = Math.min(now, minYear ?? now);
@@ -44,6 +53,9 @@ export function JournalHeader({ year, dayCount, minYear, maxYear, onYear }: Jour
       </div>
       <JournalLegend />
       <span className={styles.count}>{t('journal.dayCount', { count: dayCount })}</span>
+      <Button variant="ghost" onClick={onExport}>
+        {t('journal.exportCsv')}
+      </Button>
     </header>
   );
 }

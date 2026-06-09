@@ -606,6 +606,8 @@
     "error": "Operation failed ({{code}}).",
     "dayCount": "{{count}} day",
     "dayCount_other": "{{count}} days",
+    "exportCsv": "Export CSV",
+    "exportError": "CSV export failed.",
     "prevYear": "Previous year",
     "nextYear": "Next year",
     "commentPlaceholder": "Add a comment…",
@@ -635,6 +637,8 @@
   "weight": {
     "title": "Weight",
     "add": "+ Weigh-in",
+    "exportCsv": "Export CSV",
+    "exportError": "CSV export failed.",
     "empty": "No weigh-ins yet. Add your first weigh-in.",
     "single": "Only one weigh-in: no period yet.",
     "rangeEmpty": "No weigh-ins in this range.",

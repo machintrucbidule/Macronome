@@ -1,15 +1,41 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { JournalRow, PatchDayRequest } from '@macronome/shared';
 import { AppShell } from '../../app/AppShell';
+import { dataApi } from '../../api/data';
 import { Banner } from '../../components/Banner/Banner';
 import { EmptyState } from '../../components/states/EmptyState';
 import { SkeletonRows } from '../../components/states/SkeletonRows';
 import { JournalHeader } from './components/JournalHeader';
 import { JournalTable } from './components/JournalTable';
 import { currentYear } from './format';
-import { sortRows, type JournalSortField } from './sort';
+import { sortRows } from './sort';
 import { useJournal } from './useJournal';
+import { useJournalSort, type JournalSort } from './useJournalSort';
+import { useCsvExport } from '../../lib/useCsvExport';
 import styles from './journal.module.css';
+
+// Loading → empty → table switch, split out so JournalPage stays under the complexity limit.
+function JournalContent(props: {
+  loading: boolean;
+  rows: JournalRow[];
+  sorted: JournalRow[];
+  sort: JournalSort;
+  onPatch: (date: string, body: PatchDayRequest) => void;
+}) {
+  const { t } = useTranslation();
+  if (props.loading) return <SkeletonRows />;
+  if (props.rows.length === 0) return <EmptyState>{t('journal.empty')}</EmptyState>;
+  return (
+    <JournalTable
+      rows={props.sorted}
+      sort={props.sort.sort}
+      dir={props.sort.dir}
+      onSort={props.sort.onSort}
+      onPatch={props.onPatch}
+    />
+  );
+}
 
 // Journal page (specifications/screens/history.md): the chronological, editable day history.
 // Owns the selected-year + sort state, fetches the per-year list via TanStack Query, and
@@ -18,24 +44,12 @@ import styles from './journal.module.css';
 export function JournalPage() {
   const { t } = useTranslation();
   const [year, setYear] = useState(currentYear());
-  const [sort, setSort] = useState<JournalSortField>('date');
-  const [dir, setDir] = useState<'asc' | 'desc'>('desc');
+  const sort = useJournalSort();
+  const csv = useCsvExport(dataApi.exportJournalCsv);
   const { query, patch, error, dismissError } = useJournal(year);
 
   const rows = query.data?.data ?? [];
-  const dayCount = query.data?.day_count ?? 0;
-  const minYear = query.data?.min_year ?? null;
-  const maxYear = query.data?.max_year ?? null;
-
-  const sorted = useMemo(() => sortRows(rows, sort, dir), [rows, sort, dir]);
-
-  const onSort = (field: JournalSortField): void => {
-    if (field === sort) setDir((d) => (d === 'asc' ? 'desc' : 'asc'));
-    else {
-      setSort(field);
-      setDir(field === 'date' ? 'desc' : 'asc');
-    }
-  };
+  const sorted = useMemo(() => sortRows(rows, sort.sort, sort.dir), [rows, sort.sort, sort.dir]);
 
   return (
     <AppShell>
@@ -46,26 +60,28 @@ export function JournalPage() {
           </Banner>
         </div>
       )}
+      {csv.error && (
+        <div className={styles.errorBar}>
+          <Banner tone="warning" onDismiss={csv.dismiss}>
+            {t('journal.exportError')}
+          </Banner>
+        </div>
+      )}
       <JournalHeader
         year={year}
-        dayCount={dayCount}
-        minYear={minYear}
-        maxYear={maxYear}
+        dayCount={query.data?.day_count ?? 0}
+        minYear={query.data?.min_year ?? null}
+        maxYear={query.data?.max_year ?? null}
         onYear={setYear}
+        onExport={csv.start}
       />
-      {query.isLoading ? (
-        <SkeletonRows />
-      ) : rows.length === 0 ? (
-        <EmptyState>{t('journal.empty')}</EmptyState>
-      ) : (
-        <JournalTable
-          rows={sorted}
-          sort={sort}
-          dir={dir}
-          onSort={onSort}
-          onPatch={(date, body) => patch.mutate({ date, body })}
-        />
-      )}
+      <JournalContent
+        loading={query.isLoading}
+        rows={rows}
+        sorted={sorted}
+        sort={sort}
+        onPatch={(date, body) => patch.mutate({ date, body })}
+      />
     </AppShell>
   );
 }

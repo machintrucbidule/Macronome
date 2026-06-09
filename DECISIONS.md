@@ -1997,3 +1997,36 @@ Paramètres → Assistant IA content; **remove** that section from Paramètres.
 **Contract delta:** `specifications/screens/settings.md` (AI section removed → pointer) + new
 `specifications/screens/ai-assistant.md` (dedicated page) + `design/components/ai-connection.md`
 ("Hosting page" note + card shell no longer owns the title/intro). No DB/schema/API/DTO/logic change.
+
+## EX-1 / B-132 — Per-page CSV export (Journal + Poids) — RESOLVED (author, 2026-06-09)
+
+The only export was the IMP-1 **JSON** account envelope in Paramètres; there was no way to pull the
+Journal or the weigh-in history into a spreadsheet.
+
+**Decision (author).** A top-right **"Exporter CSV"** button on **Journal** and **Poids**:
+
+- **Journal:** one recap row **per logged day, all years** —
+  `date, calories, fat, carb, protein, verdict, activity, comment`.
+- **Poids:** one row **per weigh-in, full history** — `date, weight_kg, waist_cm, diet_flag, note`.
+
+Decided this session: **recap rows** (not a per-food dump) and **standard CSV in English** — comma
+delimiter, dot decimals, English headers, **canonical values** (verdict `OK`/`NOK`, activity key
+e.g. `sedentary`, diet `in_diet`), UTF-8. Because the values are canonical (no localised labels), the
+CSV is generated **server-side**, consistent with the existing export layer and CLAUDE.md rule 2 —
+no localisation/label duplication into the backend, no client all-years fetch loop.
+
+- **API:** pure `services/data/csv.ts` (`toCsv`, RFC-4180 escaping) + `services/data/export-csv.ts`
+  (`buildJournalCsv` / `buildWeightCsv` + pure field mappers). The Journal builder reuses the screen's
+  day mapping via new `journalService.listAllLogged` (over a new `dayReadRepo.readAll` — `readYear`
+  without the year filter), so the CSV can never drift from the Journal; kcal/macros rounded as the
+  screen renders them, summary days leave the macro cells blank. The Weight builder reuses
+  `weightRepo.findAll` (already full history). New thin controllers + routes
+  `GET /data/export/journal.csv` and `/data/export/weight.csv` (`text/csv` attachment, no body/query,
+  no CSRF — read-only).
+- **Web:** two `downloadFile` wrappers in `api/data.ts` (reuse the existing Blob+anchor helper); a
+  ghost export Button in `JournalHeader` / `WeightHeader`; a dismissible warning banner on failure.
+
+**Contract delta:** `spec/api/data-export-import.md` (the two CSV endpoints) +
+`specifications/screens/history.md` + `weight.md` (export affordance + columns). No DB/schema/DTO
+change. Tests: unit `export-csv.test.ts` (serializer + mappers, escaping, null/canonical handling) +
+integration `data-export-csv.test.ts` (all-years Journal, full weigh-in history, user-scoping).

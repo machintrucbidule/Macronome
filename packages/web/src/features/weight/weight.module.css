@@ -1,5 +1,9 @@
 /* Poids screen (specifications/screens/weight.md). Semantic tokens only. */
 
+.errorBar {
+  margin-bottom: var(--sp-5);
+}
+
 .head {
   display: flex;
   align-items: center;

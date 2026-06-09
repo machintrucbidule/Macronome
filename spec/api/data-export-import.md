@@ -42,6 +42,27 @@ filename="macronome-export-YYYY-MM-DD.json"`). Body = the **envelope** below (no
 Both POSTs require the CSRF header (state-changing). The import body may be large; the JSON body
 limit is raised accordingly server-side.
 
+## Per-page CSV exports (EX-1 / B-132)
+
+Two read-only, downloadable **CSV** exports, separate from the full JSON envelope above. Both are
+**standard CSV** (RFC 4180): `,` delimiter, `.` decimal separator, CRLF rows, UTF-8, a single
+header row; a field is quoted only when it carries a `,` `"` or newline (inner quotes doubled).
+Headers and values are in **English / canonical** form (no localisation): `verdict` is `OK`/`NOK`
+(empty when none), `activity` is the level key (`sedentary` … `extremely_active`), `diet_flag` is
+`in_diet`/`not_in_diet`. Both set `Content-Type: text/csv; charset=utf-8` and
+`Content-Disposition: attachment; filename="macronome-<name>-YYYY-MM-DD.csv"`. → 200.
+
+- `GET /data/export/journal.csv` — **one recap row per logged day, all years** (not bounded to the
+  Journal's selected year), oldest first. Columns:
+  `date,calories_kcal,fat_g,carb_g,protein_g,verdict,activity,comment`. `calories_kcal` and the
+  three macros are rounded to integers (as the Journal renders them); a summary (Partiel) day with
+  no macro breakdown leaves the three macro cells **empty**. Reuses the Journal day mapping, so the
+  CSV never drifts from the screen.
+- `GET /data/export/weight.csv` — **one row per weigh-in, full history**, oldest first. Columns:
+  `date,weight_kg,waist_cm,diet_flag,note`. `waist_cm` and `note` are empty when absent.
+
+No request body or query parameters. Auth + user-scoped; nothing state-changing, so no CSRF.
+
 ## Envelope format (`format_version: 1`)
 
 A single JSON object. Keys are `snake_case` mirroring the data-schema contract; Decimal columns
