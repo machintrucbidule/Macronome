@@ -6,6 +6,7 @@ import {
   pinnedFromItem,
   pinnedToBody,
   proposalSignature,
+  setPinnedCount,
   stepPinned,
   type ExcludedFood,
   type PinnedLine,
@@ -63,6 +64,25 @@ describe('pinnedFromItem + stepPinned', () => {
     expect(stepPinned(one, -1).count).toBe(1);
     const six: PinnedLine = { ...pinnedFromItem(portioned), count: 6 };
     expect(stepPinned(six, 1).count).toBe(6);
+  });
+});
+
+describe('setPinnedCount (direct entry, B-136)', () => {
+  it('sets a portionless pin to the typed grams, rounded, clamped to ≥ 5', () => {
+    const pin = pinnedFromItem(portionless);
+    expect(setPinnedCount(pin, 250).count).toBe(250);
+    expect(pinnedToBody(setPinnedCount(pin, 250)).grams).toBe(250);
+    expect(setPinnedCount(pin, 247.6).count).toBe(248); // rounded
+    expect(setPinnedCount(pin, 0).count).toBe(5); // clamped to one step
+    expect(setPinnedCount(pin, -10).count).toBe(5);
+  });
+
+  it('sets a portioned pin to the typed count, rounded, clamped to 1..6', () => {
+    const pin = pinnedFromItem(portioned);
+    expect(setPinnedCount(pin, 2).count).toBe(2);
+    expect(pinnedToBody(setPinnedCount(pin, 2)).grams).toBe(114); // 2 × 57
+    expect(setPinnedCount(pin, 9).count).toBe(6); // clamped to MAX_PORTION_COUNT
+    expect(setPinnedCount(pin, 0).count).toBe(1);
   });
 });
 

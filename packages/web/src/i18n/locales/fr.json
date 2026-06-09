@@ -397,6 +397,7 @@
       "refine": {
         "intro": "Ajuste cette proposition : retire un aliment que tu n'as pas, ou fige une quantité. L'IA repropose en respectant ces contraintes et toutes les cibles du jour.",
         "linesLabel": "Lignes de la proposition",
+        "qtyLabel": "Quantité",
         "exclude": "Je n'ai pas cet aliment",
         "restore": "rétablir",
         "moreNoteLabel": "Précisions supplémentaires",

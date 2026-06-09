@@ -1,4 +1,10 @@
-import type { EntryUnit, MealEntry, NamedPortion, PantryItem } from '@macronome/shared';
+import type {
+  EntryUnit,
+  MealEntry,
+  NamedPortion,
+  PantryItem,
+  UpdateMealEntryRequest,
+} from '@macronome/shared';
 import {
   findEntry,
   mealOrder,
@@ -82,23 +88,30 @@ export function pickActions(d: MealActionDeps, run: Run, resolveMealId: ResolveM
   };
 }
 
+/** Edit a line, resolving a scaffold pre-fill line (empty ids) to its real meal+entry first;
+ *  `onDone` (with the resolved real id) records the edit on the undo stack after success. */
+function editLine(
+  d: MealActionDeps,
+  run: Run,
+  resolveEntry: ResolveEntry,
+  mealId: string,
+  mealIndex: number,
+  entry: MealEntry,
+  body: UpdateMealEntryRequest,
+  onDone?: (real: { mealId: string; id: string }) => void,
+): Promise<void> {
+  return run(
+    (async () => {
+      const real = await resolveEntry(mealId, mealIndex, entry);
+      await d.day.updateEntry.mutateAsync({ mealId: real.mealId, id: real.id, body });
+      onDone?.(real);
+    })(),
+  );
+}
+
 /** Quantity / unit / delete / pin / reorder on a line. setQty/setUnit take the full entry +
  *  mealIndex so a scaffold pre-fill line (empty ids) is materialized + remapped before the write. */
 export function editLineActions(d: MealActionDeps, run: Run, resolveEntry: ResolveEntry) {
-  const editLine = (
-    mealId: string,
-    mealIndex: number,
-    entry: MealEntry,
-    body: Parameters<typeof d.day.updateEntry.mutateAsync>[0]['body'],
-    onDone?: (real: { mealId: string; id: string }) => void,
-  ): Promise<void> =>
-    run(
-      (async () => {
-        const real = await resolveEntry(mealId, mealIndex, entry);
-        await d.day.updateEntry.mutateAsync({ mealId: real.mealId, id: real.id, body });
-        onDone?.(real);
-      })(),
-    );
   return {
     setQty: (
       mealId: string,
@@ -108,18 +121,26 @@ export function editLineActions(d: MealActionDeps, run: Run, resolveEntry: Resol
       unit: EntryUnit,
       portion_id?: string | null,
     ) =>
-      editLine(mealId, mealIndex, entry, { served_quantity: qty, unit, portion_id }, (real) =>
-        recordUpdate(
-          d.recordHistory,
-          real.mealId,
-          real.id,
-          {
-            served_quantity: entry.served_quantity,
-            unit: entry.unit,
-            portion_id: entry.portion_id,
-          },
-          { served_quantity: qty, unit, portion_id },
-        ),
+      editLine(
+        d,
+        run,
+        resolveEntry,
+        mealId,
+        mealIndex,
+        entry,
+        { served_quantity: qty, unit, portion_id },
+        (real) =>
+          recordUpdate(
+            d.recordHistory,
+            real.mealId,
+            real.id,
+            {
+              served_quantity: entry.served_quantity,
+              unit: entry.unit,
+              portion_id: entry.portion_id,
+            },
+            { served_quantity: qty, unit, portion_id },
+          ),
       ),
     setUnit: (
       mealId: string,
@@ -128,7 +149,7 @@ export function editLineActions(d: MealActionDeps, run: Run, resolveEntry: Resol
       unit: EntryUnit,
       portion_id: string | null,
     ) =>
-      editLine(mealId, mealIndex, entry, { unit, portion_id }, (real) =>
+      editLine(d, run, resolveEntry, mealId, mealIndex, entry, { unit, portion_id }, (real) =>
         recordUpdate(
           d.recordHistory,
           real.mealId,

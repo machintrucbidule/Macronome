@@ -71,6 +71,17 @@ export function stepPinned(line: PinnedLine, dir: 1 | -1): PinnedLine {
   };
 }
 
+/** Set a pin's count from a typed value (B-136): rounded to an integer and clamped by the same
+ *  rules as stepping — portioned 1..MAX_PORTION_COUNT portions, portionless ≥ PORTIONLESS_GRAM_STEP
+ *  grams (no forced multiple — a typed value may be any integer in range). Pure. */
+export function setPinnedCount(line: PinnedLine, value: number): PinnedLine {
+  const n = Math.round(value);
+  if (line.unit === 'portion') {
+    return { ...line, count: Math.min(MAX_PORTION_COUNT, Math.max(1, n)) };
+  }
+  return { ...line, count: Math.max(PORTIONLESS_GRAM_STEP, n) };
+}
+
 /** Grams a pin resolves to (portioned → count × per-portion grams; portionless → count grams). */
 export function pinnedGrams(line: PinnedLine): number {
   return line.unit === 'portion' ? line.count * line.per_portion_grams : line.count;

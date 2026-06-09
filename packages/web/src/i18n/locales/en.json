@@ -397,6 +397,7 @@
       "refine": {
         "intro": "Adjust this proposal: drop a food you don't have, or pin a quantity. The AI re-proposes honouring these constraints and all the day's targets.",
         "linesLabel": "Proposal lines",
+        "qtyLabel": "Quantity",
         "exclude": "I don't have this food",
         "restore": "restore",
         "moreNoteLabel": "Additional precisions",

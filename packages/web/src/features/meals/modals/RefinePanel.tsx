@@ -1,10 +1,11 @@
-import { type Dispatch, type SetStateAction } from 'react';
+import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { DayDetail, MealProposal, MealProposalItem } from '@macronome/shared';
 import { previewRemaining } from '../logic/remainingPreview';
 import {
   lineKey,
   pinnedFromItem,
+  setPinnedCount,
   stepPinned,
   type ExcludedFood,
   type PinnedLine,
@@ -36,18 +37,56 @@ function pinLabel(line: PinnedLine): string {
   return `${formatInt(line.count)} g`;
 }
 
+/** Editable pinned-quantity field (B-136): a digits-only input over the pin's `count` (portion count
+ *  or grams), committed on blur / Enter via onSet (clamped by setPinnedCount). A local buffer allows
+ *  free typing and re-syncs when the value changes externally (a − / + press). */
+function PinQtyInput({ line, onSet }: { line: PinnedLine; onSet: (value: number) => void }) {
+  const { t } = useTranslation();
+  const [buf, setBuf] = useState(String(line.count));
+  useEffect(() => setBuf(String(line.count)), [line.count]);
+  const commit = (): void => {
+    const n = Number.parseInt(buf, 10);
+    if (Number.isFinite(n)) onSet(n);
+    else setBuf(String(line.count));
+  };
+  const field = (
+    <input
+      className={styles.stepInput}
+      type="text"
+      inputMode="numeric"
+      value={buf}
+      aria-label={t('meals.proposals.refine.qtyLabel')}
+      onChange={(e) => setBuf(e.target.value.replace(/[^0-9]/g, ''))}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          (e.target as HTMLInputElement).blur();
+        }
+      }}
+    />
+  );
+  return line.unit === 'portion' ? (
+    <span className={styles.stepVal}>×{field}</span>
+  ) : (
+    <span className={styles.stepVal}>{field} g</span>
+  );
+}
+
 function RefineLine({
   item,
   excluded,
   pin,
   onToggleExclude,
   onStep,
+  onSet,
 }: {
   item: MealProposalItem;
   excluded: boolean;
   pin: PinnedLine | undefined;
   onToggleExclude: () => void;
   onStep: (dir: 1 | -1) => void;
+  onSet: (value: number) => void;
 }) {
   const { t } = useTranslation();
   const view = pin ?? pinnedFromItem(item);
@@ -68,7 +107,7 @@ function RefineLine({
         <button type="button" onClick={() => onStep(-1)} aria-label="−">
           −
         </button>
-        <span className={styles.stepVal}>{pinLabel(view)}</span>
+        <PinQtyInput line={view} onSet={onSet} />
         <button type="button" onClick={() => onStep(1)} aria-label="+">
           +
         </button>
@@ -155,13 +194,13 @@ export function RefinePanel({
   };
   const restore = (foodId: string): void =>
     setExcluded((cur) => cur.filter((e) => e.food_id !== foodId));
-  const step = (item: MealProposalItem, dir: 1 | -1): void => {
-    const next = stepPinned(pinFor(item) ?? pinnedFromItem(item), dir);
-    setPinned((cur) => {
-      const rest = cur.filter((p) => lineKey(p) !== lineKey(item));
-      return [...rest, next];
-    });
-  };
+  const replacePin = (item: MealProposalItem, next: PinnedLine): void =>
+    setPinned((cur) => [...cur.filter((p) => lineKey(p) !== lineKey(item)), next]);
+  const step = (item: MealProposalItem, dir: 1 | -1): void =>
+    replacePin(item, stepPinned(pinFor(item) ?? pinnedFromItem(item), dir));
+  // Direct entry (B-136): a typed value pins the line at that quantity (clamped like stepping).
+  const setCount = (item: MealProposalItem, value: number): void =>
+    replacePin(item, setPinnedCount(pinFor(item) ?? pinnedFromItem(item), value));
   const unpin = (key: string): void => setPinned((cur) => cur.filter((p) => lineKey(p) !== key));
 
   return (
@@ -179,6 +218,7 @@ export function RefinePanel({
                 pin={pinFor(item)}
                 onToggleExclude={() => toggleExclude(item)}
                 onStep={(dir) => step(item, dir)}
+                onSet={(value) => setCount(item, value)}
               />
             ))}
           </div>

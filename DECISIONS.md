@@ -2064,3 +2064,24 @@ keyboard shortcuts **and** the toolbar buttons (disabled when nothing to undo/re
 **Contract delta:** `specifications/screens/meals.md` (undo/redo affordance + scope + caveat). No
 DB/schema/API/DTO change. Tests: `historyStack.test.ts` + `opReconcile.test.ts` (pure cores —
 push/clear/cap, per-op inverses incl. the qty-0 pin re-create, id resolution).
+
+## RF-1 / B-136 — Raffiner: type the pinned quantity directly — RESOLVED (author, 2026-06-09)
+
+On the AI meal-proposals **Raffiner** popup each line's pinned quantity was a **read-only** value
+between `−` / `+` stepper buttons; reaching a target (e.g. 250 g) took many clicks.
+
+**Decision (author).** The quantity is now **editable by direct entry** (type a value) in addition to
+the `−` / `+` stepper. Typing sets the pin's `count` directly, **clamped by the same rules** as
+stepping (portioned 1..`MAX_PORTION_COUNT`, portionless `≥ PORTIONLESS_GRAM_STEP` g; rounded to an
+integer, no forced multiple). The pin model (`PinnedLine`) and the request body (`constraints.pinned[]`
+→ `grams`) are **unchanged** — only the input affordance is new.
+
+- **Web-only:** new pure `setPinnedCount(line, value)` in `logic/refineConstraints.ts`; `RefinePanel`'s
+  read-only value becomes a small digits-only `PinQtyInput` (local buffer, commit on blur/Enter, re-sync
+  on a − / + press), with a `g` suffix (portionless) or `×` prefix (portioned). New i18n
+  `meals.proposals.refine.qtyLabel` (aria-label) + a `.stepInput` style.
+
+**Contract delta:** `specifications/features/ai-meal-proposals/spec.md` §2.6 + `dev-plan.md` (S11 note).
+No DB/schema/API/DTO/domain change. Tests: `refineConstraints.test.ts` (`setPinnedCount` clamp/round)
+
+- new `RefinePanel.test.tsx` (typing pins the line at the value; the stepper steps from it).
