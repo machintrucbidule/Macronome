@@ -247,3 +247,29 @@ documented here only so the information is ready when the author decides to run 
       `design/components/ai-dish-analysis.md`. The `meal_suggestions` / `advice` task endpoints and the
       generic `POST /advisor/query` (**501 `not_implemented`**) remain reserved.
       See `DECISIONS.md` Gap 14 / B-117 / B-118.
+  - **O2c — AI meal-proposals (IN PROGRESS, B-123).** The `meal_suggestions` task: a Repas
+    `✨ Proposition IA` popup proposes **3 distinct food sets** (foods + quantities) that bring the
+    **whole day** into its calorie band + macro floors/ceiling, via the **hybrid** (LLM chef picks
+    foods → pure deterministic solver sets quantities → code verifies the day total; the fit is never
+    trusted from the LLM). Apply writes plain entries through `POST /meals/:id/entries`; refine
+    ("I don't have X", "fix this qty") recomputes. Specs: `spec/api/ai.md`,
+    `spec/logic/ai-meal-suggestions.md`, `spec/logic/meal-solver.md`, `spec/schema/tables-catalog.md`
+    (`food.ai_proposable`). Built across 13 slices
+    (`specifications/features/ai-meal-proposals/dev-plan.md`):
+    - [x] **S1 — Contracts + shared types** (this batch): apply the spec amendments to the live
+          contracts; add the meal-suggestions DTOs (`dto/ai.ts`), the new default prompt, and the solver
+          tuning constants. No runtime behaviour. _(The `dto/food.ts` `ai_proposable` field is deferred
+          to S2, where its producer — the column/repo/serialiser — lands, so S1 stays purely additive.)_
+    - [ ] S2 `food.ai_proposable` column + migration + repo round-trip + the `dto/food.ts` field.
+    - [ ] S3 Foods-form "Dispo IA" toggle (web, end-to-end for the toggle).
+    - [ ] S4 Solver foundation — remaining + types + penalty + verify (pure).
+    - [ ] S5 Solver search — `solve.ts` (pure) + determinism.
+    - [ ] S6 Chef domain — assemble + format + parse (LLM-shaped, mocked).
+    - [ ] S7 Repos — candidate pool + OK-day history sampling.
+    - [ ] S8 Service + controller + route (API end-to-end, LLM mocked).
+    - [ ] S9 Web client + hook + button + request popup.
+    - [ ] S10 Web proposals display.
+    - [ ] S11 Web refine panel.
+    - [ ] S12 Web apply a proposal + apply-mapping.
+    - [ ] S13 i18n completeness + docs + full gate.
+          See `DECISIONS.md` B-123.

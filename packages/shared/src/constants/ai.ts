@@ -18,7 +18,16 @@ const DEFAULT_TASK_PROMPTS: Record<AiTaskKey, string> = {
     'Estimate the macronutrients (protein, fat, carbs) and calories of this dish. Use the ' +
     'photo(s) when provided; otherwise rely on the written description. Identify the foods and ' +
     'their approximate quantities.',
-  meal_suggestions: 'Suggest meal ideas that fit the indicated macro and calorie targets.',
+  meal_suggestions:
+    'You are a meal-planning assistant for a calorie- and macro-tracked day. From the candidate ' +
+    'foods provided, choose coherent, varied, meal-appropriate sets that help reach the day’s ' +
+    'remaining targets. Prefer better-rated foods (3 over 2 over 1); a food with no rating is ' +
+    'acceptable and may be chosen freely. Favour combinations the user has eaten on past ' +
+    'on-target days, but keep the proposals distinct from one another. Assign each chosen food to ' +
+    'one of the selected meals, and for a food that has named portions pick exactly one of its ' +
+    'portions. Do not output any quantities — quantities are computed separately. Only use ' +
+    'foods, meals, and portions from the provided lists; never invent any. Honour the user’s ' +
+    'precisions and any exclusions or fixed items given.',
   advice:
     'Give personalized nutrition advice based on the provided tracking data ' +
     '(recent intake, target adherence, weight trend).',

@@ -1818,3 +1818,60 @@ require an API change and is out of scope.
 the two screen specs (`specifications/screens/food-db.md` + `recipe.md`, infinite-scroll behaviour
 
 - "loading next page" state). Web-only.
+
+---
+
+## B-123 — AI meal-proposals (`meal_suggestions` AI use) — decided (feature design package)
+
+Implements the second AI **use** — the `meal_suggestions` task that has shipped only as a reserved
+stub since B-117/B-118. On the Repas page a `✨ Proposition IA` popup proposes **3 distinct food
+sets** (foods + quantities) that aim to bring the **whole day** into its calorie band + macro
+floors/ceiling; the user can apply one or refine it ("I don't have X", "use 2 not 3") and recompute.
+Decided across the design package `specifications/features/ai-meal-proposals/` (challenge.md →
+decisions.md → spec.md → dev-plan.md); the neutralised decisions are recorded here. Built slice by
+slice per that dev-plan; live contracts: `spec/api/ai.md`, `spec/logic/ai-meal-suggestions.md`,
+`spec/logic/meal-solver.md`, `spec/schema/tables-catalog.md` (`food.ai_proposable`).
+
+- **D1 — Architecture = hybrid (LLM chef + deterministic solver + code verifier).** The LLM picks
+  foods qualitatively and outputs **no quantities**; a pure deterministic solver sets integer
+  portion counts / 5 g-step grams to minimise a penalty over the day's targets; the service
+  recomputes the day total in code. _Rationale:_ LLMs are unreliable at exact arithmetic and
+  constrained optimisation — the solver + verifier make the "fits the targets" guarantee real and
+  testable. **The fit is never trusted from the LLM.**
+- **D2 — Hard vs soft targets.** Calorie band + protein floor + fat floor are **HARD**; carb
+  ceiling is **SOFT**. When the feasible region is empty under indivisible portions, the solver
+  returns the **closest fit and states the gaps explicitly** (numeric per target). _Rationale:_ the
+  day's OK verdict is calorie-only; protein/fat floors are required nutrition guarantees; carbs are
+  the flexible remainder.
+- **D3 — Approximation bias = conservative.** When no exact fit exists, bias toward staying
+  within/under the calorie band and tolerate a small floor shortfall, all quantified. Encoded as
+  the solver's penalty asymmetry (over-band kcal penalised above under-floor macros). _Rationale:_
+  a deficit tracker must not overshoot calories to satisfy a macro.
+- **D4 — Applying a proposal = direct write.** "Choisir" writes the proposed lines straight into the
+  selected meals via the existing `POST /meals/:mealId/entries` flow (materialising the day if
+  needed); **plain entries only — no leftover groups, no "IA" chip**; entries stay freely editable.
+- **D5 — Multi-meal split.** The LLM assigns each chosen food to one selected meal; the solver fits
+  the **day-wide** remaining as one computation (no arbitrary per-meal target split).
+- **D6 — Candidate universe = the user's food base** (see D8/D9 for the filter); OK-day history
+  guides preference/combinations and variety rather than limiting the pool. Works when history is thin.
+- **D7 — No-AI path = disable + link to Settings.** When the assistant is unconfigured the button
+  is visible but **disabled** with a Settings hint (mirrors the dish-photo `ai_not_configured` UX).
+  **No deterministic-only fallback in v1.**
+- **D8 (+ refinement) — Ratings policy.** Exclude `rating = 0` (Bof); prefer 3 > 2 > 1. **Unrated
+  foods are eligible and treated as good by default** (not last-resort). Candidate pool keeps
+  `rating ∈ {null,1,2,3}`.
+- **D9 — Per-food `ai_proposable` toggle.** A boolean `food.ai_proposable` (NOT NULL DEFAULT true;
+  migration backfills existing rows true) controls whether a food may ever appear in AI proposals;
+  OFF → never proposed. Surfaced in the food add/edit modal as a 3rd column after Visibility
+  ("Dispo pour recettes IA", Oui/Non). Candidate pool filters `ai_proposable = true AND rating ≠ 0`.
+- **Internal calls.** Stateless server (refine constraints held client-side, re-sent each call);
+  **3** proposals, distinct and varied across refines; OK-day history window ≈ 60 days
+  (`OK_DAY_HISTORY_WINDOW_DAYS`); **privacy** — the prompt sends only food names/macros/ratings/
+  portions, anonymous remaining/entered numbers, an OK-day history sample, and the free-text
+  precisions; **never** identity, weight, or BMI.
+
+**Contract delta:** `spec/api/ai.md` (the `POST /ai/meal-suggestions` section), two new
+`spec/logic/` files (chef + solver, with the four worked oracles), `spec/schema/tables-catalog.md`
+(`food.ai_proposable`), shared DTOs/constants (`dto/ai.ts`, `dto/food.ts`, `constants/ai.ts`,
+`constants/tuning.ts`). Out of scope for v1: a deterministic-only fallback proposer, server-persisted
+refine history, leftover-group proposals, weight/BMI in the prompt, a batched apply endpoint.

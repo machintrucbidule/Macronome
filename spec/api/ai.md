@@ -43,7 +43,88 @@ These calls make an **outbound request** to the user's configured OpenAI-compati
   **Persistence:** none. The client maps the result into the Repas custom-entry form; the entry is
   saved later through the normal `POST /meals/:id/entries` (`kind:'custom'`) flow.
 
+## Meal suggestions
+
+- `POST /ai/meal-suggestions` — propose foods+quantities to bring the day into its targets, via
+  the configured `meal_suggestions` task. User-scoped; **persists nothing** (the client applies a
+  chosen proposal through the normal `POST /meals/:id/entries` flow). Body:
+
+  ```json
+  {
+    "date": "2026-06-09",
+    "meal_ids": ["<uuid>", "<uuid>"],
+    "note": "optional ≤500 chars",
+    "constraints": {
+      "excluded_food_ids": ["<uuid>"],
+      "pinned": [
+        { "food_id": "<uuid>", "meal_id": "<uuid>", "portion_id": "<uuid>|null", "grams": 171 }
+      ],
+      "avoid": [["<food_id>", "<food_id>"]]
+    }
+  }
+  ```
+
+  - `date`: ISO date of the day being filled. `meal_ids`: **≥ 1** of the day's meal ids (the
+    selected meals). `note`: optional, ≤ 500 chars (same cap as the photo note). `constraints`:
+    optional (refine loop); all sub-fields optional.
+  - **422 `validation_error`** when `meal_ids` is empty, `date` malformed, or the day has **no
+    Target** to aim at (`details: { reason: "no_target" }`).
+
+  → **200** `{ "data": MealSuggestions }`:
+
+  ```json
+  {
+    "remaining": {
+      "cal_min": 630,
+      "cal_max": 730,
+      "need_protein_g": 62,
+      "need_fat_g": 22,
+      "carb_room_g": 80,
+      "entered": { "kcal": 920, "fat": 28, "carb": 70, "protein": 78 }
+    },
+    "proposals": [
+      {
+        "id": "p1",
+        "fit": "full",
+        "items": [
+          {
+            "food_id": "<uuid>",
+            "food_name": "Blanc de poulet",
+            "meal_id": "<uuid>",
+            "portion_id": null,
+            "portion_label": null,
+            "served_quantity": 180,
+            "unit": "g",
+            "served_grams": 180,
+            "snap": { "kcal": 198, "fat": 3.6, "carb": 0, "protein": 41.4 },
+            "rating": 3
+          }
+        ],
+        "day_total": { "kcal": 1615, "fat": 54, "carb": 87, "protein": 174 },
+        "targets_met": { "calorie": true, "protein": true, "fat": true, "carb": true },
+        "gaps": []
+      }
+    ]
+  }
+  ```
+
+  `day_total`, `targets_met`, and `gaps` are **computed server-side** from the chosen quantities
+  (never from the model). `gaps` items: `{ "target": "protein_floor"|"fat_floor", "short_g": n }`
+  or `{ "target": "calorie", "delta_kcal": n }`. Empty for a full fit.
+
+  The architecture is the **hybrid** (`spec/logic/ai-meal-suggestions.md`,
+  `spec/logic/meal-solver.md`): the LLM (chef) picks foods qualitatively and outputs **no
+  quantities**; a pure deterministic solver (accountant) sets integer portion counts / 5 g-step
+  grams; the service recomputes the day total in code and certifies the fit. **The "fits the
+  targets" claim is never trusted from the LLM.**
+
+  **Errors:** the standard AI table (identical mapping to `dish-photo-macros`): `409
+ai_not_configured` (no `base_url`/`api_key`, or `tasks.meal_suggestions.model` is null); `502
+ai_unauthorized`; `429 ai_rate_limited`; `503 ai_unavailable`; `504 ai_unreachable`; `502
+ai_bad_response` (no parseable/valid proposal). `error.details.provider_message` is passed
+  through as for the photo task.
+
 ## Reserved (not implemented)
 
-- `meal_suggestions`, `advice` — the other two `settings.ai` tasks. Their `/ai/*` endpoints are
-  **not defined yet** (reserved, like the generic `POST /advisor/query` in `00-conventions.md`).
+- `advice` — the remaining `settings.ai` task. Its `/ai/*` endpoint is **not defined yet**
+  (reserved, like the generic `POST /advisor/query` in `00-conventions.md`).

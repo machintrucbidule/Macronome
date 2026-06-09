@@ -57,23 +57,24 @@ Keys (all optional; service supplies defaults):
 
 ## food
 
-| column                 | type        | notes                                                                                                             |
-| ---------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------- |
-| id                     | uuid PK     |                                                                                                                   |
-| owner_id               | uuid        | NOT NULL REFERENCES app_user(id) — creator                                                                        |
-| name                   | text        | NOT NULL                                                                                                          |
-| normalized_name        | text        | NOT NULL — unaccent+lower of name (generated/maintained); search key                                              |
-| kcal_per_100g          | numeric     | NOT NULL, CHECK ≥ 0                                                                                               |
-| fat_per_100g           | numeric     | NOT NULL, CHECK ≥ 0                                                                                               |
-| carb_per_100g          | numeric     | NOT NULL, CHECK ≥ 0                                                                                               |
-| protein_per_100g       | numeric     | NOT NULL, CHECK ≥ 0                                                                                               |
-| comment                | text        | NULL                                                                                                              |
-| rating                 | smallint    | NULL — null=unrated, CHECK (rating IS NULL OR rating IN (0,1,2,3))                                                |
-| visibility             | text        | NOT NULL DEFAULT 'private', CHECK IN ('private','shared') — editable flag, independent of owner_id (OPEN_GAPS #6) |
-| source                 | text        | NOT NULL DEFAULT 'manual', CHECK IN ('manual','recipe','imported')                                                |
-| recipe_id              | uuid        | NULL REFERENCES recipe(id) — set when source='recipe' (the derived food)                                          |
-| archived_at            | timestamptz | NULL — soft delete                                                                                                |
-| created_at, updated_at | timestamptz |                                                                                                                   |
+| column                 | type        | notes                                                                                                               |
+| ---------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------- |
+| id                     | uuid PK     |                                                                                                                     |
+| owner_id               | uuid        | NOT NULL REFERENCES app_user(id) — creator                                                                          |
+| name                   | text        | NOT NULL                                                                                                            |
+| normalized_name        | text        | NOT NULL — unaccent+lower of name (generated/maintained); search key                                                |
+| kcal_per_100g          | numeric     | NOT NULL, CHECK ≥ 0                                                                                                 |
+| fat_per_100g           | numeric     | NOT NULL, CHECK ≥ 0                                                                                                 |
+| carb_per_100g          | numeric     | NOT NULL, CHECK ≥ 0                                                                                                 |
+| protein_per_100g       | numeric     | NOT NULL, CHECK ≥ 0                                                                                                 |
+| comment                | text        | NULL                                                                                                                |
+| rating                 | smallint    | NULL — null=unrated, CHECK (rating IS NULL OR rating IN (0,1,2,3))                                                  |
+| visibility             | text        | NOT NULL DEFAULT 'private', CHECK IN ('private','shared') — editable flag, independent of owner_id (OPEN_GAPS #6)   |
+| source                 | text        | NOT NULL DEFAULT 'manual', CHECK IN ('manual','recipe','imported')                                                  |
+| recipe_id              | uuid        | NULL REFERENCES recipe(id) — set when source='recipe' (the derived food)                                            |
+| ai_proposable          | boolean     | NOT NULL DEFAULT true — eligible for AI meal proposals (B-123 / feature D9; migration backfills existing rows true) |
+| archived_at            | timestamptz | NULL — soft delete                                                                                                  |
+| created_at, updated_at | timestamptz |                                                                                                                     |
 
 - Editing macros affects future logs only (history frozen via meal_entry
   snapshots).
