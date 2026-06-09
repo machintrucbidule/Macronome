@@ -24,7 +24,10 @@ The chat-completion request (`ai-connection.md` §6b) carries **one `user` messa
 multimodal content, assembled in this order:
 
 1. **text part** = the configured `prompt` (scope), then — if `note` is non-empty — a blank line
-   and the note, then a blank line and the **hard-coded format instruction** (§3).
+   and the note, then a blank line and the **hard-coded format instruction** (§3), then a blank line
+   and the **dish-name language clause** (`Write the "dish_name" in <French|English>.`) resolved from
+   the **user's UI language** (`settings.locale`), so the returned name is localised (B-119). Only
+   `dish_name` is localised — all numbers stay SI, unaffected.
 2. **image parts** = one `image_url` part per input image, in order. **Zero images** (note-only) →
    the message carries the single text part alone (the model estimates from the description).
 
@@ -68,8 +71,9 @@ custom-entry form, which already holds raw values.
 
 The result maps **1:1** (the form holds **totals**, not per-100 g — `screens/meals.md` custom
 inline editor): `dish_name → name`, `kcal → kcal`, `weight_g → served weight`, `fat_g/carb_g/
-protein_g → fat/carb/protein`. No unit conversion. The user saves later through the normal
-`POST /meals/:id/entries` (`kind:'custom'`) flow — this call persists nothing.
+protein_g → fat/carb/protein`. No unit conversion. `dish_name` arrives in the **user's UI language**
+(§2 language clause), so the pre-filled name reads naturally and is stored that way. The user saves
+later through the normal `POST /meals/:id/entries` (`kind:'custom'`) flow — this call persists nothing.
 
 ## 6. Error codes
 
@@ -86,5 +90,7 @@ Reuses `ai-connection.md` §7: `ai_not_configured` (no `base_url`/`api_key`, or
 4. **Missing field.** no `protein_g` → **`ai_bad_response`**.
 5. **Negative / NaN.** `"weight_g":-5` or `"fat_g":"abc"` → **`ai_bad_response`**.
 6. **Empty name.** `"dish_name":""` → **`ai_bad_response`**.
-7. **Prompt assembly.** `note` present → text part = `prompt` + note + format instruction, in that
-   order, followed by the image parts; `note` empty → text part = `prompt` + format instruction.
+7. **Prompt assembly.** `note` present → text part = `prompt` + note + format instruction + the
+   dish-name language clause (`Write the "dish_name" in French.` for `locale:'fr'`), in that order,
+   followed by the image parts; `note` empty → text part = `prompt` + format instruction + the
+   language clause (`… in English.` for `locale:'en'`).

@@ -357,6 +357,11 @@
   font-weight: var(--fw-bold);
   font-size: var(--fs-13);
 }
+.aiFillRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-4);
+}
 .aiFillUrl {
   align-self: flex-start;
   border: 0;

@@ -90,9 +90,16 @@ logged.
 Two provider operations are defined: **6a list models** (B-117, the connection proof) and
 **6b chat completion** (B-118, backs the AI uses).
 
+**Auth headers.** Both provider operations send the key in **two header styles at once** so the
+link works for OpenAI-style providers and for Anthropic without per-host branching:
+`Authorization: Bearer {api_key}` (Gemini/OpenAI) **and** `x-api-key: {api_key}` +
+`anthropic-version: <date>` (Claude). Each provider uses the header it understands and ignores the
+other (Anthropic's `/models` rejects a lone Bearer but accepts `x-api-key`; with both present it
+authenticates via `x-api-key`). The key is never logged.
+
 ### 6a. List models
 
-- Request: `GET {base_url}/models` with header `Authorization: Bearer {api_key}`.
+- Request: `GET {base_url}/models` with the auth headers above.
 - Success (HTTP 200, OpenAI shape `{ data: [{ id }, …] }`) → the list of model ids.
 - This call is the **connection proof**: a successful listing means `base_url` + `api_key`
   work; populating the model menus and verifying the link are the same action (there is no
@@ -120,7 +127,7 @@ surfaced to the caller in `error.details.provider_message`.
 The second provider operation — **chat completion** — backs the AI _uses_. It is **implemented**
 from B-118 (the `dish_photo_macros` task; `meal_suggestions` / `advice` still pending):
 
-- Request: `POST {base_url}/chat/completions` with header `Authorization: Bearer {api_key}` and a
+- Request: `POST {base_url}/chat/completions` with the auth headers (§6a) and a
   body `{ model, messages, temperature }` where `model` is the **invoked task's** model
   (`tasks.<task>.model`) and `temperature` is low (deterministic, e.g. `0`).
 - `messages` is one `user` message whose `content` is **multimodal** — an ordered array mixing

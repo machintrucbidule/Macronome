@@ -93,7 +93,9 @@ describe('POST /ai/dish-photo-macros (B-118)', () => {
     expect(res.status).toBe(409);
     expect(res.body.error.code).toBe('ai_not_configured');
   });
+});
 
+describe('POST /ai/dish-photo-macros — provider outcomes (B-118)', () => {
   it('200 maps a clean provider response to the estimate', async () => {
     const a = await authedAgent(app, 'alice');
     await configureAi(a);

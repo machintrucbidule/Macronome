@@ -2,8 +2,8 @@ import { useTranslation } from 'react-i18next';
 import { AI_TASK_KEYS, isVisionModel } from '@macronome/shared';
 import { Button } from '../../../components/Button/Button';
 import { Banner } from '../../../components/Banner/Banner';
-import { TextInput } from '../../../components/Form/TextInput';
 import { useAiConnectionForm } from '../useAiConnectionForm';
+import { AiConnectionFields } from './AiConnectionFields';
 import { AiTaskBlock } from './AiTaskBlock';
 import { AiHelp } from './AiHelp';
 import styles from '../settings.module.css';
@@ -23,37 +23,7 @@ export function AiCard() {
       <div className={`${styles.cb} ${styles.aiBody}`}>
         <p className={styles.aiIntro}>{t('settings.ai.intro')}</p>
 
-        <div className={styles.aiField}>
-          <TextInput
-            label={t('settings.ai.baseUrl')}
-            value={f.baseUrl}
-            invalid={f.baseUrlInvalid}
-            placeholder={t('settings.ai.baseUrlPlaceholder')}
-            onChange={(e) => f.setBaseUrl(e.target.value)}
-          />
-          <button
-            type="button"
-            className={styles.aiFillUrl}
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => f.setBaseUrl(t('settings.ai.baseUrlPlaceholder'))}
-          >
-            {t('settings.ai.fillUrl')}
-          </button>
-        </div>
-
-        <label className={styles.aiField}>
-          <span className={styles.aiFieldLabel}>{t('settings.ai.apiKey')}</span>
-          <TextInput
-            type="password"
-            value={f.apiKey}
-            placeholder={
-              f.apiKeySet && !f.keyDirty
-                ? t('settings.ai.apiKeySet')
-                : t('settings.ai.apiKeyPlaceholder')
-            }
-            onChange={(e) => f.setApiKeyValue(e.target.value)}
-          />
-        </label>
+        <AiConnectionFields f={f} />
 
         <div className={styles.aiFetch}>
           <Button

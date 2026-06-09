@@ -1629,10 +1629,10 @@ column, apport/dépense/déficit column grouping) — re-add only if requested l
 
 ## B-117 — AI assistant connection: configurable & verifiable (was inert hook) — RESOLVED (author)
 
-Post-v1 backlog triage. The reserved AI hook (Gap 14 / DEV_PLAN O2) shipped as inert: an
+Post-v1 backlog triage. The reserved AI hook (Gap 14 / DEV*PLAN O2) shipped as inert: an
 unused `settings.llm_endpoint {url,key?}` and a 501 `POST /advisor/query`. The author wants to
 **configure and verify** a remote AI connection now (target: Google Gemini — free and reads
-images — via its **OpenAI-compatible** endpoint), while the AI _uses_ wait for a later step.
+images — via its **OpenAI-compatible** endpoint), while the AI \_uses* wait for a later step.
 
 - **Connection model (replaces `llm_endpoint`).** `settings.ai` = `{ provider:"openai_compatible",
 base_url, api_key, tasks:{ dish_photo_macros, meal_suggestions, advice } }` or `null`. Each task
@@ -1762,3 +1762,31 @@ message through in `error.details.provider_message` so the UI shows the real rea
 codes added (`shared/errors.ts`, `spec/logic/ai-connection.md §6a/§7`, `spec/api/ai.md`), with FR/EN
 messages for both the Paramètres card and the analysis dialog. Api/shared/web/spec only; no DB/DTO
 shape change.
+
+---
+
+## B-119 / B-120 — Localised dish name + Claude connection helpers — RESOLVED (author)
+
+Post-v0.9.3 refinements (author-requested).
+
+- **B-119 — dish_name in the user's language.** The dish-photo result returned `dish_name` in any
+  language; it must come back in the user's UI language. `buildDishPhotoMessages` gains a `locale`
+  param and appends `Write the "dish_name" in <French|English>.` after the format instruction; the
+  ai service resolves it from `settings.locale` (default `fr`). Only `dish_name` is localised; numbers
+  stay SI. Contract: `spec/logic/ai-dish-photo-macros.md §2/§5/§7.7`. Api/spec only.
+- **B-120 — Claude connection helpers.** Since the link is generic OpenAI-compatible and Anthropic
+  exposes an OpenAI-compatible endpoint (`https://api.anthropic.com/v1/`), the Paramètres card gains
+  a second quick-fill **"Utiliser l'URL Claude"** and a **"Comment connecter Claude"** help block
+  (console.anthropic.com → key → fill URL → fetch models → pick a Claude model; note: billed per
+  token). `isVisionModel` already keeps `claude-*` ids. The connection fields were extracted to a
+  `AiConnectionFields` sub-component (also clears the prior `AiCard` 80-line warning). Web + i18n +
+  `design/components/ai-connection.md` only. No DB/API/DTO change.
+
+**Amendment (2026-06-09).** Testing Claude surfaced an auth mismatch: Anthropic's `/v1/models`
+rejects `Authorization: Bearer` (401 "Invalid bearer token") and requires `x-api-key` +
+`anthropic-version`; Gemini requires Bearer. Measured: Anthropic returns 200 on both `/models` and
+`/chat/completions` with `x-api-key`, and 200 on `/models` when **both** headers are present.
+Resolved: the provider now sends **both** header styles on every request (`Authorization: Bearer`
+**and** `x-api-key` + `anthropic-version: 2023-06-01`); each provider uses the one it understands.
+Generic (no per-host branching). `services/ai-provider.ts` + `spec/logic/ai-connection.md §6`. No
+DB/API/DTO change.

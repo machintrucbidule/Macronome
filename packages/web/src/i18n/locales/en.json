@@ -763,10 +763,12 @@
     },
     "ai": {
       "title": "AI assistant",
-      "intro": "Connect a remote, OpenAI-compatible AI (e.g. Google Gemini). Used here only to configure and verify the link — no AI feature runs yet.",
+      "intro": "Connect a remote, OpenAI-compatible AI (e.g. Google Gemini or Anthropic Claude).",
       "baseUrl": "Base URL",
       "baseUrlPlaceholder": "https://generativelanguage.googleapis.com/v1beta/openai",
+      "claudeUrl": "https://api.anthropic.com/v1/",
       "fillUrl": "Use the Gemini URL",
+      "fillUrlClaude": "Use the Claude URL",
       "apiKey": "API key",
       "apiKeySet": "•••• set",
       "apiKeyPlaceholder": "Paste your API key",
@@ -792,7 +794,16 @@
         "step2": "Click “Create API key”, then copy the key into the “API key” field above.",
         "step3": "Click “Use the Gemini URL” under the Base URL field — or paste it yourself: {{url}}",
         "step4": "Click “Fetch models”, then pick a model for each task — a vision-capable model (e.g. gemini-2.x) for photo analysis.",
-        "modelNote": "A “model” is the AI variant that answers a task."
+        "modelNote": "A “model” is the AI variant that answers a task.",
+        "claude": {
+          "title": "How to connect Claude (step by step)",
+          "consoleLink": "Open the Anthropic console",
+          "step1": "Sign in to the Anthropic console and open API keys.",
+          "step2": "Create a key, then copy it into the “API key” field above.",
+          "step3": "Click “Use the Claude URL” under the Base URL field — or paste it yourself: {{url}}",
+          "step4": "Click “Fetch models”, then pick a Claude model (e.g. a recent claude-sonnet) for each task.",
+          "note": "Claude (Anthropic) is billed per token — there is no free tier."
+        }
       },
       "errors": {
         "ai_not_configured": "Set a base URL and API key first.",

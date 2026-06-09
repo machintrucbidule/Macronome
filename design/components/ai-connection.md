@@ -16,9 +16,10 @@ optional and currently used only to configure/verify the connection (no AI featu
 ## Connection fields
 
 - **Base URL** — canonical text `Input` (`forms-inputs.md`). Label "URL de base". Placeholder
-  hints the Gemini OpenAI-compatible base URL. A small **ghost quick-fill link** ("Utiliser l'URL
-  Gemini") sits directly under the field and one-click fills it with the Gemini OpenAI-compatible
-  endpoint (same value as the placeholder), so a new user need not know or copy the URL.
+  hints the Gemini OpenAI-compatible base URL. Directly under the field, a small row of **ghost
+  quick-fill links** — **"Utiliser l'URL Gemini"** and **"Utiliser l'URL Claude"** — each one-click
+  fills the field with that provider's OpenAI-compatible endpoint (Gemini = the placeholder value;
+  Claude = `https://api.anthropic.com/v1/`), so a new user need not know or copy the URL.
 - **API key** — secret `Input` (`type=password`). When `api_key_set` is true the field renders
   **empty with a "•••• définie" affordance** (the stored key is **never** returned, so it is
   never shown); typing a value (re)defines it, clearing + saving removes it. Never echoed back.
@@ -52,13 +53,19 @@ Three labelled blocks, one per task — **`dish_photo_macros`** ("Analyse photo 
 
 ## Help / disclosure
 
-A collapsible help block (faint, `--text-dim`) giving, in the UI language, an explicit
-**step-by-step guide** for a non-technical user: (1) sign in to **Google AI Studio**
-(`aistudio.google.com/apikey`, opens in a new tab); (2) create + copy the **API key** into the
-field; (3) fill the **base URL** via the quick-fill link (the exact endpoint is also shown
-inline); (4) fetch models and pick one per task (vision-capable for photo analysis). A closing
-note explains what a **model** is. Rendered as an ordered list. Links open in a new tab. Use
-**semantic tokens** only (no raw hex).
+**Two** collapsible help blocks (faint, `--text-dim`), one per supported provider, each an explicit
+**step-by-step guide** for a non-technical user, in the UI language:
+
+- **Gemini** — (1) sign in to **Google AI Studio** (`aistudio.google.com/apikey`, new tab);
+  (2) create + copy the **API key** into the field; (3) fill the **base URL** via the Gemini
+  quick-fill link (the exact endpoint is also shown inline); (4) fetch models and pick one per task
+  (vision-capable for photo analysis). A closing note explains what a **model** is.
+- **Claude** ("Comment connecter Claude") — (1) sign in to the **Anthropic console**
+  (`console.anthropic.com`, new tab); (2) create + copy an **API key**; (3) fill the base URL via
+  the Claude quick-fill link (`https://api.anthropic.com/v1/`); (4) fetch models and pick a Claude
+  model per task. A closing note states Claude is **billed per token** (no free tier).
+
+Rendered as ordered lists. Links open in a new tab. Use **semantic tokens** only (no raw hex).
 
 ## Save & states
 

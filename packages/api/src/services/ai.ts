@@ -2,7 +2,7 @@ import { ErrorCode, type DishPhotoMacros, type DishPhotoMacrosRequest } from '@m
 import { ApiError } from '../http/errors.js';
 import { buildDishPhotoMessages, parseDishPhotoResult } from '../domain/ai-dish-photo/index.js';
 import * as aiProvider from './ai-provider.js';
-import { rawAiConfig } from './settings.js';
+import { get as getSettings, rawAiConfig } from './settings.js';
 
 // AI *use* orchestration (spec/api/ai.md, spec/logic/ai-dish-photo-macros.md, B-118). Reads the
 // stored (secret-bearing) ai config, assembles the multimodal prompt, calls the vision model and
@@ -17,10 +17,13 @@ export async function dishPhotoMacros(
   // The link may be set but this task not (null model) → treat as not configured (§6 error table).
   if (model === null) throw new ApiError(409, ErrorCode.AiNotConfigured);
 
+  // dish_name is returned in the user's UI language (B-119).
+  const locale = (await getSettings(userId))?.locale ?? 'fr';
   const messages = buildDishPhotoMessages(
     ai!.tasks.dish_photo_macros.prompt,
     body.note,
     body.images,
+    locale,
   );
   const text = await aiProvider.chatCompletion(ai, model, messages);
 

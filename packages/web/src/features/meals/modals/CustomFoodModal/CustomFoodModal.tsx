@@ -49,6 +49,16 @@ function CuField({ id, label, value, onChange, opt = false, full = false }: CuFi
   );
 }
 
+function CustomMacroGrid({ fields }: { fields: CuFieldProps[] }) {
+  return (
+    <div className={styles.cuGrid}>
+      {fields.map((f) => (
+        <CuField key={f.id} {...f} />
+      ))}
+    </div>
+  );
+}
+
 export function CustomFoodModal({ target, initial }: CustomFoodModalProps) {
   const { t } = useTranslation();
   const { actions } = useMeals();
@@ -95,6 +105,20 @@ export function CustomFoodModal({ target, initial }: CustomFoodModalProps) {
   };
 
   const fid = (key: string): string => `${fieldId}-${key}`;
+  const fields: CuFieldProps[] = [
+    { id: fid('name'), label: t('meals.custom.name'), value: name, onChange: setName, full: true },
+    { id: fid('kcal'), label: t('meals.card.calories'), value: kcal, onChange: setKcal },
+    {
+      id: fid('weight'),
+      label: t('meals.custom.weight'),
+      value: weight,
+      onChange: setWeight,
+      opt: true,
+    },
+    { id: fid('fat'), label: t('meals.card.fat'), value: fat, onChange: setFat },
+    { id: fid('carb'), label: t('meals.card.carb'), value: carb, onChange: setCarb },
+    { id: fid('protein'), label: t('meals.card.protein'), value: protein, onChange: setProtein },
+  ];
 
   return (
     <Modal
@@ -108,36 +132,7 @@ export function CustomFoodModal({ target, initial }: CustomFoodModalProps) {
             {t('meals.aiAnalysis.button')}
           </Button>
         </div>
-        <div className={styles.cuGrid}>
-          <CuField
-            id={fid('name')}
-            label={t('meals.custom.name')}
-            value={name}
-            onChange={setName}
-            full
-          />
-          <CuField
-            id={fid('kcal')}
-            label={t('meals.card.calories')}
-            value={kcal}
-            onChange={setKcal}
-          />
-          <CuField
-            id={fid('weight')}
-            label={t('meals.custom.weight')}
-            value={weight}
-            onChange={setWeight}
-            opt
-          />
-          <CuField id={fid('fat')} label={t('meals.card.fat')} value={fat} onChange={setFat} />
-          <CuField id={fid('carb')} label={t('meals.card.carb')} value={carb} onChange={setCarb} />
-          <CuField
-            id={fid('protein')}
-            label={t('meals.card.protein')}
-            value={protein}
-            onChange={setProtein}
-          />
-        </div>
+        <CustomMacroGrid fields={fields} />
       </div>
       <div className={modalStyles.actions}>
         <Button variant="ghost" onClick={actions.closeCustom}>

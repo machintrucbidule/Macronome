@@ -73,16 +73,21 @@ test('§7.x not JSON at all → not ok', () => {
   expect(parseDishPhotoResult('I cannot estimate this.').ok).toBe(false);
 });
 
-test('§7.7 prompt assembly — note present: prompt + note + format, then images', () => {
-  const msgs = buildDishPhotoMessages('Scope text', 'extra note', [
-    'data:image/jpeg;base64,AAA',
-    'data:image/png;base64,BBB',
-  ]);
+test('§7.7 prompt assembly — note present: prompt + note + format + lang clause, then images', () => {
+  const msgs = buildDishPhotoMessages(
+    'Scope text',
+    'extra note',
+    ['data:image/jpeg;base64,AAA', 'data:image/png;base64,BBB'],
+    'fr',
+  );
   expect(msgs).toEqual([
     {
       role: 'user',
       content: [
-        { type: 'text', text: `Scope text\n\nextra note\n\n${DISH_PHOTO_FORMAT_INSTRUCTION}` },
+        {
+          type: 'text',
+          text: `Scope text\n\nextra note\n\n${DISH_PHOTO_FORMAT_INSTRUCTION}\n\nWrite the "dish_name" in French.`,
+        },
         { type: 'image_url', image_url: { url: 'data:image/jpeg;base64,AAA' } },
         { type: 'image_url', image_url: { url: 'data:image/png;base64,BBB' } },
       ],
@@ -90,13 +95,21 @@ test('§7.7 prompt assembly — note present: prompt + note + format, then image
   ]);
 });
 
-test('§7.7b prompt assembly — note empty: prompt + format, then images', () => {
-  const msgs = buildDishPhotoMessages('Scope text', undefined, ['data:image/jpeg;base64,AAA']);
+test('§7.7b prompt assembly — note empty + en locale: prompt + format + lang clause, then images', () => {
+  const msgs = buildDishPhotoMessages(
+    'Scope text',
+    undefined,
+    ['data:image/jpeg;base64,AAA'],
+    'en',
+  );
   expect(msgs).toEqual([
     {
       role: 'user',
       content: [
-        { type: 'text', text: `Scope text\n\n${DISH_PHOTO_FORMAT_INSTRUCTION}` },
+        {
+          type: 'text',
+          text: `Scope text\n\n${DISH_PHOTO_FORMAT_INSTRUCTION}\n\nWrite the "dish_name" in English.`,
+        },
         { type: 'image_url', image_url: { url: 'data:image/jpeg;base64,AAA' } },
       ],
     },

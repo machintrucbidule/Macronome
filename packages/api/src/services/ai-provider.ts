@@ -5,7 +5,8 @@ import type { ChatMessage } from '../domain/ai-dish-photo/index.js';
 
 // Outbound proxy to the configured OpenAI-compatible provider (spec/logic/ai-connection.md §6).
 // `listModels` (§6a) is the connection proof; `chatCompletion` (§6b) backs the AI uses. The
-// api_key is sent as a Bearer header and is NEVER logged. Transient upstream failures (5xx +
+// api_key is sent in BOTH Bearer and x-api-key headers (Gemini/OpenAI vs Anthropic) and is NEVER
+// logged. Transient upstream failures (5xx +
 // network) are retried briefly; the provider's own error message is surfaced to the client in
 // `details.provider_message`. Status → code (§7): 401/403 → ai_unauthorized · 429 →
 // ai_rate_limited · 500/502/503/504 → ai_unavailable (after retries) · network/timeout →
@@ -16,6 +17,21 @@ const CHAT_TIMEOUT_MS = 60_000; // vision/chat completions are slow
 const MAX_ATTEMPTS = 3;
 const RETRY_DELAY_MS = 800;
 const RETRYABLE_STATUS = new Set([500, 502, 503, 504]);
+const ANTHROPIC_VERSION = '2023-06-01';
+
+/**
+ * Auth headers covering both OpenAI-style and Anthropic providers in one shot: `Authorization:
+ * Bearer` (Gemini/OpenAI) plus `x-api-key` + `anthropic-version` (Claude). Each provider uses the
+ * header it understands and ignores the other (verified: Anthropic 200 with both present, Gemini
+ * 200 on Bearer). Keeps the link generic without per-host branching.
+ */
+function authHeaders(apiKey: string): Record<string, string> {
+  return {
+    Authorization: `Bearer ${apiKey}`,
+    'x-api-key': apiKey,
+    'anthropic-version': ANTHROPIC_VERSION,
+  };
+}
 
 interface ModelList {
   data: { id: string }[];
@@ -66,7 +82,7 @@ async function callProvider(
     try {
       res = await fetch(joinUrl(ai.base_url, path), {
         ...init,
-        headers: { Authorization: `Bearer ${ai.api_key}`, ...init.headers },
+        headers: { ...authHeaders(ai.api_key!), ...init.headers },
         signal: AbortSignal.timeout(timeoutMs),
       });
     } catch (err) {

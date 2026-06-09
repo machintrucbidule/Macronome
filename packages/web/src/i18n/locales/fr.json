@@ -763,10 +763,12 @@
     },
     "ai": {
       "title": "Assistant IA",
-      "intro": "Connecte une IA distante compatible OpenAI (ex. Google Gemini). Sert ici uniquement à configurer et vérifier la liaison — aucune fonctionnalité IA n'est encore active.",
+      "intro": "Connecte une IA distante compatible OpenAI (ex. Google Gemini ou Anthropic Claude).",
       "baseUrl": "URL de base",
       "baseUrlPlaceholder": "https://generativelanguage.googleapis.com/v1beta/openai",
+      "claudeUrl": "https://api.anthropic.com/v1/",
       "fillUrl": "Utiliser l'URL Gemini",
+      "fillUrlClaude": "Utiliser l'URL Claude",
       "apiKey": "Clé API",
       "apiKeySet": "•••• définie",
       "apiKeyPlaceholder": "Colle ta clé API",
@@ -792,7 +794,16 @@
         "step2": "Clique sur « Créer une clé API », puis copie la clé dans le champ « Clé API » ci-dessus.",
         "step3": "Clique sur « Utiliser l'URL Gemini » sous le champ URL de base — ou colle-la toi-même : {{url}}",
         "step4": "Clique sur « Récupérer les modèles », puis choisis un modèle pour chaque tâche — un modèle capable de vision (ex. gemini-2.x) pour l'analyse photo.",
-        "modelNote": "Un « modèle » est la variante d'IA qui répond à une tâche."
+        "modelNote": "Un « modèle » est la variante d'IA qui répond à une tâche.",
+        "claude": {
+          "title": "Comment connecter Claude (étape par étape)",
+          "consoleLink": "Ouvrir la console Anthropic",
+          "step1": "Connecte-toi à la console Anthropic et ouvre les clés API.",
+          "step2": "Crée une clé, puis copie-la dans le champ « Clé API » ci-dessus.",
+          "step3": "Clique sur « Utiliser l'URL Claude » sous le champ URL de base — ou colle-la toi-même : {{url}}",
+          "step4": "Clique sur « Récupérer les modèles », puis choisis un modèle Claude (ex. un claude-sonnet récent) pour chaque tâche.",
+          "note": "Claude (Anthropic) est facturé au token — il n'y a pas de palier gratuit."
+        }
       },
       "errors": {
         "ai_not_configured": "Renseigne d'abord une URL de base et une clé API.",
