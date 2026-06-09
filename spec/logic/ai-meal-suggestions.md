@@ -56,7 +56,16 @@ The shipped default for `meal_suggestions` (`packages/shared/src/constants/ai.ts
 > proposals distinct from one another. Assign each chosen food to one of the selected meals, and for
 > a food that has named portions pick exactly one of its portions. Do not output any quantities —
 > quantities are computed separately. Only use foods, meals, and portions from the provided lists;
-> never invent any. Honour the user's precisions and any exclusions or fixed items given.
+> never invent any. Honour the user's precisions and any exclusions or fixed items given. Take into
+> account the foods already on the day (listed under ALREADY ON THE DAY): build proposals that
+> complement them, never re-propose a food already eaten in a meaningful amount today, and make
+> every proposed set internally coherent — foods that plausibly go together as one meal.
+
+> **B-125/B-126/B-127 (AIP-1).** The day-awareness clause + the ALREADY ON THE DAY context section
+> (§2.2) + the deterministic >25 g pool exclusion (§3) were added so the chef stops re-proposing
+> foods already on the plate and produces internally-coherent sets. The hard no-duplication
+> guarantee is the §3 pool exclusion (prompt-independent); this clause is the qualitative coherence
+> guidance that also lets condiments recur.
 
 ### 2.2 Context block (assembled, not stored)
 
@@ -66,6 +75,12 @@ A compact, structured block appended after the scope prompt:
 - **Selected meals:** `[{ meal_id, name }]`.
 - **Candidate foods** (the pool of §3): `[{ food_id, name, kcal_100g, protein_100g, fat_100g,
 carb_100g, rating, portions: [{ portion_id, label, grams }] }]`.
+- **Already on the day** (`ALREADY ON THE DAY`): the foods **already entered/eaten on the working
+  day**, per meal — `[{ meal_name, foods: [name × qty] }]` (names + consumed quantities only;
+  referenced foods resolved by id, custom entries by their name; zero-quantity prefill lines
+  skipped). Lets the chef build sets that complement the plate and not duplicate it (B-125/B-127)
+  and reason about coherence (B-126). The substantial entries (> threshold, §3) are also removed
+  from the candidate pool, so this section's role is awareness/coherence, not the hard guarantee.
 - **OK-day history sample:** recency-ordered `[{ date_offset, meal_name, foods: [name × qty] }]`
   (names + quantities only; §4 + Privacy §5).
 - **Precisions:** the free text (`note`).
@@ -90,6 +105,22 @@ excludes only `rating = 0` (Bof) and `ai_proposable = false`. Archived foods are
 pool is capped at `MAX_CANDIDATE_FOODS` (token budget), prioritising by rating desc then recency
 of use; **the cap is logged internally, never silently presented as "all foods"**.
 
+### 3.1 Day-used exclusion (pure rule; B-125/B-127/AIP-1)
+
+A food **already eaten on the working day** must not be re-proposed once it is on the plate in a
+meaningful amount. Sum, **per `food_id`, across all of the day's meals**, the **consumed grams**
+(`consumed.grams`, falling back to `served_grams`; zero/placeholder lines contribute nothing). Any
+`food_id` whose day-total consumed weight is **strictly greater than `DAY_REPROPOSE_THRESHOLD_G`
+(25 g)** is **removed from the candidate pool** (deterministic — the chef therefore cannot pick it,
+and the §6 parse drops it even if the model hallucinates it). Foods used in **≤ 25 g** (condiments:
+oil, spices…) **stay in the pool** and may be re-proposed. Custom entries (no `food_id`) are listed
+under ALREADY ON THE DAY for awareness but are never part of the exclusion (they cannot be
+candidates). The exclusion is applied **after** the §3 pool is built and **on top of** any refine
+`excluded_food_ids`.
+
+Worked mini-example: chicken breast eaten 200 g today → **excluded** (200 > 25); olive oil 10 g →
+**kept** (10 ≤ 25); a food eaten 15 g at lunch + 15 g at dinner → day-total 30 g → **excluded**.
+
 ## 4. OK-day history sampling (pure selection rule)
 
 An **OK day** is a logged day whose `effective_verdict == OK` (`day-snapshot-verdict.md`). Sample
@@ -102,9 +133,10 @@ empty, the chef relies on the pool + ratings alone (still fully functional — D
 
 The configured endpoint is **user-chosen and may be external** (Anthropic/OpenAI/local). The
 request sends the **minimum**: food names, per-100 g macros, ratings, portion labels + grams; the
-day-wide **remaining** numeric targets and entered totals (anonymous numbers); an OK-day history
-sample (food names + quantities); the user's free-text precisions. It **never** sends: identity,
-weight or BMI history, food comments, or any date context beyond the working day.
+day-wide **remaining** numeric targets and entered totals (anonymous numbers); the **working day's
+own** already-eaten foods (names + consumed quantities, per meal — §2.2); an OK-day history sample
+(food names + quantities); the user's free-text precisions. It **never** sends: identity, weight or
+BMI history, food comments, or any date context beyond the working day.
 
 ## 6. Response parsing & validation (pure function)
 
@@ -140,6 +172,9 @@ code. `error.details.provider_message` is passed through.
    coerced to `null`.
 6. **Zero valid.** no surviving proposal → **`ai_bad_response`**.
 7. **De-dup.** two proposals with the identical food-id multiset → one kept.
+8. **Day-used exclusion (§3.1).** chicken eaten 200 g today → removed from the pool; even if the
+   model returns it, the §6 parse drops the item (id not in the pool). Olive oil eaten 10 g today
+   stays in the pool and may be re-proposed.
 
 > Provenance: feature design package `specifications/features/ai-meal-proposals/` — `spec.md`
 > §3/§5/§7, `challenge.md` (D1, D6, D8), `decisions.md` (D8-refinement, D9). Decisions recorded in

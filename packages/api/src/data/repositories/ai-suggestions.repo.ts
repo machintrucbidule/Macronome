@@ -219,4 +219,15 @@ export const aiSuggestionsRepo = {
     if (okDates.length === 0) return [];
     return buildHistory(userId, before, okDates);
   },
+
+  /** Resolve `food_id → name` for the given ids, user-scoped (CLAUDE.md rule 3). Feeds the
+   *  ALREADY ON THE DAY context section, whose referenced entries carry only ids (B-125/B-127). */
+  async foodNamesByIds(userId: string, ids: string[]): Promise<Map<string, string>> {
+    if (ids.length === 0) return new Map();
+    const foods = await prisma.food.findMany({
+      where: { id: { in: ids }, ownerId: userId },
+      select: { id: true, name: true },
+    });
+    return new Map(foods.map((f) => [f.id, f.name]));
+  },
 };

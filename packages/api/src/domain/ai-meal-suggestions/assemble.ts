@@ -1,6 +1,6 @@
 import type { ChatMessage } from '../ai-dish-photo/index.js';
 import { MEAL_SUGGESTIONS_FORMAT_INSTRUCTION } from './format.js';
-import type { ChefContext, ChefFood, HistoryDay } from './types.js';
+import type { ChefContext, ChefFood, DayMealFoods, HistoryDay } from './types.js';
 
 // Prompt assembly (spec/logic/ai-meal-suggestions.md §2). One `user` message with a single text
 // part: the configured scope prompt, then a structured, deterministic context block (§2.2), then
@@ -31,6 +31,11 @@ function historyWire(h: HistoryDay): Record<string, unknown> {
   };
 }
 
+/** Already-on-the-day meal in the §2.2 wire shape: `{ meal_name, foods: ["name × qty"] }`. */
+function alreadyOnDayWire(d: DayMealFoods): Record<string, unknown> {
+  return { meal_name: d.meal_name, foods: d.foods.map((x) => `${x.name} × ${x.qty}`) };
+}
+
 /** The refine constraints block (§2.2), or `''` when there is nothing to constrain. */
 function constraintsBlock(c: ChefContext['constraints']): string {
   if (!c) return '';
@@ -55,12 +60,16 @@ function contextBlock(ctx: ChefContext): string {
   ].join('\n');
   const meals = `SELECTED MEALS\n${JSON.stringify(ctx.meals)}`;
   const candidates = `CANDIDATE FOODS\n${JSON.stringify(ctx.candidates.map(candidateWire))}`;
+  const alreadyOnDay =
+    ctx.alreadyOnDay && ctx.alreadyOnDay.length > 0
+      ? `\n\nALREADY ON THE DAY\n${JSON.stringify(ctx.alreadyOnDay.map(alreadyOnDayWire))}`
+      : '';
   const history = `OK-DAY HISTORY\n${JSON.stringify(ctx.history.map(historyWire))}`;
   const precisions =
     ctx.precisions && ctx.precisions.trim() !== ''
       ? `\n\nPRECISIONS\n${ctx.precisions.trim()}`
       : '';
-  return `${remaining}\n\n${meals}\n\n${candidates}\n\n${history}${precisions}${constraintsBlock(
+  return `${remaining}\n\n${meals}\n\n${candidates}${alreadyOnDay}\n\n${history}${precisions}${constraintsBlock(
     ctx.constraints,
   )}`;
 }

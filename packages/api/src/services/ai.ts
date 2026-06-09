@@ -10,8 +10,10 @@ import { ApiError } from '../http/errors.js';
 import { buildDishPhotoMessages, parseDishPhotoResult } from '../domain/ai-dish-photo/index.js';
 import {
   buildMealSuggestionsMessages,
+  dayUsedFoods,
   parseMealSuggestions,
   type ChefFood,
+  type DayUsedMeal,
   type ParsedItem,
 } from '../domain/ai-meal-suggestions/index.js';
 import { computeRemaining } from '../domain/meal-solver/remaining.js';
@@ -85,6 +87,20 @@ function toDayContext(day: Awaited<ReturnType<typeof daysService.get>>): DayCont
   return { targets, entered };
 }
 
+/** The working day's already-eaten entries, per meal, for the chef's day-awareness (§2.2/§3.1,
+ *  B-125/B-126/B-127). `consumed.grams` is the leftover-adjusted weight; fall back to `served_grams`
+ *  (0 when neither — a placeholder line, which `dayUsedFoods` then skips). */
+function toDayUsedMeals(day: Awaited<ReturnType<typeof daysService.get>>): DayUsedMeal[] {
+  return day.meals.map((m) => ({
+    meal_name: m.slot_name,
+    entries: m.entries.map((e) => ({
+      food_id: e.food_id,
+      custom_name: e.custom_name,
+      consumed_grams: e.consumed.grams ?? e.served_grams ?? 0,
+    })),
+  }));
+}
+
 /** One LLM-picked, pool-validated item → a solver candidate. `parse` guarantees `food_id` is in the
  *  pool and `portion_id` is one of the food's portions or null. */
 function toCandidate(item: ParsedItem, pool: Map<string, ChefFood>): SolverCandidate {
@@ -116,23 +132,40 @@ export async function mealSuggestions(
   const rem = computeRemaining(ctx);
   if (!rem.ok) throw new ApiError(422, ErrorCode.ValidationError, { reason: rem.reason });
 
-  const [pool, history] = await Promise.all([
+  const usedMeals = toDayUsedMeals(day);
+  const referencedFoodIds = [
+    ...new Set(
+      usedMeals
+        .flatMap((m) => m.entries.map((e) => e.food_id))
+        .filter((x): x is string => x !== null),
+    ),
+  ];
+  const [pool, history, nameById] = await Promise.all([
     aiSuggestionsRepo.candidatePool(userId),
     aiSuggestionsRepo.okDayHistory(userId, body.date),
+    aiSuggestionsRepo.foodNamesByIds(userId, referencedFoodIds),
   ]);
+
+  // B-125/B-126/B-127: day-awareness — surface the foods already on the day for coherence, and drop
+  // any eaten >25 g today from the candidate pool so the chef can't re-propose it (and the parse
+  // drops it if hallucinated). Condiments (≤25 g) stay in the pool, so they may recur.
+  const { alreadyOnDay, excludedFoodIds } = dayUsedFoods(usedMeals, nameById);
+  const excludedSet = new Set(excludedFoodIds);
+  const candidates = pool.filter((f) => !excludedSet.has(f.food_id));
 
   const mealNameById = new Map(day.meals.map((m) => [m.id, m.slot_name]));
   const messages = buildMealSuggestionsMessages(ai!.tasks.meal_suggestions.prompt, {
     remaining: rem.remaining,
     meals: body.meal_ids.map((id) => ({ meal_id: id, name: mealNameById.get(id) ?? '' })),
-    candidates: pool,
+    candidates,
     history,
+    ...(alreadyOnDay.length > 0 ? { alreadyOnDay } : {}),
     ...(body.note !== undefined ? { precisions: body.note } : {}),
     ...(body.constraints !== undefined ? { constraints: body.constraints } : {}),
   });
   const text = await aiProvider.chatCompletion(ai, model, messages);
 
-  const poolMap = new Map(pool.map((f) => [f.food_id, f]));
+  const poolMap = new Map(candidates.map((f) => [f.food_id, f]));
   const parsed = parseMealSuggestions(text, poolMap, new Set(body.meal_ids));
   if (!parsed.ok) throw new ApiError(502, ErrorCode.AiBadResponse);
 

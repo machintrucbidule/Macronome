@@ -56,6 +56,11 @@ export const OK_DAY_HISTORY_WINDOW_DAYS = 60;
 /** Cap on the candidate food pool sent to the LLM (token budget); the cap is logged, never hidden. */
 export const MAX_CANDIDATE_FOODS = 120;
 
+/** Consumed-weight cut (g) above which a food already eaten on the working day is dropped from the
+ * candidate pool (never re-proposed); foods used at or below it (condiments) stay proposable.
+ * Day-total per food, strictly-greater-than test (ai-meal-suggestions.md §3.1, B-125/B-127/AIP-1). */
+export const DAY_REPROPOSE_THRESHOLD_G = 25;
+
 /** Combination ceiling for exhaustive enumeration; above it the solver falls back to coordinate
  * descent from a proportional-scaling seed. */
 export const SOLVER_ENUM_BUDGET = 200_000;

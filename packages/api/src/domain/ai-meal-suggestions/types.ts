@@ -34,6 +34,13 @@ export interface HistoryDay {
   foods: { name: string; qty: string }[];
 }
 
+/** One meal of the working day already carrying entries (§2.2 ALREADY ON THE DAY): the foods
+ *  already eaten there, names + consumed quantities only (Privacy §5; B-125/B-126/B-127). */
+export interface DayMealFoods {
+  meal_name: string;
+  foods: { name: string; qty: string }[];
+}
+
 /** Everything `buildMealSuggestionsMessages` serialises into the context block (§2.2). Carries
  *  no identity/weight/BMI by construction (Privacy §5). `remaining` reuses the solver's shape. */
 export interface ChefContext {
@@ -41,6 +48,8 @@ export interface ChefContext {
   meals: ChefMeal[];
   candidates: ChefFood[];
   history: HistoryDay[];
+  /** Foods already on the working day, per meal (§2.2 ALREADY ON THE DAY, B-125/B-126/B-127). */
+  alreadyOnDay?: DayMealFoods[];
   precisions?: string;
   constraints?: MealSuggestionsRequest['constraints'];
 }

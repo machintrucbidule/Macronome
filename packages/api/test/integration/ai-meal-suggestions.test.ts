@@ -1,124 +1,25 @@
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createApp } from '../../src/app.js';
 import { prisma } from '../../src/data/prisma.js';
-import { authedAgent, csrfPatch, csrfPost, type Authed } from './helpers.js';
+import { authedAgent, csrfPost } from './helpers.js';
+import {
+  RANDOM_UUID,
+  FLOORS,
+  ENTERED,
+  configureAi,
+  stubFetch,
+  mkFood,
+  seedDay,
+} from './ai-suggestions.helpers.js';
 
 // Integration contract checks for the AI meal-suggestions use (B-123; spec/api/ai.md,
 // spec/logic/ai-meal-suggestions.md + meal-solver.md). Validation + not-configured + no_target run
 // without any network; the provider call is exercised with a stubbed global.fetch (restored after
 // each test). The headline guarantee: day_total/targets_met/gaps are recomputed in code from the
-// solved quantities — never trusted from the (totals-free) model output.
+// solved quantities — never trusted from the (totals-free) model output. Shared seeding/stubbing
+// helpers live in ./ai-suggestions.helpers.ts; day-awareness specs in
+// ai-suggestions-day-awareness.test.ts (B-125/B-126/B-127).
 const app = createApp();
-
-const RANDOM_UUID = '11111111-2222-4333-8444-555555555555';
-const toUtc = (d: string): Date => new Date(`${d}T00:00:00.000Z`);
-
-async function configureAi(a: Authed): Promise<void> {
-  await csrfPatch(a.agent, a.csrf, '/api/v1/settings', {
-    ai: {
-      provider: 'openai_compatible',
-      base_url: 'https://ai.example.com/v1',
-      api_key: 'k',
-      tasks: {
-        dish_photo_macros: { model: null, prompt: 'p' },
-        meal_suggestions: { model: 'chef-x', prompt: 'Pick foods.' },
-        advice: { model: null, prompt: 'p' },
-      },
-    },
-  });
-}
-
-function stubFetch(content: string): void {
-  vi.stubGlobal(
-    'fetch',
-    vi.fn(() =>
-      Promise.resolve(
-        new Response(JSON.stringify({ choices: [{ message: { content } }] }), { status: 200 }),
-      ),
-    ),
-  );
-}
-
-interface Per100g {
-  kcal: number;
-  fat: number;
-  carb: number;
-  protein: number;
-}
-interface FoodOpts {
-  rating?: number | null;
-  per100g?: Per100g;
-  portions?: { label: string; grams: number }[];
-}
-
-async function mkFood(userId: string, name: string, opts: FoodOpts = {}): Promise<string> {
-  const p = opts.per100g ?? { kcal: 100, fat: 1, carb: 2, protein: 20 };
-  const food = await prisma.food.create({
-    data: {
-      ownerId: userId,
-      name,
-      normalizedName: name.toLowerCase(),
-      kcalPer100g: p.kcal,
-      fatPer100g: p.fat,
-      carbPer100g: p.carb,
-      proteinPer100g: p.protein,
-      rating: opts.rating ?? 3,
-    },
-    select: { id: true },
-  });
-  for (const portion of opts.portions ?? [])
-    await prisma.foodPortion.create({ data: { foodId: food.id, ...portion } });
-  return food.id;
-}
-
-interface Floors {
-  protein_floor_g: number | null;
-  fat_floor_g: number | null;
-  carb_ceiling_g: number | null;
-}
-
-/** Seed a past detailed day with a frozen target snapshot + one "already eaten" entry carrying the
- *  day-wide entered totals. Returns the (real) meal id for the request's meal_ids. */
-async function seedDay(
-  userId: string,
-  date: string,
-  band: [number, number],
-  floors: Floors,
-  entered: Per100g,
-): Promise<string> {
-  const day = await prisma.dayLog.create({
-    data: {
-      userId,
-      date: toUtc(date),
-      kind: 'detailed',
-      targetSnapshot: { cal_min: band[0], cal_max: band[1], ...floors },
-    },
-    select: { id: true },
-  });
-  const meal = await prisma.meal.create({
-    data: { dayLogId: day.id, slotName: 'repas', orderIndex: 0 },
-    select: { id: true },
-  });
-  await prisma.mealEntry.create({
-    data: {
-      mealId: meal.id,
-      kind: 'custom',
-      customName: 'Déjà mangé',
-      unit: 'g',
-      servedQuantity: 100,
-      servedGrams: 100,
-      snapKcal: entered.kcal,
-      snapFat: entered.fat,
-      snapCarb: entered.carb,
-      snapProtein: entered.protein,
-      orderIndex: 0,
-    },
-  });
-  return meal.id;
-}
-
-const FLOORS: Floors = { protein_floor_g: 140, fat_floor_g: 50, carb_ceiling_g: 150 };
-const ENTERED: Per100g = { kcal: 920, fat: 28, carb: 70, protein: 78 };
 
 beforeEach(async () => {
   await prisma.$executeRawUnsafe('TRUNCATE TABLE "app_user" CASCADE');

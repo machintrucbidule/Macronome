@@ -10,6 +10,9 @@ test('defaultTaskPrompt returns the meal-suggestions chef scope (B-123)', () => 
   expect(prompt).toContain('meal-planning assistant');
   // The chef never outputs quantities — the deterministic solver does (meal-solver.md).
   expect(prompt).toContain('Do not output any quantities');
+  // B-125/B-126/B-127: day-awareness + no-duplication + coherence guidance.
+  expect(prompt).toContain('ALREADY ON THE DAY');
+  expect(prompt).toContain('internally coherent');
 });
 
 test('isVisionModel keeps image-capable gemini models', () => {

@@ -83,6 +83,19 @@ test('§2 assemble is deterministic (same input → identical output)', () => {
   );
 });
 
+test('§2.2 assemble renders the ALREADY ON THE DAY section (name × qty); omitted when empty', () => {
+  const withDay: ChefContext = {
+    ...CTX,
+    alreadyOnDay: [{ meal_name: 'Dîner', foods: [{ name: 'Blanc de poulet', qty: '200 g' }] }],
+  };
+  const part = buildMealSuggestionsMessages('Scope', withDay)[0]?.content[0];
+  const text = part && part.type === 'text' ? part.text : '';
+  expect(text).toContain('ALREADY ON THE DAY');
+  expect(text).toContain('Blanc de poulet × 200 g');
+  // The base CTX (no alreadyOnDay) must not carry the section.
+  expect(textOf('Scope')).not.toContain('ALREADY ON THE DAY');
+});
+
 // --- parse (spec §6 / §8) ------------------------------------------------------------------------
 
 const CLEAN_3 =

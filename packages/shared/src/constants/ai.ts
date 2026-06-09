@@ -27,7 +27,10 @@ const DEFAULT_TASK_PROMPTS: Record<AiTaskKey, string> = {
     'one of the selected meals, and for a food that has named portions pick exactly one of its ' +
     'portions. Do not output any quantities — quantities are computed separately. Only use ' +
     'foods, meals, and portions from the provided lists; never invent any. Honour the user’s ' +
-    'precisions and any exclusions or fixed items given.',
+    'precisions and any exclusions or fixed items given. Take into account the foods already ' +
+    'on the day (listed under ALREADY ON THE DAY): build proposals that complement them, never ' +
+    're-propose a food already eaten in a meaningful amount today, and make every proposed set ' +
+    'internally coherent — foods that plausibly go together as one meal.',
   advice:
     'Give personalized nutrition advice based on the provided tracking data ' +
     '(recent intake, target adherence, weight trend).',

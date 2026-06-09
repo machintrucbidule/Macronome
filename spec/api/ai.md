@@ -118,6 +118,13 @@ These calls make an **outbound request** to the user's configured OpenAI-compati
   grams; the service recomputes the day total in code and certifies the fit. **The "fits the
   targets" claim is never trusted from the LLM.**
 
+  **Day-awareness (B-125/B-126/B-127).** From `date` + `meal_ids` the server also assembles, with no
+  extra payload, the **foods already on the working day** (per meal, names + consumed quantities)
+  into the chef context, and **removes from the candidate pool** any food whose consumed weight that
+  day exceeds `DAY_REPROPOSE_THRESHOLD_G` (25 g) — so an already-eaten food is never re-proposed,
+  while ≤ 25 g condiments stay proposable (`spec/logic/ai-meal-suggestions.md` §2.2/§3.1). **No
+  request/response shape change.**
+
   **Errors:** the standard AI table (identical mapping to `dish-photo-macros`): `409
 ai_not_configured` (no `base_url`/`api_key`, or `tasks.meal_suggestions.model` is null); `502
 ai_unauthorized`; `429 ai_rate_limited`; `503 ai_unavailable`; `504 ai_unreachable`; `502

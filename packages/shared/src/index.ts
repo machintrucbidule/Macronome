@@ -22,6 +22,7 @@ export {
   MEAL_SUGGESTION_COUNT,
   OK_DAY_HISTORY_WINDOW_DAYS,
   MAX_CANDIDATE_FOODS,
+  DAY_REPROPOSE_THRESHOLD_G,
   SOLVER_ENUM_BUDGET,
 } from './constants/tuning.js';
 export {

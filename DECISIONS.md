@@ -1878,3 +1878,45 @@ slice per that dev-plan; live contracts: `spec/api/ai.md`, `spec/logic/ai-meal-s
 (`food.ai_proposable`), shared DTOs/constants (`dto/ai.ts`, `dto/food.ts`, `constants/ai.ts`,
 `constants/tuning.ts`). Out of scope for v1: a deterministic-only fallback proposer, server-persisted
 refine history, leftover-group proposals, weight/BMI in the prompt, a batched apply endpoint.
+
+---
+
+## AIP-1 / B-125, B-126, B-127 — Chef day-awareness + >25 g re-proposal exclusion + coherence — RESOLVED (author, 2026-06-09)
+
+The chef (the LLM half of B-123) received only the day-wide **remaining** totals, never the foods
+already on the plate. So it re-proposed a food just added manually to the targeted meal (**B-125**),
+re-proposed a food eaten earlier the same day (**B-127**), and built internally-incoherent sets
+(**B-126** — the prompt asked for coherence but under-delivered with no awareness of what was there).
+
+**Decision (author).** Two complementary, **server-only** mechanisms (no DTO/DB/API-shape/solver
+change — the server already has `date` + `meal_ids`):
+
+1. **`ALREADY ON THE DAY` context section** — the foods already entered/eaten on the working day,
+   per meal (`{ meal_name, foods: [name × qty] }`), mirroring the OK-day-history wire shape
+   (referenced foods resolved by id, custom by name, zero-qty prefill lines skipped). Feeds the chef
+   awareness for coherence (B-126) and complementing the plate.
+2. **Deterministic day-used exclusion (the hard no-duplication guarantee, prompt-independent).** Sum
+   the **consumed grams per `food_id` across the whole day**; any food whose day-total is \*\*strictly
+   > `DAY_REPROPOSE_THRESHOLD_G` = 25 g** is **removed from the candidate pool** before assembly (so
+   > the chef cannot pick it, and the §6 parse drops it even if hallucinated). Foods used **≤ 25 g**
+   > (condiments — oil, spices) **stay proposable\** — this is the author's rule for B-127: "an
+   > already-used food is not re-proposed if it exceeds 25 g; below that it may recur." A food summed to
+   > 30 g across two meals is excluded; exactly 25 g is kept (rule is *strictly\* greater than 25 g).
+   > Custom entries (no `food_id`) are shown for awareness but never excluded.
+3. **Default scope prompt strengthened** (qualitative) — account for the foods already on the day,
+   never re-propose one eaten in a meaningful amount, and make every set internally coherent. Since
+   the prompt is user-editable, the §2 hard guarantee does **not** depend on it: users who customised
+   their prompt still get the context section + the pool exclusion.
+
+_Rationale:_ a pure prompt instruction is not reliably honoured by the model, so the no-duplication
+rule is enforced deterministically at the pool (the same place `excluded_food_ids` acts); the prompt
+
+- context section add the qualitative coherence the solver cannot express. The 25 g threshold is a
+  simple consumed-weight cut that cleanly separates "a real food on the plate" from "a condiment".
+
+**Contract delta:** `spec/logic/ai-meal-suggestions.md` (§2.1 prompt, §2.2 `ALREADY ON THE DAY`,
+new §3.1 exclusion + oracle 8) + `spec/api/ai.md` (day-awareness note, no shape change) +
+`packages/shared/src/constants/ai.ts` (default prompt) + `packages/shared/src/constants/tuning.ts`
+(`DAY_REPROPOSE_THRESHOLD_G = 25`). Code: new pure `domain/ai-meal-suggestions/day-used.ts`
+(+ test), `ChefContext.alreadyOnDay`, `assemble.ts` section, `aiSuggestionsRepo.foodNamesByIds`,
+service wiring in `services/ai.ts`. No DB/schema/DTO/API-shape/solver change.
