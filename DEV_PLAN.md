@@ -285,7 +285,12 @@ documented here only so the information is ready when the author decides to run 
           excluded foods; `rem_cal_max<0` → add-nothing. No contract/`DECISIONS.md` change (all live
           from S1). Green: 7 new oracle tests (A/B full fits, C indivisibility, D closest-fit
           selection, determinism, already-over, pinned) + full unit suite (301) + typecheck + lint.
-    - [ ] S6 Chef domain — assemble + format + parse (LLM-shaped, mocked).
+    - [x] **S6 — Chef domain** (pure, LLM mocked): new `packages/api/src/domain/ai-meal-suggestions/`
+          (mirrors `ai-dish-photo/`) — `assemble.ts` (scope prompt → §3.2 context block → hard-coded
+          format instruction; no identity/weight/BMI), `format.ts` (§3.3 verbatim), `parse.ts`
+          (tolerant fence/balanced-object parse + §3.4 validation: drop unknown ids, repair portion,
+          de-dup, zero valid → `ai_bad_response`), `types.ts`, `index.ts`. No contract/`DECISIONS.md`
+          change (chef contract live from S1). Green: 14 new tests + full unit suite (315) + typecheck + lint.
     - [ ] S7 Repos — candidate pool + OK-day history sampling.
     - [ ] S8 Service + controller + route (API end-to-end, LLM mocked).
     - [ ] S9 Web client + hook + button + request popup.
