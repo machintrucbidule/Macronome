@@ -66,6 +66,51 @@ const RESPONSE: MealSuggestionsResponse = {
   },
 };
 
+const SNAP = { kcal: 0, fat: 0, carb: 0, protein: 0 };
+
+// A populated result for the refine flow: one proposal with a portioned (egg ×3 = 171 g, 57 g each)
+// and a portionless (chicken 180 g) line in the Dîner meal.
+const WITH_PROPOSAL: MealSuggestionsResponse = {
+  data: {
+    ...RESPONSE.data,
+    proposals: [
+      {
+        id: 'p1',
+        fit: 'full',
+        items: [
+          {
+            food_id: 'f-egg',
+            food_name: 'Œufs',
+            meal_id: 'm1',
+            portion_id: 'po-egg',
+            portion_label: 'œuf',
+            served_quantity: 3,
+            unit: 'portion',
+            served_grams: 171,
+            snap: SNAP,
+            rating: 3,
+          },
+          {
+            food_id: 'f-chk',
+            food_name: 'Blanc de poulet',
+            meal_id: 'm1',
+            portion_id: null,
+            portion_label: null,
+            served_quantity: 180,
+            unit: 'g',
+            served_grams: 180,
+            snap: SNAP,
+            rating: 3,
+          },
+        ],
+        day_total: { kcal: 1600, fat: 50, carb: 80, protein: 160 },
+        targets_met: { calorie: true, protein: true, fat: true, carb: true },
+        gaps: [],
+      },
+    ],
+  },
+};
+
 function wrapper({ children }: { children: ReactNode }) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return createElement(QueryClientProvider, { client }, children);
@@ -120,4 +165,46 @@ describe('AiProposalsDialog — request popup (S9 / B-123)', () => {
       note: 'pas de laitages',
     });
   });
+
+  it('refine re-invokes with accumulated excluded / pinned / avoid; day targets unchanged', async () => {
+    const spy = vi.spyOn(aiApi, 'mealSuggestions').mockResolvedValue(WITH_PROPOSAL);
+    const before = JSON.stringify(DAY);
+    const { getByRole, getAllByRole } = render(
+      <AiProposalsDialog day={DAY} date="2026-06-09" onClose={vi.fn()} />,
+      { wrapper },
+    );
+
+    // first round: select Dîner + propose
+    fireEvent.click(getByRole('checkbox', { name: /Dîner/ }));
+    fireEvent.click(getByRole('button', { name: i18n.t('meals.proposals.propose') }));
+    await waitFor(() => expect(spy).toHaveBeenCalledTimes(1));
+
+    // open the refine panel for the single proposal
+    fireEvent.click(await waitForButton(getByRole, i18n.t('meals.proposals.refineButton')));
+
+    // exclude the chicken (2nd line), then pin the egg by stepping +1 (×3 → ×4 = 228 g)
+    const excludeLabel = i18n.t('meals.proposals.refine.exclude');
+    fireEvent.click(getAllByRole('button', { name: excludeLabel })[1] as HTMLElement);
+    fireEvent.click(getByRole('button', { name: '+' }));
+
+    // relaunch
+    fireEvent.click(getByRole('button', { name: i18n.t('meals.proposals.refine.relaunch') }));
+    await waitFor(() => expect(spy).toHaveBeenCalledTimes(2));
+
+    expect(spy.mock.calls[1]?.[0]?.constraints).toEqual({
+      excluded_food_ids: ['f-chk'],
+      pinned: [{ food_id: 'f-egg', meal_id: 'm1', portion_id: 'po-egg', grams: 228 }],
+      avoid: [['f-chk', 'f-egg']],
+    });
+    // the day passed in is never mutated client-side (targets stay server-owned)
+    expect(JSON.stringify(DAY)).toBe(before);
+  });
 });
+
+// The proposals list renders after the async mutation resolves; wait for its button.
+async function waitForButton(
+  getByRole: (role: string, opts: { name: string }) => HTMLElement,
+  name: string,
+): Promise<HTMLElement> {
+  return waitFor(() => getByRole('button', { name }));
+}

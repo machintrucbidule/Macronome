@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render } from '@testing-library/react';
 import type { DayDetail, MealProposal } from '@macronome/shared';
 import i18n from '../../../i18n/config';
@@ -147,7 +147,9 @@ afterEach(() => {
 
 describe('ProposalsList — proposals display (S10 / B-123)', () => {
   it('renders a full-fit and a closest-fit proposal with certified numbers', () => {
-    const { getByText, getAllByText } = render(<ProposalsList proposals={[P1, P2]} day={DAY} />);
+    const { getByText, getAllByText } = render(
+      <ProposalsList proposals={[P1, P2]} day={DAY} onRefine={vi.fn()} />,
+    );
 
     // titles + fit flags
     expect(getByText(i18n.t('meals.proposals.proposalTitle', { n: 1 }))).toBeTruthy();
@@ -174,7 +176,7 @@ describe('ProposalsList — proposals display (S10 / B-123)', () => {
   });
 
   it('shows the honest closest-fit gap (fat floor short by 3 g) and the unrated badge', () => {
-    const { getByText } = render(<ProposalsList proposals={[P2]} day={DAY} />);
+    const { getByText } = render(<ProposalsList proposals={[P2]} day={DAY} onRefine={vi.fn()} />);
 
     // the L chip is a warning short-by-3 chip
     expect(

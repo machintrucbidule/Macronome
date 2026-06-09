@@ -384,6 +384,22 @@
       "gapCalorieOver": "{{n}} kcal over target",
       "gapCalorieUnder": "{{n}} kcal under target",
       "unrated": "unrated",
+      "refineButton": "Refine",
+      "refine": {
+        "intro": "Adjust this proposal: drop a food you don't have, or pin a quantity. The AI re-proposes honouring these constraints and all the day's targets.",
+        "linesLabel": "Proposal lines",
+        "exclude": "I don't have this food",
+        "restore": "restore",
+        "moreNoteLabel": "Additional precisions",
+        "notePlaceholder": "e.g. fish instead of beef",
+        "constraintsLabel": "Accumulated constraints",
+        "constraintsEmpty": "No constraints yet.",
+        "sans": "Without",
+        "fixe": "Pinned",
+        "targetsUnchanged": "Targets unchanged",
+        "back": "‹ Back",
+        "relaunch": "Relaunch the proposal"
+      },
       "errors": {
         "ai_not_configured": "Set up the AI connection in Settings first.",
         "ai_unauthorized": "The provider rejected the API key.",

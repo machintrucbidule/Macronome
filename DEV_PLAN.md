@@ -326,7 +326,17 @@ documented here only so the information is ready when the author decides to run 
           (fit flags, gap wording, chips, unrated badge; FR+EN; S9 `received` removed). No contract/
           `DECISIONS.md` change (web bullets §6.5 marked applied). Green: 2 new web tests (full + closest
           Oracle-D fit) + full web suite (173) + typecheck + lint + check:i18n + web build.
-    - [ ] S11 Web refine panel **(adds the per-card "Raffiner" entry point — deferred from S10)**.
+    - [x] **S11 — Web refine panel** (mockup state 5): the per-card **Raffiner** opens a new
+          `RefinePanel.tsx` — per line a − / + qty stepper that **pins** ("use 2 not 3", §2.6;
+          portioned ±1 clamped 1..6, portionless ±5 g) + an exclude ✕ (`Sans`, struck rows with
+          "rétablir"); precisions; accumulated-constraints chips (`Sans`/`Fixé`, removable) + the
+          "Cibles inchangées" compact remaining cards (`RemainingCards` extracted from `RequestStep`
+          and reused — display-only, day targets never mutated). Exclusions/pins + `avoid` signatures
+          accumulate client-side and re-send each call; request-shaping is a pure
+          `logic/refineConstraints.ts`. `AiProposalsDialog` gained a 3-mode footer + a `useMealProposals`
+          hook (80-line cap). Web-only — endpoint/DTO/§2.6 live since S1/S8 (no contract/`DECISIONS.md`
+          change; web bullets §6.5/§6.6 marked applied). Green: 8 new pure tests + the dialog refine
+          test + full web suite (182) + typecheck + lint + check:i18n + web build.
     - [ ] S12 Web apply a proposal + apply-mapping **(adds the per-card "Choisir" action +
           regenerate "Autres idées" — deferred from S10)**.
     - [ ] S13 i18n completeness + docs + full gate.

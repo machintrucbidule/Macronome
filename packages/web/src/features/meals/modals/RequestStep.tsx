@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import type { DayDetail } from '@macronome/shared';
-import { previewRemaining, type RemainingPreview } from '../logic/remainingPreview';
-import { formatInt } from '../../../lib/format/number';
+import { previewRemaining } from '../logic/remainingPreview';
+import { RemainingCards } from './RemainingCards';
 import styles from './modals.module.css';
 
 // Request step of the "Proposition IA" dialog (mockup state 2, B-123): pick which of the day's
@@ -15,41 +15,6 @@ interface Props {
   note: string;
   onNoteChange: (note: string) => void;
   disabled: boolean;
-}
-
-function RemainingCards({ rem }: { rem: RemainingPreview }) {
-  const { t } = useTranslation();
-  const none = t('meals.proposals.remaining.none');
-  const floor = (n: number | null): string =>
-    n === null ? none : t('meals.proposals.remaining.floor', { n: formatInt(n) });
-  const ceiling = (n: number | null): string =>
-    n === null ? none : t('meals.proposals.remaining.ceiling', { n: formatInt(n) });
-  return (
-    <div className={styles.remainCards}>
-      <div className={styles.remainCard}>
-        <span className={styles.remainLabel}>{t('meals.proposals.remaining.calories')}</span>
-        <span
-          className={styles.remainValue}
-        >{`${formatInt(rem.calMin)}–${formatInt(rem.calMax)}`}</span>
-        <span className={styles.remainUnit}>{t('meals.proposals.remaining.caloriesUnit')}</span>
-      </div>
-      <div className={styles.remainCard}>
-        <span className={styles.remainLabel}>{t('meals.proposals.remaining.protein')}</span>
-        <span className={styles.remainValue}>{floor(rem.needProtein)}</span>
-        <span className={styles.remainUnit}>{t('meals.proposals.remaining.floorUnit')}</span>
-      </div>
-      <div className={styles.remainCard}>
-        <span className={styles.remainLabel}>{t('meals.proposals.remaining.fat')}</span>
-        <span className={styles.remainValue}>{floor(rem.needFat)}</span>
-        <span className={styles.remainUnit}>{t('meals.proposals.remaining.floorUnit')}</span>
-      </div>
-      <div className={styles.remainCard}>
-        <span className={styles.remainLabel}>{t('meals.proposals.remaining.carb')}</span>
-        <span className={styles.remainValue}>{ceiling(rem.carbRoom)}</span>
-        <span className={styles.remainUnit}>{t('meals.proposals.remaining.ceilingUnit')}</span>
-      </div>
-    </div>
-  );
 }
 
 export function RequestStep({ day, mealIds, onToggleMeal, note, onNoteChange, disabled }: Props) {

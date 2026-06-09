@@ -384,6 +384,22 @@
       "gapCalorieOver": "{{n}} kcal au-dessus de la cible",
       "gapCalorieUnder": "{{n}} kcal en-dessous de la cible",
       "unrated": "non noté",
+      "refineButton": "Raffiner",
+      "refine": {
+        "intro": "Ajuste cette proposition : retire un aliment que tu n'as pas, ou fige une quantité. L'IA repropose en respectant ces contraintes et toutes les cibles du jour.",
+        "linesLabel": "Lignes de la proposition",
+        "exclude": "Je n'ai pas cet aliment",
+        "restore": "rétablir",
+        "moreNoteLabel": "Précisions supplémentaires",
+        "notePlaceholder": "ex. plutôt du poisson à la place du bœuf",
+        "constraintsLabel": "Contraintes accumulées",
+        "constraintsEmpty": "Aucune contrainte pour l'instant.",
+        "sans": "Sans",
+        "fixe": "Fixé",
+        "targetsUnchanged": "Cibles inchangées",
+        "back": "‹ Retour",
+        "relaunch": "Relancer la proposition"
+      },
       "errors": {
         "ai_not_configured": "Configure d'abord la liaison IA dans les Paramètres.",
         "ai_unauthorized": "Le fournisseur a rejeté la clé API.",

@@ -10,9 +10,10 @@ import styles from './modals.module.css';
 interface Props {
   proposals: MealProposal[];
   day: DayDetail;
+  onRefine: (proposal: MealProposal) => void;
 }
 
-export function ProposalsList({ proposals, day }: Props) {
+export function ProposalsList({ proposals, day, onRefine }: Props) {
   const { t } = useTranslation();
   const mealNames = new Map(day.meals.map((m) => [m.id, m.slot_name]));
   const hasCarbCeiling = day.target_snapshot.carb_ceiling_g !== null;
@@ -28,6 +29,7 @@ export function ProposalsList({ proposals, day }: Props) {
             index={i}
             mealNames={mealNames}
             hasCarbCeiling={hasCarbCeiling}
+            onRefine={() => onRefine(p)}
           />
         ))}
       </div>

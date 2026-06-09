@@ -2,18 +2,20 @@ import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import type { MealProposal, MealProposalItem } from '@macronome/shared';
 import { Stars } from '../../../components/RatingStars/Stars';
+import { Button } from '../../../components/Button/Button';
 import { formatInt } from '../../../lib/format/number';
 import styles from './modals.module.css';
 
 // One AI meal proposal (mockup state 4, B-123 / Slice 10). Renders ONLY server-certified numbers
 // (CLAUDE.md rule 2): the day total, per-axis fit and gaps come from `MealProposal`, never
-// recomputed here. Read-only — the per-card "Choisir" (apply, Slice 12) / "Raffiner" (refine,
-// Slice 11) actions are deferred to their own slices.
+// recomputed here. The "Raffiner" action (refine, Slice 11) opens the refine panel; the per-card
+// "Choisir" (apply, Slice 12) action is still deferred.
 interface Props {
   proposal: MealProposal;
   index: number;
   mealNames: Map<string, string>;
   hasCarbCeiling: boolean;
+  onRefine: () => void;
 }
 
 type Tone = 'inband' | 'over' | 'under';
@@ -188,7 +190,7 @@ function FitStrip({
   );
 }
 
-export function ProposalCard({ proposal, index, mealNames, hasCarbCeiling }: Props) {
+export function ProposalCard({ proposal, index, mealNames, hasCarbCeiling, onRefine }: Props) {
   const { t } = useTranslation();
   return (
     <div className={`${styles.prop} ${proposal.fit === 'closest' ? styles.closest : ''}`}>
@@ -207,6 +209,11 @@ export function ProposalCard({ proposal, index, mealNames, hasCarbCeiling }: Pro
           {proposal.gaps.map((g) => gapText(g, t)).join(' · ')}
         </div>
       )}
+      <div className={styles.pactions}>
+        <Button variant="ghost" onClick={onRefine}>
+          {t('meals.proposals.refineButton')}
+        </Button>
+      </div>
     </div>
   );
 }
