@@ -3,6 +3,13 @@
     "title": "Macronome",
     "tagline": "Nutrition & weight tracker"
   },
+  "rating": {
+    "unrated": "Unrated",
+    "bof": "Meh",
+    "moyen": "Average",
+    "ok": "OK",
+    "top": "Top"
+  },
   "nav": {
     "home": "Home"
   },
@@ -95,9 +102,6 @@
       "visibility": "Visibility",
       "all": "All",
       "showArchived": "Show archived"
-    },
-    "rating": {
-      "clear": "clear"
     },
     "field": {
       "name": "Name",

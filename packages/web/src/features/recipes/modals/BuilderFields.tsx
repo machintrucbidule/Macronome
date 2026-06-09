@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import type { RecipeFull, RecipePreview } from '@macronome/shared';
 import { Banner } from '../../../components/Banner/Banner';
 import { TextInput } from '../../../components/Form/TextInput';
-import { RatingPicker } from '../../../components/RatingStars/RatingPicker';
+import { RatingSelect } from '../../../components/RatingStars/RatingSelect';
 import { IngredientBlock } from './IngredientBlock';
 import { YieldPanel } from './YieldPanel';
 import type { RecipeDraft } from './draft';
@@ -34,7 +34,11 @@ export function BuilderFields({ draft, full, preview, error, set }: BuilderField
           <div className="hint" style={{ marginBottom: 6 }}>
             {t('recipes.field.rating')}
           </div>
-          <RatingPicker value={draft.rating} onChange={(rating) => set({ rating })} />
+          <RatingSelect
+            value={draft.rating}
+            onChange={(rating) => set({ rating })}
+            ariaLabel={t('recipes.field.rating')}
+          />
         </div>
       </div>
       {error && (

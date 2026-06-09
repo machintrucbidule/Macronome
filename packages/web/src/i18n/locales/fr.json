@@ -3,6 +3,13 @@
     "title": "Macronome",
     "tagline": "Suivi nutrition & poids"
   },
+  "rating": {
+    "unrated": "Pas noté",
+    "bof": "Bof",
+    "moyen": "Moyen",
+    "ok": "Ok",
+    "top": "Top"
+  },
   "nav": {
     "home": "Accueil"
   },
@@ -95,9 +102,6 @@
       "visibility": "Visibilité",
       "all": "Toutes",
       "showArchived": "Afficher les archivés"
-    },
-    "rating": {
-      "clear": "effacer"
     },
     "field": {
       "name": "Nom",

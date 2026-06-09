@@ -14,31 +14,16 @@
   color: var(--star);
 }
 
-/* unrated: a bare em-dash, no star widget (must differ from 0/Bof) */
+/* unrated: bare em-dash in the read-only cell, "Pas noté" label in the picker dropdown —
+   both `--text-faint`, distinct from 0/Bof's empty stars. */
 .unrated {
   color: var(--text-faint);
   font-family: var(--font-num);
 }
 
-/* ---- picker (food modal) ---- */
-.picker {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sp-2);
-}
-.picker .s {
-  font-size: var(--fs-22);
-  cursor: pointer;
-}
-.clear {
-  font-family: var(--font-num);
-  font-size: var(--fs-10);
-  color: var(--text-faint);
-  background: none;
-  border: none;
-  cursor: pointer;
-  margin-left: var(--sp-3);
-}
-.clear:hover {
-  color: var(--text);
+/* RatingSelect dropdown panel: hug the narrow star options instead of the 160px default
+   (sized for the activity select's text labels). Sets the SelectMenu min-width var so it
+   wins regardless of CSS-module order. B-121. */
+.ratingMenu {
+  --sm-menu-min: 0px;
 }

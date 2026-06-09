@@ -1,16 +1,26 @@
-import { useEffect, useRef, useState } from 'react';
+import {
+  type ReactNode,
+  type RefObject,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import styles from './SelectMenu.module.css';
 
 // Generic clickable-badge + dropdown menu, styled like the OK/NOK/Auto verdict menu
 // (design/components/badges-verdict.md + metric-cards.md §Verdict cluster). Mirrors the
 // VerdictBadge open/close + outside-click + Escape pattern so a single control style is
-// reused for any small inline single-select (e.g. the day activity level — B-085). The
-// per-option `className` is applied to both the matching menu item and the trigger, so the
-// caller can colour-code options (the colour map lives with the caller, not here).
+// reused for any small inline single-select (e.g. the day activity level — B-085, or the
+// rating dropdown — B-121). The per-option `className` is applied to both the matching menu
+// item and the trigger, so the caller can colour-code options (the colour map lives with
+// the caller, not here).
 
 export interface SelectMenuOption<T extends string> {
   value: T;
-  label: string;
+  // A plain string (e.g. the activity level) or rich content — e.g. the rating
+  // dropdown renders coloured star glyphs per option (RatingSelect, B-121).
+  label: ReactNode;
   className?: string;
 }
 
@@ -19,6 +29,61 @@ interface SelectMenuProps<T extends string> {
   options: SelectMenuOption<T>[];
   onChange: (value: T) => void;
   ariaLabel?: string | undefined;
+  // Extra class on the dropdown panel — lets a caller override the default min-width
+  // (e.g. the rating dropdown hugs its narrow star options — B-121).
+  menuClassName?: string | undefined;
+}
+
+// Find the nearest ancestor that clips (overflow auto/scroll/hidden) — e.g. the modal panel
+// (`.modal { overflow:auto }`). The menu must stay inside its box or it gets cut off (B-121).
+function clipBox(el: HTMLElement | null): { left: number; right: number } {
+  for (let n = el?.parentElement ?? null; n; n = n.parentElement) {
+    const o = getComputedStyle(n);
+    if (/(auto|scroll|hidden)/.test(o.overflowX + o.overflowY)) {
+      const r = n.getBoundingClientRect();
+      return { left: r.left, right: r.right };
+    }
+  }
+  return { left: 0, right: window.innerWidth };
+}
+
+// Right-align the menu under the trigger by default; flip to left-align and clamp when that
+// would spill past the clipping ancestor's edge, so the list is never hidden (B-121). Returns
+// the horizontal offset (px, relative to the trigger) to apply as the menu's `left`.
+function useMenuOffset(
+  open: boolean,
+  wrapRef: RefObject<HTMLDivElement | null>,
+  menuRef: RefObject<HTMLDivElement | null>,
+  count: number,
+): number | null {
+  const [offset, setOffset] = useState<number | null>(null);
+  useLayoutEffect(() => {
+    if (!open) {
+      setOffset(null);
+      return;
+    }
+    const place = (): void => {
+      const trigger = wrapRef.current;
+      const menu = menuRef.current;
+      if (!trigger || !menu) return;
+      const tr = trigger.getBoundingClientRect();
+      const mw = menu.offsetWidth;
+      const box = clipBox(trigger);
+      const margin = 8;
+      let left = tr.right - mw; // right-aligned
+      if (left < box.left + margin) left = tr.left; // flip to left-aligned
+      left = Math.max(box.left + margin, Math.min(left, box.right - mw - margin));
+      setOffset(left - tr.left);
+    };
+    place();
+    window.addEventListener('scroll', place, true);
+    window.addEventListener('resize', place);
+    return () => {
+      window.removeEventListener('scroll', place, true);
+      window.removeEventListener('resize', place);
+    };
+  }, [open, count, wrapRef, menuRef]);
+  return offset;
 }
 
 export function SelectMenu<T extends string>({
@@ -26,9 +91,12 @@ export function SelectMenu<T extends string>({
   options,
   onChange,
   ariaLabel,
+  menuClassName,
 }: SelectMenuProps<T>) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const offset = useMenuOffset(open, wrapRef, menuRef, options.length);
 
   useEffect(() => {
     if (!open) return;
@@ -66,7 +134,12 @@ export function SelectMenu<T extends string>({
         <span className={styles.caret}>▾</span>
       </button>
       {open && (
-        <div className={styles.menu} role="listbox">
+        <div
+          className={`${styles.menu} ${menuClassName ?? ''}`}
+          role="listbox"
+          ref={menuRef}
+          style={offset == null ? undefined : { left: offset, right: 'auto' }}
+        >
           {options.map((o) => (
             <button
               key={o.value}

@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import type { FoodParseWarning } from '@macronome/shared';
 import { TextInput } from '../../../components/Form/TextInput';
-import { RatingPicker } from '../../../components/RatingStars/RatingPicker';
+import { RatingSelect } from '../../../components/RatingStars/RatingSelect';
 import { NamedPortionsEditor } from './NamedPortionsEditor';
 import { MacroInputs } from './MacroInputs';
 import type { Draft } from './draft';
@@ -50,7 +50,11 @@ export function FoodModalFields({
           <div className="hint" style={{ marginBottom: 6 }}>
             {t('foods.field.rating')}
           </div>
-          <RatingPicker value={draft.rating} onChange={(rating) => set({ rating })} />
+          <RatingSelect
+            value={draft.rating}
+            onChange={(rating) => set({ rating })}
+            ariaLabel={t('foods.field.rating')}
+          />
         </div>
         <div>
           <div className="hint" style={{ marginBottom: 6 }}>

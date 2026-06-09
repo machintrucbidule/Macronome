@@ -36,7 +36,10 @@
   right: 0;
   top: calc(100% + 4px);
   z-index: var(--z-menu);
-  min-width: 160px;
+  /* Default sized for text labels (activity select); a caller can shrink it to hug narrow
+     options by setting --sm-menu-min (e.g. the rating dropdown — B-121). Using a var keeps
+     this the single min-width declaration, so the override wins regardless of CSS order. */
+  min-width: var(--sm-menu-min, 160px);
   overflow: hidden;
   background: var(--bg-elev-2);
   border: 1px solid var(--border-strong);
@@ -57,6 +60,9 @@
   padding: 9px 13px;
   cursor: pointer;
   text-align: left;
+  /* Keep each option on one line; the panel widens to the longest label instead of wrapping
+     (e.g. "Pas noté" when --sm-menu-min is shrunk to 0 — B-121). */
+  white-space: nowrap;
 }
 .menu button:hover {
   background: color-mix(in srgb, var(--accent) 14%, transparent);
