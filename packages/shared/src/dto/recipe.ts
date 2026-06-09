@@ -74,6 +74,8 @@ export const RecipeSummarySchema = z.object({
   carb_per_100g: z.number(),
   protein_per_100g: z.number(),
   total_batch_grams: z.number(),
+  /** RW-1: true ⇒ the server keeps total_batch_grams = Σ ingredient grams. */
+  batch_weight_auto: z.boolean(),
   servings: z.number().int(),
   weight_per_portion_g: z.number(),
   rating: RatingSchema,
@@ -99,14 +101,30 @@ const recipeBody = {
   instructions: z.string().max(10000).nullish(),
   rating: RatingSchema.optional().default(null),
   total_batch_grams: z.number().positive().optional(),
+  /** RW-1: true ⇒ server-maintained batch = Σ (then total_batch_grams must be absent).
+   *  Create default: true iff total_batch_grams is absent. PATCH default: stored state. */
+  batch_weight_auto: z.boolean().optional(),
   servings: z.number().int().min(1),
   ingredients: z.array(RecipeIngredientInputSchema),
 };
 
-export const CreateRecipeSchema = z.object(recipeBody);
+const noBatchWhenAuto = (
+  val: { batch_weight_auto?: boolean | undefined; total_batch_grams?: number | undefined },
+  ctx: z.RefinementCtx,
+): void => {
+  if (val.batch_weight_auto === true && val.total_batch_grams !== undefined) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'conflicts_with_auto',
+      path: ['total_batch_grams'],
+    });
+  }
+};
+
+export const CreateRecipeSchema = z.object(recipeBody).superRefine(noBatchWhenAuto);
 export type CreateRecipeRequest = z.infer<typeof CreateRecipeSchema>;
 
-export const UpdateRecipeSchema = z.object(recipeBody).partial();
+export const UpdateRecipeSchema = z.object(recipeBody).partial().superRefine(noBatchWhenAuto);
 export type UpdateRecipeRequest = z.infer<typeof UpdateRecipeSchema>;
 
 // --- Preview request / response (stateless live recompute) ----------------

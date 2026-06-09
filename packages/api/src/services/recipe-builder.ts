@@ -118,12 +118,19 @@ export async function resolveTotals(
   return { totalIngredientGrams, totalMacros, foods, inputs };
 }
 
-/** (Re)build and persist a recipe's derived food from its current ingredients. */
+/** (Re)build and persist a recipe's derived food from its current ingredients.
+ *  RW-1: an auto recipe's batch weight is refreshed to the current Σ first, so a
+ *  nested-recipe edit cascading here re-tracks the parent's weight too. */
 export async function buildAndPersistDerived(userId: string, recipeId: string): Promise<void> {
   const recipe = await recipeRepo.findById(userId, recipeId);
   if (!recipe) return;
-  const { totalMacros } = await resolveTotals(userId, normFromModels(recipe));
-  const derived = buildDerivedFood(totalMacros, num(recipe.totalBatchGrams), recipe.servings);
+  const { totalIngredientGrams, totalMacros } = await resolveTotals(userId, normFromModels(recipe));
+  let batch = num(recipe.totalBatchGrams);
+  if (recipe.batchWeightAuto && totalIngredientGrams > 0 && totalIngredientGrams !== batch) {
+    batch = totalIngredientGrams;
+    await recipeRepo.setBatchGrams(userId, recipeId, batch);
+  }
+  const derived = buildDerivedFood(totalMacros, batch, recipe.servings);
   await recipeDerivedFoodRepo.upsert(
     userId,
     recipeId,
@@ -219,6 +226,7 @@ export async function buildFullDto(
     carb_per_100g: p100.carb,
     protein_per_100g: p100.protein,
     total_batch_grams: batch,
+    batch_weight_auto: recipe.batchWeightAuto,
     servings: recipe.servings,
     weight_per_portion_g: weightPerPortion(batch, recipe.servings),
     rating: (recipe.rating ?? null) as RecipeFull['rating'],

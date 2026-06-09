@@ -65,6 +65,8 @@ const RecipeSchema = z.object({
   normalized_name: z.string(),
   instructions: z.string().nullable(),
   total_batch_grams: z.number(),
+  // RW-1; optional+default so pre-RW-1 envelopes still import (restored as manual).
+  batch_weight_auto: z.boolean().optional().default(false),
   servings: z.number().int(),
   rating: z.number().int().nullable(),
   archived_at: dateStr.nullable(),

@@ -74,6 +74,7 @@ function mapCatalog(
       normalized_name: r.normalizedName,
       instructions: r.instructions,
       total_batch_grams: num(r.totalBatchGrams),
+      batch_weight_auto: r.batchWeightAuto,
       servings: r.servings,
       rating: r.rating,
       archived_at: isoN(r.archivedAt),

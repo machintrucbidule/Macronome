@@ -75,7 +75,8 @@ model FoodPortion {
 /// other recipes) into a derived food. Per-100 g & per-portion macros are NOT stored
 /// here — they live on the derived `food` row (source='recipe', food.recipe_id → this).
 /// `total_batch_grams` defaults to Σ ingredient grams but is overridable to the measured
-/// cooked weight. Soft delete via archived_at (history of meals that logged it is frozen).
+/// cooked weight; while `batch_weight_auto` is true the server keeps it = Σ on every
+/// rebuild (RW-1). Soft delete via archived_at (history of meals that logged it is frozen).
 /// CHECKs (servings ≥ 1, total_batch_grams > 0, rating ∈ 0..3) and the owner FK live in
 /// migration SQL. `rating`: null=unrated, else a 0..3 grade (mirrors food.rating, Gap #7).
 model Recipe {
@@ -85,6 +86,7 @@ model Recipe {
   normalizedName  String    @map("normalized_name")
   instructions    String?
   totalBatchGrams Decimal   @map("total_batch_grams") @db.Decimal
+  batchWeightAuto Boolean   @default(false) @map("batch_weight_auto")
   servings        Int       @default(1)
   rating          Int?      @db.SmallInt
   archivedAt      DateTime? @map("archived_at") @db.Timestamptz()

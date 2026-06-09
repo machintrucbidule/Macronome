@@ -103,6 +103,22 @@ async function resolveBatch(
   return totalIngredientGrams;
 }
 
+/** RW-1 PATCH semantics: flag absent ⇒ stored state, except an explicit
+ *  total_batch_grams flips the recipe to manual; auto ⇒ batch re-resolves to Σ of
+ *  the final ingredients; manual without a new value ⇒ the stored weight is kept. */
+function resolveBatchMode(
+  body: UpdateRecipeRequest,
+  existing: { batchWeightAuto: boolean; totalBatchGrams: { toString(): string } },
+): { auto: boolean; requestedBatch: number | undefined } {
+  const auto =
+    body.batch_weight_auto ??
+    (body.total_batch_grams !== undefined ? false : existing.batchWeightAuto);
+  return {
+    auto,
+    requestedBatch: auto ? undefined : (body.total_batch_grams ?? num(existing.totalBatchGrams)),
+  };
+}
+
 function assertBatch(batch: number): void {
   if (!(batch > 0)) {
     throw new ApiError(422, ErrorCode.ValidationError, { total_batch_grams: 'must_be_positive' });
@@ -115,6 +131,7 @@ function toSummary(
     ownerId: string;
     name: string;
     totalBatchGrams: unknown;
+    batchWeightAuto: boolean;
     servings: number;
     rating: number | null;
     archivedAt: Date | null;
@@ -134,6 +151,7 @@ function toSummary(
     carb_per_100g: p.carb,
     protein_per_100g: p.protein,
     total_batch_grams: batch,
+    batch_weight_auto: recipe.batchWeightAuto,
     servings: recipe.servings,
     weight_per_portion_g: batch / recipe.servings,
     rating: (recipe.rating ?? null) as RecipeSummary['rating'],
@@ -174,7 +192,10 @@ export async function create(
   if (await recipeRepo.existsActiveByNormalizedName(userId, normalizedName)) {
     warnings.push('duplicate_name');
   }
-  const batch = await resolveBatch(userId, ings, body.total_batch_grams);
+  // RW-1: auto defaults to true iff no explicit batch weight (the Zod refine already
+  // rejects auto=true + total_batch_grams together).
+  const auto = body.batch_weight_auto ?? body.total_batch_grams === undefined;
+  const batch = await resolveBatch(userId, ings, auto ? undefined : body.total_batch_grams);
   assertBatch(batch);
   const data: RecipeWriteData = {
     name: body.name,
@@ -182,6 +203,7 @@ export async function create(
     instructions: body.instructions ?? null,
     rating: body.rating ?? null,
     totalBatchGrams: batch,
+    batchWeightAuto: auto,
     servings: body.servings,
     ingredients: toWriteData(ings),
   };
@@ -209,8 +231,7 @@ export async function update(
   if (await recipeRepo.existsActiveByNormalizedName(userId, normalizedName, id)) {
     warnings.push('duplicate_name');
   }
-  const requestedBatch =
-    body.total_batch_grams ?? (useIngredients ? undefined : num(existing.totalBatchGrams));
+  const { auto, requestedBatch } = resolveBatchMode(body, existing);
   const batch = await resolveBatch(userId, finalIngredients, requestedBatch);
   assertBatch(batch);
   const data: RecipeWriteData = {
@@ -220,6 +241,7 @@ export async function update(
       body.instructions !== undefined ? (body.instructions ?? null) : existing.instructions,
     rating: body.rating !== undefined ? body.rating : existing.rating,
     totalBatchGrams: batch,
+    batchWeightAuto: auto,
     servings: body.servings ?? existing.servings,
     ingredients: toWriteData(finalIngredients),
   };

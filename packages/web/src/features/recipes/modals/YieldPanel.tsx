@@ -4,17 +4,21 @@ import { NumberInput } from '../../../components/Form/NumberInput';
 import { gramsDisplay, kcalDisplay } from '../format';
 import styles from '../recipes.module.css';
 
-// "Rendement & portions" panel (specifications/screens/recipe.md): editable batch weight,
-// servings stepper, and a LIVE readout of total / per-100 g / per-portion figures. Per
-// CLAUDE.md rule 2 the web never computes nutrition figures — they are read from the
-// stateless preview endpoint (B-035) and refresh as ingredients/batch/servings change.
-// `—` until the first line is ready to compute.
+// "Rendement & portions" panel (specifications/screens/recipe.md): batch weight governed
+// by the persisted "Poids auto" toggle (RW-1 — auto ⇒ greyed field tracking the live
+// ingredient sum; manual ⇒ editable cooked weight, seeded with the value displayed when
+// switching), servings stepper, and a LIVE readout of total / per-100 g / per-portion
+// figures. Per CLAUDE.md rule 2 the web never computes nutrition figures — they are read
+// from the stateless preview endpoint (B-035) and refresh as ingredients/batch/servings
+// change. `—` until the first line is ready to compute.
 interface YieldPanelProps {
   servings: string;
   batch: string;
+  batchAuto: boolean;
   preview: RecipePreview | undefined;
   onServings: (v: string) => void;
   onBatch: (v: string) => void;
+  onBatchAuto: (auto: boolean) => void;
 }
 
 const DASH = '—';
@@ -43,7 +47,64 @@ function MacroBlocks({ m }: { m: Pick<Macros, 'fat' | 'carb' | 'protein'> | unde
   );
 }
 
-export function YieldPanel({ servings, batch, preview, onServings, onBatch }: YieldPanelProps) {
+// Batch weight field + "Poids auto" toggle (RW-1): auto ⇒ disabled field mirroring the
+// live ingredient sum; manual ⇒ editable, seeded with the value displayed at the switch.
+function BatchWeightControl({
+  batch,
+  batchAuto,
+  preview,
+  onBatch,
+  onBatchAuto,
+}: Omit<YieldPanelProps, 'servings' | 'onServings'>) {
+  const { t } = useTranslation();
+  const displayedBatch = batchAuto
+    ? preview
+      ? gramsDisplay(preview.total_ingredient_grams)
+      : ''
+    : batch;
+  const toManual = (): void => {
+    if (!batchAuto) return;
+    onBatch(displayedBatch); // seed the manual field with the value displayed at the switch
+    onBatchAuto(false);
+  };
+
+  return (
+    <>
+      <NumberInput
+        label={t('recipes.builder.batch')}
+        suffix="g"
+        min={0}
+        value={displayedBatch}
+        disabled={batchAuto}
+        wrapperClassName={batchAuto ? styles.batchLocked : undefined}
+        onChange={(e) => {
+          if (!batchAuto) onBatch(e.target.value);
+        }}
+      />
+      <div className={styles.batchAutoRow}>
+        <span className={styles.batchAutoLabel}>{t('recipes.builder.batchAuto')}</span>
+        <div className={styles.batchSeg}>
+          <button type="button" aria-pressed={batchAuto} onClick={() => onBatchAuto(true)}>
+            {t('recipes.builder.batchAutoOn')}
+          </button>
+          <button type="button" aria-pressed={!batchAuto} onClick={toManual}>
+            {t('recipes.builder.batchAutoOff')}
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export function YieldPanel({
+  servings,
+  batch,
+  batchAuto,
+  preview,
+  onServings,
+  onBatch,
+  onBatchAuto,
+}: YieldPanelProps) {
   const { t } = useTranslation();
   const n = Math.max(1, Math.round(Number(servings) || 1));
   const per100 = preview
@@ -54,16 +115,13 @@ export function YieldPanel({ servings, batch, preview, onServings, onBatch }: Yi
     <div className={styles.yield}>
       <h4>{t('recipes.builder.yieldTitle')}</h4>
 
-      <NumberInput
-        label={t('recipes.builder.batch')}
-        suffix="g"
-        min={0}
-        value={batch !== '' ? batch : preview ? gramsDisplay(preview.total_ingredient_grams) : ''}
-        onChange={(e) => onBatch(e.target.value)}
+      <BatchWeightControl
+        batch={batch}
+        batchAuto={batchAuto}
+        preview={preview}
+        onBatch={onBatch}
+        onBatchAuto={onBatchAuto}
       />
-      <button type="button" className={styles.resetLink} onClick={() => onBatch('')}>
-        {t('recipes.builder.resetBatch')}
-      </button>
 
       <div className={styles.servings}>
         <span className={styles.servingsLabel}>{t('recipes.builder.servings')}</span>

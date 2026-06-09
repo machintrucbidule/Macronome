@@ -57,9 +57,11 @@ export function BuilderFields({ draft, full, preview, error, set }: BuilderField
         <YieldPanel
           servings={draft.servings}
           batch={draft.batch}
+          batchAuto={draft.batchAuto}
           preview={preview}
           onServings={(servings) => set({ servings })}
           onBatch={(batch) => set({ batch })}
+          onBatchAuto={(batchAuto) => set({ batchAuto })}
         />
       </div>
       <label className={styles.instructions}>

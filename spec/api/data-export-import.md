@@ -79,7 +79,7 @@ preserved per row; `updated_at` is regenerated on import. Credentials are absent
   "containers":       [ { "id","name","normalized_name","empty_weight_g","is_builtin","created_at" } ],
   "foods":            [ { "id","name","normalized_name","kcal_per_100g","fat_per_100g","carb_per_100g","protein_per_100g","comment","rating","visibility","source","recipe_id","archived_at","created_at" } ],
   "food_portions":    [ { "id","food_id","label","grams","created_at" } ],
-  "recipes":          [ { "id","name","normalized_name","instructions","total_batch_grams","servings","rating","archived_at","created_at" } ],
+  "recipes":          [ { "id","name","normalized_name","instructions","total_batch_grams","batch_weight_auto","servings","rating","archived_at","created_at" } ],
   "recipe_ingredients":[ { "id","recipe_id","ref_type","ref_food_id","ref_recipe_id","quantity","unit","portion_id","order_index" } ],
   "pantry_items":     [ { "id","meal_slot_name","food_id","order_index","created_at" } ],
   "weight_entries":   [ { "id","date","weight_kg","waist_cm","diet_flag","note","created_at" } ],

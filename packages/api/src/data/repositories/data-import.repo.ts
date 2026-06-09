@@ -41,6 +41,7 @@ async function insertCatalog(tx: Tx, userId: string, env: DataExportEnvelope): P
         normalizedName: r.normalized_name,
         instructions: r.instructions,
         totalBatchGrams: r.total_batch_grams,
+        batchWeightAuto: r.batch_weight_auto,
         servings: r.servings,
         rating: r.rating,
         archivedAt: dn(r.archived_at),

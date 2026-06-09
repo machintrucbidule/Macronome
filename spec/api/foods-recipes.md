@@ -50,17 +50,27 @@ visibility?(default 'private'), named_portions:[{label,grams}]}`.
   {name,batch,servings,rating} (derived macro columns NOT sortable, cf. OPEN_GAPS #10),
   `dir`, `limit`, `cursor`.
   → 200 `{data:[RecipeSummary], next_cursor}` (incl. derived per-100 g, batch,
-  servings, weight/portion, rating).
-- `GET /recipes/:id` → 200 RecipeFull (ingredients + instructions + derived + rating).
+  `batch_weight_auto`, servings, weight/portion, rating).
+- `GET /recipes/:id` → 200 RecipeFull (ingredients + instructions + derived +
+  rating + `batch_weight_auto`).
 - `POST /recipes` — `{name, instructions?, rating?(null|0..3), total_batch_grams?,
-servings(≥1), ingredients:[{ref_type,ref_id,quantity,unit,portion_id?,order_index}]}`.
+batch_weight_auto?, servings(≥1),
+ingredients:[{ref_type,ref_id,quantity,unit,portion_id?,order_index}]}`.
   Validation: servings ≥ 1; total_batch_grams > 0 (default Σ ingredient grams);
   **transitive cycle check** — reject an ingredient that makes the graph cyclic
   → 422 `{details:{ingredient:'would_create_cycle'}}`. No custom-inline
   ingredients. On save (re)builds the derived food + auto "portion" named
   portion (= batch/servings). → 201.
+  **`batch_weight_auto`** (RW-1): `true` ⇒ the batch weight is server-maintained
+  = Σ ingredient grams (`total_batch_grams` must be **absent** — both present
+  → 422 `{details:{total_batch_grams:'conflicts_with_auto'}}`); default on create
+  = `true` when `total_batch_grams` is absent, `false` when present.
 - `PATCH /recipes/:id` — same (incl. `rating`); edits recompute the derived food
   **going forward**; nested-recipe edits cascade to parents going forward. → 200.
+  Partial semantics for the flag: absent ⇒ the stored state is kept (an **auto**
+  recipe re-resolves batch = Σ of the final ingredients; sending
+  `total_batch_grams` alone flips the recipe to manual); `true` ⇒ batch
+  re-resolves to Σ (same both-present 422 as POST).
 - `POST /recipes/:id/archive` · `POST /recipes/:id/restore`.
 - `POST /recipes/preview` — **stateless** live recompute for the builder (an
   unsaved draft). Body = the recipe body **without `name`**: `{servings(≥1),
@@ -68,7 +78,8 @@ total_batch_grams?, ingredients:[{ref_type,ref_id,quantity,unit,portion_id?,
 order_index}]}`. Resolves each ingredient (user-scoped) and returns the derived
   figures **without persisting anything** (no row written, no derived-food rebuild,
   **no cycle check** — read-only). Empty `ingredients` → all figures `0`.
-  → 200 `{data: RecipePreview}`.
+  → 200 `{data: RecipePreview}`. No `batch_weight_auto` here: an auto draft simply
+  omits `total_batch_grams` and the response's batch is Σ (RW-1).
 
 **RecipePreview** payload (derived only; never posted):
 

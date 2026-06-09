@@ -96,18 +96,19 @@ The auto "portion" of a recipe-derived food is a row here.
 
 ## recipe
 
-| column                 | type        | notes                                                              |
-| ---------------------- | ----------- | ------------------------------------------------------------------ |
-| id                     | uuid PK     |                                                                    |
-| owner_id               | uuid        | NOT NULL REFERENCES app_user(id)                                   |
-| name                   | text        | NOT NULL                                                           |
-| normalized_name        | text        | NOT NULL — search key                                              |
-| instructions           | text        | NULL                                                               |
-| total_batch_grams      | numeric     | NOT NULL, CHECK > 0 (default = Σ ingredient grams; overridable)    |
-| servings               | integer     | NOT NULL DEFAULT 1, CHECK ≥ 1                                      |
-| rating                 | smallint    | NULL — null=unrated, CHECK (rating IS NULL OR rating IN (0,1,2,3)) |
-| archived_at            | timestamptz | NULL — soft delete                                                 |
-| created_at, updated_at | timestamptz |                                                                    |
+| column                 | type        | notes                                                                                                                  |
+| ---------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------- |
+| id                     | uuid PK     |                                                                                                                        |
+| owner_id               | uuid        | NOT NULL REFERENCES app_user(id)                                                                                       |
+| name                   | text        | NOT NULL                                                                                                               |
+| normalized_name        | text        | NOT NULL — search key                                                                                                  |
+| instructions           | text        | NULL                                                                                                                   |
+| total_batch_grams      | numeric     | NOT NULL, CHECK > 0 (default = Σ ingredient grams; overridable)                                                        |
+| batch_weight_auto      | boolean     | NOT NULL DEFAULT false — true ⇒ the server keeps `total_batch_grams` = Σ ingredient grams on every save/rebuild (RW-1) |
+| servings               | integer     | NOT NULL DEFAULT 1, CHECK ≥ 1                                                                                          |
+| rating                 | smallint    | NULL — null=unrated, CHECK (rating IS NULL OR rating IN (0,1,2,3))                                                     |
+| archived_at            | timestamptz | NULL — soft delete                                                                                                     |
+| created_at, updated_at | timestamptz |                                                                                                                        |
 
 Per-100 g & per-portion macros are derived (see `logic/recipes-derived-food.md`),
 not stored on the recipe; the derived `food` row carries the snapshot-able macros.

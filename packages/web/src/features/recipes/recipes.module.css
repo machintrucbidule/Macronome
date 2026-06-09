@@ -264,15 +264,41 @@
   color: var(--text-dim);
   margin: 0;
 }
-.resetLink {
-  align-self: flex-start;
-  background: none;
+/* "Poids auto" toggle (RW-1) — the shared segmented/aria-pressed pattern
+   (design/components/forms-inputs.md §Segmented / toggle controls). */
+.batchAutoRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.batchAutoLabel {
+  font-size: var(--fs-12);
+  color: var(--text-dim);
+}
+.batchSeg {
+  display: inline-flex;
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+.batchSeg button {
   border: none;
-  color: var(--accent);
+  background: var(--bg-field);
+  color: var(--text-dim);
   font-family: var(--font-num);
   font-size: var(--fs-11);
+  padding: 6px 10px;
   cursor: pointer;
-  padding: 0;
+}
+.batchSeg button[aria-pressed='true'] {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+/* Auto ⇒ disabled/locked field (forms-inputs.md §disabled): greys the whole control
+   (input + suffix + stepper) and blocks the stepper clicks. */
+.batchLocked {
+  opacity: 0.5;
+  pointer-events: none;
 }
 .servings {
   display: flex;

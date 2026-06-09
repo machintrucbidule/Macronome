@@ -59,6 +59,10 @@ See foundations `.seg`. Also `.toggle`, `.visseg`, `.rangeseg`, `.yearseg`,
 border-radius:var(--r-md); overflow:hidden`; buttons borderless on `--bg-field`
 (or `--bg-elev-2`), selected → `--accent`/`--accent-ink`. `--font-num; --fs-11–12`.
 
+The recipe builder's **"Poids auto" toggle** (RW-1) is this same pattern (two
+options, `aria-pressed`); when auto is ON the batch-weight number input takes the
+standard **disabled/locked** state above (`opacity:.5; pointer-events:none`).
+
 ## Chips (filter)
 
 `--font-num; --fs-11; border:1px solid var(--border); background:var(--bg-field);

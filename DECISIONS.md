@@ -2122,3 +2122,31 @@ slots** inside the single Macros cell, keeping the L·G·P order and per-macro c
 
 **Contract delta:** `specifications/screens/history.md` + `design/components/data-tables.md` (§Macro
 cells). No DB/schema/API/DTO change. Cosmetic → visual + lint (no dedicated test).
+
+## RW-1 / B-137 — recipe "Poids du lot": persisted auto-weight toggle — RESOLVED (user, 2026-06-10)
+
+Editing an existing recipe left "Poids du lot" **frozen**: `initialRecipeDraft` loaded a non-empty
+`batch`, so B-051's live-tracking (`batch === ''` proxy) never fired on the edit path. The schema had
+**no auto-vs-manual flag**, and a custom cooked weight is a documented, legitimate case
+(`recipes-derived-food.md` §6), so blindly re-tracking Σ would have silently dropped custom values.
+
+**Decision (user).** Persist the auto-vs-manual state and **replace the "réinitialiser" button with a
+"Poids auto" toggle** — **ON** ⇒ the field is greyed and always equals the live ingredient sum (the
+server keeps `total_batch_grams` = Σ on every save **and** parent-cascade rebuild); **OFF** ⇒ the field
+is enabled and purely manual. **Supersedes** B-051's `batch===''` proxy + "réinitialiser" affordance.
+Migration backfill (user): existing recipes become **auto where the stored weight equals the current
+ingredient sum** (never customised → bug fixed retroactively), manual otherwise.
+
+- **Schema/DB:** `recipe.batch_weight_auto boolean NOT NULL DEFAULT false` + backfill migration.
+- **API:** `POST/PATCH /recipes` accept `batch_weight_auto` (`true` + `total_batch_grams` together
+  → 422; create default = `true` iff `total_batch_grams` absent; PATCH keeps the stored state when
+  absent, an explicit `total_batch_grams` flips to manual); Summary/Full expose the flag;
+  `buildAndPersistDerived` refreshes batch = Σ for auto recipes (covers the nested-recipe cascade).
+  `POST /recipes/preview` unchanged (an auto draft omits `total_batch_grams`).
+- **Web:** `RecipeDraft.batchAuto`; YieldPanel "Poids auto" toggle (segmented pattern), disabled
+  input showing the live preview Σ when ON, seeded with the displayed value when switched OFF.
+
+**Contract delta:** `spec/schema/tables-catalog.md` + `spec/api/foods-recipes.md` +
+`spec/logic/recipes-derived-food.md` §3/§6 + `specifications/screens/recipe.md` +
+`design/components/forms-inputs.md`. Tests: integration (auto re-tracks on ingredient PATCH, manual
+round-trip, both-present 422, cascade refresh) + web (`YieldPanel`, `draft` body builders).

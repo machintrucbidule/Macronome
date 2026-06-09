@@ -32,14 +32,24 @@ export interface RecipeDraft {
   name: string;
   rating: Rating;
   servings: string;
-  /** '' = let the server default to Σ ingredient grams. */
+  /** Manual batch weight; ignored while batchAuto (the server keeps batch = Σ). */
   batch: string;
+  /** RW-1 "Poids auto": true ⇒ greyed field tracking the live ingredient sum. */
+  batchAuto: boolean;
   instructions: string;
   ingredients: IngredientDraft[];
 }
 
 export function emptyRecipeDraft(): RecipeDraft {
-  return { name: '', rating: null, servings: '1', batch: '', instructions: '', ingredients: [] };
+  return {
+    name: '',
+    rating: null,
+    servings: '1',
+    batch: '',
+    batchAuto: true,
+    instructions: '',
+    ingredients: [],
+  };
 }
 
 export function initialRecipeDraft(recipe: RecipeFull | null): RecipeDraft {
@@ -49,6 +59,7 @@ export function initialRecipeDraft(recipe: RecipeFull | null): RecipeDraft {
     rating: recipe.rating,
     servings: String(recipe.servings),
     batch: String(recipe.total_batch_grams),
+    batchAuto: recipe.batch_weight_auto,
     instructions: recipe.instructions ?? '',
     ingredients: recipe.ingredients.map((i) => ({
       refType: i.ref_type,
@@ -82,15 +93,21 @@ function ingredientInput(ing: IngredientDraft, index: number): RecipeIngredientI
 const servingsOf = (draft: RecipeDraft): number =>
   Math.max(1, Math.round(Number(draft.servings) || 1));
 
+/** Manual batch weight to post: never sent while auto (the server resolves Σ). */
+const batchField = (draft: RecipeDraft): { total_batch_grams?: number } => {
+  const batch = draft.batch.trim();
+  return !draft.batchAuto && batch ? { total_batch_grams: Number(batch) } : {};
+};
+
 /** Convert the draft to a create/update request body. */
 export function draftToBody(draft: RecipeDraft): CreateRecipeRequest {
-  const batch = draft.batch.trim();
   return {
     name: draft.name.trim(),
     rating: draft.rating,
     servings: servingsOf(draft),
     instructions: draft.instructions.trim() || null,
-    ...(batch ? { total_batch_grams: Number(batch) } : {}),
+    batch_weight_auto: draft.batchAuto,
+    ...batchField(draft),
     ingredients: draft.ingredients.map(ingredientInput),
   };
 }
@@ -98,13 +115,12 @@ export function draftToBody(draft: RecipeDraft): CreateRecipeRequest {
 /**
  * Build the stateless preview body (no name): only lines ready to compute — a positive
  * quantity, and a chosen portion when the unit is 'portion' — so half-typed lines don't
- * trigger a 422 while editing.
+ * trigger a 422 while editing. An auto draft omits total_batch_grams (server returns Σ).
  */
 export function draftToPreviewBody(draft: RecipeDraft): RecipePreviewRequest {
-  const batch = draft.batch.trim();
   return {
     servings: servingsOf(draft),
-    ...(batch ? { total_batch_grams: Number(batch) } : {}),
+    ...batchField(draft),
     ingredients: draft.ingredients
       .map(ingredientInput)
       .filter((i) => i.quantity > 0 && (i.unit !== 'portion' || i.portion_id != null)),

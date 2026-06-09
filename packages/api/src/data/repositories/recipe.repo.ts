@@ -30,6 +30,8 @@ export interface RecipeWriteData {
   instructions: string | null;
   rating: number | null;
   totalBatchGrams: number;
+  /** RW-1: true ⇒ totalBatchGrams is server-kept = Σ ingredient grams. */
+  batchWeightAuto: boolean;
   servings: number;
   ingredients: IngredientWriteData[];
 }
@@ -138,6 +140,7 @@ export const recipeRepo = {
           instructions: data.instructions,
           rating: data.rating,
           totalBatchGrams: data.totalBatchGrams,
+          batchWeightAuto: data.batchWeightAuto,
           servings: data.servings,
         },
       });
@@ -166,6 +169,7 @@ export const recipeRepo = {
           instructions: data.instructions,
           rating: data.rating,
           totalBatchGrams: data.totalBatchGrams,
+          batchWeightAuto: data.batchWeightAuto,
           servings: data.servings,
         },
       });
@@ -175,6 +179,14 @@ export const recipeRepo = {
       }
     });
     return true;
+  },
+
+  /** RW-1: refresh an auto recipe's batch weight to the current Σ during a rebuild. */
+  async setBatchGrams(userId: string, id: string, grams: number): Promise<void> {
+    await prisma.recipe.updateMany({
+      where: { id, ownerId: userId },
+      data: { totalBatchGrams: grams },
+    });
   },
 
   async setArchived(userId: string, id: string, archived: boolean): Promise<boolean> {
