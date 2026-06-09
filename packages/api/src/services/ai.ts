@@ -1,7 +1,32 @@
-import { ErrorCode, type DishPhotoMacros, type DishPhotoMacrosRequest } from '@macronome/shared';
+import {
+  ErrorCode,
+  type DishPhotoMacros,
+  type DishPhotoMacrosRequest,
+  type MealProposal,
+  type MealSuggestions,
+  type MealSuggestionsRequest,
+} from '@macronome/shared';
 import { ApiError } from '../http/errors.js';
 import { buildDishPhotoMessages, parseDishPhotoResult } from '../domain/ai-dish-photo/index.js';
+import {
+  buildMealSuggestionsMessages,
+  parseMealSuggestions,
+  type ChefFood,
+  type ParsedItem,
+} from '../domain/ai-meal-suggestions/index.js';
+import { computeRemaining } from '../domain/meal-solver/remaining.js';
+import { penalty } from '../domain/meal-solver/penalty.js';
+import { solve } from '../domain/meal-solver/solve.js';
+import { aggregate, verifyProposal } from '../domain/meal-solver/verify.js';
+import type {
+  DayContext,
+  Macros,
+  SolverCandidate,
+  TargetSnapshot,
+} from '../domain/meal-solver/types.js';
+import { aiSuggestionsRepo } from '../data/repositories/ai-suggestions.repo.js';
 import * as aiProvider from './ai-provider.js';
+import * as daysService from './days.js';
 import { get as getSettings, rawAiConfig } from './settings.js';
 
 // AI *use* orchestration (spec/api/ai.md, spec/logic/ai-dish-photo-macros.md, B-118). Reads the
@@ -30,4 +55,121 @@ export async function dishPhotoMacros(
   const parsed = parseDishPhotoResult(text);
   if (!parsed.ok) throw new ApiError(502, ErrorCode.AiBadResponse);
   return parsed.data;
+}
+
+// AI meal-suggestions orchestration (spec/api/ai.md, spec/logic/ai-meal-suggestions.md +
+// meal-solver.md, B-123). The hybrid: the LLM (chef) picks foods, the pure deterministic solver
+// (accountant) sets quantities, and the verifier recomputes the day total IN CODE — the "fits the
+// targets" claim is never trusted from the model. Persists nothing; the client applies a chosen
+// proposal through the normal POST /meals/:id/entries flow.
+
+/** Build the solver's day context from a `GET /days/:date` detail. A day with no Target carries the
+ *  `cal_min===0 && cal_max===0` sentinel (day-verdict/snapshot.ts) → map the band to null so
+ *  `computeRemaining` signals `no_target`. Floors/ceiling are already nullable. */
+function toDayContext(day: Awaited<ReturnType<typeof daysService.get>>): DayContext {
+  const t = day.target_snapshot;
+  const hasTarget = t.cal_max > 0;
+  const targets: TargetSnapshot = {
+    cal_min: hasTarget ? t.cal_min : null,
+    cal_max: hasTarget ? t.cal_max : null,
+    protein_floor_g: t.protein_floor_g,
+    fat_floor_g: t.fat_floor_g,
+    carb_ceiling_g: t.carb_ceiling_g,
+  };
+  const entered: Macros = {
+    kcal: day.totals.kcal,
+    protein: day.totals.protein,
+    fat: day.totals.fat,
+    carb: day.totals.carb,
+  };
+  return { targets, entered };
+}
+
+/** One LLM-picked, pool-validated item → a solver candidate. `parse` guarantees `food_id` is in the
+ *  pool and `portion_id` is one of the food's portions or null. */
+function toCandidate(item: ParsedItem, pool: Map<string, ChefFood>): SolverCandidate {
+  const food = pool.get(item.food_id)!;
+  const portion =
+    item.portion_id === null
+      ? null
+      : (food.portions.find((p) => p.portion_id === item.portion_id) ?? null);
+  return {
+    food_id: food.food_id,
+    meal_id: item.meal_id,
+    food_name: food.name,
+    rating: food.rating,
+    per100g: food.per100g,
+    portion,
+  };
+}
+
+export async function mealSuggestions(
+  userId: string,
+  body: MealSuggestionsRequest,
+): Promise<MealSuggestions> {
+  const ai = await rawAiConfig(userId);
+  const model = ai?.tasks.meal_suggestions.model ?? null;
+  if (model === null) throw new ApiError(409, ErrorCode.AiNotConfigured);
+
+  const day = await daysService.get(userId, body.date);
+  const ctx = toDayContext(day);
+  const rem = computeRemaining(ctx);
+  if (!rem.ok) throw new ApiError(422, ErrorCode.ValidationError, { reason: rem.reason });
+
+  const [pool, history] = await Promise.all([
+    aiSuggestionsRepo.candidatePool(userId),
+    aiSuggestionsRepo.okDayHistory(userId, body.date),
+  ]);
+
+  const mealNameById = new Map(day.meals.map((m) => [m.id, m.slot_name]));
+  const messages = buildMealSuggestionsMessages(ai!.tasks.meal_suggestions.prompt, {
+    remaining: rem.remaining,
+    meals: body.meal_ids.map((id) => ({ meal_id: id, name: mealNameById.get(id) ?? '' })),
+    candidates: pool,
+    history,
+    ...(body.note !== undefined ? { precisions: body.note } : {}),
+    ...(body.constraints !== undefined ? { constraints: body.constraints } : {}),
+  });
+  const text = await aiProvider.chatCompletion(ai, model, messages);
+
+  const poolMap = new Map(pool.map((f) => [f.food_id, f]));
+  const parsed = parseMealSuggestions(text, poolMap, new Set(body.meal_ids));
+  if (!parsed.ok) throw new ApiError(502, ErrorCode.AiBadResponse);
+
+  const proposals: MealProposal[] = parsed.proposals.map((p, i) => {
+    const candidates = p.items.map((it) => toCandidate(it, poolMap));
+    const solved = solve({
+      candidates,
+      ctx,
+      ...(body.constraints?.pinned !== undefined ? { pinned: body.constraints.pinned } : {}),
+      ...(body.constraints?.excluded_food_ids !== undefined
+        ? { excludedFoodIds: body.constraints.excluded_food_ids }
+        : {}),
+    });
+    const verified = verifyProposal(solved, ctx);
+    const { dayAgg, addedCarb } = aggregate(solved, ctx.entered);
+    const fit = penalty(dayAgg, addedCarb, ctx.targets).hard === 0 ? 'full' : 'closest';
+    return {
+      id: `p${i + 1}`,
+      fit,
+      items: verified.items,
+      day_total: verified.day_total,
+      targets_met: verified.targets_met,
+      gaps: verified.gaps,
+    };
+  });
+
+  return {
+    remaining: {
+      cal_min: rem.remaining.rem_cal_min,
+      cal_max: rem.remaining.rem_cal_max,
+      need_protein_g: rem.remaining.need_protein,
+      need_fat_g: rem.remaining.need_fat,
+      // null only when the carb ceiling is dropped (Target but no weigh-in); the DTO requires a
+      // number — 0 mirrors `need_*_g = 0` for dropped floors (meal-solver.md §1).
+      carb_room_g: rem.remaining.carb_room ?? 0,
+      entered: ctx.entered,
+    },
+    proposals,
+  };
 }

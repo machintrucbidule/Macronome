@@ -299,7 +299,15 @@ documented here only so the information is ready when the author decides to run 
           before the working date, newest-first, foods+qty per meal — reuses `dayStat`'s prorated
           verdict since stored `verdict_auto` is stale). No contract/`DECISIONS.md` change (pool +
           history rules live from S1). Green: 6 new integration tests + full suite (315 unit / 156 int) + typecheck + lint.
-    - [ ] S8 Service + controller + route (API end-to-end, LLM mocked).
+    - [x] **S8 — Service + controller + route** (API end-to-end, LLM mocked): `POST /ai/meal-suggestions`.
+          `services/ai.ts` `mealSuggestions` composes the pure pieces (spec §4.3 order) — config check
+          (→ `409`), `daysService.get` → `DayContext` (no-Target `0/0` band → null → `computeRemaining`
+          `no_target` → `422 { reason }`), pool + history, assemble → `chatCompletion` → `parseMealSuggestions`
+          (→ `502`), then per proposal `solve` → `verifyProposal` with `fit` from `penalty().hard`. The
+          certified `day_total`/`targets_met`/`gaps` come only from `verify` (model sends no totals).
+          Thin controller + route mirror dish-photo. No contract/`DECISIONS.md` change (endpoint + DTOs
+          live from S1). Green: 7 new integration tests (`global.fetch` stubbed) + full suite (315 unit /
+          163 int) + typecheck + lint.
     - [ ] S9 Web client + hook + button + request popup.
     - [ ] S10 Web proposals display.
     - [ ] S11 Web refine panel.

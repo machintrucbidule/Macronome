@@ -9,5 +9,6 @@ const router = Router();
 
 router.use(requireAuth);
 router.post('/dish-photo-macros', asyncHandler(ai.dishPhotoMacros));
+router.post('/meal-suggestions', asyncHandler(ai.mealSuggestions));
 
 export default router;
