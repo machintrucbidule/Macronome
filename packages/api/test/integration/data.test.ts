@@ -98,6 +98,7 @@ async function populate(agent: Agent, csrf: string, userId: string): Promise<str
   await csrfPost(agent, csrf, `/api/v1/pantry`, {
     meal_slot_name: meal.slot_name,
     food_id: rice!.id,
+    unit: 'ml', // GM-2 prefill unit — must survive the export/import round-trip
   });
   await csrfPatch(agent, csrf, `/api/v1/days/${TODAY}`, {
     comment: 'Concert',
@@ -127,6 +128,10 @@ describe('data export / wipe / import (IMP-1)', () => {
     // The derived recipe food + the two catalog foods are all present.
     expect((before.foods as unknown[]).length).toBe(3);
     expect(JSON.stringify(before)).not.toContain('password');
+    // GM-2 follow-up: the pantry prefill unit is carried in the envelope (not reset to 'g').
+    const pantry = before.pantry_items as { unit: string }[];
+    expect(pantry).toHaveLength(1);
+    expect(pantry[0]!.unit).toBe('ml');
 
     const wiped = await csrfPost(agent, csrf, `/api/v1/data/wipe`);
     expect(wiped.status).toBe(200);
@@ -147,6 +152,10 @@ describe('data export / wipe / import (IMP-1)', () => {
     const entry = await prisma.mealEntry.findUnique({ where: { id: ricEntry } });
     expect(entry).not.toBeNull();
     expect(Number(entry!.snapKcal)).toBeGreaterThan(0);
+
+    // GM-2 follow-up: the restored pantry pin keeps its prefill unit (not reset to 'g').
+    const pin = await prisma.pantryItem.findFirst({ where: { userId } });
+    expect(pin?.unit).toBe('ml');
   });
 
   it('keeps credentials on import (login still works)', async () => {

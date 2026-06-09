@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { EntryUnitSchema } from './day.js';
 
 // Data export / import envelope (IMP-1 — spec/api/data-export-import.md). A versioned,
 // portable JSON snapshot of all of one user's data, MINUS credentials. Export builds it;
@@ -89,6 +90,9 @@ const PantryItemSchema = z.object({
   id: z.string(),
   meal_slot_name: z.string(),
   food_id: z.string(),
+  // GM-2 prefill unit; optional+default so pre-GM-2 envelopes still import (restored as 'g').
+  unit: EntryUnitSchema.optional().default('g'),
+  portion_id: z.string().nullable().optional().default(null),
   order_index: z.number().int(),
   created_at: dateStr,
 });

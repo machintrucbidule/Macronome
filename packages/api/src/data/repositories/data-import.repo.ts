@@ -130,6 +130,8 @@ async function insertStructure(tx: Tx, userId: string, env: DataExportEnvelope):
         userId,
         mealSlotName: p.meal_slot_name,
         foodId: p.food_id,
+        unit: p.unit,
+        portionId: p.portion_id,
         orderIndex: p.order_index,
         createdAt: d(p.created_at),
       })),

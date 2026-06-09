@@ -1,5 +1,9 @@
 import type { Prisma } from '@prisma/client';
-import { DATA_EXPORT_FORMAT_VERSION, type DataExportEnvelope } from '@macronome/shared';
+import {
+  DATA_EXPORT_FORMAT_VERSION,
+  type DataExportEnvelope,
+  type EntryUnit,
+} from '@macronome/shared';
 import { dataExportRepo, type ExportRows } from '../../data/repositories/data-export.repo.js';
 
 // Build the portable export envelope (IMP-1, B-002) from the user's rows. Pure serialisation:
@@ -95,6 +99,8 @@ function mapCatalog(
       id: p.id,
       meal_slot_name: p.mealSlotName,
       food_id: p.foodId,
+      unit: p.unit as EntryUnit, // DB column is plain text; values are constrained to the unit enum
+      portion_id: p.portionId,
       order_index: p.orderIndex,
       created_at: iso(p.createdAt),
     })),

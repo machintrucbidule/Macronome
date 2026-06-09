@@ -2150,3 +2150,14 @@ ingredient sum** (never customised → bug fixed retroactively), manual otherwis
 `spec/logic/recipes-derived-food.md` §3/§6 + `specifications/screens/recipe.md` +
 `design/components/forms-inputs.md`. Tests: integration (auto re-tracks on ingredient PATCH, manual
 round-trip, both-present 422, cascade refresh) + web (`YieldPanel`, `draft` body builders).
+
+## GM-2 follow-up — pantry prefill unit in the export/import envelope — RESOLVED (user, 2026-06-10)
+
+GM-2 (B-092/093/094) added `pantry_item.unit` + `portion_id` (the garde-manger prefill unit) but the
+IMP-1 export/import envelope was never updated, so an export → wipe → import silently reset every pin's
+prefill unit to `g` (and dropped its portion). The envelope (`spec/api/data-export-import.md` `pantry_items`
+row, `shared/dto/data.ts` `PantryItemSchema`, `services/data/export.ts`, `data/repositories/data-import.repo.ts`)
+now carries `unit` + `portion_id`. The schema fields are **optional with defaults** (`unit → 'g'`,
+`portion_id → null`) so pre-fix envelopes still import (restored as `g`). No DB/migration change (the columns
+already exist). Test: `test/integration/data.test.ts` round-trip now seeds a non-default prefill unit and
+asserts it survives. Completes GM-2's contract surface (no new B-number).
