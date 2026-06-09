@@ -22,6 +22,8 @@ Macronome turns the spreadsheet many people keep for dieting into a fast, dense 
   and a projected goal date.
 - **Understand your adherence** with rolling averages, an OK-rate heatmap, monthly
   charts, and plain-language signals.
+- **Optional AI assist** — connect your own OpenAI-compatible model (e.g. Gemini) to
+  estimate a dish's macros from a photo and suggest meals that fit your remaining targets.
 
 Two principles run through it:
 
@@ -55,12 +57,16 @@ log each food by name with a quantity and unit (g/ml/kg or a **named portion** l
 - **Cook mode** 🍳: a touch-friendly, keyboard-free modal for adjusting real cooked weights.
 - **Custom foods** for one-off manual entries, and **macro cards** showing each macro vs its
   target band.
+- **Undo / redo** (Ctrl+Z / Ctrl+Y) for line edits — add/remove, quantity, unit, pin, reorder.
+- **AI assist (optional)**: estimate a dish's macros from a photo, or get **meal proposals**
+  that fill the day's remaining target band (see _Assistant IA_).
 
 ### Journal — day history
 
 A bird's-eye, sortable list of every logged day, with red / yellow / green state bands
 (no-data / summary / detailed). Jump into any day, fix verdicts or activity, inline-edit
-calorie totals, and pick a year (bounded to years that actually have data).
+calorie totals, and pick a year (bounded to years that actually have data). Export the
+history to **CSV** (one recap row per logged day, across all years).
 
 ### Poids — weight & trend
 
@@ -68,7 +74,7 @@ Record weigh-ins (weight, optional waist, a "in diet / maintenance" flag, a note
 overlays real points, an **EMA-smoothed trend**, a **target trajectory**, and the goal line.
 Stat cards show current weight and Δ, **BMI** with category, gap to goal, and a **projected
 goal date**. A per-period table breaks down average intake, estimated and empirical burn, and
-the daily deficit between weigh-ins.
+the daily deficit between weigh-ins. Export every weigh-in to **CSV**.
 
 ### Aliments — food database
 
@@ -79,10 +85,10 @@ the per-100 g values (kcal / fat / carbs / protein).
 
 ### Recettes — recipes
 
-Build recipes from foods **and** other recipes (nested, cycle-checked). Set the batch weight
-(defaults to the ingredient sum, overridable to the measured cooked weight) and the number of
-servings; Macronome derives per-100 g and per-portion macros and exposes the recipe as a
-loggable food with a "portion" unit.
+Build recipes from foods **and** other recipes (nested, cycle-checked). Set the batch weight —
+in **Auto** mode it tracks the live ingredient sum, or switch to **manual** to enter the
+measured cooked weight — and the number of servings; Macronome derives per-100 g and per-portion
+macros and exposes the recipe as a loggable food with a "portion" unit.
 
 ### Cibles — targets & metabolic engine
 
@@ -105,6 +111,22 @@ counted as failures.
 A live, global list of recurring foods pinned per meal slot. Pinning adds the food (at qty 0)
 to today and future days and pre-fills new days; the same list is editable from both Settings
 and the Repas pin.
+
+### Assistant IA — optional AI assistant
+
+Connect your own **OpenAI-compatible** endpoint (e.g. Google Gemini) from a dedicated page: a
+base URL and an API key (stored write-only, never echoed back), verified by **listing the
+provider's models**. Each AI task has its own **model** and an editable **prompt**:
+
+- **Photo → macros** — from the meal log, upload one to four dish photos (plus an optional note)
+  and a vision model estimates the macros; the default prompt leans slightly pessimistic
+  (prefers a small over-estimate).
+- **Meal proposals** — ask for foods and quantities that fill the day's **remaining target
+  band**; proposals are aware of what you've already eaten, are **refinable** (pin and adjust
+  quantities), and show a graceful "already on target" state when there's nothing to add.
+
+The whole feature is **opt-in**: Macronome works fully without it, and nothing leaves your
+server until you configure a connection.
 
 ### Paramètres — settings
 
@@ -287,11 +309,3 @@ from `compose.dev.yml` is separate (**5434**) so both can run at once.
 The product is defined by fixed, git-synced **contracts**: `spec/` (data schema, API, domain
 logic with worked numeric examples), `design/` (design tokens + components), and `DECISIONS.md`.
 Architecture docs live in `ARCHITECTURE.md` + `docs/architecture/`.
-
----
-
-## Versioning
-
-The annotated git tag `vX.Y.Z` is the single source of truth for the app version (ADR-0002). It
-flows to the Docker image tags (`:vX.Y.Z`, `:vX.Y`, `:latest`) and is baked into the image as
-`APP_VERSION`, surfaced at `GET /api/v1/health` and on the **À propos** screen.

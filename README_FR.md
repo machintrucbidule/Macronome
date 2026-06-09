@@ -23,6 +23,9 @@ web rapide et dense :
   l'IMC et une date d'atteinte projetée.
 - **Comprends ton assiduité** avec des moyennes glissantes, une heatmap du taux d'OK, des
   graphiques mensuels et des signaux en langage clair.
+- **Assistance IA optionnelle** — connecte ton propre modèle compatible OpenAI (par ex. Gemini)
+  pour estimer les macros d'un plat à partir d'une photo et proposer des repas qui collent à tes
+  cibles restantes.
 
 Deux principes traversent l'application :
 
@@ -59,12 +62,17 @@ nommée** comme « 1 œuf = 57 g »). Points clés :
 - **Mode cuisine** 🍳 : une fenêtre tactile, sans clavier, pour ajuster les poids réels cuisinés.
 - **Aliments personnalisés** pour des saisies manuelles ponctuelles, et des **cartes de macros**
   montrant chaque macro face à sa plage cible.
+- **Annuler / rétablir** (Ctrl+Z / Ctrl+Y) sur les éditions de lignes — ajout/suppression,
+  quantité, unité, épingle, réordonnancement.
+- **Assistance IA (optionnelle)** : estime les macros d'un plat depuis une photo, ou obtiens des
+  **propositions de repas** qui complètent la plage cible restante du jour (voir _Assistant IA_).
 
 ### Journal — historique des journées
 
 Une vue d'ensemble triable de chaque jour enregistré, avec des bandes d'état rouge / jaune / vert
 (sans donnée / résumé / détaillé). Ouvre n'importe quel jour, corrige les verdicts ou l'activité,
 édite en ligne les totaux caloriques, et choisis une année (limitée aux années avec des données).
+Exporte l'historique en **CSV** (une ligne récap par jour enregistré, toutes années confondues).
 
 ### Poids — poids & tendance
 
@@ -73,7 +81,7 @@ note). Le graphique superpose les points réels, une **tendance lissée par EMA*
 cible** et la ligne d'objectif. Les cartes affichent le poids actuel et son Δ, l'**IMC** avec sa
 catégorie, l'écart à l'objectif et une **date d'atteinte projetée**. Un tableau par période
 détaille l'apport moyen, la dépense estimée et empirique, et le déficit quotidien entre deux
-pesées.
+pesées. Exporte toutes les pesées en **CSV**.
 
 ### Aliments — base d'aliments
 
@@ -86,9 +94,10 @@ glucides / protéines).
 ### Recettes — recettes
 
 Compose des recettes à partir d'aliments **et** d'autres recettes (imbriquées, sans cycle). Définis
-le poids du lot (par défaut la somme des ingrédients, modifiable au poids cuit mesuré) et le nombre
-de portions ; Macronome dérive les macros pour 100 g et par portion et expose la recette comme un
-aliment enregistrable doté d'une unité « portion ».
+le poids du lot — en mode **Auto** il suit la somme vivante des ingrédients, ou bascule en
+**manuel** pour saisir le poids cuit mesuré — et le nombre de portions ; Macronome dérive les
+macros pour 100 g et par portion et expose la recette comme un aliment enregistrable doté d'une
+unité « portion ».
 
 ### Cibles — objectifs & moteur métabolique
 
@@ -111,6 +120,24 @@ non enregistrés et futurs sont exclus des taux — jamais comptés comme des é
 Une liste vivante et globale d'aliments récurrents épinglés par repas. Épingler ajoute l'aliment (à
 la quantité 0) à aujourd'hui et aux jours futurs et pré-remplit les nouveaux jours ; la même liste
 est modifiable depuis les Paramètres comme depuis l'épingle de l'écran Repas.
+
+### Assistant IA — assistant IA optionnel
+
+Connecte ton propre point d'accès **compatible OpenAI** (par ex. Google Gemini) depuis une page
+dédiée : une URL de base et une clé API (stockée en écriture seule, jamais renvoyée), vérifiée en
+**listant les modèles** du fournisseur. Chaque tâche IA a son propre **modèle** et un **prompt**
+éditable :
+
+- **Photo → macros** — depuis le journal des repas, importe une à quatre photos du plat (plus une
+  note optionnelle) et un modèle de vision estime les macros ; le prompt par défaut est légèrement
+  pessimiste (préfère une petite surestimation).
+- **Propositions de repas** — demande des aliments et quantités qui complètent la **plage cible
+  restante** du jour ; les propositions tiennent compte de ce que tu as déjà mangé, sont
+  **affinables** (épingler et ajuster les quantités) et affichent un état « déjà dans la cible »
+  quand il n'y a rien à ajouter.
+
+Toute la fonctionnalité est **optionnelle** : Macronome fonctionne pleinement sans elle, et rien
+ne quitte ton serveur tant que tu n'as pas configuré de connexion.
 
 ### Paramètres — paramètres
 
@@ -297,11 +324,3 @@ Le produit est défini par des **contrats** fixes, synchronisés via git : `spec
 données, API, logique métier avec exemples numériques travaillés), `design/` (tokens + composants
 de design) et `DECISIONS.md`. La documentation d'architecture vit dans `ARCHITECTURE.md` +
 `docs/architecture/`.
-
----
-
-## Versionnement
-
-Le tag git annoté `vX.Y.Z` est l'unique source de vérité de la version de l'application (ADR-0002).
-Il se propage aux tags d'image Docker (`:vX.Y.Z`, `:vX.Y`, `:latest`) et est intégré à l'image via
-`APP_VERSION`, exposé à `GET /api/v1/health` et sur l'écran **À propos**.
