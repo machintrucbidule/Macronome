@@ -75,7 +75,10 @@ export function aggregate(
 /** Recompute and certify a proposal from its solved quantities. */
 export function verifyProposal(items: SolvedQuantity[], ctx: DayContext): VerifiedProposal {
   const { entered, targets } = ctx;
-  const verifiedItems = items.map(toVerifiedItem);
+  // B-128: a quantity of 0 means "not included" (the solver's domain includes 0) — drop
+  // solved-to-0 items from the displayed list. Aggregates stay over the full set (a 0-gram
+  // item contributes 0, so day_total/targets_met/gaps are unaffected).
+  const verifiedItems = items.filter((it) => it.grams > 0).map(toVerifiedItem);
   const { dayAgg } = aggregate(items, entered);
 
   return {

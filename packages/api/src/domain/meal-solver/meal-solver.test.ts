@@ -156,6 +156,26 @@ describe('verify (§3–§4)', () => {
     expect(chicken).toMatchObject({ served_quantity: 150, unit: 'g', served_grams: 150 });
   });
 
+  test('B-128 — items solved to 0 (g or portion) are dropped from items; totals unaffected', () => {
+    const nonZero = [g('F1', 200), g('F3', 200), p('F4', 'dose', 1)];
+    // Add two zero-quantity items: one portionless at 0 g, one portioned at 0 portions.
+    const withZeros = [...nonZero, g('F2', 0), p('F5', 'œuf', 0)];
+
+    const base = verifyProposal(nonZero, CTX);
+    const v = verifyProposal(withZeros, CTX);
+
+    // A 0 quantity means "not included" — never shown as a line.
+    expect(v.items.find((i) => i.food_id === 'F2')).toBeUndefined();
+    expect(v.items.find((i) => i.food_id === 'F5')).toBeUndefined();
+    // Non-zero items remain.
+    expect(v.items.map((i) => i.food_id).sort()).toEqual(['F1', 'F3', 'F4']);
+
+    // Totals, verdict and gaps are identical with or without the 0 lines.
+    expect(v.day_total).toEqual(base.day_total);
+    expect(v.targets_met).toEqual(base.targets_met);
+    expect(v.gaps).toEqual(base.gaps);
+  });
+
   test('calorie-axis basis — F3 uses stored kcal 60, not 9/4/4 arithmetic (56)', () => {
     expect(itemSnap(PER100G.F3!, 100).kcal).toBe(60);
     const { dayAgg } = aggregate([g('F3', 100)], ENTERED);
