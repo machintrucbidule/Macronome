@@ -67,6 +67,8 @@
     "cancel": "Cancel",
     "remove": "Remove",
     "close": "Close",
+    "yes": "Yes",
+    "no": "No",
     "optional": "(optional)",
     "loading": "Loading…",
     "loadError": "Couldn't load. Showing cached data; try again later.",
@@ -112,6 +114,7 @@
       "protein": "Protein",
       "rating": "Rating",
       "visibility": "Visibility",
+      "aiProposable": "Available for AI recipes",
       "comment": "Comment"
     },
     "portions": {

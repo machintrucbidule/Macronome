@@ -144,9 +144,17 @@
   grid-template-columns: 1fr 1fr;
   gap: var(--sp-6);
 }
+.grid3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-6);
+}
 @media (max-width: 820px) {
   .grid4 {
     grid-template-columns: 1fr 1fr;
+  }
+  .grid3 {
+    grid-template-columns: 1fr;
   }
 }
 

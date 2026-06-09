@@ -264,7 +264,13 @@ documented here only so the information is ready when the author decides to run 
           field (read required; create `.optional().default(true)`; update optional). New foods default
           ON; the visible toggle is S3. Integration: default-true on create, false round-trip, DB-default
           backfill.
-    - [ ] S3 Foods-form "Dispo IA" toggle (web, end-to-end for the toggle).
+    - [x] **S3 — Foods-form "Dispo IA" toggle** (web, end-to-end for the toggle): the food add/edit
+          modal gets a segmented **Oui/Non** "Dispo pour recettes IA" control as a 3rd column after
+          Visibility (default ON; reuses the `aria-pressed` segmented pattern via a shared `Segmented`
+          component — §6.7's open choice resolved to segmented, no slider). `draft.ts` carries
+          `aiProposable`; new `foods.field.aiProposable` + `common.yes`/`common.no` i18n (FR+EN). Web-only,
+          no schema/API change. Acceptance green: `FoodModal.test.tsx` (default ON, Non→false persisted,
+          edit hydrates) + typecheck + lint + check:i18n + full web suite (166) + web build.
     - [ ] S4 Solver foundation — remaining + types + penalty + verify (pure).
     - [ ] S5 Solver search — `solve.ts` (pure) + determinism.
     - [ ] S6 Chef domain — assemble + format + parse (LLM-shaped, mocked).

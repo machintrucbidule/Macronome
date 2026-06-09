@@ -1864,6 +1864,9 @@ slice per that dev-plan; live contracts: `spec/api/ai.md`, `spec/logic/ai-meal-s
   migration backfills existing rows true) controls whether a food may ever appear in AI proposals;
   OFF → never proposed. Surfaced in the food add/edit modal as a 3rd column after Visibility
   ("Dispo pour recettes IA", Oui/Non). Candidate pool filters `ai_proposable = true AND rating ≠ 0`.
+  _S3 (B-123):_ the visible toggle shipped; spec §6.7's open control-style choice is **resolved to
+  the segmented Oui/Non two-button control** (reuses Visibility's `aria-pressed` segmented pattern —
+  no new component, no slider).
 - **Internal calls.** Stateless server (refine constraints held client-side, re-sent each call);
   **3** proposals, distinct and varied across refines; OK-day history window ≈ 60 days
   (`OK_DAY_HISTORY_WINDOW_DAYS`); **privacy** — the prompt sends only food names/macros/ratings/

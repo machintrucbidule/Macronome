@@ -67,6 +67,8 @@
     "cancel": "Annuler",
     "remove": "Supprimer",
     "close": "Fermer",
+    "yes": "Oui",
+    "no": "Non",
     "optional": "(optionnel)",
     "loading": "Chargement…",
     "loadError": "Échec du chargement. Affichage des données en cache ; réessayez plus tard.",
@@ -112,6 +114,7 @@
       "protein": "Protéines",
       "rating": "Note",
       "visibility": "Visibilité",
+      "aiProposable": "Dispo pour recettes IA",
       "comment": "Commentaire"
     },
     "portions": {

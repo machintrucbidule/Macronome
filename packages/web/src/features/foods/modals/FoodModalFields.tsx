@@ -4,6 +4,7 @@ import { TextInput } from '../../../components/Form/TextInput';
 import { RatingSelect } from '../../../components/RatingStars/RatingSelect';
 import { NamedPortionsEditor } from './NamedPortionsEditor';
 import { MacroInputs } from './MacroInputs';
+import { Segmented } from './Segmented';
 import type { Draft } from './draft';
 import styles from '../foods.module.css';
 
@@ -45,7 +46,7 @@ export function FoodModalFields({
 
       <NamedPortionsEditor portions={draft.portions} onChange={(portions) => set({ portions })} />
 
-      <div className={styles.grid2}>
+      <div className={styles.grid3}>
         <div>
           <div className="hint" style={{ marginBottom: 6 }}>
             {t('foods.field.rating')}
@@ -56,27 +57,24 @@ export function FoodModalFields({
             ariaLabel={t('foods.field.rating')}
           />
         </div>
-        <div>
-          <div className="hint" style={{ marginBottom: 6 }}>
-            {t('foods.field.visibility')}
-          </div>
-          <div className={styles.visseg}>
-            <button
-              type="button"
-              aria-pressed={draft.visibility === 'private'}
-              onClick={() => set({ visibility: 'private' })}
-            >
-              {t('foods.visibility.private')}
-            </button>
-            <button
-              type="button"
-              aria-pressed={draft.visibility === 'shared'}
-              onClick={() => set({ visibility: 'shared' })}
-            >
-              {t('foods.visibility.shared')}
-            </button>
-          </div>
-        </div>
+        <Segmented
+          label={t('foods.field.visibility')}
+          value={draft.visibility}
+          options={[
+            { value: 'private', label: t('foods.visibility.private') },
+            { value: 'shared', label: t('foods.visibility.shared') },
+          ]}
+          onChange={(visibility) => set({ visibility })}
+        />
+        <Segmented
+          label={t('foods.field.aiProposable')}
+          value={draft.aiProposable}
+          options={[
+            { value: true, label: t('common.yes') },
+            { value: false, label: t('common.no') },
+          ]}
+          onChange={(aiProposable) => set({ aiProposable })}
+        />
       </div>
 
       <TextInput
