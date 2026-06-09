@@ -1,12 +1,11 @@
 // Display helpers for the Repas screen (rounding per spec/logic/00-conventions.md; locale
 // date formatting). Pure formatting — never a nutrition computation.
+import { effectiveTodayIso } from '../../lib/effectiveDay';
 
-/** Today's date as YYYY-MM-DD in the user's local timezone. */
+/** The default day to open: the calendar date, or the previous one before 03:00 (display-only
+ *  rollover, DB-1 / B-134). The user can still navigate to the real calendar date. */
 export function todayIso(): string {
-  const d = new Date();
-  const m = `${d.getMonth() + 1}`.padStart(2, '0');
-  const day = `${d.getDate()}`.padStart(2, '0');
-  return `${d.getFullYear()}-${m}-${day}`;
+  return effectiveTodayIso();
 }
 
 /** Parse a YYYY-MM-DD string to a local Date (noon, to dodge DST edges). */

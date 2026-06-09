@@ -35,7 +35,9 @@ tabular-nums; white-space:nowrap`; first/name cell left, `--font-body`. The **Jo
 ## Macro cells (Journal)
 
 `.mF→var(--c-fat)`, `.mC→var(--c-carb)`, `.mP→var(--c-prot)`; `.none →
-var(--text-faint)` em-dash when a day has no macro detail.
+var(--text-faint)` em-dash when a day has no macro detail. The three L·G·P values render as
+**fixed-width, right-aligned, tabular-nums slots** inside the single Macros cell so they
+**column-align across rows** (B-135), keeping the L·G·P order and per-macro colours.
 
 ## Day-state band + legend (Journal, JR-1 / B-077)
 

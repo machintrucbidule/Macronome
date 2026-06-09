@@ -65,11 +65,11 @@ export function JournalRow({ row, onPatch }: JournalRowProps) {
       />
       <td className={`${tableStyles.num} ${tableStyles.clickable}`} onClick={openDay}>
         {row.macros ? (
-          <>
-            <span className={styles.mFat}>{r0(row.macros.L)}</span>{' '}
-            <span className={styles.mCarb}>{r0(row.macros.G)}</span>{' '}
-            <span className={styles.mProt}>{r0(row.macros.P)}</span>
-          </>
+          <span className={styles.macros}>
+            <span className={`${styles.mVal} ${styles.mFat}`}>{r0(row.macros.L)}</span>
+            <span className={`${styles.mVal} ${styles.mCarb}`}>{r0(row.macros.G)}</span>
+            <span className={`${styles.mVal} ${styles.mProt}`}>{r0(row.macros.P)}</span>
+          </span>
         ) : (
           DASH
         )}

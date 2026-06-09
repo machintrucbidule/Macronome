@@ -2085,3 +2085,40 @@ integer, no forced multiple). The pin model (`PinnedLine`) and the request body 
 No DB/schema/API/DTO/domain change. Tests: `refineConstraints.test.ts` (`setPinnedCount` clamp/round)
 
 - new `RefinePanel.test.tsx` (typing pins the line at the value; the stepper steps from it).
+
+## DB-1 / B-134 — client display-only day rollover at 03:00 — RESOLVED (author, 2026-06-09)
+
+`todayIso()` (Repas default day) and `currentYear()` (Journal default year) used the raw local
+`new Date()`, so opening the app at 00:30 landed on the new calendar day while the user was still
+logging the previous one.
+
+**Decision (author).** Before **03:00 local** the client treats the **previous calendar date** as the
+default day on **Repas** (and the prior year on **Journal**). **Display-only** — the user can still
+navigate to the real date, and the server stays calendar-based: the frozen/live boundary, stats
+future-day exclusion and verdict snapshots are **unchanged** (no domain-engine change; this dropped
+the item from a potential critical-correctness change to UX).
+
+- **Web:** new pure `lib/effectiveDay.ts` (`DAY_ROLLOVER_HOUR = 3`, `effectiveTodayIso(now)`); the two
+  existing helpers delegate to it (`meals/format.ts todayIso`, `journal/format.ts currentYear`), so the
+  Repas default day + `isToday` + calendar marker and the Journal default year all roll over together.
+- **Scope = Repas + Journal** (the decided scope). Stats' own `currentYear()` and the Poids modal's
+  local `todayIso` are intentionally **left calendar-based** (out of scope).
+
+**Contract delta:** `spec/logic/00-conventions.md` (new "Dates & day boundary" note, display-only) +
+`specifications/screens/meals.md` + `history.md`. No DB/schema/API/DTO/domain change. Test:
+`effectiveDay.test.ts` (before 03:00 → previous date; ≥ 03:00 → same; month/year boundary rollover).
+
+## JM-1 / B-135 — Journal L·G·P macros column-align across rows — RESOLVED (author, 2026-06-09)
+
+The three macro figures rendered as space-separated `<span>`s in one cell, so they didn't line up
+between rows.
+
+**Decision (author).** Render the three L·G·P values as **fixed-width, right-aligned, tabular-nums
+slots** inside the single Macros cell, keeping the L·G·P order and per-macro colours. Cosmetic, CSS-led.
+
+- **Web:** `JournalRow` wraps the values in a `.macros` flex container; each value gets a shared `.mVal`
+  width slot alongside its `.mFat`/`.mCarb`/`.mProt` colour class (`journal.module.css`). The "—"
+  no-detail case is untouched. Single Macros column + header unchanged.
+
+**Contract delta:** `specifications/screens/history.md` + `design/components/data-tables.md` (§Macro
+cells). No DB/schema/API/DTO change. Cosmetic → visual + lint (no dedicated test).

@@ -137,6 +137,18 @@
   background: currentColor;
 }
 
+/* Macro cell (B-135): three fixed-width right-aligned slots so L·G·P column-align across rows. */
+.macros {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-3);
+}
+.mVal {
+  display: inline-block;
+  min-width: 30px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
 .mFat {
   color: var(--c-fat);
 }

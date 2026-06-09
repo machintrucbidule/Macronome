@@ -13,6 +13,18 @@ conventions verbatim. Read this first; the other logic files assume it.
 - Energy per kg of body mass: **7700 kcal/kg**.
 - SI/metric only. Never imperial.
 
+## Dates & day boundary
+
+- Dates are **calendar dates** (`YYYY-MM-DD`, local). All **server/domain** behaviour is
+  calendar-based and uses midnight as the day boundary: the frozen-vs-live boundary, the stats
+  future-day exclusion, and the verdict snapshots are keyed to the calendar date — there is no
+  server-side rollover.
+- The **client** applies a **display-only** day rollover (DB-1 / B-134): before **03:00 local** the
+  default day on Repas (and the default year on Journal) is the **previous** calendar date, so a
+  late-night session lands on the day still being logged. This affects only which day/year is
+  pre-selected; the user can still navigate to the real calendar date, and **no domain figure,
+  snapshot, freeze, or stat changes** because of it.
+
 ## Rounding (display vs storage)
 
 - **Store full precision** (no rounding at write time) for all derived numbers

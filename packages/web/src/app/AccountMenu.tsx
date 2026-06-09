@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink } from 'react-router-dom';
 import { authApi } from '../api/auth';
@@ -7,13 +7,24 @@ import styles from './AppShell.module.css';
 
 // Account menu (specifications/screens/settings.md): the top-right avatar dropdown holding
 // the non-primary screens (Compte, Cibles, Contenants, Assistant IA, Paramètres) + logout. A native
-// <details> gives click-to-open + Esc/outside behaviour; navigating closes it.
+// <details> gives click-to-open + Esc; a pointerdown handler closes it on an outside click (B-131,
+// which a bare <details> does NOT do); navigating also closes it.
 export function AccountMenu() {
   const { t } = useTranslation();
   const session = useSession();
   const ref = useRef<HTMLDetailsElement>(null);
   const close = (): void => ref.current?.removeAttribute('open');
   const item = styles.acctItem ?? '';
+
+  // Close on an outside click (B-131): native <details> only closes on Esc / re-clicking the summary.
+  useEffect(() => {
+    const onDown = (e: PointerEvent): void => {
+      const el = ref.current;
+      if (el?.open && !el.contains(e.target as Node)) el.removeAttribute('open');
+    };
+    document.addEventListener('pointerdown', onDown);
+    return () => document.removeEventListener('pointerdown', onDown);
+  }, []);
 
   const logout = async (): Promise<void> => {
     await authApi.logout();

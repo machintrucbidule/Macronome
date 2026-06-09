@@ -1,5 +1,6 @@
 // Display helpers for the Journal screen (locale date formatting + integer rounding).
 // Pure formatting — never a nutrition computation (CLAUDE.md rule 2).
+import { effectiveTodayIso } from '../../lib/effectiveDay';
 
 /** Parse a YYYY-MM-DD string to a local Date (noon, to dodge DST edges). */
 function parseIso(date: string): Date {
@@ -26,9 +27,10 @@ export function yearOf(date: string): number {
   return Number(date.slice(0, 4));
 }
 
-/** Current calendar year in the user's local timezone. */
+/** Default year: the effective-today year (so before 03:00 on Jan 1 it stays the prior year,
+ *  matching the Repas display-only rollover, DB-1 / B-134). */
 export function currentYear(): number {
-  return new Date().getFullYear();
+  return Number(effectiveTodayIso().slice(0, 4));
 }
 
 /** Round to a whole number for display (calories/macros shown as integers). */
