@@ -291,7 +291,14 @@ documented here only so the information is ready when the author decides to run 
           (tolerant fence/balanced-object parse + §3.4 validation: drop unknown ids, repair portion,
           de-dup, zero valid → `ai_bad_response`), `types.ts`, `index.ts`. No contract/`DECISIONS.md`
           change (chef contract live from S1). Green: 14 new tests + full unit suite (315) + typecheck + lint.
-    - [ ] S7 Repos — candidate pool + OK-day history sampling.
+    - [x] **S7 — Repos** (candidate pool + OK-day history sampling): new user-scoped read layer
+          `packages/api/src/data/repositories/ai-suggestions.repo.ts` — `candidatePool` (eligible
+          foods `ai_proposable AND rating≠0`, unrated kept, non-archived, **non-recipe**; ranked
+          rating-desc then recency-of-use, capped + logged) returning `ChefFood[]` inline (domain
+          can't import data; mirrors `loggable.repo`); `okDayHistory` (most-recent detailed OK days
+          before the working date, newest-first, foods+qty per meal — reuses `dayStat`'s prorated
+          verdict since stored `verdict_auto` is stale). No contract/`DECISIONS.md` change (pool +
+          history rules live from S1). Green: 6 new integration tests + full suite (315 unit / 156 int) + typecheck + lint.
     - [ ] S8 Service + controller + route (API end-to-end, LLM mocked).
     - [ ] S9 Web client + hook + button + request popup.
     - [ ] S10 Web proposals display.
