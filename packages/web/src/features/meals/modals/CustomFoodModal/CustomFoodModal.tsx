@@ -1,9 +1,11 @@
 import { useId, useState, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { DishPhotoMacros } from '@macronome/shared';
 import { Modal, modalStyles } from '../../../../components/Modal/Modal';
 import { Button } from '../../../../components/Button/Button';
 import { useMeals } from '../../MealsContext';
 import type { CustomTarget, CustomValues } from '../../hooks/useMealsController';
+import { AiDishAnalysisDialog } from '../AiDishAnalysisDialog';
 import styles from '../modals.module.css';
 
 // Manual-entry line editor (specifications/screens/meals.md §Custom inline). Total values of
@@ -19,6 +21,34 @@ const numOr0 = (s: string): number => {
   return Number.isFinite(n) ? n : 0;
 };
 
+interface CuFieldProps {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  opt?: boolean;
+  full?: boolean;
+}
+
+function CuField({ id, label, value, onChange, opt = false, full = false }: CuFieldProps) {
+  const { t } = useTranslation();
+  return (
+    <div className={`${styles.cuField} ${full ? styles.full : ''}`}>
+      <label htmlFor={id}>
+        {label}
+        {opt && <span className={styles.opt}> {t('common.optional')}</span>}
+      </label>
+      <input
+        id={id}
+        className={full ? '' : 'num'}
+        type={full ? 'text' : 'number'}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </div>
+  );
+}
+
 export function CustomFoodModal({ target, initial }: CustomFoodModalProps) {
   const { t } = useTranslation();
   const { actions } = useMeals();
@@ -29,8 +59,20 @@ export function CustomFoodModal({ target, initial }: CustomFoodModalProps) {
   const [fat, setFat] = useState(initial ? String(initial.snap.fat) : '');
   const [carb, setCarb] = useState(initial ? String(initial.snap.carb) : '');
   const [protein, setProtein] = useState(initial ? String(initial.snap.protein) : '');
+  const [showAi, setShowAi] = useState(false);
 
   const isValid = numOr0(kcal) > 0;
+
+  // Pre-fill the six fields from the AI estimate (1:1 totals — spec/logic/ai-dish-photo-macros.md §5).
+  const applyAnalysis = (r: DishPhotoMacros): void => {
+    setName(r.dish_name);
+    setKcal(String(r.kcal));
+    setWeight(String(r.weight_g));
+    setFat(String(r.fat_g));
+    setCarb(String(r.carb_g));
+    setProtein(String(r.protein_g));
+    setShowAi(false);
+  };
 
   const save = (): void => {
     const k = numOr0(kcal);
@@ -52,31 +94,7 @@ export function CustomFoodModal({ target, initial }: CustomFoodModalProps) {
     }
   };
 
-  const field = (
-    key: string,
-    label: string,
-    value: string,
-    onChange: (v: string) => void,
-    opt = false,
-    full = false,
-  ) => {
-    const id = `${fieldId}-${key}`;
-    return (
-      <div className={`${styles.cuField} ${full ? styles.full : ''}`}>
-        <label htmlFor={id}>
-          {label}
-          {opt && <span className={styles.opt}> {t('common.optional')}</span>}
-        </label>
-        <input
-          id={id}
-          className={full ? '' : 'num'}
-          type={full ? 'text' : 'number'}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-        />
-      </div>
-    );
-  };
+  const fid = (key: string): string => `${fieldId}-${key}`;
 
   return (
     <Modal
@@ -85,13 +103,40 @@ export function CustomFoodModal({ target, initial }: CustomFoodModalProps) {
     >
       <div className={modalStyles.body} onKeyDown={onKeyDown}>
         <p className={styles.sub}>{t('meals.custom.sub')}</p>
+        <div className={styles.cuAi}>
+          <Button variant="ghost" onClick={() => setShowAi(true)}>
+            {t('meals.aiAnalysis.button')}
+          </Button>
+        </div>
         <div className={styles.cuGrid}>
-          {field('name', t('meals.custom.name'), name, setName, false, true)}
-          {field('kcal', t('meals.card.calories'), kcal, setKcal)}
-          {field('weight', t('meals.custom.weight'), weight, setWeight, true)}
-          {field('fat', t('meals.card.fat'), fat, setFat)}
-          {field('carb', t('meals.card.carb'), carb, setCarb)}
-          {field('protein', t('meals.card.protein'), protein, setProtein)}
+          <CuField
+            id={fid('name')}
+            label={t('meals.custom.name')}
+            value={name}
+            onChange={setName}
+            full
+          />
+          <CuField
+            id={fid('kcal')}
+            label={t('meals.card.calories')}
+            value={kcal}
+            onChange={setKcal}
+          />
+          <CuField
+            id={fid('weight')}
+            label={t('meals.custom.weight')}
+            value={weight}
+            onChange={setWeight}
+            opt
+          />
+          <CuField id={fid('fat')} label={t('meals.card.fat')} value={fat} onChange={setFat} />
+          <CuField id={fid('carb')} label={t('meals.card.carb')} value={carb} onChange={setCarb} />
+          <CuField
+            id={fid('protein')}
+            label={t('meals.card.protein')}
+            value={protein}
+            onChange={setProtein}
+          />
         </div>
       </div>
       <div className={modalStyles.actions}>
@@ -102,6 +147,9 @@ export function CustomFoodModal({ target, initial }: CustomFoodModalProps) {
           {t('common.save')}
         </Button>
       </div>
+      {showAi && (
+        <AiDishAnalysisDialog onApplied={applyAnalysis} onClose={() => setShowAi(false)} />
+      )}
     </Modal>
   );
 }

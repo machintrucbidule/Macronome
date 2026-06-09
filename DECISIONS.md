@@ -211,11 +211,14 @@ number. Confirms G7.
   `spec/logic/metabolic-engine.md` reference data.)
 - **12 — "Best month" threshold:** a month needs **≥ 5 logged days** to qualify
   for "best month"; named constant.
-- **14 — AI advisor hook:** named but inert in two places — (a) data: a
-  `User.settings.llm_endpoint` config (OpenAI-compatible URL + optional key,
-  online or local), stored, unused in v1; (b) API: a reserved route documented
-  "not implemented in v1" that, once enabled, receives a curated payload (recent
-  intake, macro adherence, weight trend, deficit). No work in v1.
+- **14 — AI advisor hook:** originally named but inert in two places — (a) data: a
+  `User.settings.llm_endpoint` config; (b) API: a reserved `POST /advisor/query` route
+  "not implemented in v1". **Amended by B-117 (post-v1 triage):** the **connection** is no
+  longer inert — `settings.llm_endpoint` is replaced by a richer `settings.ai`
+  (OpenAI-compatible URL + secret key + three task `{model,prompt}` slots) that the user
+  **configures and verifies** (model listing) on Paramètres. The **uses** (advisor/query,
+  photo→macros, meal suggestions, advice) stay **reserved/501** — no AI call is built yet.
+  See the B-117 entry below.
 
 ---
 
@@ -1621,3 +1624,141 @@ column, apport/dépense/déficit column grouping) — re-add only if requested l
   `features/weight/components/PeriodRow.tsx` (apply classes/arrow/pill/badge);
   `features/weight/weight.module.css` (tone, activity-pill palette, régime-badge classes). **No
   DB/schema/API/DTO change** — every figure is already server-computed on the `Period` DTO.
+
+---
+
+## B-117 — AI assistant connection: configurable & verifiable (was inert hook) — RESOLVED (author)
+
+Post-v1 backlog triage. The reserved AI hook (Gap 14 / DEV_PLAN O2) shipped as inert: an
+unused `settings.llm_endpoint {url,key?}` and a 501 `POST /advisor/query`. The author wants to
+**configure and verify** a remote AI connection now (target: Google Gemini — free and reads
+images — via its **OpenAI-compatible** endpoint), while the AI _uses_ wait for a later step.
+
+- **Connection model (replaces `llm_endpoint`).** `settings.ai` = `{ provider:"openai_compatible",
+base_url, api_key, tasks:{ dish_photo_macros, meal_suggestions, advice } }` or `null`. Each task
+  is `{ model, prompt }`. The three tasks are fixed (photo→macros = vision; meal suggestions and
+  advice = text). _(Author: OpenAI-compatible generic — Gemini exposes a compatible endpoint that
+  serves text and images, so one code path; no hard Gemini coupling.)_
+- **Models chosen live.** The model menus are populated from the provider, fetched server-side via
+  `GET /settings/ai/models` (`GET {base_url}/models`). _(Author: live-fetched list.)_
+- **Link test = the model fetch.** No dedicated ping/test endpoint: a successful model listing is
+  the connection proof; **save does local format validation only** (no provider call). _(Author:
+  "validation locale seulement" — reconciled with the live model fetch being the de-facto test.)_
+- **API key is a write-only secret.** Stored in `settings.ai.api_key`, **never returned** by the
+  API (read DTO exposes `api_key_set:boolean`) and **never logged**; the UI shows "•••• définie"
+  and the key is re-entered to change it. Not encrypted at rest in v1 (self-hosted, single owner,
+  private volume); encryption at rest is a possible future hardening. _(Author: masked, never
+  re-shown.)_
+- **Prompts are English-only user scope.** Each task `prompt` is editable, pre-filled from a fixed
+  **English** default (`defaultTaskPrompt`, not an i18n key — never translated), defining the
+  request scope. The **technical response-format instructions** are **hard-coded in the app** and
+  appended at call time (not stored), guaranteeing the return format. _(Author: prompts EN only;
+  defaults provisional, to be refined later.)_
+- **No AI use in v1.** `advisor/query` and the photo/meals/advice calls stay reserved/501; this
+  work delivers configuration + verification only.
+
+**Rationale:** keeps the AI strictly optional and off the critical path (masterplan §3.9) while
+letting the owner wire and prove the link ahead of building uses. Reuses the already-reserved seam
+(Gap 14) rather than inventing a parallel one; secrets handling mirrors the never-logged rule of
+`SESSION_SECRET`/credentials.
+
+**Spec impact:** new `spec/logic/ai-connection.md` (validation, default prompts, redaction, merge,
+OpenAI-compatible model listing, oracles); `spec/schema/tables-catalog.md` (`settings.ai` shape,
+replaces `llm_endpoint`); `spec/api/weight-targets-stats-settings.md` (`/settings` `ai` redaction +
+new `GET /settings/ai/models` + error codes) and `spec/api/00-conventions.md` (reserved-note
+update); `design/components/ai-connection.md` (active Paramètres card); `specifications/screens/
+settings.md` (Assistant IA section); `specifications/masterplan.md` §3.9; `DEV_PLAN.md` O2 (split
+into O2a connection / O2b uses). DTO/error-code work (`settings.ts`, `errors.ts`) and the web card
+are implementation, tracked as B-117.
+
+**Amendment (2026-06-09, implementation review).** The author found the connection help too terse
+(no step-by-step for the key; the base URL only hinted as a placeholder). Resolved (author-approved):
+the Assistant IA card gains (a) a **"Utiliser l'URL Gemini" quick-fill link** under the Base URL
+field that one-click fills the Gemini OpenAI-compatible endpoint, and (b) a **step-by-step help
+block** (ordered list: AI Studio sign-in → create+copy key → fill URL → fetch models & pick a
+model). Web-only + i18n; `design/components/ai-connection.md` updated (Base URL quick-fill + Help
+guide). No schema/API/DTO change.
+
+**Amendment 2 (2026-06-09, review).** "Récupérer les modèles" read the _stored_ config, so typing
+a URL+key without first clicking Enregistrer returned `ai_not_configured` — confusing. Resolved
+(author-approved): the fetch action now **persists the current draft first** (a normal `/settings`
+PATCH), then lists models, so the test always reflects the on-screen values; a bad base_url (422)
+aborts before the provider call. Web-only; `design/components/ai-connection.md` (§Fetch models) +
+`spec/logic/ai-connection.md` (§6a) note the save-then-list order. No schema/API/DTO change.
+
+---
+
+## B-118 — AI dish-photo macro estimate (first AI use, O2b) — RESOLVED (author)
+
+Post-v1 backlog triage. First actual **use** of the AI connection (B-117). On the Repas custom
+meal-entry modal, an "Analyse par IA" button opens an image-upload sub-dialog; the configured
+`dish_photo_macros` vision model estimates the dish and pre-fills the manual-entry form.
+
+- **Endpoint per task, under `/ai/*`.** `POST /api/v1/ai/dish-photo-macros` (not the generic
+  `advisor/query`, which stays reserved/501). Body `{ images:[dataURL], note? }`; reads the stored
+  `settings.ai` + the `dish_photo_macros` task (model + prompt). Persists nothing — it returns an
+  estimate the client maps into the form. _(Author.)_
+- **Aggregate multiple dishes into ONE result.** If the photos show several dishes, the model sums
+  them into a single custom entry (combined `dish_name`); the single form is pre-filled. _(Author:
+  "un seul total agrégé".)_
+- **Always estimate every field.** The model must return a best-estimate for all six values
+  (dish name, calories, weight, fat, carb, protein) — never null/omitted. _(Author.)_
+- **Prompt = configured scope + user note + hard-coded format.** The request text is the task
+  `prompt` (B-117, English), then the optional user note, then an **app-hard-coded** JSON format
+  instruction (not stored) that pins the return schema + SI units; images follow as `image_url`
+  parts (OpenAI-compatible vision). Response is parsed/validated (markdown-fence tolerant, numeric
+  coercion, all fields finite ≥ 0) → `ai_bad_response` on any mismatch.
+- **Totals map 1:1.** The custom-entry form stores totals (not per-100 g), so the result fills
+  name/kcal/served-weight/fat/carb/protein directly, no conversion (unlike the per-100 g
+  label parser, B-114).
+- **Blocked-by B-117.** Needs the configured `settings.ai` (provider client, model, key); not
+  testable until O2a is implemented. Error codes reuse B-117's four (`ai_not_configured`
+  covers a null task model).
+
+**Rationale:** keeps the AI optional and off the critical path (masterplan §3.9) while delivering
+the first concrete use; mirrors the proven parse-label pre-fill pattern; the hard-coded format
+contract guarantees a parseable return regardless of the user-editable scope prompt.
+
+**Spec impact:** new `spec/logic/ai-dish-photo-macros.md`, `spec/api/ai.md`,
+`design/components/ai-dish-analysis.md`; amended `spec/logic/ai-connection.md` (§6b chat/vision op),
+`spec/api/00-conventions.md` (per-task `/ai/*` note), `specifications/screens/meals.md` (custom
+inline editor), `DEV_PLAN.md` (O2b). DTO `dto/ai.ts` + the web sub-dialog are implementation
+(tracked as B-118, deferred until B-117 ships). No schema change (nothing persisted).
+
+**Amendment (2026-06-09, implementation review).** Three author-requested refinements after a real
+Gemini call surfaced a model-choice trap (selecting `gemini-*-image`, an image _generation_ model
+with free-tier quota 0, returned 429 → `ai_bad_response`):
+
+1. **Image-capable model filter.** The `dish_photo_macros` model picker now lists only image-capable
+   models — generation/embedding/audio ids are hidden via a best-effort id heuristic
+   (`isVisionModel`, shared `constants/ai.ts`), since the OpenAI-compatible `/models` listing has no
+   capability flags. Other tasks' pickers are unfiltered.
+2. **Note-only analysis.** `images` relaxed to **0..4** with a "at least one of images/note"
+   constraint; a note alone (e.g. "3 tranches de saucisson…") is estimated without any image
+   (`spec/api/ai.md`, `spec/logic/ai-dish-photo-macros.md §1/§2`, `dto/ai.ts` refine).
+3. **Loading state.** The sub-dialog shows a spinner + busy line and disables inputs during the
+   call (tens of seconds for vision) — `design/components/ai-dish-analysis.md`.
+   Web + shared + i18n only; no DB/API-shape change (the 429→`ai_bad_response` mapping is unchanged —
+   the picker filter prevents the bad pick that caused it).
+
+**Amendment 2 (2026-06-09).** Follow-ups from testing: (a) the **default `dish_photo_macros` prompt**
+is reworded to cover the no-image case ("Use the photo(s) when provided; otherwise rely on the
+written description …"), and the hard-coded format instruction's "everything visible across the
+provided image(s)" → "the whole dish, based on the provided photo(s) and/or written description"
+(`constants/ai.ts`, `domain/ai-dish-photo/format.ts`, `spec/logic/ai-connection.md §3`,
+`spec/logic/ai-dish-photo-macros.md §3`). Already-stored prompts are unchanged (the user re-applies
+via "Réinitialiser" or by editing). (b) the Assistant IA card's action buttons ("Récupérer les
+modèles", "Enregistrer", per-task "Réinitialiser") got the same `onMouseDown preventDefault`
+focus-steal fix as the URL quick-fill (B-117 Amendment), since the `overflow:hidden` card scrolls
+the page when an action button takes focus. Web/shared/spec only.
+
+**Amendment 3 (2026-06-09).** A note-only test intermittently failed with `ai_bad_response`
+("réponse inattendue"); measuring the real call showed Gemini returning **HTTP 503 UNAVAILABLE**
+("model experiencing high demand") on the free tier — a transient overload, not a client problem.
+Two author-requested fixes: (a) **auto-retry** transient upstream failures (500/502/503/504 +
+network) a few short attempts before giving up; (b) **clearer errors** — distinguish `ai_rate_limited`
+(429) and `ai_unavailable` (5xx) from the generic `ai_bad_response`, and pass the provider's own
+message through in `error.details.provider_message` so the UI shows the real reason. Two new error
+codes added (`shared/errors.ts`, `spec/logic/ai-connection.md §6a/§7`, `spec/api/ai.md`), with FR/EN
+messages for both the Paramètres card and the analysis dialog. Api/shared/web/spec only; no DB/DTO
+shape change.

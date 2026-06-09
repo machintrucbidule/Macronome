@@ -4,18 +4,56 @@ See `00-overview.md`. Columns list type · null/not-null · constraints.
 
 ## app_user
 
-| column                 | type        | notes                                             |
-| ---------------------- | ----------- | ------------------------------------------------- | ---------------------- | ------- | ---------------------------------------------------------------------- |
-| id                     | uuid PK     |                                                   |
-| username               | text        | NOT NULL, UNIQUE (citext or lower() unique index) |
-| password_hash          | text        | NOT NULL (argon2/bcrypt; never logged)            |
-| sex                    | text        | NOT NULL, CHECK (sex IN ('male','female'))        |
-| birthdate              | date        | NOT NULL, CHECK (birthdate < current_date)        |
-| height_cm              | numeric     | NOT NULL, CHECK (height_cm > 0)                   |
-| settings               | jsonb       | NOT NULL DEFAULT '{}' — locale ('fr'              | 'en'), theme ('system' | 'light' | 'dark', default 'dark'), llm_endpoint {url,key?} (reserved, unused v1) |
-| created_at, updated_at | timestamptz |                                                   |
+| column                 | type        | notes                                                               |
+| ---------------------- | ----------- | ------------------------------------------------------------------- |
+| id                     | uuid PK     |                                                                     |
+| username               | text        | NOT NULL, UNIQUE (citext or lower() unique index)                   |
+| password_hash          | text        | NOT NULL (argon2/bcrypt; never logged)                              |
+| sex                    | text        | NOT NULL, CHECK (sex IN ('male','female'))                          |
+| birthdate              | date        | NOT NULL, CHECK (birthdate < current_date)                          |
+| height_cm              | numeric     | NOT NULL, CHECK (height_cm > 0)                                     |
+| settings               | jsonb       | NOT NULL DEFAULT '{}' — UI + AI config; see **settings JSON** below |
+| created_at, updated_at | timestamptz |                                                                     |
 
 Profile (sex/birthdate/height) is edited on Cibles; settings on Paramètres.
+
+### settings JSON
+
+The `settings` blob carries UI preferences and the AI-assistant connection config.
+Keys (all optional; service supplies defaults):
+
+- `locale` — `'fr' | 'en'` (default `'fr'`).
+- `theme` — `'system' | 'light' | 'dark'` (default `'dark'`).
+- `current_mode` — `'in_diet' | 'not_in_diet' | null` (Régime/Maintien, persisted from Poids).
+- `ai` — the AI-assistant connection, or `null` when never configured. Shape:
+
+```jsonc
+{
+  "provider": "openai_compatible", // enum; only value in v1, extensible later
+  "base_url": "https://…", // absolute URL of the OpenAI-compatible endpoint
+  "api_key": "…", // SECRET — stored as-is, NEVER returned by the API, never logged
+  "tasks": {
+    "dish_photo_macros": { "model": "…|null", "prompt": "…" }, // photo → macro estimate (vision model)
+    "meal_suggestions": { "model": "…|null", "prompt": "…" }, // meals fitting the macro/calorie targets (text model)
+    "advice": { "model": "…|null", "prompt": "…" }, // personalised nutrition advice (text model)
+  },
+}
+```
+
+- Each task's `prompt` is the **user-editable scope** of the request, stored in **English
+  only** (independent of the UI `locale`; seeded from a fixed English default — see
+  `spec/logic/ai-connection.md`). The **technical response-format instructions** (expected
+  schema, SI units, constraints) are **not** stored here — they are hard-coded in the app and
+  appended to the prompt at call time, so the return format is guaranteed.
+- `api_key` is **write-only across the API boundary**: persisted in this column but never
+  serialised back to a client (the read DTO exposes `api_key_set: boolean` instead — see
+  `spec/api/weight-targets-stats-settings.md`). Not encrypted at rest in v1 (self-hosted,
+  single owner, private volume); the protection is non-return + non-logging. Encryption at
+  rest is a possible future hardening.
+- v1 stores and **verifies** this config (model listing proves the link) but performs **no AI
+  use** — the `dish_photo_macros` / `meal_suggestions` / `advice` calls are not yet built.
+  _(Replaces the earlier inert `llm_endpoint {url,key?}` reservation — see `DECISIONS.md`
+  Gap 14 / B-117.)_
 
 ## food
 

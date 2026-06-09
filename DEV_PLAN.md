@@ -227,9 +227,23 @@ documented here only so the information is ready when the author decides to run 
   and loaded once the app is mature, at the author's discretion. It is **not** a first-user
   bootstrap path (that role belongs to M8's first-run wizard). _(Replaces the former
   standalone "O1" ETL plan, now removed.)_
-- **O2 — Reserved AI-advisor hook (NOT part of the dev plan)** → `docs/dev-plan/O2-ai-advisor-hook.md`
-  An inert seam, **not** a v1 feature: the reserved `POST /api/v1/advisor/query` route
-  (returns **501 `not_implemented`**) plus the stored-but-unused `User.settings.llm_endpoint`
-  (the field already ships from M7). No payload assembly, no model call, no UI. Built
-  **only if/when the author decides** to enable an advisor — never as a build step.
-  _Would depend on: M0 (route plumbing), M6 (payload shape)._ See `DECISIONS.md` Gap 14.
+- **O2 — AI assistant (NOT part of the dev plan)** → `docs/dev-plan/O2-ai-advisor-hook.md`.
+  Split by B-117 (post-v1 triage):
+  - **O2a — Connection config & verification (DONE, B-117).** Paramètres configures an
+    **OpenAI-compatible** link (`settings.ai`: base URL + write-only API key + three
+    `{model,prompt}` task slots) and **verifies** it by listing the provider's models
+    (`GET /settings/ai/models`). Local-only save validation; secret never returned/logged.
+    **No AI call is made.** Shipped: shared `settings.ai` DTO + `defaultTaskPrompt` + AI error
+    codes; api `domain/ai-connection` (redact/merge) + `services/ai-provider` proxy + redacted
+    `/settings`; web active Assistant IA card. Specs: `spec/logic/ai-connection.md`,
+    `spec/api/weight-targets-stats-settings.md`, `spec/schema/tables-catalog.md`,
+    `design/components/ai-connection.md`, `specifications/screens/settings.md`.
+  - **O2b — AI uses (DONE, B-118).** A Repas custom-entry "Analyse par IA" sub-dialog sends 1–4
+    photos **and/or** a note to the configured vision model (`POST /ai/dish-photo-macros`) and
+    pre-fills the six form fields with one aggregated totals estimate. Shipped: shared `dto/ai.ts`
+    - `isVisionModel`; api `domain/ai-dish-photo` (assemble/parse) + `services/ai` + provider
+      `chatCompletion` (transient retry, provider-message passthrough, `ai_rate_limited`/`ai_unavailable`);
+      web `AiDishAnalysisDialog`. Specs: `spec/logic/ai-dish-photo-macros.md`, `spec/api/ai.md`,
+      `design/components/ai-dish-analysis.md`. The `meal_suggestions` / `advice` task endpoints and the
+      generic `POST /advisor/query` (**501 `not_implemented`**) remain reserved.
+      See `DECISIONS.md` Gap 14 / B-117 / B-118.

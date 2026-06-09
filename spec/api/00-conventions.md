@@ -76,10 +76,15 @@ The macro-label parser (`POST /foods/parse-label`, PM-1/B-114) returns **422**
 
 ## Reserved (not implemented in v1)
 
-- `POST /api/v1/advisor/query` — AI advisor hook (OPEN_GAPS #14). Returns **501
-  not_implemented** in v1. When enabled it accepts a curated payload (recent
-  intake, macro adherence, weight trend, deficit) and the configured
-  OpenAI-compatible endpoint from `app_user.settings.llm_endpoint`.
+- `POST /api/v1/advisor/query` — generic AI advisor hook (OPEN_GAPS #14). Returns **501
+  not_implemented**. When enabled it accepts a curated payload (recent intake, macro
+  adherence, weight trend, deficit) and calls the configured OpenAI-compatible endpoint
+  from `app_user.settings.ai`. The **connection itself** is configurable and verifiable
+  — see `spec/api/weight-targets-stats-settings.md` (`/settings`, `/settings/ai/models`)
+  and `spec/logic/ai-connection.md` (DECISIONS Gap 14 / B-117).
+- **Per-task AI uses** live under `/api/v1/ai/*` — see `spec/api/ai.md`. The first
+  implemented one is `POST /ai/dish-photo-macros` (B-118); `meal_suggestions` / `advice`
+  task endpoints remain reserved.
 
 ## Data management (IMP-1)
 

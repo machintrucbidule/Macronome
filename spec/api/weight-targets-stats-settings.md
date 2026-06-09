@@ -100,8 +100,33 @@ target_zone:{cal_min,cal_max}, signals:[{code,value,text}]}`.
 
 ## Settings, template, pantry (Paramètres)
 
-- `GET/PATCH /settings` — `{locale,theme,llm_endpoint?}` (llm_endpoint stored,
-  unused in v1).
+- `GET/PATCH /settings` — `{locale, theme, current_mode?, ai?}`.
+  - **`ai`** is the AI-assistant connection (or `null`); see `spec/logic/ai-connection.md`
+    and `spec/schema/tables-catalog.md`. On **read**, `ai` is **redacted**: the
+    `api_key` is **never** returned; instead the object carries `api_key_set: boolean`.
+    Read shape:
+    ```json
+    {
+      "provider": "openai_compatible",
+      "base_url": "https://…",
+      "api_key_set": true,
+      "tasks": {
+        "dish_photo_macros": { "model": "…|null", "prompt": "…" },
+        "meal_suggestions": { "model": "…|null", "prompt": "…" },
+        "advice": { "model": "…|null", "prompt": "…" }
+      }
+    }
+    ```
+  - On **`PATCH`**, `ai` is a **partial** object merged onto the stored config (deep
+    per-task merge; `api_key` absent = keep, `""`/`null` = clear, else replace — see
+    `ai-connection.md` §4). Validation is **local** (format only; Zod at the controller);
+    **no provider call** happens here. Bad URL → 422 (`base_url: invalid_url`).
+- `GET /settings/ai/models` — server-side proxy that lists the configured provider's models
+  via the **stored** `ai` config (`GET {base_url}/models`, Bearer `api_key`). → 200
+  `{data:[{id}]}`. **This is the connection proof** (it both populates the model menus and
+  verifies the link — there is no separate test/ping endpoint). Errors:
+  `ai_not_configured` (no base_url/key), `ai_unauthorized` (401/403 upstream),
+  `ai_unreachable` (network/timeout), `ai_bad_response` (unparseable/other upstream error).
 - **Data management** (the Paramètres "Données" section — export / wipe / import) lives under
   `/api/v1/data`; see `data-export-import.md` (IMP-1).
 - `GET /meal-template` · `POST /meal-template` (add) ·

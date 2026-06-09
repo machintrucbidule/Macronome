@@ -9,6 +9,7 @@ import { tenantContext } from './http/middleware/tenant.js';
 import { applyTrustProxy } from './http/middleware/trustProxy.js';
 import { serveSpa } from './http/spa.js';
 import aboutRoutes from './http/routes/about.js';
+import aiRoutes from './http/routes/ai.js';
 import authRoutes from './http/routes/auth.js';
 import containersRoutes from './http/routes/containers.js';
 import dataRoutes from './http/routes/data.js';
@@ -60,6 +61,7 @@ export function createApp(): Express {
   app.use('/api/v1/journal', journalRoutes);
   app.use('/api/v1/stats', statsRoutes);
   app.use('/api/v1/settings', settingsRoutes);
+  app.use('/api/v1/ai', aiRoutes);
   app.use('/api/v1/containers', containersRoutes);
   app.use('/api/v1/meal-template', mealTemplateRoutes);
   app.use('/api/v1/pantry', pantryRoutes);

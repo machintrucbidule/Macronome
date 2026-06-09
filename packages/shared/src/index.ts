@@ -24,6 +24,8 @@ export {
   passesMinRating,
 } from './constants/rating.js';
 export type { Rating } from './constants/rating.js';
+export { AI_TASK_KEYS, defaultTaskPrompt, isVisionModel } from './constants/ai.js';
+export type { AiTaskKey } from './constants/ai.js';
 export { ErrorCode } from './errors.js';
 export * from './dto/auth.js';
 export * from './dto/food.js';
@@ -39,3 +41,4 @@ export * from './dto/meal-template.js';
 export * from './dto/pantry.js';
 export * from './dto/data.js';
 export * from './dto/about.js';
+export * from './dto/ai.js';

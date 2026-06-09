@@ -460,6 +460,26 @@
       "weight": "Served weight",
       "defaultName": "Custom"
     },
+    "aiAnalysis": {
+      "button": "AI analysis",
+      "title": "AI analysis",
+      "intro": "Add a photo, a description, or both.",
+      "addImages": "Add photos",
+      "imagesHint": "Up to 4 photos (JPEG, PNG, WebP).",
+      "note": "Description",
+      "notePlaceholder": "e.g. 3 slices of saucisson, 2 slices of bread…",
+      "analyze": "Analyze",
+      "analyzing": "Analyzing…",
+      "busy": "Analysis can take up to a minute…",
+      "errors": {
+        "ai_not_configured": "Set up the AI connection in Settings first.",
+        "ai_unauthorized": "The provider rejected the API key.",
+        "ai_unreachable": "Could not reach the provider (network or timeout).",
+        "ai_bad_response": "The AI returned an unexpected response. Try again.",
+        "ai_rate_limited": "Rate limit or quota reached on this model. Try again later or pick another model.",
+        "ai_unavailable": "The AI service is momentarily overloaded. Please try again."
+      }
+    },
     "leftover": {
       "button": "Leftover",
       "title": "Deduct a leftover",
@@ -743,10 +763,45 @@
     },
     "ai": {
       "title": "AI assistant",
-      "soon": "soon",
-      "label": "AI advice & analysis",
-      "note": "Optional, isolated module — not available in v1. The app works fully without it.",
-      "configure": "Configure"
+      "intro": "Connect a remote, OpenAI-compatible AI (e.g. Google Gemini). Used here only to configure and verify the link — no AI feature runs yet.",
+      "baseUrl": "Base URL",
+      "baseUrlPlaceholder": "https://generativelanguage.googleapis.com/v1beta/openai",
+      "fillUrl": "Use the Gemini URL",
+      "apiKey": "API key",
+      "apiKeySet": "•••• set",
+      "apiKeyPlaceholder": "Paste your API key",
+      "fetchModels": "Fetch models",
+      "fetchingModels": "Fetching models…",
+      "modelsCount": "{{count}} models available",
+      "model": "Model",
+      "modelPlaceholder": "Fetch models first",
+      "prompt": "Prompt (scope, English)",
+      "promptNote": "The response format is handled by the app and is not editable here.",
+      "reset": "Reset to default",
+      "save": "Save",
+      "tasks": {
+        "dish_photo_macros": "Photo → macro estimate",
+        "meal_suggestions": "Meal suggestions",
+        "advice": "Advice"
+      },
+      "help": {
+        "title": "How to connect Gemini (step by step)",
+        "intro": "No technical knowledge needed — just follow these steps:",
+        "studioLink": "Open Google AI Studio",
+        "step1": "Sign in to Google AI Studio with a Google account (free).",
+        "step2": "Click “Create API key”, then copy the key into the “API key” field above.",
+        "step3": "Click “Use the Gemini URL” under the Base URL field — or paste it yourself: {{url}}",
+        "step4": "Click “Fetch models”, then pick a model for each task — a vision-capable model (e.g. gemini-2.x) for photo analysis.",
+        "modelNote": "A “model” is the AI variant that answers a task."
+      },
+      "errors": {
+        "ai_not_configured": "Set a base URL and API key first.",
+        "ai_unauthorized": "The provider rejected the API key.",
+        "ai_unreachable": "Could not reach the provider (network or timeout).",
+        "ai_bad_response": "Unexpected response from the provider.",
+        "ai_rate_limited": "Rate limit or quota reached on this model. Try again later or pick another model.",
+        "ai_unavailable": "The AI service is momentarily overloaded. Please try again."
+      }
     },
     "data": {
       "title": "Data",

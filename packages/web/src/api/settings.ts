@@ -7,4 +7,6 @@ import { api } from './client';
 export const settingsApi = {
   get: () => api.get<{ data: Settings }>('/settings'),
   patch: (body: PatchSettingsRequest) => api.patch<{ data: Settings }>('/settings', body),
+  /** Connection proof: lists the configured provider's models (spec/api §GET /settings/ai/models). */
+  fetchAiModels: () => api.get<{ data: { id: string }[] }>('/settings/ai/models'),
 };

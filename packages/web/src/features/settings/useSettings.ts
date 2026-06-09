@@ -22,3 +22,13 @@ export function useSettingsMutation() {
     onSuccess: () => qc.invalidateQueries({ queryKey: SETTINGS_KEY }),
   });
 }
+
+/**
+ * On-demand fetch of the configured provider's model list (the AI connection proof). A GET
+ * triggered by a button click, wrapped in a mutation for the idle/loading/success/error states.
+ */
+export function useAiModelsMutation() {
+  return useMutation({
+    mutationFn: () => settingsApi.fetchAiModels(),
+  });
+}

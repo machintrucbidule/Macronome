@@ -460,6 +460,26 @@
       "weight": "Poids servi",
       "defaultName": "Custom"
     },
+    "aiAnalysis": {
+      "button": "Analyse par IA",
+      "title": "Analyse par IA",
+      "intro": "Ajoute une photo, une description, ou les deux.",
+      "addImages": "Ajouter des photos",
+      "imagesHint": "Jusqu'à 4 photos (JPEG, PNG, WebP).",
+      "note": "Description",
+      "notePlaceholder": "ex. 3 tranches de saucisson, 2 tranches de pain…",
+      "analyze": "Analyser",
+      "analyzing": "Analyse en cours…",
+      "busy": "L'analyse peut prendre jusqu'à une minute…",
+      "errors": {
+        "ai_not_configured": "Configure d'abord la liaison IA dans les Paramètres.",
+        "ai_unauthorized": "Le fournisseur a rejeté la clé API.",
+        "ai_unreachable": "Impossible de joindre le fournisseur (réseau ou délai dépassé).",
+        "ai_bad_response": "L'IA a renvoyé une réponse inattendue. Réessaie.",
+        "ai_rate_limited": "Limite ou quota atteint sur ce modèle. Réessaie plus tard ou choisis un autre modèle.",
+        "ai_unavailable": "Le service IA est momentanément surchargé. Réessaie dans un instant."
+      }
+    },
     "leftover": {
       "button": "Restes",
       "title": "Déduire un reste",
@@ -743,10 +763,45 @@
     },
     "ai": {
       "title": "Assistant IA",
-      "soon": "bientôt",
-      "label": "Conseils & analyses par IA",
-      "note": "Module optionnel et isolé, non disponible en v1. L'app fonctionne entièrement sans.",
-      "configure": "Configurer"
+      "intro": "Connecte une IA distante compatible OpenAI (ex. Google Gemini). Sert ici uniquement à configurer et vérifier la liaison — aucune fonctionnalité IA n'est encore active.",
+      "baseUrl": "URL de base",
+      "baseUrlPlaceholder": "https://generativelanguage.googleapis.com/v1beta/openai",
+      "fillUrl": "Utiliser l'URL Gemini",
+      "apiKey": "Clé API",
+      "apiKeySet": "•••• définie",
+      "apiKeyPlaceholder": "Colle ta clé API",
+      "fetchModels": "Récupérer les modèles",
+      "fetchingModels": "Récupération des modèles…",
+      "modelsCount": "{{count}} modèles disponibles",
+      "model": "Modèle",
+      "modelPlaceholder": "Récupère d'abord les modèles",
+      "prompt": "Prompt (périmètre, en anglais)",
+      "promptNote": "Le format de réponse est géré par l'application et n'est pas modifiable ici.",
+      "reset": "Réinitialiser",
+      "save": "Enregistrer",
+      "tasks": {
+        "dish_photo_macros": "Photo → estimation des macros",
+        "meal_suggestions": "Propositions de repas",
+        "advice": "Conseils"
+      },
+      "help": {
+        "title": "Comment connecter Gemini (étape par étape)",
+        "intro": "Aucune connaissance technique requise — suis ces étapes :",
+        "studioLink": "Ouvrir Google AI Studio",
+        "step1": "Connecte-toi à Google AI Studio avec un compte Google (gratuit).",
+        "step2": "Clique sur « Créer une clé API », puis copie la clé dans le champ « Clé API » ci-dessus.",
+        "step3": "Clique sur « Utiliser l'URL Gemini » sous le champ URL de base — ou colle-la toi-même : {{url}}",
+        "step4": "Clique sur « Récupérer les modèles », puis choisis un modèle pour chaque tâche — un modèle capable de vision (ex. gemini-2.x) pour l'analyse photo.",
+        "modelNote": "Un « modèle » est la variante d'IA qui répond à une tâche."
+      },
+      "errors": {
+        "ai_not_configured": "Renseigne d'abord une URL de base et une clé API.",
+        "ai_unauthorized": "Le fournisseur a rejeté la clé API.",
+        "ai_unreachable": "Impossible de joindre le fournisseur (réseau ou délai dépassé).",
+        "ai_bad_response": "Réponse inattendue du fournisseur.",
+        "ai_rate_limited": "Limite ou quota atteint sur ce modèle. Réessaie plus tard ou choisis un autre modèle.",
+        "ai_unavailable": "Le service IA est momentanément surchargé. Réessaie dans un instant."
+      }
     },
     "data": {
       "title": "Données",

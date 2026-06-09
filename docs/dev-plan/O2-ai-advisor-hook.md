@@ -1,9 +1,22 @@
-# O2 — Reserved AI-advisor hook — **NOT part of the dev plan**
+# O2 — AI assistant — **NOT part of the dev plan**
 
 > **This is NOT a development milestone.** It does **not** carry an `M` number, it is
-> **not** a build gate, and it is **not** required for v1. It is an inert seam the author
-> may choose to enable later. Documented here so the information is ready if/when the
-> author decides to build it.
+> **not** a build gate, and it is **not** required for v1. The app ships fully without it.
+>
+> **Amended by B-117 (post-v1 triage) — O2 is now split:**
+>
+> - **O2a — Connection config & verification (specced).** The link is no longer inert: the
+>   field `settings.llm_endpoint` is replaced by `settings.ai` (OpenAI-compatible base URL +
+>   write-only API key + three `{model,prompt}` task slots), configured on Paramètres and
+>   **verified** by listing the provider's models (`GET /settings/ai/models`). Specs:
+>   `spec/logic/ai-connection.md`, `spec/api/weight-targets-stats-settings.md`,
+>   `spec/schema/tables-catalog.md`, `design/components/ai-connection.md`,
+>   `specifications/screens/settings.md`. See `DECISIONS.md` B-117.
+> - **O2b — AI uses (reserved, below).** `POST /advisor/query` and the photo/meals/advice
+>   calls remain **501 / not implemented**.
+>
+> The remainder of this doc describes **O2b** (the reserved uses); where it says
+> `llm_endpoint`, read `settings.ai` per B-117.
 
 **Goal:** leave the advisor **enabled, not implemented** — no behaviour in v1.
 Would depend on: M0 (route plumbing), M6 (the payload shape it would receive).

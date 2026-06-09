@@ -32,25 +32,22 @@ describe('settings — round-trip + partial merge', () => {
     expect(initial.body.data).toEqual({
       locale: 'fr',
       theme: 'dark',
-      llm_endpoint: null,
+      ai: null,
       current_mode: null,
     });
 
     const patched = await csrfPatch(agent, csrf, '/api/v1/settings', {
       theme: 'light',
-      llm_endpoint: { url: 'https://llm.example.com/v1' },
       current_mode: 'not_in_diet',
     });
     expect(patched.status).toBe(200);
     expect(patched.body.data.theme).toBe('light');
-    expect(patched.body.data.llm_endpoint).toEqual({ url: 'https://llm.example.com/v1' });
     expect(patched.body.data.current_mode).toBe('not_in_diet');
 
     // A second, unrelated patch must not clobber the previously stored keys.
     const localeOnly = await csrfPatch(agent, csrf, '/api/v1/settings', { locale: 'en' });
     expect(localeOnly.body.data.locale).toBe('en');
     expect(localeOnly.body.data.theme).toBe('light');
-    expect(localeOnly.body.data.llm_endpoint).toEqual({ url: 'https://llm.example.com/v1' });
     expect(localeOnly.body.data.current_mode).toBe('not_in_diet');
   });
 

@@ -261,3 +261,138 @@
   font-size: var(--fs-11);
   margin-top: var(--sp-2);
 }
+
+/* Assistant IA card (design/components/ai-connection.md) — a vertical config body */
+.aiBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  padding-top: var(--sp-4);
+  padding-bottom: var(--sp-5);
+}
+.aiIntro {
+  font-size: var(--fs-12);
+  color: var(--text-dim);
+  line-height: 1.45;
+  margin: 0;
+}
+.aiField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.aiFieldLabel {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  font-size: var(--fs-12);
+  color: var(--text-dim);
+}
+.aiSelect {
+  height: 34px;
+  background: var(--bg-field);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-md);
+  color: var(--text);
+  font-size: var(--fs-13);
+  padding: 0 var(--sp-3);
+}
+.aiSelect:focus {
+  outline: none;
+  border-color: var(--focus);
+}
+.aiSelect:disabled {
+  color: var(--text-faint);
+  cursor: not-allowed;
+}
+.aiTextarea {
+  background: var(--bg-field);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-md);
+  color: var(--text);
+  font-family: var(--font-num);
+  font-size: var(--fs-12);
+  line-height: 1.5;
+  padding: var(--sp-3);
+  resize: vertical;
+}
+.aiTextarea:focus {
+  outline: none;
+  border-color: var(--focus);
+}
+.aiNote {
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  color: var(--text-faint);
+  line-height: 1.4;
+}
+.aiReset {
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: var(--fs-11);
+  padding: 0;
+}
+.aiReset:hover {
+  text-decoration: underline;
+}
+.aiFetch {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.aiTask {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  background: var(--bg-elev-2);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-md);
+}
+.aiTaskName {
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-13);
+}
+.aiFillUrl {
+  align-self: flex-start;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: var(--fs-11);
+  padding: 0;
+}
+.aiFillUrl:hover {
+  text-decoration: underline;
+}
+.aiHelp {
+  font-size: var(--fs-12);
+  color: var(--text-dim);
+}
+.aiHelp summary {
+  cursor: pointer;
+  color: var(--text-dim);
+}
+.aiHelp p {
+  margin: var(--sp-3) 0 var(--sp-2);
+  line-height: 1.5;
+}
+.aiHelp ol {
+  margin: var(--sp-2) 0;
+  padding-left: var(--sp-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  line-height: 1.5;
+}
+.aiHelp a {
+  color: var(--accent);
+}
+.aiActions {
+  display: flex;
+  justify-content: flex-end;
+}

@@ -36,6 +36,14 @@ export enum ErrorCode {
   NoReference = 'no_reference',
   Unparseable = 'unparseable',
 
+  // ai connection (B-117) + ai uses (B-118)
+  AiNotConfigured = 'ai_not_configured',
+  AiUnauthorized = 'ai_unauthorized',
+  AiUnreachable = 'ai_unreachable',
+  AiBadResponse = 'ai_bad_response',
+  AiRateLimited = 'ai_rate_limited',
+  AiUnavailable = 'ai_unavailable',
+
   // reserved (inert in v1)
   NotImplemented = 'not_implemented',
 }
