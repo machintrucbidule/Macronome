@@ -8,14 +8,16 @@ import styles from './modals.module.css';
 
 // One AI meal proposal (mockup state 4, B-123 / Slice 10). Renders ONLY server-certified numbers
 // (CLAUDE.md rule 2): the day total, per-axis fit and gaps come from `MealProposal`, never
-// recomputed here. The "Raffiner" action (refine, Slice 11) opens the refine panel; the per-card
-// "Choisir" (apply, Slice 12) action is still deferred.
+// recomputed here. "Raffiner" (refine, Slice 11) opens the refine panel; "Choisir" (apply, Slice
+// 12) writes the proposal into the day's meals (decisions.md: plain entries, no review, no "IA" chip).
 interface Props {
   proposal: MealProposal;
   index: number;
   mealNames: Map<string, string>;
   hasCarbCeiling: boolean;
   onRefine: () => void;
+  onChoose: () => void;
+  busy: boolean;
 }
 
 type Tone = 'inband' | 'over' | 'under';
@@ -190,7 +192,15 @@ function FitStrip({
   );
 }
 
-export function ProposalCard({ proposal, index, mealNames, hasCarbCeiling, onRefine }: Props) {
+export function ProposalCard({
+  proposal,
+  index,
+  mealNames,
+  hasCarbCeiling,
+  onRefine,
+  onChoose,
+  busy,
+}: Props) {
   const { t } = useTranslation();
   return (
     <div className={`${styles.prop} ${proposal.fit === 'closest' ? styles.closest : ''}`}>
@@ -210,8 +220,11 @@ export function ProposalCard({ proposal, index, mealNames, hasCarbCeiling, onRef
         </div>
       )}
       <div className={styles.pactions}>
-        <Button variant="ghost" onClick={onRefine}>
+        <Button variant="ghost" onClick={onRefine} disabled={busy}>
           {t('meals.proposals.refineButton')}
+        </Button>
+        <Button onClick={onChoose} disabled={busy}>
+          {t('meals.proposals.choose')}
         </Button>
       </div>
     </div>

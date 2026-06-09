@@ -2,10 +2,10 @@ import { useState, type Dispatch, type SetStateAction } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { DayDetail, MealProposal, MealSuggestions } from '@macronome/shared';
 import { Modal, modalStyles } from '../../../components/Modal/Modal';
-import { Button } from '../../../components/Button/Button';
 import { Banner } from '../../../components/Banner/Banner';
 import { ApiError } from '../../../api/client';
 import { useMealSuggestions } from '../hooks/useMealSuggestions';
+import { useApplyProposal } from '../hooks/useApplyProposal';
 import {
   accumulateAvoid,
   buildConstraints,
@@ -15,13 +15,15 @@ import {
 import { RequestStep } from './RequestStep';
 import { ProposalsList } from './ProposalsList';
 import { RefinePanel } from './RefinePanel';
+import { DialogActions } from './DialogActions';
 import styles from './modals.module.css';
 
-// "Proposition IA" dialog (mockup states 2–5, B-123). Pick meals + precisions → POST
-// /ai/meal-suggestions, render the certified proposals (state 4) read-only, then "Raffiner" a
-// proposal (state 5, Slice 11): exclude/pin/precisions accumulate client-side and re-send on every
-// call (§2.6), with `avoid` signatures of seen proposals for variety. "Choisir" (apply, Slice 12)
-// is still deferred. The day targets are never mutated client-side; totals stay server-certified.
+// "Proposition IA" dialog (mockup states 2–6, B-123). Pick meals + precisions → POST
+// /ai/meal-suggestions, render the certified proposals (state 4) read-only, "Raffiner" a proposal
+// (state 5) — exclude/pin/precisions accumulate client-side and re-send on every call (§2.6) with
+// `avoid` signatures for variety — and "Choisir" (state 6, Slice 12) writes the chosen proposal
+// into the day's meals via the normal entries flow. "Autres idées" regenerates with the same meal
+// selection. The day targets are never mutated client-side; totals stay server-certified.
 const KNOWN_ERRORS = new Set([
   'ai_not_configured',
   'ai_unauthorized',
@@ -115,16 +117,25 @@ interface Props {
 export function AiProposalsDialog({ day, date, onClose }: Props) {
   const { t } = useTranslation();
   const f = useMealProposals(date);
+  const ap = useApplyProposal(date);
+  const displayMode = ap.done ? 'applied' : f.mode;
+  const errorText = ap.error
+    ? t('meals.proposals.applyError')
+    : f.errorCode
+      ? t(`meals.proposals.errors.${f.errorCode}`)
+      : null;
 
   return (
     <Modal
       title={t('meals.proposals.title')}
-      size={f.mode === 'request' ? 'md' : 'wide'}
+      size={displayMode === 'request' || displayMode === 'applied' ? 'md' : 'wide'}
       onClose={onClose}
     >
       <div className={modalStyles.body}>
         <DialogBody
           busy={f.busy}
+          applying={ap.isApplying}
+          done={ap.done}
           day={day}
           refineProposal={f.refineProposal}
           result={f.result}
@@ -137,17 +148,20 @@ export function AiProposalsDialog({ day, date, onClose }: Props) {
           pinned={f.pinned}
           setPinned={f.setPinned}
           onRefine={f.openRefine}
+          onChoose={(p) => ap.apply(p, day)}
         />
-        {f.errorCode && !f.busy && (
+        {errorText && !f.busy && !ap.isApplying && (
           <Banner tone="warning">
-            {t(`meals.proposals.errors.${f.errorCode}`)}
-            {f.errorDetail && <span className={styles.aiErrDetail}>{f.errorDetail}</span>}
+            {errorText}
+            {f.errorDetail && !ap.error && (
+              <span className={styles.aiErrDetail}>{f.errorDetail}</span>
+            )}
           </Banner>
         )}
       </div>
 
       <DialogActions
-        mode={f.mode}
+        mode={displayMode}
         busy={f.busy}
         canSubmit={f.canSubmit}
         onEdit={() => f.setResult(null)}
@@ -161,6 +175,8 @@ export function AiProposalsDialog({ day, date, onClose }: Props) {
 
 interface BodyProps {
   busy: boolean;
+  applying: boolean;
+  done: boolean;
   day: DayDetail;
   refineProposal: MealProposal | null;
   result: MealSuggestions | null;
@@ -173,10 +189,12 @@ interface BodyProps {
   pinned: PinnedLine[];
   setPinned: Dispatch<SetStateAction<PinnedLine[]>>;
   onRefine: (proposal: MealProposal) => void;
+  onChoose: (proposal: MealProposal) => void;
 }
 
 function DialogBody(props: BodyProps) {
   const { t } = useTranslation();
+  if (props.done) return <AppliedStep />;
   if (props.busy) {
     return (
       <div className={styles.proposalsBusy}>
@@ -201,7 +219,13 @@ function DialogBody(props: BodyProps) {
   }
   if (props.result) {
     return (
-      <ProposalsList proposals={props.result.proposals} day={props.day} onRefine={props.onRefine} />
+      <ProposalsList
+        proposals={props.result.proposals}
+        day={props.day}
+        onRefine={props.onRefine}
+        onChoose={props.onChoose}
+        busy={props.applying}
+      />
     );
   }
   return (
@@ -216,46 +240,15 @@ function DialogBody(props: BodyProps) {
   );
 }
 
-interface ActionsProps {
-  mode: Mode;
-  busy: boolean;
-  canSubmit: boolean;
-  onEdit: () => void;
-  onBack: () => void;
-  onClose: () => void;
-  onSubmit: () => void;
-}
-
-function DialogActions({ mode, busy, canSubmit, onEdit, onBack, onClose, onSubmit }: ActionsProps) {
+function AppliedStep() {
   const { t } = useTranslation();
   return (
-    <div className={modalStyles.actions}>
-      {mode === 'result' ? (
-        <Button variant="ghost" onClick={onEdit}>
-          {t('meals.proposals.editRequest')}
-        </Button>
-      ) : mode === 'refine' ? (
-        <Button variant="ghost" onClick={onBack}>
-          {t('meals.proposals.refine.back')}
-        </Button>
-      ) : (
-        <span />
-      )}
-      <div className={modalStyles.actionsRight}>
-        <Button variant="ghost" onClick={onClose} disabled={busy}>
-          {t('common.cancel')}
-        </Button>
-        {mode !== 'result' && (
-          <Button onClick={onSubmit} disabled={busy || !canSubmit}>
-            {busy && <span className={styles.aiSpinner} aria-hidden="true" />}
-            {busy
-              ? t('meals.proposals.proposing')
-              : mode === 'refine'
-                ? t('meals.proposals.refine.relaunch')
-                : t('meals.proposals.propose')}
-          </Button>
-        )}
-      </div>
+    <div className={styles.proposalsBusy}>
+      <span className={styles.appliedMark} aria-hidden="true">
+        ✓
+      </span>
+      <strong>{t('meals.proposals.applied')}</strong>
+      <span>{t('meals.proposals.appliedBody')}</span>
     </div>
   );
 }

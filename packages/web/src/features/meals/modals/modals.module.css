@@ -443,6 +443,18 @@
   font-size: var(--fs-13);
   text-align: center;
 }
+/* Applied confirmation (state 6, B-123 / Slice 12). */
+.appliedMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ok) 12%, transparent);
+  color: var(--ok);
+  font-size: var(--fs-18);
+}
 
 /* ---- AI meal-proposals results (state 4, B-123 / Slice 10) ---- */
 .resIntro {

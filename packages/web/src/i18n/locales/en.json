@@ -358,6 +358,11 @@
       "proposing": "Proposing…",
       "busy": "The proposal can take up to a minute…",
       "editRequest": "Edit request",
+      "regenerate": "Other ideas",
+      "choose": "Choose",
+      "applied": "Proposal applied",
+      "appliedBody": "The foods were added to your meals. You can adjust them like any other line.",
+      "applyError": "Could not apply the proposal. Try again.",
       "resultsIntro": "Three distinct proposals. The totals shown are for the whole day (already logged + proposal), verified server-side — never read from the AI.",
       "proposalTitle": "Proposal {{n}}",
       "fit": {

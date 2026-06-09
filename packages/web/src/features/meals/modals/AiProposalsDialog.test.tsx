@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { DayDetail, MealSuggestionsResponse } from '@macronome/shared';
 import i18n from '../../../i18n/config';
 import { aiApi } from '../../../api/ai';
+import { entriesApi } from '../../../api/entries';
+import { daysApi } from '../../../api/days';
 import { AiProposalsDialog } from './AiProposalsDialog';
 
 // AI meal-proposals S9 (B-123): the request popup. "Proposer" is gated on ≥1 selected meal; a
@@ -198,6 +200,66 @@ describe('AiProposalsDialog — request popup (S9 / B-123)', () => {
     });
     // the day passed in is never mutated client-side (targets stay server-owned)
     expect(JSON.stringify(DAY)).toBe(before);
+  });
+});
+
+describe('AiProposalsDialog — apply + regenerate (S12 / B-123)', () => {
+  it('applies a chosen proposal: one referenced entry per item to the right meal', async () => {
+    vi.spyOn(aiApi, 'mealSuggestions').mockResolvedValue(WITH_PROPOSAL);
+    const create = vi
+      .spyOn(entriesApi, 'create')
+      .mockResolvedValue({} as Awaited<ReturnType<typeof entriesApi.create>>);
+    const materialize = vi.spyOn(daysApi, 'materialize');
+    const before = JSON.stringify(DAY);
+    const { getByRole, getByText } = render(
+      <AiProposalsDialog day={DAY} date="2026-06-09" onClose={vi.fn()} />,
+      { wrapper },
+    );
+
+    fireEvent.click(getByRole('checkbox', { name: /Dîner/ }));
+    fireEvent.click(getByRole('button', { name: i18n.t('meals.proposals.propose') }));
+    fireEvent.click(await waitForButton(getByRole, i18n.t('meals.proposals.choose')));
+
+    await waitFor(() => expect(create).toHaveBeenCalledTimes(2));
+    // egg ×3 → portion entry; chicken 180 g → gram entry; both into Dîner (m1).
+    expect(create.mock.calls[0]).toEqual([
+      'm1',
+      {
+        kind: 'referenced',
+        food_id: 'f-egg',
+        unit: 'portion',
+        portion_id: 'po-egg',
+        served_quantity: 3,
+      },
+    ]);
+    expect(create.mock.calls[1]).toEqual([
+      'm1',
+      { kind: 'referenced', food_id: 'f-chk', unit: 'g', served_quantity: 180 },
+    ]);
+    // The day already has real meal ids → no materialize; targets never mutated client-side.
+    expect(materialize).not.toHaveBeenCalled();
+    await waitFor(() => expect(getByText(i18n.t('meals.proposals.applied'))).toBeTruthy());
+    expect(JSON.stringify(DAY)).toBe(before);
+  });
+
+  it('"Autres idées" re-requests with the same meals + accumulated avoid', async () => {
+    const spy = vi.spyOn(aiApi, 'mealSuggestions').mockResolvedValue(WITH_PROPOSAL);
+    const { getByRole } = render(
+      <AiProposalsDialog day={DAY} date="2026-06-09" onClose={vi.fn()} />,
+      { wrapper },
+    );
+
+    fireEvent.click(getByRole('checkbox', { name: /Dîner/ }));
+    fireEvent.click(getByRole('button', { name: i18n.t('meals.proposals.propose') }));
+    await waitFor(() => expect(spy).toHaveBeenCalledTimes(1));
+
+    fireEvent.click(await waitForButton(getByRole, i18n.t('meals.proposals.regenerate')));
+    await waitFor(() => expect(spy).toHaveBeenCalledTimes(2));
+    expect(spy.mock.calls[1]?.[0]).toEqual({
+      date: '2026-06-09',
+      meal_ids: ['m1'],
+      constraints: { avoid: [['f-chk', 'f-egg']] },
+    });
   });
 });
 

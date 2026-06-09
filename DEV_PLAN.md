@@ -337,7 +337,16 @@ documented here only so the information is ready when the author decides to run 
           hook (80-line cap). Web-only — endpoint/DTO/§2.6 live since S1/S8 (no contract/`DECISIONS.md`
           change; web bullets §6.5/§6.6 marked applied). Green: 8 new pure tests + the dialog refine
           test + full web suite (182) + typecheck + lint + check:i18n + web build.
-    - [ ] S12 Web apply a proposal + apply-mapping **(adds the per-card "Choisir" action +
-          regenerate "Autres idées" — deferred from S10)**.
+    - [x] **S12 — Web apply a proposal + apply-mapping**: the per-card **Choisir** (apply, state 6) +
+          the **Autres idées** regenerate footer action. Apply via self-contained
+          `hooks/useApplyProposal.ts` (materialise scaffold guard → one referenced `entriesApi.create`
+          per item, invalidating day + journal); pure item→entry mapping `logic/applyProposal.ts`
+          (portioned → portion entry, portionless → gram entry). Plain entries, no leftover/"IA" chip
+          (D4); server re-snapshots from the same per-100 g values → matches proposal `snap`. On
+          success shows "Proposition appliquée"; regenerate re-requests same meals + accumulated
+          `avoid`. `DialogActions` extracted (4 modes) for the 300-line cap. Web-only — endpoint/DTO/
+          §2.5 live since S1/S8 (no contract/`DECISIONS.md` change; §6.5/§6.6 apply bullets marked
+          applied). Green: 3 pure + 2 dialog tests + full web suite (187) + typecheck + lint +
+          check:i18n + web build.
     - [ ] S13 i18n completeness + docs + full gate.
           See `DECISIONS.md` B-123.

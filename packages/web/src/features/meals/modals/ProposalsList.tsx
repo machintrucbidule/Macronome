@@ -11,9 +11,11 @@ interface Props {
   proposals: MealProposal[];
   day: DayDetail;
   onRefine: (proposal: MealProposal) => void;
+  onChoose: (proposal: MealProposal) => void;
+  busy: boolean;
 }
 
-export function ProposalsList({ proposals, day, onRefine }: Props) {
+export function ProposalsList({ proposals, day, onRefine, onChoose, busy }: Props) {
   const { t } = useTranslation();
   const mealNames = new Map(day.meals.map((m) => [m.id, m.slot_name]));
   const hasCarbCeiling = day.target_snapshot.carb_ceiling_g !== null;
@@ -30,6 +32,8 @@ export function ProposalsList({ proposals, day, onRefine }: Props) {
             mealNames={mealNames}
             hasCarbCeiling={hasCarbCeiling}
             onRefine={() => onRefine(p)}
+            onChoose={() => onChoose(p)}
+            busy={busy}
           />
         ))}
       </div>

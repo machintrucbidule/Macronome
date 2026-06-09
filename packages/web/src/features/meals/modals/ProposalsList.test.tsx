@@ -148,7 +148,13 @@ afterEach(() => {
 describe('ProposalsList — proposals display (S10 / B-123)', () => {
   it('renders a full-fit and a closest-fit proposal with certified numbers', () => {
     const { getByText, getAllByText } = render(
-      <ProposalsList proposals={[P1, P2]} day={DAY} onRefine={vi.fn()} />,
+      <ProposalsList
+        proposals={[P1, P2]}
+        day={DAY}
+        onRefine={vi.fn()}
+        onChoose={vi.fn()}
+        busy={false}
+      />,
     );
 
     // titles + fit flags
@@ -176,7 +182,15 @@ describe('ProposalsList — proposals display (S10 / B-123)', () => {
   });
 
   it('shows the honest closest-fit gap (fat floor short by 3 g) and the unrated badge', () => {
-    const { getByText } = render(<ProposalsList proposals={[P2]} day={DAY} onRefine={vi.fn()} />);
+    const { getByText } = render(
+      <ProposalsList
+        proposals={[P2]}
+        day={DAY}
+        onRefine={vi.fn()}
+        onChoose={vi.fn()}
+        busy={false}
+      />,
+    );
 
     // the L chip is a warning short-by-3 chip
     expect(

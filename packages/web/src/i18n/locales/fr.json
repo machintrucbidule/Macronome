@@ -358,6 +358,11 @@
       "proposing": "Proposition en cours…",
       "busy": "La proposition peut prendre jusqu'à une minute…",
       "editRequest": "Modifier la demande",
+      "regenerate": "Autres idées",
+      "choose": "Choisir",
+      "applied": "Proposition appliquée",
+      "appliedBody": "Les aliments ont été ajoutés à tes repas. Tu peux les ajuster comme n'importe quelle ligne.",
+      "applyError": "Impossible d'appliquer la proposition. Réessaie.",
       "resultsIntro": "Trois propositions distinctes. Les totaux affichés sont ceux du jour entier (déjà saisi + proposition), vérifiés côté serveur — jamais lus depuis l'IA.",
       "proposalTitle": "Proposition {{n}}",
       "fit": {
