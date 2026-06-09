@@ -405,6 +405,28 @@
   color: var(--accent);
 }
 
+/* Undo / redo icon buttons (UR-1 / B-133): square, sit at the left of the right-hand action
+   group; disabled (greyed) when the history stack has nothing to undo/redo. */
+.histBtn {
+  font-size: var(--fs-14);
+  line-height: 1;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-elev-2);
+  color: var(--text-dim);
+  border-radius: var(--r-md);
+  cursor: pointer;
+}
+.histBtn:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.histBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 /* Partiel (summary) day: no meal breakdown — a small muted hint (DK-1 / B-078). The kind
    switch lives in the date-line chip menu; the calorie total is editable in the header. */
 .partialHint {

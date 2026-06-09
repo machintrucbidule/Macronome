@@ -6,6 +6,7 @@ import { Banner } from '../../components/Banner/Banner';
 import { SkeletonRows } from '../../components/states/SkeletonRows';
 import { MealsProvider } from './MealsContext';
 import { useMealsController } from './hooks/useMealsController';
+import { useUndoRedoKeys } from './hooks/useUndoRedoKeys';
 import { DayHeader } from './components/DayHeader/DayHeader';
 import { MealsControls } from './components/MealsControls';
 import { MealsOverlays } from './components/MealsOverlays';
@@ -22,6 +23,7 @@ export function MealsPage() {
   const params = useParams<{ date?: string }>();
   const date = params.date ?? todayIso();
   const ctl = useMealsController(date);
+  useUndoRedoKeys({ undo: ctl.undo, redo: ctl.redo });
   const [clearing, setClearing] = useState(false);
   const [copying, setCopying] = useState(false);
 
@@ -58,6 +60,10 @@ export function MealsPage() {
                   onClear={() => setClearing(true)}
                   onCopyYesterday={() => setCopying(true)}
                   onAddMeal={(name) => void ctl.actions.addMeal(name, ctl.day?.meals.length ?? 0)}
+                  undo={ctl.undo}
+                  redo={ctl.redo}
+                  canUndo={ctl.canUndo}
+                  canRedo={ctl.canRedo}
                 />
                 <MealScroller meals={ctl.day.meals} />
               </>

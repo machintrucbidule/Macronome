@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { DayDetail } from '@macronome/shared';
 import { usePantry } from '../../settings/usePantry';
 import { useDay } from './useDay';
+import { useMealHistory } from './useMealHistory';
 import { createMealActions, type CustomTarget, type EditTarget } from './mealActions';
 
 // Screen controller for Repas: the day query + UI state (editing line, open modal, pending qty
@@ -19,6 +20,8 @@ export function useMealsController(date: string) {
   const [cookMealId, setCookMealId] = useState<string | null>(null);
   const [pendingFocus, setPendingFocus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Line-level undo/redo (UR-1 / B-133): records edits and replays inverses through useDay.
+  const history = useMealHistory(day, date, setError);
 
   const actions = createMealActions({
     day,
@@ -30,6 +33,7 @@ export function useMealsController(date: string) {
     setCookMealId,
     setPendingFocus,
     setError,
+    recordHistory: history.record,
   });
 
   return {
@@ -45,6 +49,10 @@ export function useMealsController(date: string) {
     pendingFocus,
     error,
     actions,
+    undo: history.undo,
+    redo: history.redo,
+    canUndo: history.canUndo,
+    canRedo: history.canRedo,
   };
 }
 

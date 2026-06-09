@@ -62,6 +62,10 @@ describe('Copier hier (B-082)', () => {
         onClear={vi.fn()}
         onCopyYesterday={onCopyYesterday}
         onAddMeal={vi.fn()}
+        undo={vi.fn()}
+        redo={vi.fn()}
+        canUndo={false}
+        canRedo={false}
       />,
       { wrapper },
     );

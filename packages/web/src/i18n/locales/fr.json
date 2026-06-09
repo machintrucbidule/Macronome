@@ -330,6 +330,8 @@
     "addMeal": "+ Repas",
     "clearAll": "Tout effacer",
     "copyYesterday": "Copier hier",
+    "undo": "Annuler (Ctrl+Z)",
+    "redo": "Rétablir (Ctrl+Y)",
     "proposals": {
       "button": "Proposition IA",
       "title": "Proposition IA",

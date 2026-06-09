@@ -2030,3 +2030,37 @@ no localisation/label duplication into the backend, no client all-years fetch lo
 `specifications/screens/history.md` + `weight.md` (export affordance + columns). No DB/schema/DTO
 change. Tests: unit `export-csv.test.ts` (serializer + mappers, escaping, null/canonical handling) +
 integration `data-export-csv.test.ts` (all-years Journal, full weigh-in history, user-scoping).
+
+## UR-1 / B-133 — Repas line-level undo/redo (Ctrl+Z / Ctrl+Y) — RESOLVED (author, 2026-06-09)
+
+The Repas screen had no undo — a mis-typed quantity, an accidental delete or a bad reorder could
+only be fixed by hand.
+
+**Decision (author).** Add **Ctrl+Z / Ctrl+Y** (and **Cmd** / **Ctrl+Shift+Z** on mac) undo/redo over
+recent **line-level** edits on the open day, plus visible **↶ ↷** buttons in the controls row. Two
+decisions taken this session: (1) **include pin/unpin** in scope, accepting that pin/unpin is a
+_global_ garde-manger op whose qty-0-line cascade touches today + future days; (2) provide **both**
+keyboard shortcuts **and** the toolbar buttons (disabled when nothing to undo/redo). History is
+**local** (lost on refresh / day navigation), **≥ 100 steps**.
+
+- **In scope (recorded):** add food, remove food, change quantity, change unit, pin/unpin, reorder.
+  **Excluded:** day-level ops (Tout effacer / Copier hier / Complet⟷Partiel) + comment/activity/verdict
+  - leftover + cook-mode batch.
+- **Why server-reconciliation:** Repas edits are **not** optimistic — each mutation invalidates
+  `['day',date]` and the refetch is the source of truth. So undo/redo **re-issue the inverse mutation**
+  through the existing entry/pin/reorder endpoints (no new API). Re-creating a deleted line yields a
+  **new server id**, handled by an **id-map** so later/earlier ops resolve across arbitrary sequences.
+- **Design (web-only):** three pure cores under `features/meals/history/` — `historyStack` (past/future,
+  clear-redo-on-record, 100-cap), `opReconcile` (op → ordered mutation intents, with the pin/unpin
+  branch: undo of an unpin re-creates + re-pins a qty-0 line that unpin removed, via a `@created`
+  token), `idMap` — plus the thin async `useMealHistory` hook (executes intents via `useDay`, advances
+  the stack only on success, surfaces the existing error banner on failure, resets on date change) and
+  `useUndoRedoKeys` (document keydown, bails inside inputs/dialogs). `mealActions` records each tracked
+  edit (line actions split into `lineActions.ts` to stay within the size caps); the ↶ ↷ buttons read
+  the controller's `undo/redo/canUndo/canRedo` (passed as props to `MealsControls`).
+- **Documented imperfect inverse:** for a pin/unpin on a qty-0 placeholder line the cross-day pantry
+  cascade re-runs on undo — the open day is restored faithfully, other days follow the pantry model.
+
+**Contract delta:** `specifications/screens/meals.md` (undo/redo affordance + scope + caveat). No
+DB/schema/API/DTO change. Tests: `historyStack.test.ts` + `opReconcile.test.ts` (pure cores —
+push/clear/cap, per-op inverses incl. the qty-0 pin re-create, id resolution).

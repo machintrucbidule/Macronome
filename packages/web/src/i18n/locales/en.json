@@ -330,6 +330,8 @@
     "addMeal": "+ Meal",
     "clearAll": "Clear all",
     "copyYesterday": "Copy yesterday",
+    "undo": "Undo (Ctrl+Z)",
+    "redo": "Redo (Ctrl+Y)",
     "proposals": {
       "button": "AI proposal",
       "title": "AI proposal",

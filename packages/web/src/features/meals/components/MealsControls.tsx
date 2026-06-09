@@ -15,9 +15,24 @@ interface Props {
   onClear: () => void;
   onCopyYesterday: () => void;
   onAddMeal: (name: string) => void;
+  // Line-level undo/redo (UR-1 / B-133): driven by the controller's history stack.
+  undo: () => void;
+  redo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
 }
 
-export function MealsControls({ day, date, onClear, onCopyYesterday, onAddMeal }: Props) {
+export function MealsControls({
+  day,
+  date,
+  onClear,
+  onCopyYesterday,
+  onAddMeal,
+  undo,
+  redo,
+  canUndo,
+  canRedo,
+}: Props) {
   const { t } = useTranslation();
   const [showProposals, setShowProposals] = useState(false);
   const settings = useSettingsQuery().data?.data;
@@ -49,6 +64,26 @@ export function MealsControls({ day, date, onClear, onCopyYesterday, onAddMeal }
         </span>
       )}
       <span className={styles.ctrlSpacer} />
+      <button
+        type="button"
+        className={styles.histBtn}
+        onClick={undo}
+        disabled={!canUndo}
+        title={t('meals.undo')}
+        aria-label={t('meals.undo')}
+      >
+        ↶
+      </button>
+      <button
+        type="button"
+        className={styles.histBtn}
+        onClick={redo}
+        disabled={!canRedo}
+        title={t('meals.redo')}
+        aria-label={t('meals.redo')}
+      >
+        ↷
+      </button>
       <button type="button" className={styles.copyDay} onClick={onCopyYesterday}>
         {t('meals.copyYesterday')}
       </button>
