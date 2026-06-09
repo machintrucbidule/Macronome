@@ -357,7 +357,33 @@
       "propose": "Proposer",
       "proposing": "Proposition en cours…",
       "busy": "La proposition peut prendre jusqu'à une minute…",
-      "received": "{{count}} propositions reçues.",
+      "editRequest": "Modifier la demande",
+      "resultsIntro": "Trois propositions distinctes. Les totaux affichés sont ceux du jour entier (déjà saisi + proposition), vérifiés côté serveur — jamais lus depuis l'IA.",
+      "proposalTitle": "Proposition {{n}}",
+      "fit": {
+        "full": "dans les cibles",
+        "closest": "au plus proche"
+      },
+      "dayTotal": "Jour total",
+      "dayTotalKcal": "{{n}} kcal",
+      "macro": {
+        "protein": "P",
+        "fat": "L",
+        "carb": "G"
+      },
+      "macroMet": "{{label}} {{n}} ✓",
+      "macroShort": "{{label}} {{n}} ⚠ −{{short}} g",
+      "macroPlain": "{{label}} {{n}}",
+      "carbUnder": "{{label}} {{n}} · sous plafond",
+      "carbOver": "{{label}} {{n}} · au-dessus du plafond",
+      "gapFloor": "il manque {{n}} g de {{macro}} pour le plancher",
+      "gapMacro": {
+        "protein": "protéines",
+        "fat": "lipides"
+      },
+      "gapCalorieOver": "{{n}} kcal au-dessus de la cible",
+      "gapCalorieUnder": "{{n}} kcal en-dessous de la cible",
+      "unrated": "non noté",
       "errors": {
         "ai_not_configured": "Configure d'abord la liaison IA dans les Paramètres.",
         "ai_unauthorized": "Le fournisseur a rejeté la clé API.",

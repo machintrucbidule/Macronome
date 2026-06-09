@@ -357,7 +357,33 @@
       "propose": "Propose",
       "proposing": "Proposing…",
       "busy": "The proposal can take up to a minute…",
-      "received": "{{count}} proposals received.",
+      "editRequest": "Edit request",
+      "resultsIntro": "Three distinct proposals. The totals shown are for the whole day (already logged + proposal), verified server-side — never read from the AI.",
+      "proposalTitle": "Proposal {{n}}",
+      "fit": {
+        "full": "in targets",
+        "closest": "closest fit"
+      },
+      "dayTotal": "Day total",
+      "dayTotalKcal": "{{n}} kcal",
+      "macro": {
+        "protein": "P",
+        "fat": "F",
+        "carb": "C"
+      },
+      "macroMet": "{{label}} {{n}} ✓",
+      "macroShort": "{{label}} {{n}} ⚠ −{{short}} g",
+      "macroPlain": "{{label}} {{n}}",
+      "carbUnder": "{{label}} {{n}} · under ceiling",
+      "carbOver": "{{label}} {{n}} · over ceiling",
+      "gapFloor": "{{n}} g of {{macro}} short of the floor",
+      "gapMacro": {
+        "protein": "protein",
+        "fat": "fat"
+      },
+      "gapCalorieOver": "{{n}} kcal over target",
+      "gapCalorieUnder": "{{n}} kcal under target",
+      "unrated": "unrated",
       "errors": {
         "ai_not_configured": "Set up the AI connection in Settings first.",
         "ai_unauthorized": "The provider rejected the API key.",

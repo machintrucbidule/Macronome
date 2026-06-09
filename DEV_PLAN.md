@@ -316,8 +316,18 @@ documented here only so the information is ready when the author decides to run 
           display-only). i18n `meals.proposals.*` (FR+EN; old `meals.hint` removed). No contract/
           `DECISIONS.md` change (web bullets §6.5/§6.6 marked applied). Green: 5 new web tests + updated
           CopyYesterday test + full web suite (171) + typecheck + lint + check:i18n + web build.
-    - [ ] S10 Web proposals display.
-    - [ ] S11 Web refine panel.
-    - [ ] S12 Web apply a proposal + apply-mapping.
+    - [x] **S10 — Web proposals display** (mockup states 3–4): new `ProposalsList.tsx` +
+          `ProposalCard.tsx` render the 3 (or fewer) certified proposals read-only — foods grouped per
+          meal, indivisible portions (`×3` / `1 dose`), the fit strip with the server-certified
+          `day_total` coloured in-band/over/under, P/L chips + an informational carb chip, and honest
+          closest-fit gap text (`il manque {n} g de … pour le plancher`); no internal rationale shown.
+          `AiProposalsDialog` swaps the S9 `received` placeholder for the list (modal widens to `wide`) + a "Modifier la demande" back link. Per-card **Choisir**/**Raffiner** and **Autres idées**
+          deferred to S12/S11 (owner-approved — read-only display this slice). i18n `meals.proposals.*`
+          (fit flags, gap wording, chips, unrated badge; FR+EN; S9 `received` removed). No contract/
+          `DECISIONS.md` change (web bullets §6.5 marked applied). Green: 2 new web tests (full + closest
+          Oracle-D fit) + full web suite (173) + typecheck + lint + check:i18n + web build.
+    - [ ] S11 Web refine panel **(adds the per-card "Raffiner" entry point — deferred from S10)**.
+    - [ ] S12 Web apply a proposal + apply-mapping **(adds the per-card "Choisir" action +
+          regenerate "Autres idées" — deferred from S10)**.
     - [ ] S13 i18n completeness + docs + full gate.
           See `DECISIONS.md` B-123.
