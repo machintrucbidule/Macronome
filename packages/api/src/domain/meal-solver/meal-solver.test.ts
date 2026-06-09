@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { computeRemaining } from './remaining.js';
 import { penalty } from './penalty.js';
+import { solve } from './solve.js';
 import { aggregate, itemSnap, verifyProposal } from './verify.js';
 import type {
   DayContext,
@@ -170,5 +171,133 @@ describe('verify (§3–§4)', () => {
     const v = verifyProposal([], ctx);
     expect(v.targets_met).toEqual({ calorie: true, protein: true, fat: false, carb: true });
     expect(v.gaps).toEqual([{ target: 'fat_floor', short_g: 3 }]);
+  });
+});
+
+/** P(q).hard for a solved vector against `ctx` — 0 ⇔ full fit. */
+function hardOf(items: SolvedQuantity[], ctx: DayContext): number {
+  const { dayAgg, addedCarb } = aggregate(items, ctx.entered);
+  return penalty(dayAgg, addedCarb, ctx.targets).hard;
+}
+
+describe('solve (§2 search) — full fits & indivisibility', () => {
+  test('Oracle A — portionless mix reaches a full fit (P=0)', () => {
+    const set = [
+      candidate('F1'),
+      candidate('F2'),
+      candidate('F3'),
+      candidate('F4', 'dose'),
+      candidate('F6'),
+      candidate('F7'),
+    ];
+    const q = solve({ candidates: set, ctx: CTX });
+    expect(hardOf(q, CTX)).toBe(0);
+    const v = verifyProposal(q, CTX);
+    expect(v.gaps).toEqual([]);
+    expect(v.targets_met).toEqual({ calorie: true, protein: true, fat: true, carb: true });
+  });
+
+  test('Oracle B — full fit with indivisible portions; no fractional portion', () => {
+    const set = [
+      candidate('F5', 'œuf'),
+      candidate('F1'),
+      candidate('F4', 'dose'),
+      candidate('F8', 'pomme'),
+      candidate('F6'),
+    ];
+    const q = solve({ candidates: set, ctx: CTX });
+    expect(hardOf(q, CTX)).toBe(0);
+    for (const sq of q.filter((x) => x.candidate.portion != null)) {
+      expect(Number.isInteger(sq.count)).toBe(true);
+      expect(sq.count).toBeGreaterThanOrEqual(0);
+      expect(sq.grams).toBe(sq.count! * sq.candidate.portion!.grams);
+    }
+  });
+
+  test('Oracle C — portion indivisibility: picks the min-P integer count (×3, not 3.4)', () => {
+    // Eggs are the only food; the ideal fat fit is fractional. Restricted to whole eggs, ×3 is the
+    // min-P integer (×4 overshoots the calorie band far more than ×3 misses the fat floor).
+    const eggCtx: DayContext = {
+      targets: {
+        cal_min: 240,
+        cal_max: 280,
+        protein_floor_g: null,
+        fat_floor_g: 19,
+        carb_ceiling_g: null,
+      },
+      entered: { kcal: 0, protein: 0, fat: 0, carb: 0 },
+    };
+    const q = solve({ candidates: [candidate('F5', 'œuf')], ctx: eggCtx });
+    expect(q).toHaveLength(1);
+    expect(Number.isInteger(q[0]!.count)).toBe(true);
+    expect(q[0]!.count).toBe(3);
+    expect(q[0]!.grams).toBe(3 * 57);
+  });
+});
+
+describe('solve (§2 search) — selection, determinism & edge cases', () => {
+  test('Oracle D — closest fit, conservative bias: prefers a 3 g fat miss over a 22 kcal overshoot', () => {
+    // Fat sources excluded (refine). One lean portioned food: ×4 lands in band with fat short 3
+    // (P=24); ×5 meets fat but overshoots cal_max by 22 (P=33). The solver returns ×4.
+    const lean: SolverCandidate = {
+      food_id: 'E',
+      meal_id: 'm1',
+      food_name: 'Lean part',
+      rating: 3,
+      per100g: { kcal: 200, protein: 40, fat: 10, carb: 0 },
+      portion: { portion_id: 'E-p', label: 'part', grams: 50 },
+    };
+    const dCtx: DayContext = {
+      targets: {
+        cal_min: 1550,
+        cal_max: 1650,
+        protein_floor_g: 140,
+        fat_floor_g: 50,
+        carb_ceiling_g: null,
+      },
+      entered: { kcal: 1172, protein: 70, fat: 27, carb: 0 },
+    };
+    const q = solve({ candidates: [lean], ctx: dCtx });
+    expect(q[0]!.count).toBe(4);
+    expect(hardOf(q, dCtx)).toBe(24);
+    const v = verifyProposal(q, dCtx);
+    expect(v.gaps).toEqual([{ target: 'fat_floor', short_g: 3 }]);
+  });
+
+  test('determinism — identical inputs yield identical output', () => {
+    const set = [
+      candidate('F1'),
+      candidate('F2'),
+      candidate('F3'),
+      candidate('F6'),
+      candidate('F7'),
+    ];
+    const a = solve({ candidates: set, ctx: CTX });
+    const b = solve({ candidates: set, ctx: CTX });
+    expect(a).toEqual(b);
+  });
+
+  test('already over cal_max — adds nothing; verifier surfaces the calorie overshoot', () => {
+    const overCtx: DayContext = {
+      targets: TARGETS,
+      entered: { kcal: 1700, protein: 150, fat: 60, carb: 70 },
+    };
+    const q = solve({ candidates: [candidate('F1'), candidate('F5', 'œuf')], ctx: overCtx });
+    expect(q.every((x) => x.grams === 0)).toBe(true);
+    const v = verifyProposal(q, overCtx);
+    expect(v.gaps).toEqual([{ target: 'calorie', delta_kcal: 50 }]); // 1700 − 1650
+  });
+
+  test('pinned — a pinned food is held fixed while the rest fit around it', () => {
+    const set = [candidate('F4', 'dose'), candidate('F1'), candidate('F3')];
+    const q = solve({
+      candidates: set,
+      ctx: CTX,
+      pinned: [{ food_id: 'F4', meal_id: 'm1', portion_id: 'F4-p', grams: 30 }],
+    });
+    const f4 = q.find((x) => x.candidate.food_id === 'F4')!;
+    expect(f4.count).toBe(1);
+    expect(f4.grams).toBe(30);
+    expect(q).toHaveLength(3); // the free foods are still solved alongside the pin
   });
 });

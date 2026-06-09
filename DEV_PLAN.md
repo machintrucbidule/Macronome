@@ -278,7 +278,13 @@ documented here only so the information is ready when the author decides to run 
           `gaps`). Co-located oracles (`meal-solver.test.ts`) assert the four §6 numbers at display
           precision incl. the F3 calorie-basis case. No contract/`DECISIONS.md` change (all live from
           S1). Green: 9 oracle tests + full unit suite (294) + typecheck + lint.
-    - [ ] S5 Solver search — `solve.ts` (pure) + determinism.
+    - [x] **S5 — Solver search** (pure): `solve.ts` — one discrete variable per food (integer
+          `0..MAX_PORTION_COUNT` portion count / 5 g-step grams to a `rem_cal_max`-derived cap);
+          **exhaustive enumeration** (global `argmin P`) under `SOLVER_ENUM_BUDGET`, else
+          **deterministic coordinate descent** from a proportional-scaling seed. Honours pinned +
+          excluded foods; `rem_cal_max<0` → add-nothing. No contract/`DECISIONS.md` change (all live
+          from S1). Green: 7 new oracle tests (A/B full fits, C indivisibility, D closest-fit
+          selection, determinism, already-over, pinned) + full unit suite (301) + typecheck + lint.
     - [ ] S6 Chef domain — assemble + format + parse (LLM-shaped, mocked).
     - [ ] S7 Repos — candidate pool + OK-day history sampling.
     - [ ] S8 Service + controller + route (API end-to-end, LLM mocked).
