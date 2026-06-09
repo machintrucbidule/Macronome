@@ -319,10 +319,46 @@
   gap: var(--sp-5);
   padding: var(--sp-5) var(--page-gutter) 2px;
 }
-.hint {
+/* ✨ Proposition IA button (B-123): secondary button on the left of the controls row; the
+   spacer pushes Copier hier / Tout effacer / + Repas to the right. */
+.aiBtn {
   font-family: var(--font-num);
   font-size: var(--fs-11);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-elev-2);
+  color: var(--text);
+  border-radius: var(--r-md);
+  padding: 7px 12px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+  white-space: nowrap;
+}
+.aiBtn:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.aiBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.aiSpark {
+  color: var(--accent);
+}
+.aiOffHint {
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
   color: var(--text-faint);
+}
+.aiOffHint a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.aiOffHint a:hover {
+  text-decoration: underline;
+}
+.ctrlSpacer {
   flex: 1;
 }
 .addMeal {

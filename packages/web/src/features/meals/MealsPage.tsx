@@ -53,6 +53,8 @@ export function MealsPage() {
             ) : (
               <>
                 <MealsControls
+                  day={ctl.day}
+                  date={date}
                   onClear={() => setClearing(true)}
                   onCopyYesterday={() => setCopying(true)}
                   onAddMeal={(name) => void ctl.actions.addMeal(name, ctl.day?.meals.length ?? 0)}

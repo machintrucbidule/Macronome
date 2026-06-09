@@ -308,7 +308,14 @@ documented here only so the information is ready when the author decides to run 
           Thin controller + route mirror dish-photo. No contract/`DECISIONS.md` change (endpoint + DTOs
           live from S1). Green: 7 new integration tests (`global.fetch` stubbed) + full suite (315 unit /
           163 int) + typecheck + lint.
-    - [ ] S9 Web client + hook + button + request popup.
+    - [x] **S9 — Web client + hook + button + request popup** (mockup states 1–2): `MealsControls`
+          drops `meals.hint` for the `✨ Proposition IA` button (disabled + `/parametres` hint when the
+          meal_suggestions task is unconfigured, D7); new `api/ai.ts` `mealSuggestions` +
+          `useMealSuggestions` + `AiProposalsDialog`/`RequestStep` (meal multiselect default-none,
+          precisions ≤500, remaining cards derived on the page via pure `logic/remainingPreview.ts` —
+          display-only). i18n `meals.proposals.*` (FR+EN; old `meals.hint` removed). No contract/
+          `DECISIONS.md` change (web bullets §6.5/§6.6 marked applied). Green: 5 new web tests + updated
+          CopyYesterday test + full web suite (171) + typecheck + lint + check:i18n + web build.
     - [ ] S10 Web proposals display.
     - [ ] S11 Web refine panel.
     - [ ] S12 Web apply a proposal + apply-mapping.

@@ -327,10 +327,46 @@
   "meals": {
     "title": "Meals",
     "today": "Today",
-    "hint": "Click a line to choose the food · Tab / arrows to navigate",
     "addMeal": "+ Meal",
     "clearAll": "Clear all",
     "copyYesterday": "Copy yesterday",
+    "proposals": {
+      "button": "AI proposal",
+      "title": "AI proposal",
+      "intro": "The AI reads the day's targets and what is already logged, then proposes meal ideas (foods + quantities) that fit within the targets. Food portions are indivisible.",
+      "notConfigured": "AI not configured",
+      "configureLink": "Settings → AI assistant",
+      "mealsLabel": "Meals to fill",
+      "mealEmpty": "empty",
+      "mealFilled": "already logged",
+      "noteLabel": "Precisions (optional)",
+      "notePlaceholder": "e.g. craving fish tonight · not too much dairy · leave room for a dessert…",
+      "remainingLabel": "Remaining targets for the day",
+      "remaining": {
+        "calories": "Calories",
+        "caloriesUnit": "kcal remaining",
+        "protein": "Protein",
+        "fat": "Fat",
+        "carb": "Carbs",
+        "floor": "≥ {{n}}",
+        "ceiling": "≤ {{n}}",
+        "floorUnit": "g · floor",
+        "ceilingUnit": "g · ceiling",
+        "none": "—"
+      },
+      "propose": "Propose",
+      "proposing": "Proposing…",
+      "busy": "The proposal can take up to a minute…",
+      "received": "{{count}} proposals received.",
+      "errors": {
+        "ai_not_configured": "Set up the AI connection in Settings first.",
+        "ai_unauthorized": "The provider rejected the API key.",
+        "ai_unreachable": "Could not reach the provider (network or timeout).",
+        "ai_bad_response": "The AI returned an unexpected response. Try again.",
+        "ai_rate_limited": "Rate or quota limit reached on this model. Try again later or pick another model.",
+        "ai_unavailable": "The AI service is momentarily overloaded. Try again shortly."
+      }
+    },
     "copy": {
       "title": "Copy yesterday's meals?",
       "prompt": "This day's content will be replaced with a copy of yesterday (meals, quantities and leftovers; or the calorie total if yesterday was a partial day). The day's comment and activity are kept, and the verdict reverts to Auto.",

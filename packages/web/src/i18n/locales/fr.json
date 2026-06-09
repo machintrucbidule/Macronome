@@ -327,10 +327,46 @@
   "meals": {
     "title": "Repas",
     "today": "Aujourd'hui",
-    "hint": "Clique une ligne pour choisir l'aliment · Tab / flèches pour naviguer",
     "addMeal": "+ Repas",
     "clearAll": "Tout effacer",
     "copyYesterday": "Copier hier",
+    "proposals": {
+      "button": "Proposition IA",
+      "title": "Proposition IA",
+      "intro": "L'IA analyse les cibles du jour et ce qui est déjà saisi, puis propose des idées de repas (aliments + quantités) qui rentrent dans les cibles. Les portions des aliments sont indivisibles.",
+      "notConfigured": "IA non configurée",
+      "configureLink": "Paramètres → Assistant IA",
+      "mealsLabel": "Repas à compléter",
+      "mealEmpty": "vide",
+      "mealFilled": "déjà saisi",
+      "noteLabel": "Précisions (optionnel)",
+      "notePlaceholder": "ex. envie de poisson ce soir · pas trop de laitages · garde de la place pour un dessert…",
+      "remainingLabel": "Cibles restantes du jour",
+      "remaining": {
+        "calories": "Calories",
+        "caloriesUnit": "kcal restantes",
+        "protein": "Protéines",
+        "fat": "Lipides",
+        "carb": "Glucides",
+        "floor": "≥ {{n}}",
+        "ceiling": "≤ {{n}}",
+        "floorUnit": "g · plancher",
+        "ceilingUnit": "g · plafond",
+        "none": "—"
+      },
+      "propose": "Proposer",
+      "proposing": "Proposition en cours…",
+      "busy": "La proposition peut prendre jusqu'à une minute…",
+      "received": "{{count}} propositions reçues.",
+      "errors": {
+        "ai_not_configured": "Configure d'abord la liaison IA dans les Paramètres.",
+        "ai_unauthorized": "Le fournisseur a rejeté la clé API.",
+        "ai_unreachable": "Impossible de joindre le fournisseur (réseau ou délai dépassé).",
+        "ai_bad_response": "L'IA a renvoyé une réponse inattendue. Réessaie.",
+        "ai_rate_limited": "Limite ou quota atteint sur ce modèle. Réessaie plus tard ou choisis un autre modèle.",
+        "ai_unavailable": "Le service IA est momentanément surchargé. Réessaie dans un instant."
+      }
+    },
     "copy": {
       "title": "Copier les repas d'hier ?",
       "prompt": "Le contenu de ce jour sera remplacé par une copie de la veille (repas, quantités et restes ; ou le total de calories si hier était un jour partiel). Le commentaire et l'activité du jour sont conservés, et le verdict repasse en Auto.",
