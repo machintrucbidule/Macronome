@@ -271,7 +271,13 @@ documented here only so the information is ready when the author decides to run 
           `aiProposable`; new `foods.field.aiProposable` + `common.yes`/`common.no` i18n (FR+EN). Web-only,
           no schema/API change. Acceptance green: `FoodModal.test.tsx` (default ON, Non→false persisted,
           edit hydrates) + typecheck + lint + check:i18n + full web suite (166) + web build.
-    - [ ] S4 Solver foundation — remaining + types + penalty + verify (pure).
+    - [x] **S4 — Solver foundation** (pure, no runtime wiring): the deterministic core in
+          `packages/api/src/domain/meal-solver/` — `types.ts`, `remaining.ts` (rem band + needs +
+          `no_target`), `penalty.ts` (`P(q)` hard/soft + carb tie-break; `hard===0` ⇔ full fit),
+          `verify.ts` (recompute day total on the calorie-axis basis → `day_total`/`targets_met`/
+          `gaps`). Co-located oracles (`meal-solver.test.ts`) assert the four §6 numbers at display
+          precision incl. the F3 calorie-basis case. No contract/`DECISIONS.md` change (all live from
+          S1). Green: 9 oracle tests + full unit suite (294) + typecheck + lint.
     - [ ] S5 Solver search — `solve.ts` (pure) + determinism.
     - [ ] S6 Chef domain — assemble + format + parse (LLM-shaped, mocked).
     - [ ] S7 Repos — candidate pool + OK-day history sampling.
