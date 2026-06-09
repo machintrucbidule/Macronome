@@ -247,7 +247,7 @@ documented here only so the information is ready when the author decides to run 
       `design/components/ai-dish-analysis.md`. The `meal_suggestions` / `advice` task endpoints and the
       generic `POST /advisor/query` (**501 `not_implemented`**) remain reserved.
       See `DECISIONS.md` Gap 14 / B-117 / B-118.
-  - **O2c — AI meal-proposals (IN PROGRESS, B-123).** The `meal_suggestions` task: a Repas
+  - **O2c — AI meal-proposals (DONE, B-123).** The `meal_suggestions` task: a Repas
     `✨ Proposition IA` popup proposes **3 distinct food sets** (foods + quantities) that bring the
     **whole day** into its calorie band + macro floors/ceiling, via the **hybrid** (LLM chef picks
     foods → pure deterministic solver sets quantities → code verifies the day total; the fit is never
@@ -348,5 +348,8 @@ documented here only so the information is ready when the author decides to run 
           §2.5 live since S1/S8 (no contract/`DECISIONS.md` change; §6.5/§6.6 apply bullets marked
           applied). Green: 3 pure + 2 dialog tests + full web suite (187) + typecheck + lint +
           check:i18n + web build.
-    - [ ] S13 i18n completeness + docs + full gate.
+    - [x] S13 i18n completeness + docs + full gate: FR/EN parity verified (`check:i18n`, 762 keys
+          in sync); `DECISIONS.md` D1–D9 + spec §6 amendment markers confirmed/closed; trackers
+          ticked. Green: full gate (check:i18n + check:schema + typecheck + lint + 336 unit + 163
+          integration). e2e (proposals dialog → apply) on the PR-to-main gate.
           See `DECISIONS.md` B-123.
