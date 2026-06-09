@@ -19,6 +19,9 @@ export interface RecipeListParams {
   include_archived?: boolean;
   sort?: string;
   dir?: 'asc' | 'desc';
+  // Keyset pagination (LL-1/B-122): the list lazy-loads page by page.
+  cursor?: string;
+  limit?: number;
 }
 
 function toQueryString(params: RecipeListParams): string {

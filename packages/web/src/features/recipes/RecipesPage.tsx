@@ -10,6 +10,7 @@ import type { MinRating } from './components/FiltersPopover';
 import { RecipeBuilderModal } from './modals/RecipeBuilderModal';
 import { RecipeArchiveConfirm } from './modals/RecipeArchiveConfirm';
 import { useRecipeMutations, useRecipesList } from './useRecipes';
+import { InfiniteScrollFooter } from '../../lib/InfiniteScrollFooter';
 
 // Recettes page (specifications/screens/recipe.md): owns search/filter/sort/modal state,
 // fetches via TanStack Query (server-side search/filter/sort), and renders the table +
@@ -46,7 +47,7 @@ export function RecipesPage() {
 
   const list = useRecipesList(buildListParams({ q, minRating, showArchived, sort, dir }));
   const { archive, restore } = useRecipeMutations();
-  const recipes = useMemo(() => list.data?.data ?? [], [list.data]);
+  const recipes = useMemo(() => list.data?.pages.flatMap((p) => p.data) ?? [], [list.data]);
 
   const onSort = (field: SortField): void => {
     if (field === sort) setDir((d) => (d === 'asc' ? 'desc' : 'asc'));
@@ -74,15 +75,18 @@ export function RecipesPage() {
       ) : recipes.length === 0 ? (
         <EmptyState>{t('recipes.empty')}</EmptyState>
       ) : (
-        <RecipesTable
-          recipes={recipes}
-          sort={sort}
-          dir={dir}
-          onSort={onSort}
-          onOpen={(recipe) => setModal({ mode: 'edit', id: recipe.id })}
-          onArchive={(recipe) => setArchiveTarget(recipe)}
-          onRestore={(recipe) => restore.mutate(recipe.id)}
-        />
+        <>
+          <RecipesTable
+            recipes={recipes}
+            sort={sort}
+            dir={dir}
+            onSort={onSort}
+            onOpen={(recipe) => setModal({ mode: 'edit', id: recipe.id })}
+            onArchive={(recipe) => setArchiveTarget(recipe)}
+            onRestore={(recipe) => restore.mutate(recipe.id)}
+          />
+          <InfiniteScrollFooter query={list} />
+        </>
       )}
 
       {modal && (

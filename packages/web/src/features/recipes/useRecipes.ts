@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
   CreateRecipeRequest,
   RecipePreviewRequest,
@@ -13,10 +13,16 @@ import { draftToPreviewBody, type RecipeDraft } from './modals/draft';
 // here; mutations invalidate the recipes cache so the list refetches.
 const RECIPES_KEY = ['recipes'] as const;
 
+// LL-1/B-122: the list lazy-loads by keyset cursor (the API caps a page at 50). Each
+// page appends; the page flattens `data.pages`. The query key keeps the `RECIPES_KEY`
+// prefix, so the mutation invalidations below still match and refetch all loaded pages.
 export function useRecipesList(params: RecipeListParams) {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: [...RECIPES_KEY, params],
-    queryFn: () => recipesApi.list(params),
+    queryFn: ({ pageParam }) =>
+      recipesApi.list(pageParam ? { ...params, cursor: pageParam } : params),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (last) => last.next_cursor ?? undefined,
   });
 }
 

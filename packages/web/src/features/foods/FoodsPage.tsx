@@ -11,6 +11,7 @@ import type { MinRating, VisibilityFilter } from './components/FiltersPopover';
 import { FoodModal } from './modals/FoodModal';
 import { ArchiveConfirm } from './modals/ArchiveConfirm';
 import { useFoodMutations, useFoodsList } from './useFoods';
+import { InfiniteScrollFooter } from '../../lib/InfiniteScrollFooter';
 
 // Aliments page (specifications/screens/food-db.md): owns filter/sort/modal state,
 // fetches via TanStack Query (server-side search/filter/sort), and renders the dense
@@ -60,7 +61,7 @@ export function FoodsPage() {
 
   const list = useFoodsList(buildListParams({ q, minRating, visibility, showArchived, sort, dir }));
   const { archive, restore } = useFoodMutations();
-  const foods = useMemo(() => list.data?.data ?? [], [list.data]);
+  const foods = useMemo(() => list.data?.pages.flatMap((p) => p.data) ?? [], [list.data]);
 
   const onSort = (field: SortField): void => {
     if (field === sort) setDir((d) => (d === 'asc' ? 'desc' : 'asc'));
@@ -95,15 +96,18 @@ export function FoodsPage() {
       ) : foods.length === 0 ? (
         <EmptyState>{t('foods.empty')}</EmptyState>
       ) : (
-        <FoodTable
-          foods={foods}
-          sort={sort}
-          dir={dir}
-          onSort={onSort}
-          onOpen={(food) => setModal({ mode: 'edit', food })}
-          onArchive={(food) => setArchiveTarget(food)}
-          onRestore={(food) => restore.mutate(food.id)}
-        />
+        <>
+          <FoodTable
+            foods={foods}
+            sort={sort}
+            dir={dir}
+            onSort={onSort}
+            onOpen={(food) => setModal({ mode: 'edit', food })}
+            onArchive={(food) => setArchiveTarget(food)}
+            onRestore={(food) => restore.mutate(food.id)}
+          />
+          <InfiniteScrollFooter query={list} />
+        </>
       )}
 
       {modal && (

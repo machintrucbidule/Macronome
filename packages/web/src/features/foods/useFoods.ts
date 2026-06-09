@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type {
   CreateFoodRequest,
   FoodParseLabelRequest,
@@ -10,10 +10,16 @@ import { foodsApi, type FoodListParams } from '../../api/foods';
 // here; mutations invalidate the foods cache so the list refetches.
 const FOODS_KEY = ['foods'] as const;
 
+// LL-1/B-122: the list lazy-loads by keyset cursor (the API caps a page at 50). Each
+// page appends; the page flattens `data.pages`. The query key keeps the `FOODS_KEY`
+// prefix, so the mutation invalidations below still match and refetch all loaded pages.
 export function useFoodsList(params: FoodListParams) {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: [...FOODS_KEY, params],
-    queryFn: () => foodsApi.list(params),
+    queryFn: ({ pageParam }) =>
+      foodsApi.list(pageParam ? { ...params, cursor: pageParam } : params),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (last) => last.next_cursor ?? undefined,
   });
 }
 

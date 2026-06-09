@@ -1790,3 +1790,31 @@ Resolved: the provider now sends **both** header styles on every request (`Autho
 **and** `x-api-key` + `anthropic-version: 2023-06-01`); each provider uses the one it understands.
 Generic (no per-host branching). `services/ai-provider.ts` + `spec/logic/ai-connection.md §6`. No
 DB/API/DTO change.
+
+---
+
+## LL-1 / B-122 — Aliments & Recettes lists lazy-load all pages — RESOLVED (author)
+
+The Aliments and Recettes list screens fetched a **single page** and ignored the API's
+`next_cursor`: `useFoodsList`/`useRecipesList` called `useQuery` once without `limit`/`cursor` and
+rendered `data.data` verbatim. The API caps a page at 50 (default) / 200 (max), so any food or
+recipe past the first ~50 was **unreachable** by scrolling — a real functional gap on a populated
+DB (e.g. after an import).
+
+**Decision (author):** the web consumes **all** pages via **infinite scroll** (load-on-scroll, not
+a "load more" button). The two list hooks move from `useQuery` to TanStack Query v5
+`useInfiniteQuery` (`getNextPageParam: last => last.next_cursor ?? undefined`, `cursor` as the page
+param); the pages flatten `data.pages` and render an `IntersectionObserver` sentinel after the
+table that calls `fetchNextPage` until `next_cursor === null`, with a discreet `SkeletonRows`
+indicator while a page is in flight. A new reusable `lib/useInfiniteScroll` hook establishes the
+pattern. The query keys keep their `['foods']`/`['recipes']` prefix, so the existing mutation
+invalidations still match and refetch all loaded pages.
+
+The toolbar **count reflects the rows loaded so far** (it grows as pages load); a true total would
+require an API change and is out of scope.
+
+**No API / schema / DTO / domain-logic change** — the backend keyset pagination already existed
+(`spec/api/foods-recipes.md`: `limit`+`cursor` → `{ data, next_cursor }`). Contract delta is web +
+the two screen specs (`specifications/screens/food-db.md` + `recipe.md`, infinite-scroll behaviour
+
+- "loading next page" state). Web-only.
