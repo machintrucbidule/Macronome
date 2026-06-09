@@ -1,17 +1,25 @@
-# AI assistant connection (Paramètres card)
+# AI assistant connection
 
-The **Assistant IA** card on Paramètres, switched from the inert `.soon` placeholder
+The **Assistant IA** card, switched from the inert `.soon` placeholder
 (`states.md`) to an **active configuration** of the remote AI link. Renders the
 `settings.ai` config (`spec/api/weight-targets-stats-settings.md`,
 `spec/logic/ai-connection.md`). Reuses the canonical inputs/selects of `forms-inputs.md`, the
 buttons of `buttons.md`, and the toasts/banners of `toasts-warnings.md`. v1 scope =
 **configure + verify the link**; no AI use is invoked.
 
+## Hosting page
+
+The card lives on its **own account-menu page** `/assistant-ia` (between Contenants and
+Paramètres), **not** inside Paramètres (B-130). The host page owns the page title/lead, so
+the card body below omits its own duplicate header/intro. See
+`specifications/screens/ai-assistant.md`.
+
 ## Card shell
 
-A standard settings section card (`00-foundations.md` surface). Header `Assistant IA` with
-**no** `bientôt` pill and **not** wrapped in `.soon`. A short intro line states the link is
-optional and currently used only to configure/verify the connection (no AI feature yet).
+A standard settings section card (`00-foundations.md` surface). The page-level title
+(`Assistant IA`) and a short intro line live on the host page; the card body holds the
+connection fields, task blocks and help (no duplicate header/intro, no `bientôt` pill, not
+wrapped in `.soon`).
 
 ## Connection fields
 

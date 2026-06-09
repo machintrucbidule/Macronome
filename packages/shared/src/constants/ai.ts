@@ -17,7 +17,9 @@ const DEFAULT_TASK_PROMPTS: Record<AiTaskKey, string> = {
   dish_photo_macros:
     'Estimate the macronutrients (protein, fat, carbs) and calories of this dish. Use the ' +
     'photo(s) when provided; otherwise rely on the written description. Identify the foods and ' +
-    'their approximate quantities.',
+    'their approximate quantities. Keep the estimate realistic, but when uncertain lean to the ' +
+    'pessimistic side — prefer a slight over-estimation of calories and macros over an ' +
+    'under-estimation.',
   meal_suggestions:
     'You are a meal-planning assistant for a calorie- and macro-tracked day. From the candidate ' +
     'foods provided, choose coherent, varied, meal-appropriate sets that help reach the day’s ' +

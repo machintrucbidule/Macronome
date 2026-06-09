@@ -6,7 +6,7 @@ import { initials, useSession } from './useSession';
 import styles from './AppShell.module.css';
 
 // Account menu (specifications/screens/settings.md): the top-right avatar dropdown holding
-// the non-primary screens (Compte, Cibles, Contenants, Paramètres) + logout. A native
+// the non-primary screens (Compte, Cibles, Contenants, Assistant IA, Paramètres) + logout. A native
 // <details> gives click-to-open + Esc/outside behaviour; navigating closes it.
 export function AccountMenu() {
   const { t } = useTranslation();
@@ -34,6 +34,9 @@ export function AccountMenu() {
         </NavLink>
         <NavLink to="/containers" className={item} onClick={close}>
           {t('containers.title')}
+        </NavLink>
+        <NavLink to="/assistant-ia" className={item} onClick={close}>
+          {t('settings.ai.title')}
         </NavLink>
         <NavLink to="/parametres" className={item} onClick={close}>
           {t('settings.title')}

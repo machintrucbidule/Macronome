@@ -11,18 +11,14 @@ import styles from '../settings.module.css';
 // Assistant IA card (design/components/ai-connection.md): configure + verify the remote
 // OpenAI-compatible link. Base URL + write-only key, a "Fetch models" action that doubles as
 // the connection proof, and three per-task model/prompt blocks. Renders; never computes.
+// The title/intro are owned by its host page (AiAssistantPage, B-130), not repeated here.
 export function AiCard() {
   const { t } = useTranslation();
   const f = useAiConnectionForm();
 
   return (
     <div className={styles.card}>
-      <div className={styles.ch}>
-        <span className={styles.t}>{t('settings.ai.title')}</span>
-      </div>
       <div className={`${styles.cb} ${styles.aiBody}`}>
-        <p className={styles.aiIntro}>{t('settings.ai.intro')}</p>
-
         <AiConnectionFields f={f} />
 
         <div className={styles.aiFetch}>

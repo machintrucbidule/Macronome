@@ -5,6 +5,14 @@ test('defaultTaskPrompt returns the English advice scope', () => {
   expect(defaultTaskPrompt('advice')).toContain('personalized nutrition advice');
 });
 
+test('defaultTaskPrompt leans the dish-photo scope to the pessimistic side (B-129)', () => {
+  const prompt = defaultTaskPrompt('dish_photo_macros');
+  expect(prompt).toContain('macronutrients');
+  // B-129: prefer a slight over-estimation over an under-estimation when uncertain.
+  expect(prompt).toContain('pessimistic');
+  expect(prompt).toContain('over-estimation');
+});
+
 test('defaultTaskPrompt returns the meal-suggestions chef scope (B-123)', () => {
   const prompt = defaultTaskPrompt('meal_suggestions');
   expect(prompt).toContain('meal-planning assistant');

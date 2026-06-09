@@ -1953,3 +1953,47 @@ nothing. Short-circuiting before the model avoids a pointless call and the spuri
 (`status` field + on-target 200 example, explicitly not a 422) + `packages/shared/src/dto/ai.ts`
 (`MealSuggestionsSchema.status`) + `specifications/features/ai-meal-proposals/spec.md`. No
 DB/schema/solver change. Code: `isOnTarget` + service short-circuit + DTO field + web `OnTargetStep`.
+
+## B-129 — AI dish-photo default prompt leans pessimistic — RESOLVED (author, 2026-06-09)
+
+The **default** scope for the `dish_photo_macros` task ("Photo → estimation des macros") asked the
+model to estimate macros/calories with no error-direction guidance. For nutrition tracking, an
+**under**-estimation (eating more than logged) is worse than a slight over-estimation.
+
+**Decision (author).** The **default** prompt now instructs the model to keep the estimate realistic
+**but, when uncertain, lean to the pessimistic side — prefer a slight over-estimation of calories and
+macros over an under-estimation.** Only the **default** constant changes; a user's _saved_ prompt is
+left to them (the per-task "Réinitialiser" seeds this new default).
+
+- The verbatim wording lives in `packages/shared/src/constants/ai.ts` (single source of truth — it
+  seeds new configs and powers "Réinitialiser"; consumed by the `api` seed/merge and the web reset),
+  per `ai-connection.md` §3 (prompts are provider-facing, **English only**, never translated).
+- The hard-coded response-format contract (`ai-dish-photo-macros.md` §3) is **unchanged** — the bias
+  belongs to the editable _scope_, not the fixed format clause.
+
+**Contract delta:** `packages/shared/src/constants/ai.ts` (default string) + `spec/logic/
+ai-dish-photo-macros.md` §1 (note the default leans pessimistic). No DB/schema/API/DTO change. Test:
+`packages/shared/src/constants/ai.test.ts` asserts the default carries the pessimistic-bias wording
+(also closes the prior `dish_photo_macros` test gap).
+
+## B-130 — Assistant IA moved to its own account-menu page — RESOLVED (author, 2026-06-09)
+
+The AI connection config (link + per-task model/prompt blocks + help) lived as one card inside
+**Paramètres** (`features/settings/components/AiCard.tsx`). As the AI surface grows it deserves its
+own home.
+
+**Decision (author).** Add an **"Assistant IA"** entry to the account menu **between Contenants and
+Paramètres**, opening a **dedicated page** (`/assistant-ia`) that holds all the former
+Paramètres → Assistant IA content; **remove** that section from Paramètres.
+
+- **Web:** new `features/settings/AiAssistantPage.tsx` (kept in the `settings` feature folder so it
+  reuses `settings.module.css`, `AiCard`, `useAiConnectionForm` with no cross-feature import). It
+  owns the page **title + lead**; `AiCard` therefore drops its own duplicate `.ch` header and
+  `.aiIntro` paragraph and becomes the pure connection/tasks/help body. New `/assistant-ia` route
+  (`app/router.tsx`) + `NavLink` (`app/AccountMenu.tsx`, label reuses the existing `settings.ai.title`
+  key — no new i18n string). `<AiCard />` removed from `SettingsPage`.
+- No behaviour change to the AI config itself (same fields, fetch-models link test, save flow).
+
+**Contract delta:** `specifications/screens/settings.md` (AI section removed → pointer) + new
+`specifications/screens/ai-assistant.md` (dedicated page) + `design/components/ai-connection.md`
+("Hosting page" note + card shell no longer owns the title/intro). No DB/schema/API/DTO/logic change.

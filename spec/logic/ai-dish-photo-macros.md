@@ -15,8 +15,12 @@ task `settings.ai.tasks.dish_photo_macros` (`model` + `prompt`). The endpoint is
   rejects an empty request with `422`. A note-only request describes the food in words (e.g.
   "3 tranches de saucisson, 2 tranches de pain") and is estimated without any image.
 - From config: `tasks.dish_photo_macros.prompt` (the user-editable **scope**) and `…model` (an
-  **image-capable** model; the Paramètres picker hides generation/embedding/audio models — a
+  **image-capable** model; the AI picker hides generation/embedding/audio models — a
   best-effort id heuristic, since the OpenAI-compatible `/models` listing carries no capability flags).
+  The **default** scope (verbatim wording in `packages/shared/src/constants/ai.ts`, per §3 of
+  `ai-connection.md`) leans **pessimistic** — it asks the model to prefer a slight **over**-estimation
+  of calories/macros over an under-estimation when uncertain (B-129). A user's _saved_ prompt is left
+  to them; only the default carries this bias.
 
 ## 2. Prompt assembly
 

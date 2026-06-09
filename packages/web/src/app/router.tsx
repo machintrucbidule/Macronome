@@ -10,6 +10,7 @@ import { MealsPage } from '../features/meals/MealsPage';
 import { StatsPage } from '../features/stats/StatsPage';
 import { WeightPage } from '../features/weight/WeightPage';
 import { SettingsPage } from '../features/settings/SettingsPage';
+import { AiAssistantPage } from '../features/settings/AiAssistantPage';
 import { ContainersPage } from '../features/containers/ContainersPage';
 import { AccountPage } from '../features/account/AccountPage';
 import { AboutPage } from '../features/about/AboutPage';
@@ -33,8 +34,9 @@ const PROTECTED: ReadonlyArray<[string, ReactElement]> = [
   ['/recipes', <RecipesPage />],
   ['/stats', <StatsPage />],
   ['/cibles', <CiblesPage />],
-  ['/parametres', <SettingsPage />],
   ['/containers', <ContainersPage />],
+  ['/assistant-ia', <AiAssistantPage />],
+  ['/parametres', <SettingsPage />],
   ['/account', <AccountPage />],
   ['/about', <AboutPage />],
   [
