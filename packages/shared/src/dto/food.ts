@@ -56,6 +56,7 @@ export const FoodSchema = z.object({
   rating: RatingSchema,
   visibility: VisibilitySchema,
   source: FoodSourceSchema,
+  ai_proposable: z.boolean(),
   recipe_id: z.string().uuid().nullable(),
   named_portions: z.array(NamedPortionSchema),
   archived_at: z.string().datetime().nullable(),
@@ -78,6 +79,7 @@ export const CreateFoodSchema = z
     comment: z.string().max(2000).nullish(),
     rating: RatingSchema.optional().default(null),
     visibility: VisibilitySchema.optional().default('private'),
+    ai_proposable: z.boolean().optional().default(true),
     named_portions: z.array(NamedPortionInputSchema).optional().default([]),
   })
   .superRefine((body, ctx) => uniqueLabels(body.named_portions, ctx));
@@ -90,6 +92,7 @@ export const UpdateFoodSchema = z
     comment: z.string().max(2000).nullish(),
     rating: RatingSchema,
     visibility: VisibilitySchema,
+    ai_proposable: z.boolean(),
     named_portions: z.array(NamedPortionInputSchema),
   })
   .partial()

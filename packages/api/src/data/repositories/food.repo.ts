@@ -19,6 +19,7 @@ export interface FoodWriteData {
   comment: string | null;
   rating: number | null;
   visibility: string;
+  aiProposable: boolean;
   portions: { label: string; grams: number }[];
 }
 
@@ -149,6 +150,7 @@ export const foodRepo = {
           comment: data.comment,
           rating: data.rating,
           visibility: data.visibility,
+          aiProposable: data.aiProposable,
         },
       });
       if (data.portions.length > 0) {
@@ -185,6 +187,7 @@ export const foodRepo = {
           ...(data.comment !== undefined ? { comment: data.comment } : {}),
           ...(data.rating !== undefined ? { rating: data.rating } : {}),
           ...(data.visibility !== undefined ? { visibility: data.visibility } : {}),
+          ...(data.aiProposable !== undefined ? { aiProposable: data.aiProposable } : {}),
         },
       });
       if (data.portions) await syncPortions(tx, id, data.portions);

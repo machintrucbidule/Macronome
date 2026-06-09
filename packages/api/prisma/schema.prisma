@@ -49,6 +49,7 @@ model Food {
   rating         Int?      @db.SmallInt
   visibility     String    @default("private")
   source         String    @default("manual")
+  aiProposable   Boolean   @default(true) @map("ai_proposable")
   recipeId       String?   @map("recipe_id") @db.Uuid
   archivedAt     DateTime? @map("archived_at") @db.Timestamptz()
   createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz()

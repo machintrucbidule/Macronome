@@ -141,6 +141,49 @@ describe('foods', () => {
   });
 });
 
+// ai_proposable (B-123 / AI meal-proposals S2): foods are eligible for AI proposals by
+// default; the flag round-trips through create/update/read and backfills via the DB default.
+describe('foods — ai_proposable (B-123)', () => {
+  it('defaults ai_proposable to true on create and round-trips false on update', async () => {
+    const { agent, csrf } = await authedAgent('alice');
+
+    const created = await createFood(agent, csrf, sampleFood);
+    expect(created.status).toBe(201);
+    expect(created.body.data.ai_proposable).toBe(true);
+    const id = created.body.data.id as string;
+
+    const patched = await agent
+      .patch(`/api/v1/foods/${id}`)
+      .set('x-csrf-token', csrf)
+      .send({ ai_proposable: false });
+    expect(patched.status).toBe(200);
+    expect(patched.body.data.ai_proposable).toBe(false);
+
+    const read = await agent.get(`/api/v1/foods/${id}`);
+    expect(read.status).toBe(200);
+    expect(read.body.data.ai_proposable).toBe(false);
+  });
+
+  it('backfills ai_proposable to true via the DB default (legacy rows)', async () => {
+    const { userId } = await authedAgent('alice');
+    // Insert a row without specifying aiProposable — the column DEFAULT true applies, the
+    // same mechanism that backfilled existing rows on ADD COLUMN (feature D9).
+    const row = await prisma.food.create({
+      data: {
+        ownerId: userId,
+        name: 'Legacy food',
+        normalizedName: 'legacy food',
+        kcalPer100g: 100,
+        fatPer100g: 1,
+        carbPer100g: 1,
+        proteinPer100g: 1,
+      },
+      select: { aiProposable: true },
+    });
+    expect(row.aiProposable).toBe(true);
+  });
+});
+
 describe('foods — parse-label (PM-1/B-114)', () => {
   function parse(agent: Agent, csrf: string, label_text: string) {
     return agent.post('/api/v1/foods/parse-label').set('x-csrf-token', csrf).send({ label_text });

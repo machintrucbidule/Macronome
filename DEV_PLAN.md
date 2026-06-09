@@ -260,7 +260,10 @@ documented here only so the information is ready when the author decides to run 
           contracts; add the meal-suggestions DTOs (`dto/ai.ts`), the new default prompt, and the solver
           tuning constants. No runtime behaviour. _(The `dto/food.ts` `ai_proposable` field is deferred
           to S2, where its producer — the column/repo/serialiser — lands, so S1 stays purely additive.)_
-    - [ ] S2 `food.ai_proposable` column + migration + repo round-trip + the `dto/food.ts` field.
+    - [x] **S2 — `food.ai_proposable` column** + migration + repo round-trip + the `dto/food.ts`
+          field (read required; create `.optional().default(true)`; update optional). New foods default
+          ON; the visible toggle is S3. Integration: default-true on create, false round-trip, DB-default
+          backfill.
     - [ ] S3 Foods-form "Dispo IA" toggle (web, end-to-end for the toggle).
     - [ ] S4 Solver foundation — remaining + types + penalty + verify (pure).
     - [ ] S5 Solver search — `solve.ts` (pure) + determinism.

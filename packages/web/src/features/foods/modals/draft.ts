@@ -53,6 +53,8 @@ export function draftToBody(draft: Draft): CreateFoodRequest {
     comment: draft.comment.trim() || null,
     rating: draft.rating,
     visibility: draft.visibility,
+    // Default-ON until the visible toggle lands (AI meal-proposals S3 wires this to draft state).
+    ai_proposable: true,
     named_portions: draft.portions
       .map((p) => ({ label: p.label.trim(), grams: Number(p.grams) }))
       .filter((p) => p.label && p.grams > 0),

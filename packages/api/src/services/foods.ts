@@ -35,6 +35,7 @@ function toDto(row: FoodWithPortions): Food {
     rating: (row.rating ?? null) as Food['rating'],
     visibility: row.visibility as Food['visibility'],
     source: row.source as Food['source'],
+    ai_proposable: row.aiProposable,
     recipe_id: row.recipeId,
     named_portions: row.portions.map((p) => ({ id: p.id, label: p.label, grams: num(p.grams) })),
     archived_at: row.archivedAt ? row.archivedAt.toISOString() : null,
@@ -71,6 +72,7 @@ export async function create(
     comment: body.comment ?? null,
     rating: body.rating,
     visibility: body.visibility,
+    aiProposable: body.ai_proposable,
     portions: body.named_portions,
   };
   const row = await foodRepo.create(userId, data);
@@ -92,6 +94,7 @@ function buildUpdateData(
     ...(body.comment !== undefined ? { comment: body.comment } : {}),
     ...(body.rating !== undefined ? { rating: body.rating } : {}),
     ...(body.visibility !== undefined ? { visibility: body.visibility } : {}),
+    ...(body.ai_proposable !== undefined ? { aiProposable: body.ai_proposable } : {}),
     ...(body.named_portions !== undefined ? { portions: body.named_portions } : {}),
   };
 }
