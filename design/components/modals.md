@@ -27,6 +27,33 @@ padding:14px 20px 20px`; right-aligned ghost + primary; a left-slotted danger
 - **cook** full-screen takeover — see below.
 - **confirm** `width:min(420px,92vw)` — archive confirmation.
 
+## Mobile variants (≤560px) — mobile-responsive S2
+
+On the phone breakpoint (≤560px), a modal may declare a **mobile presentation** that
+overrides its centered desktop sizing. This is a **separate `mobile?` prop**, not a `size`
+value: `size` still controls the desktop width (unchanged ≥561px), while `mobile` picks the
+≤560px shape. The presentation is selected by the `useIsMobile()` hook
+(`matchMedia('(max-width: 560px)')`) and is **inert ≥561px** (CSS also scoped inside
+`@media (max-width: 560px)`), so **desktop rendering is byte-identical**.
+
+- **`fullscreen`** — `100vw × 100dvh`, `margin:0`, no border/radius; a top bar holding the
+  title + a Close (`×`) button (mandatory — the scrim has no reachable outside area);
+  scrollable body; `padding-bottom: env(safe-area-inset-bottom)`. For big forms: recipe
+  builder, food sheet, weigh-in, cibles, the Repas food picker.
+- **`sheet`** — bottom-anchored (scrim aligns the panel to the bottom edge), full width,
+  rounded **top** corners only (`--r-lg --r-lg 0 0`), slides up, `max-height: 90dvh`,
+  scroll body, `padding-bottom: env(safe-area-inset-bottom)`; same title+Close top bar; a
+  tap on the scrim above the sheet closes it. For short editors / menus: Journal day editor,
+  Repas food-line editor, Poids period detail, account menu, Trier, Filtres, small menus.
+
+### Overlay taxonomy (one interaction language across screens)
+
+| Overlay               | Used for                                                                                     | Basis                                                         |
+| --------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| **Full-screen sheet** | Big forms (recipe builder, food sheet, weigh-in, cibles, Repas food picker)                  | `Modal` `mobile="fullscreen"`                                 |
+| **Bottom sheet**      | Short editors / menus (Journal day, food-line, Poids period detail, account, Trier, Filtres) | `Modal` `mobile="sheet"`                                      |
+| **Centered dialog**   | Confirmations (delete meal, clear day, archive, typed-confirm)                               | `Modal` (current centered behaviour, unchanged on mobile too) |
+
 ## Leftover-proration modal (Repas)
 
 md-size. Anatomy:

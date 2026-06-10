@@ -2208,3 +2208,33 @@ Contract delta: `packages/web/src/styles/tokens.css` + `design/tokens.css` (the 
 `--bp-phone`; byte-identical) + `design/tokens.md` (mobile type layer note + `phone` breakpoint
 row). No backend/schema/runtime change; no new tests (responsive CSS verified by inspection at
 breakpoints per the feature dev-plan).
+
+## Mobile-responsive S2 — overlay foundations (Modal mobile variants + `useIsMobile`) — RESOLVED (user, 2026-06-10)
+
+Second slice of the mobile-responsive feature (`specifications/features/mobile-responsive/`,
+spec §3 + §0.1/§0.2). It lands the **overlay foundations** four later slices consume, plus the
+viewport hook that drives every render-switch — **dormant** for now (no consumer until the
+account sheet in S3).
+
+- **`useIsMobile()`** (`packages/web/src/lib/useIsMobile.ts`): a `matchMedia('(max-width: 560px)')`
+  hook (subscribes to `change`). Client-only SPA, so no SSR concern. **Defensive:** returns
+  `false` when `window.matchMedia` is unavailable (jsdom), so existing modal-rendering tests stay
+  green without a global mock.
+- **`Modal` mobile variants**: a new **`mobile?: 'fullscreen' | 'sheet'`** prop, **separate from
+  `size`**. `size` keeps controlling the desktop width (untouched); `mobile` declares the ≤560px
+  presentation. **Design decision:** a separate prop (not new `size` values) is the only
+  desktop-inert design — a modal's desktop width must be preserved while its mobile shape changes
+  (e.g. the recipe builder is `lg` on desktop but `fullscreen` on mobile; the food sheet is `md`
+  on desktop but also `fullscreen`). `fullscreen` = `100vw × 100dvh` takeover with a title+Close
+  top bar (mandatory — no reachable scrim outside), scrollable body, safe-area inset; `sheet` =
+  bottom-anchored, rounded top, slide-up, `max-height: 90dvh`, safe-area inset. Confirmations keep
+  the centered dialog (overlay taxonomy, spec §0.2).
+
+**Desktop impact: none** — the variant is gated by `useIsMobile()` (false ≥561px) **and** its CSS
+is scoped inside `@media (max-width: 560px)` (double guarantee); with no `mobile` prop set, every
+existing modal is byte-identical on desktop **and** mobile.
+
+Contract delta: `packages/web/src/components/Modal/Modal.tsx` + `Modal.module.css` (the two
+variants + close button); new `packages/web/src/lib/useIsMobile.ts` (+ `useIsMobile.test.ts`, the
+one justified logic test — layout is verified by inspection); `design/components/modals.md`
+(§Mobile variants + overlay taxonomy). No `tokens.css`/backend/schema change.

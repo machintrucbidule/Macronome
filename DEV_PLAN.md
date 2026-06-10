@@ -364,7 +364,12 @@ documented here only so the information is ready when the author decides to run 
         Reconciled the two `tokens.css` copies to byte-identity (app copy = reference).
         See `DECISIONS.md` "Mobile-responsive S1". No tests (responsive CSS verified by
         inspection at breakpoints).
-  - [ ] **S2** — overlay foundations (`useIsMobile()` + Modal `fullscreen`/`sheet`).
+  - [x] **S2 — overlay foundations**: new `lib/useIsMobile.ts` (`matchMedia(560px)`,
+        matchMedia-guarded for jsdom) + Modal mobile-only `mobile?: 'fullscreen' | 'sheet'`
+        prop (separate from `size`; title+close top bar, safe-area insets, ≤560px-scoped
+        CSS). Dormant until S3 consumes it. Desktop inert ≥561px. `design/components/modals.md`
+        §Mobile variants + overlay taxonomy. See `DECISIONS.md` "Mobile-responsive S2".
+        One justified logic test (`useIsMobile.test.ts`); layout verified by inspection.
   - [ ] **S3** — mobile shell (app-bar title, bottom nav, account sheet, FAB component).
   - [ ] **S4** — Repas layout (two-row food line, day-bar wrap, meal tabs).
   - [ ] **S5** — Journal → cards + shared list chrome (toolbar, Trier, ⋯).
