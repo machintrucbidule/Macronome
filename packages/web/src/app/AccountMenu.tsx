@@ -74,7 +74,9 @@ function AccountDropdown() {
   );
 }
 
-// Mobile bottom sheet — theme toggle (moved off the appbar) + the secondary destinations.
+// Mobile bottom sheet — the theme toggle (moved off the appbar) sits in the sheet's top bar,
+// between the username title and the close "×" (headerAction); the body holds the secondary
+// destinations + logout.
 function AccountSheet() {
   const { t } = useTranslation();
   const session = useSession();
@@ -96,12 +98,10 @@ function AccountSheet() {
         <Modal
           mobile="sheet"
           title={session.data?.user.username ?? t('menu.account')}
+          headerAction={<ThemeToggle />}
           onClose={close}
         >
           <div className={styles.sheetBody}>
-            <div className={styles.sheetThemeRow}>
-              <ThemeToggle />
-            </div>
             {LINKS.map((l) => (
               <NavLink key={l.to} to={l.to} className={item} onClick={close}>
                 {t(l.key)}

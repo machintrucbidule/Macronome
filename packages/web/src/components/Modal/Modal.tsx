@@ -16,6 +16,12 @@ interface ModalProps {
   title: ReactNode;
   size?: 'md' | 'confirm' | 'wide';
   mobile?: 'fullscreen' | 'sheet';
+  /**
+   * Optional control rendered in the mobile top bar, between the title and the close "×"
+   * (e.g. the theme toggle in the account sheet). Only shown for a mobile variant; omitted
+   * → the header is exactly title + close as before. No effect on desktop.
+   */
+  headerAction?: ReactNode;
   onClose: () => void;
   children: ReactNode;
 }
@@ -24,7 +30,7 @@ interface ModalProps {
 // food modal) gets Escape, not the modal beneath it — without it both close at once.
 const modalStack: string[] = [];
 
-export function Modal({ title, size = 'md', mobile, onClose, children }: ModalProps) {
+export function Modal({ title, size = 'md', mobile, headerAction, onClose, children }: ModalProps) {
   const { t } = useTranslation();
   const panelRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
@@ -67,16 +73,19 @@ export function Modal({ title, size = 'md', mobile, onClose, children }: ModalPr
         tabIndex={-1}
       >
         <div id={titleId} className={`${styles.header} ${variant ? styles.headerBar : ''}`}>
-          {title}
+          {variant ? <span className={styles.headerTitle}>{title}</span> : title}
           {variant && (
-            <button
-              type="button"
-              className={styles.close}
-              aria-label={t('common.close')}
-              onClick={onClose}
-            >
-              ×
-            </button>
+            <div className={styles.headerActions}>
+              {headerAction}
+              <button
+                type="button"
+                className={styles.close}
+                aria-label={t('common.close')}
+                onClick={onClose}
+              >
+                ×
+              </button>
+            </div>
           )}
         </div>
         {children}

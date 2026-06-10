@@ -714,6 +714,13 @@
       "flag": "Régime",
       "note": "Note"
     },
+    "detail": {
+      "sectWeight": "Poids",
+      "sectEnergy": "Énergie",
+      "sectContext": "Contexte",
+      "daysShort": "{{count}} j",
+      "edit": "Modifier la pesée"
+    },
     "field": {
       "date": "Date",
       "weight": "Poids",

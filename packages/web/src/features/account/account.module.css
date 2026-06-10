@@ -8,6 +8,13 @@
   font-weight: var(--fw-bold);
   margin-bottom: var(--sp-7);
 }
+/* The app bar already shows the screen title on mobile (S3), so the page heading is redundant
+   ≤560px (owner decision). Mobile-only — desktop heading unchanged. */
+@media (max-width: 560px) {
+  .h1 {
+    display: none;
+  }
+}
 .card {
   background: var(--bg-elev);
   border: var(--bw) solid var(--border);

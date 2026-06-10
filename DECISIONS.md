@@ -2534,3 +2534,153 @@ Contract delta: new `features/foods/components/` `FoodsMobile.tsx`, `FoodsDeskto
 were already promoted to `design/components/data-tables.md` in S5/S6; Aliments is a documented
 consumer). No `tokens.css`/backend/schema change; no new tests (responsive CSS verified by
 inspection; the card/mobile components are presentational — no new logic).
+
+## Mobile-responsive S8 — Poids mobile (controls row + list → detail sheet → full-screen weigh-in) — RESOLVED (user, 2026-06-10)
+
+Eighth slice of the mobile-responsive feature (`specifications/features/mobile-responsive/`, spec
+§6 + §4.3). The Poids screen (`/weight`) rendered the 15-column `PeriodTable` (horizontal-scroll
+box) — unreadable on a phone. S8 gives Poids a **list + detail** mobile presentation: a
+`useIsMobile()` render-switch to a compact period list whose rows open a detail sheet, plus a
+sticky controls row and a FAB. **No `[shared]` foundation file edited** (ListChrome / `Fab` /
+`Modal` variants consumed read-only).
+
+- **Render-switch + desktop extraction + shared overview** (`features/weight/WeightPage.tsx`). The
+  page gains `useIsMobile()` and branches to `WeightMobile` (≤560px) or `WeightDesktop` (≥561px),
+  with the `WeighInModal` rendered **once** below the switch (shared). The current desktop tree
+  (`WeightHeader` + cartouche + chart + `PeriodTable`) was extracted **verbatim** into
+  `WeightDesktop` (pure refactor — identical DOM), and the cartouche + chart/empty-range block was
+  factored into a shared `WeightOverview` consumed by **both** branches (no duplication, byte-
+  identical render). `PeriodTable`/`PeriodRow`/`Cartouche`/`components/Chart/*` are **not edited**.
+- **Mobile controls row** (`WeightMobile`): the shared `ListToolbar` with the **Régime/Maintien**
+  `FlagToggle` in `leading` + an `OverflowMenu` ("⋯") holding **Export CSV**. The page's desktop
+  `<h1>Poids</h1>` (in `WeightHeader`) is **not** rendered on mobile — the app bar already shows the
+  "Poids" title (S3) — mirroring Journal/Aliments.
+- **Chart range + waist stay on the chart** (owner decision, 2026-06-10). Spec §6 was internally
+  ambiguous (controls row "+ chart range" vs chart "compact range control"); the owner chose to keep
+  the range selector and the waist toggle in the chart header (already responsive) rather than lift
+  them into the toolbar — which avoids editing the **shared** `components/Chart/*`. The cartouche
+  stacks **full-width** ≤560px (new `@media (max-width:560px)` rule on `.cartouche` →
+  `grid-template-columns: 1fr`).
+- **Period list + detail sheet** (`features/weight/components/` new `PeriodList`, `PeriodListRow`,
+  `PeriodDetailSheet` + `weight-mobile.module.css`). `PeriodList` (fed the same `Period[]` as the
+  table) renders a **compact row** per period: période + durée · Poids · Δ · Déficit/j + chevron,
+  the Δ/déficit tinted via the existing `period-style` trend tones (reused, never recomputed —
+  CLAUDE.md rule 2). Tapping a row opens `PeriodDetailSheet` (`Modal mobile="sheet"`) showing **all
+  15 figures** grouped **Poids / Énergie / Contexte** (none dropped), reusing `format.ts` +
+  `period-style.ts` and the existing `weight.col.*`/`weight.flag.*` labels.
+- **"Modifier la pesée" + FAB → full-screen weigh-in.** The detail sheet carries a **"Modifier la
+  pesée"** action that resolves the period's ending weigh-in (the same `byDate` map the desktop
+  row-click uses) and opens `WeighInModal`; the `Fab` (created unwired in S3) opens the add form.
+  `WeighInModal` gained an optional `mobile` prop forwarded to `Modal` (passed `"fullscreen"` from
+  the page) so the form is a full-screen takeover ≤560px and **inert on desktop**; the one-per-day
+  `ConflictConfirm` stays a centered dialog. Create/edit/delete round-trip through the same
+  mutations as desktop.
+
+- **Cartouche refinement (owner, 2026-06-10).** The five stat tiles took too much vertical space on
+  a phone. ≤560px the cartouche now **drops the projection tile** (the last child,
+  `.cartouche > *:last-child { display:none }`), lays the remaining **four out 2×2** with
+  **equal heights** (`grid-auto-rows: 1fr`), a tighter inter-tile gap, and **shrunk tile padding**.
+  The padding is tightened via a new `--metric-stat-pad` hook on `MetricCard.module.css`'s `.card.stat`
+  (`var(--metric-stat-pad, var(--sp-6) var(--sp-7))` — **identical default**, so Stats/Cibles are
+  unchanged); the Poids cartouche sets `--metric-stat-pad: var(--sp-3) var(--sp-5)` ≤560px only.
+  _Flagged:_ this touches the **shared** `MetricCard.module.css` (outside S8's declared files) — an
+  owner-directed, zero-default-change hook (precedent: the S5 round-2 owner-directed Modal edit). The
+  projection figure stays available on desktop (5-tile grid) and in the data; only the mobile tile is
+  hidden.
+
+**Desktop impact: none** — the render-switch returns `false` ≥561px → `WeightDesktop` (identical to
+the former inline desktop tree, sharing `WeightOverview`) renders unchanged; the mobile
+list/sheet/FAB never mount; the `WeighInModal` `mobile` prop is inert on desktop; the desktop-
+reachable CSS changes are the cartouche rules, all gated `@media (max-width:560px)`, and the
+`MetricCard` `--metric-stat-pad` hook keeps its current default so every existing tile is byte-identical.
+
+Contract delta: new `features/weight/components/` `WeightDesktop.tsx`, `WeightOverview.tsx`,
+`WeightMobile.tsx`, `PeriodList.tsx`, `PeriodListRow.tsx`, `PeriodDetailSheet.tsx` +
+`features/weight/weight-mobile.module.css`; render-switch in `WeightPage.tsx`; the cartouche
+`@media (max-width:560px)` rules in `weight.module.css` (2×2, drop projection, equal heights,
+tighter padding); the `--metric-stat-pad` hook on the shared `MetricCard.module.css` (zero-default-
+change); `mobile` prop on `WeighInModal.tsx`; i18n `weight.detail.*` (en/fr). **Design-system
+amendment:** a small faithful-accuracy addition to
+`design/components/data-tables.md` documenting the **list + detail** variant (the dev plan listed
+"None new"; the prior doc only described the Journal "tap → editor" path, so this records the Poids
+read-only detail sheet + "Modifier" → full-screen — flagged, accuracy only). No
+`tokens.css`/backend/schema change; no new tests (responsive CSS verified by inspection; the mobile
+components are presentational — figure formatting + weigh-in resolution already exist and are tested).
+
+## Mobile-responsive follow-ups — account-sheet theme toggle + Contenants mobile — RESOLVED (user, 2026-06-10)
+
+Two owner-directed mobile refinements outside the S1–S10 slice plan (the mobile-responsive feature
+remains; these are small per-screen follow-ups in the spirit of dev-plan §11 "secondary screens get
+minor refinements as needed"). Both desktop-inert.
+
+- **Account sheet — theme toggle moved into the top bar.** The mobile account bottom sheet
+  (`AccountMenu` → `Modal mobile="sheet"`) previously held the theme toggle as the first body row.
+  Owner request: put it on the **top row, between the username and the close `×`**. `Modal` gained an
+  optional **`headerAction`** slot (an additive, shared S2-component change — owner-directed, flagged)
+  rendered in the mobile top bar between the (now flex-`1`, truncating) title and the close button;
+  `AccountSheet` passes `<ThemeToggle/>` there and the old `.sheetThemeRow` body row + CSS are
+  removed. Omitting `headerAction` (every other modal) leaves the bar exactly title + `×` — desktop
+  and all other consumers unchanged. Documented in `design/components/modals.md`.
+- **Contenants → mobile cards (same Aliments/Recettes pattern).** The `/containers` screen was
+  desktop-only (a secondary route inheriting just the shell). Owner request: base it on
+  Aliments/Recettes — search frame + FAB. A `useIsMobile()` render-switch in `ContainersPage` (now a
+  thin switch; the desktop tree — toolbar + lead + `ContainerTable` — extracted **verbatim** to
+  `ContainersDesktop`) mounts `ContainersMobile` ≤560px: the shared `ListToolbar` (search in
+  `leading`) + `SortSheet` (name / empty-weight, the existing client sort) over `ContainerCards`/
+  `ContainerCard` (name + empty weight; the built-in "Rien" is a non-tappable badged + locked card),
+  plus a **FAB** opening the add sheet. Tapping an editable card opens `ContainerModal`, which gained
+  a `mobile` prop forwarded to `Modal`; delete stays in the sheet footer. (The desktop lead hint is
+  omitted on mobile and the container/delete modals are bottom sheets — both refined later this
+  session, see the next entry.) The desktop
+  `ContainerTable`/`ContainersToolbar`/`containers.module.css` are **not edited**; new
+  `ContainersDesktop`/`ContainersMobile`/`ContainerCards`/`ContainerCard` + `containers-mobile.module.css`.
+  No new i18n (reuses `containers.*`); no `tokens.css`/backend change; no new tests (presentational).
+
+**Desktop impact: none** — both render-switches return `false` ≥561px (desktop trees byte-identical),
+the mobile components never mount, and the `Modal` `headerAction`/`mobile` props are inert without a
+mobile variant. typecheck + lint + 392 tests + web build green.
+
+## Mobile-responsive follow-ups (2) — account-menu pages: hide redundant title + popups as bottom sheets — RESOLVED (user, 2026-06-11)
+
+Three more owner-directed mobile refinements across the **account-menu pages** (`/account`, `/cibles`,
+`/containers`, `/assistant-ia`, `/parametres`, `/about`). All desktop-inert (CSS gated `@media
+(max-width:560px)` or the `Modal mobile="sheet"` variant, which is inert ≥561px).
+
+- **Hide the page title on mobile (redundant with the app bar).** The S3 app bar already shows the
+  route-derived screen title ≤560px, so each page's own heading duplicated it. Added a
+  `@media (max-width:560px) { display:none }` rule to the title class of each page module:
+  `account.module.css`/`settings.module.css`/`about.module.css` `.h1` (settings covers both Paramètres
+  and Assistant IA), and `cibles.module.css` `.head` (hidden whole — it holds only the title).
+  Contenants already had no mobile title (the mobile branch drops the toolbar). Desktop headings
+  unchanged.
+- **All account-page popups → bottom sheets.** Owner request: every popup on these pages should open
+  as a bottom sheet above the primary nav (the S2 `sheet` variant), not centered. Added `mobile="sheet"`
+  to: `PasswordModal` (change password), `SuggestDialog` / `RecomputeConfirm` / `DeleteTargetConfirm`
+  (Cibles), `ContainerModal` (add/edit — **changed from `fullscreen` → `sheet`**) + `DeleteConfirm`
+  (Contenants), `ConfirmTyped` (Paramètres wipe "tout effacer" + import — shared component used only by
+  Paramètres) + `MealTemplateDeleteConfirm`. Each keeps `size="confirm"` so desktop stays the centered
+  dialog. **Taxonomy note (flagged):** this intentionally makes account-page _confirmations_ bottom
+  sheets, an owner-directed exception to the §0.2 "confirmations = centered dialog" rule, which still
+  holds for the primary screens (delete meal, clear day, archive — untouched). Noted in
+  `design/components/modals.md`.
+- **Contenants mobile: drop the lead hint.** The "Le poids à vide sert…" lead paragraph is omitted on
+  mobile (owner request) — removed from `ContainersMobile` (desktop keeps it).
+
+**Desktop impact: none** — the title rules are mobile-only media queries; the `mobile="sheet"` props are
+inert ≥561px (centered `size="confirm"` dialogs unchanged); the lead is still shown on desktop. No
+`tokens.css`/backend/schema change; no new i18n; no new tests (presentational). typecheck + lint + 392
+tests + web build green.
+
+## Mobile-responsive follow-up (3) — FAB clearance in the Trier/Filtres sheets — RESOLVED (user, 2026-06-11)
+
+On the screens that render the floating "+" FAB (Aliments, Recettes, Contenants), the FAB
+(`position:fixed`, 52px, sitting `var(--sp-5)` above the bottom nav) floated over the bottom-right of
+an open **Trier**/**Filtres** bottom sheet, covering the last option. Owner request: add bottom space
+to those sheets so nothing is hidden. Added an opt-in **`fabSafe`** prop to the shared `SortSheet` and
+`FiltersSheet` (ListChrome): when set, the sheet body gets a `.fabSafe` class with
+`padding-bottom: calc(52px + var(--sp-5) + var(--sp-6) + env(safe-area-inset-bottom))` (clears the
+FAB's ~62px reach). Passed by `FoodsMobile`/`RecipesMobile` (both sheets) and `ContainersMobile`
+(SortSheet). **Scoped, not global:** FAB-less screens (Journal's Trier/Filtrer/⋯) omit the prop and
+keep the tighter padding; the single-select `FilterSheet` and `OverflowMenu` (Journal-only / single-
+item) are untouched. Shared ListChrome edit (S5/S6-owned), owner-directed — flagged. No new i18n;
+no new tests (presentational). typecheck + lint + 392 tests + web build green.

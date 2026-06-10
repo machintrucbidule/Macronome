@@ -99,8 +99,14 @@ export function RecipesMobile(props: RecipesMobileProps) {
           />
         }
       >
-        <SortSheet options={sortOptions} sort={props.sort} dir={props.dir} onSort={props.onSort} />
-        <FiltersSheet sections={filterSections} active={filtersActive} />
+        <SortSheet
+          options={sortOptions}
+          sort={props.sort}
+          dir={props.dir}
+          onSort={props.onSort}
+          fabSafe
+        />
+        <FiltersSheet sections={filterSections} active={filtersActive} fabSafe />
       </ListToolbar>
 
       {body}

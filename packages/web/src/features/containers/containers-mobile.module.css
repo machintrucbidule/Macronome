@@ -1,0 +1,80 @@
+/* Contenants mobile view (mobile-responsive follow-up — same pattern as Aliments/Recettes).
+   The phone presentation of the tare catalog: a card per container, fed the same Container[]
+   the table consumes. Mounted only inside a useIsMobile() branch (desktop renders the untouched
+   ContainerTable), so these rules never apply on desktop. Kept in a separate module from
+   containers.module.css so the desktop file is untouched. Semantic tokens only (CLAUDE.md rule 6). */
+
+.cardList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.card {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  width: 100%;
+  text-align: left;
+  background: var(--bg-elev);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-4) var(--sp-6);
+  color: inherit;
+  font: inherit;
+}
+/* Editable cards are tappable (open the edit sheet); built-ins are static. */
+.tappable {
+  cursor: pointer;
+}
+.tappable:hover {
+  border-color: var(--border-strong);
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+.name {
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-15);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tag {
+  flex: none;
+  font-family: var(--font-num);
+  font-size: var(--fs-9);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-caps);
+  color: var(--text-faint);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-pill);
+  padding: 1px 6px;
+}
+
+.right {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+}
+.weight {
+  flex: none;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-15);
+}
+.locked {
+  font-family: var(--font-num);
+  font-size: var(--fs-9);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-caps);
+  color: var(--text-faint);
+}

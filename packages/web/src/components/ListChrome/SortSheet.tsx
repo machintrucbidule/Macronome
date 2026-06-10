@@ -22,6 +22,8 @@ interface SortSheetProps<K extends string> {
   onSort: (key: K) => void;
   /** Button + sheet title; defaults to the shared "Trier" label. */
   label?: string;
+  /** Pad the sheet bottom so a floating "+" FAB doesn't overlap the last row (FAB screens). */
+  fabSafe?: boolean;
 }
 
 export function SortSheet<K extends string>({
@@ -30,6 +32,7 @@ export function SortSheet<K extends string>({
   dir,
   onSort,
   label,
+  fabSafe,
 }: SortSheetProps<K>) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -60,7 +63,7 @@ export function SortSheet<K extends string>({
       </button>
       {open && (
         <Modal mobile="sheet" title={title} onClose={() => setOpen(false)}>
-          <div className={styles.sheetBody} role="menu">
+          <div className={`${styles.sheetBody} ${fabSafe ? styles.fabSafe : ''}`} role="menu">
             {options.map((o) => {
               const active = o.key === sort;
               return (

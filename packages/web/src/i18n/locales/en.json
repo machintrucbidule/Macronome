@@ -714,6 +714,13 @@
       "flag": "Diet",
       "note": "Note"
     },
+    "detail": {
+      "sectWeight": "Weight",
+      "sectEnergy": "Energy",
+      "sectContext": "Context",
+      "daysShort": "{{count}} d",
+      "edit": "Edit weigh-in"
+    },
     "field": {
       "date": "Date",
       "weight": "Weight",

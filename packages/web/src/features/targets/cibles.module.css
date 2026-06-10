@@ -9,6 +9,13 @@
   font-weight: var(--fw-bold);
   margin: 0;
 }
+/* The app bar already shows the "Cibles" title on mobile (S3); the page heading row holds only
+   that title, so it's hidden whole ≤560px (owner decision). Mobile-only — desktop unchanged. */
+@media (max-width: 560px) {
+  .head {
+    display: none;
+  }
+}
 
 .layout {
   display: grid;

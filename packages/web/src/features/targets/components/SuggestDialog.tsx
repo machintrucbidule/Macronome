@@ -22,7 +22,7 @@ export function SuggestDialog({ onClose, onApply }: SuggestDialogProps) {
   const proposed = suggest.data ?? null;
 
   return (
-    <Modal title={t('cibles.suggest.title')} size="confirm" onClose={onClose}>
+    <Modal title={t('cibles.suggest.title')} size="confirm" mobile="sheet" onClose={onClose}>
       <div className={modalStyles.body}>
         <NumberInput
           label={t('cibles.suggest.deficit')}

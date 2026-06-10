@@ -1,67 +1,23 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { GetWeightResponse } from '@macronome/shared';
 import { AppShell } from '../../app/AppShell';
 import { dataApi } from '../../api/data';
 import { Banner } from '../../components/Banner/Banner';
 import { useCsvExport } from '../../lib/useCsvExport';
-import { RangeControl } from '../../components/Chart/RangeControl';
-import { WeightChart } from '../../components/Chart/WeightChart';
-import { EmptyState } from '../../components/states/EmptyState';
-import { SkeletonRows } from '../../components/states/SkeletonRows';
-import { Cartouche } from './components/Cartouche';
-import { PeriodTable } from './components/PeriodTable';
+import { useIsMobile } from '../../lib/useIsMobile';
 import { WeighInModal } from './components/WeighInModal';
-import { WeightHeader } from './components/WeightHeader';
+import { WeightDesktop } from './components/WeightDesktop';
+import { WeightMobile } from './components/WeightMobile';
 import { useWeight } from './useWeight';
-import { useWeightController, type WeightController } from './useWeightController';
+import { useWeightController } from './useWeightController';
 import styles from './weight.module.css';
 
 // Poids screen (specifications/screens/weight.md): cartouche + chart + period table. Every
-// figure is server-derived (rule 2); the screen renders, toggles the range/waist/mode, and
-// edits weigh-ins through the modal. The current mode is ephemeral in M4 (persistence → M7).
-function WeightBody({ data, ctl }: { data: GetWeightResponse; ctl: WeightController }) {
-  const { t } = useTranslation();
-  const c = data.cartouche;
-  // Goal line is reconstructed from the cartouche for display (the contract carries the gap,
-  // not the goal weight). Display-only — no nutrition figure is computed here.
-  const goal = c.current !== null && c.gap_to_goal !== null ? c.current - c.gap_to_goal : null;
-  const byDate = new Map(data.weigh_ins.map((w) => [w.date, w]));
-  return (
-    <div className={styles.layout}>
-      <Cartouche data={c} />
-      {data.weigh_ins.length > 0 ? (
-        <WeightChart
-          weighIns={data.weigh_ins}
-          ema={data.ema}
-          trajectory={data.trajectory}
-          goal={goal}
-          showWaist={ctl.showWaist}
-          onToggleWaist={ctl.toggleWaist}
-          range={ctl.range}
-          onRange={ctl.setRange}
-        />
-      ) : (
-        <div className={styles.rangeEmpty}>
-          <RangeControl range={ctl.range} onRange={ctl.setRange} />
-          <EmptyState>{t('weight.rangeEmpty')}</EmptyState>
-        </div>
-      )}
-      {data.periods.length > 0 ? (
-        <PeriodTable
-          periods={data.periods}
-          onRowClick={(d) => {
-            const w = byDate.get(d);
-            if (w) ctl.openEdit(w);
-          }}
-        />
-      ) : (
-        <EmptyState>{t('weight.single')}</EmptyState>
-      )}
-    </div>
-  );
-}
-
+// figure is server-derived (rule 2); the screen renders, toggles the range/waist/mode, and edits
+// weigh-ins through the modal. Mobile-responsive S8: a useIsMobile() render-switch picks the
+// desktop tree (WeightDesktop — byte-identical to before) or the mobile tree (WeightMobile —
+// controls row + list → detail sheet + FAB); the weigh-in modal is shared (full-screen ≤560px).
+// The current mode is ephemeral in M4 (persistence → M7).
 export function WeightPage() {
   const { t } = useTranslation();
   const ctl = useWeightController();
@@ -69,13 +25,24 @@ export function WeightPage() {
   const { mode, setMode } = ctl;
   const serverMode = query.data?.current_mode ?? null;
   const csv = useCsvExport(dataApi.exportWeightCsv);
+  const isMobile = useIsMobile();
 
   // Seed the screen-local mode from the server default once (latest period's flag).
   useEffect(() => {
     if (mode === null && serverMode) setMode(serverMode);
   }, [mode, setMode, serverMode]);
 
-  const empty = query.data && query.data.cartouche.current === null;
+  const empty = !!(query.data && query.data.cartouche.current === null);
+  const common = {
+    data: query.data,
+    loading: query.isLoading,
+    empty,
+    ctl,
+    mode,
+    onMode: setMode,
+    onExport: csv.start,
+  };
+
   return (
     <AppShell>
       {csv.error && (
@@ -85,16 +52,14 @@ export function WeightPage() {
           </Banner>
         </div>
       )}
-      <WeightHeader mode={mode} onMode={setMode} onAdd={ctl.openAdd} onExport={csv.start} />
-      {query.isLoading ? (
-        <SkeletonRows />
-      ) : !query.data || empty ? (
-        <EmptyState>{t('weight.empty')}</EmptyState>
-      ) : (
-        <WeightBody data={query.data} ctl={ctl} />
-      )}
+      {isMobile ? <WeightMobile {...common} /> : <WeightDesktop {...common} />}
       {ctl.modal && (
-        <WeighInModal target={ctl.modal} defaultFlag={mode ?? 'in_diet'} onClose={ctl.closeModal} />
+        <WeighInModal
+          target={ctl.modal}
+          defaultFlag={mode ?? 'in_diet'}
+          onClose={ctl.closeModal}
+          {...(isMobile ? { mobile: 'fullscreen' as const } : {})}
+        />
       )}
     </AppShell>
   );

@@ -105,8 +105,14 @@ export function FoodsMobile(props: FoodsMobileProps) {
           />
         }
       >
-        <SortSheet options={sortOptions} sort={props.sort} dir={props.dir} onSort={props.onSort} />
-        <FiltersSheet sections={filterSections} active={filtersActive} />
+        <SortSheet
+          options={sortOptions}
+          sort={props.sort}
+          dir={props.dir}
+          onSort={props.onSort}
+          fabSafe
+        />
+        <FiltersSheet sections={filterSections} active={filtersActive} fabSafe />
       </ListToolbar>
 
       {props.isError && <Banner tone="warning">{t('common.loadError')}</Banner>}

@@ -71,6 +71,14 @@
   gap: var(--sp-2);
   padding: var(--sp-5) var(--sp-6) calc(var(--sp-7) + env(safe-area-inset-bottom));
 }
+/* Extra bottom space so the floating "+" FAB doesn't overlap the last row, on screens that
+   render a FAB (Aliments/Recettes/Contenants — owner request 2026-06-11). The FAB spans the
+   bottom ~62px of the sheet (52px tall, sitting var(--sp-5) above the sheet's bottom edge);
+   we clear it. Applied only when the consumer passes `fabSafe` — FAB-less screens (Journal)
+   keep the tighter padding. */
+.fabSafe {
+  padding-bottom: calc(52px + var(--sp-5) + var(--sp-6) + env(safe-area-inset-bottom));
+}
 .sheetItem {
   display: flex;
   align-items: center;

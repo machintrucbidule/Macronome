@@ -35,7 +35,7 @@ export function PasswordModal({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <Modal title={t('account.modal.title')} size="confirm" onClose={onClose}>
+    <Modal title={t('account.modal.title')} size="confirm" mobile="sheet" onClose={onClose}>
       <div className={styles.modalBody}>
         <TextInput
           label={t('account.modal.current')}

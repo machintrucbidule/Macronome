@@ -23,7 +23,7 @@ export function RecomputeConfirm({
 }: RecomputeConfirmProps) {
   const { t } = useTranslation();
   return (
-    <Modal title={t('cibles.recompute.title')} size="confirm" onClose={onCancel}>
+    <Modal title={t('cibles.recompute.title')} size="confirm" mobile="sheet" onClose={onCancel}>
       <div className={modalStyles.body}>
         <p className={modalStyles.text}>
           <Trans

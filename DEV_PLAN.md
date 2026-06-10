@@ -419,6 +419,17 @@ documented here only so the information is ready when the author decides to run 
         Archive via sheet footer. i18n `foods.archivedTag`. **Zero shared file edited; no amendment**
         (documented S5/S6 chrome consumer). See `DECISIONS.md` "Mobile-responsive S7". Desktop inert
         ≥561px; no `tokens.css` touch; no new tests (presentational). typecheck/lint/225 web tests green.
-  - [ ] **S8** — Poids (controls row, chart sizing, period list + detail sheet, FAB).
+  - [x] **S8** — Poids → controls row + list+detail. `useIsMobile()` render-switch in `WeightPage`
+        (thin switch; desktop tree extracted verbatim to `WeightDesktop`; cartouche + chart factored
+        into a shared `WeightOverview` consumed by both). `WeightMobile` = sticky `ListToolbar`
+        (Régime/Maintien `FlagToggle` + `OverflowMenu` Export CSV) + overview + compact
+        `PeriodList`/`PeriodListRow` (période · Poids · Δ · Déficit/j + chevron, toned) + `Fab`
+        (add). Tap period → `PeriodDetailSheet` (`Modal mobile="sheet"`, all 15 figures grouped
+        Poids/Énergie/Contexte) + **"Modifier la pesée"** → `WeighInModal` full-screen (`mobile`
+        prop). **Owner:** range + waist **stay on the chart** → no `components/Chart/*` edit;
+        cartouche full-width via new `@media (max-width:560px)`. Amendment: faithful-accuracy
+        **list+detail** bullet in `data-tables.md` (dev-plan said "None new" — flagged). i18n
+        `weight.detail.*`. See `DECISIONS.md` "Mobile-responsive S8". Desktop inert ≥561px; no
+        `tokens.css` touch; no new tests (presentational). typecheck/lint/392 tests + web build green.
   - [ ] **S9** — Repas interactions (food picker, line-editor sheet, swipe, touch DnD).
   - [ ] **S10** — Stats (wide blocks scroll, mount-time scroll to current period).

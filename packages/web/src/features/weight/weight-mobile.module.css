@@ -1,0 +1,147 @@
+/* Poids mobile view (mobile-responsive S8, mockups/04-weight.html). The phone presentation of
+   the period history: a compact list (two-row per period for phone width — the mockup's single
+   listrow is the content/position reference) + a read-only detail bottom sheet, fed the same
+   Period data as the desktop table. Mounted only inside a useIsMobile() branch (desktop renders
+   the untouched PeriodTable), so these rules never apply on desktop. Layout only; the tone /
+   activity-pill / flag-badge tint classes are reused from weight.module.css. Kept in a separate
+   module so the desktop file is untouched. Semantic tokens only (CLAUDE.md rule 6). */
+
+/* ---- Compact period list ---- */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+.row {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  width: 100%;
+  text-align: left;
+  background: var(--bg-elev);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-4) var(--sp-5);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.row:hover {
+  border-color: var(--border-strong);
+}
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+}
+.period {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.periodRange {
+  font-family: var(--font-num);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-bold);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.periodSub {
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  color: var(--text-faint);
+}
+.chev {
+  flex: none;
+  font-size: var(--fs-18);
+  line-height: 1;
+  color: var(--text-faint);
+}
+
+/* Row 2: the three at-a-glance figures (Poids · Δ · Déficit/j) with mini labels. */
+.metrics {
+  display: flex;
+  gap: var(--sp-7);
+}
+.v {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-family: var(--font-num);
+  font-size: var(--fs-13);
+}
+.k {
+  font-size: var(--fs-9);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-caps);
+  color: var(--text-faint);
+}
+
+/* ---- Detail bottom sheet ---- */
+.sheet {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+  padding: var(--sp-6) var(--sp-6) calc(var(--sp-7) + env(safe-area-inset-bottom));
+}
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-5) var(--sp-6);
+}
+.sect {
+  grid-column: 1 / -1;
+  margin-top: var(--sp-3);
+  padding-bottom: var(--sp-2);
+  border-bottom: var(--bw) solid var(--border);
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-caps);
+  color: var(--text-faint);
+}
+.sect:first-child {
+  margin-top: 0;
+}
+.cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.cellFull {
+  grid-column: 1 / -1;
+}
+.cellKey {
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  color: var(--text-faint);
+}
+.cellVal {
+  font-family: var(--font-num);
+  font-size: var(--fs-14);
+}
+.cellNote {
+  font-family: var(--font-body);
+  font-size: var(--fs-13);
+  color: var(--text-dim);
+}
+.editBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: var(--tap);
+  background: var(--accent);
+  color: var(--accent-ink);
+  border: 0;
+  border-radius: var(--r-md);
+  font-family: var(--font-body);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-bold);
+  cursor: pointer;
+}

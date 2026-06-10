@@ -11,6 +11,12 @@
   gap: var(--sp-6);
   padding: var(--sp-6) var(--sp-6) calc(var(--sp-7) + env(safe-area-inset-bottom));
 }
+/* Extra bottom space so the floating "+" FAB doesn't overlap the last control, on screens that
+   render a FAB (Aliments/Recettes — owner request 2026-06-11). Mirrors list-chrome .fabSafe;
+   applied only when the consumer passes `fabSafe`. */
+.fabSafe {
+  padding-bottom: calc(52px + var(--sp-5) + var(--sp-6) + env(safe-area-inset-bottom));
+}
 .section {
   display: flex;
   flex-direction: column;

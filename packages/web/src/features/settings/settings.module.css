@@ -8,6 +8,14 @@
   font-weight: var(--fw-bold);
   margin-bottom: var(--sp-1);
 }
+/* The app bar already shows the screen title on mobile (S3), so the page heading is redundant
+   ≤560px (owner decision) — applies to both Paramètres and Assistant IA, which share this module.
+   Mobile-only — desktop heading unchanged. */
+@media (max-width: 560px) {
+  .h1 {
+    display: none;
+  }
+}
 .lead {
   font-size: var(--fs-13);
   color: var(--text-dim);

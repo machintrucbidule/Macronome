@@ -15,9 +15,13 @@ interface Props {
   container: Container | null;
   onClose: () => void;
   onDelete: (c: Container) => void;
+  // Mobile-only Modal variant (mobile-responsive follow-up): the add/edit form opens as a bottom
+  // sheet ≤560px (owner decision — like the other account-page popups). Inert on desktop — Modal
+  // applies the variant only when its own useIsMobile() is true.
+  mobile?: 'fullscreen' | 'sheet';
 }
 
-export function ContainerModal({ container, onClose, onDelete }: Props) {
+export function ContainerModal({ container, onClose, onDelete, mobile }: Props) {
   const { t } = useTranslation();
   const { create, update } = useContainerMutations();
   const [name, setName] = useState(container?.name ?? '');
@@ -41,6 +45,7 @@ export function ContainerModal({ container, onClose, onDelete }: Props) {
     <Modal
       title={t(container ? 'containers.modal.editTitle' : 'containers.modal.addTitle')}
       size="confirm"
+      {...(mobile ? { mobile } : {})}
       onClose={onClose}
     >
       <div className={styles.modalBody}>

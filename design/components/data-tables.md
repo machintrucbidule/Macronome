@@ -168,6 +168,16 @@ renders the **exact existing** table component, untouched. The card components a
   row **also navigates** (Journal date/macros → that day's Repas), the sheet carries an
   explicit **"Ouvrir la journée"** action so no desktop affordance is lost (owner decision,
   2026-06-10).
+- **List + detail (Poids, mobile-responsive S8).** Where a desktop row carries **too many
+  figures for one card** (the Poids period table has 15), the card stays a **compact list
+  row** showing only the four at-a-glance figures (période/durée · Poids · Δ · Déficit/j +
+  chevron, the Δ/déficit tinted by the existing WV-1/B-115 trend tones). Tapping it opens a
+  **read-only detail bottom sheet** (`Modal mobile="sheet"`) with **all** the figures grouped
+  (Poids / Énergie / Contexte — none dropped), reusing the same `format`/`period-style`
+  helpers as the table. The sheet carries a **"Modifier la pesée"** action opening the
+  weigh-in form **full-screen** (`Modal mobile="fullscreen"`) — the phone equivalent of the
+  desktop row's direct click-to-edit, resolved to the period's ending weigh-in. The desktop
+  `PeriodTable`/`PeriodRow` are **not edited** (render-switch picks the mobile list ≤560px).
 
 ### Shared mobile list chrome (`components/ListChrome/*`)
 

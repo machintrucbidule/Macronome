@@ -28,7 +28,9 @@
 .card.stat {
   background: var(--bg-elev);
   border-radius: var(--r-lg);
-  padding: var(--sp-6) var(--sp-7);
+  /* Padding is overridable via --metric-stat-pad (identical default → unchanged for every
+     current consumer); the Poids mobile cartouche tightens it ≤560px (mobile-responsive S8). */
+  padding: var(--metric-stat-pad, var(--sp-6) var(--sp-7));
 }
 
 .label {

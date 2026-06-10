@@ -210,11 +210,6 @@
   flex-direction: column;
   padding: 0 var(--sp-5) var(--sp-5);
 }
-.sheetThemeRow {
-  display: flex;
-  justify-content: center;
-  padding: var(--sp-3) 0 var(--sp-5);
-}
 .sheetItem {
   display: flex;
   align-items: center;

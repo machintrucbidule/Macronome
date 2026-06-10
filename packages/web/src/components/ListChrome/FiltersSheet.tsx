@@ -35,9 +35,11 @@ interface FiltersSheetProps {
   active: boolean;
   /** Button aria-label + sheet title; defaults to the shared "Filtrer" label. */
   label?: string;
+  /** Pad the sheet bottom so a floating "+" FAB doesn't overlap the last control (FAB screens). */
+  fabSafe?: boolean;
 }
 
-export function FiltersSheet({ sections, active, label }: FiltersSheetProps) {
+export function FiltersSheet({ sections, active, label, fabSafe }: FiltersSheetProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const title = label ?? t('list.filter');
@@ -65,7 +67,7 @@ export function FiltersSheet({ sections, active, label }: FiltersSheetProps) {
       </button>
       {open && (
         <Modal mobile="sheet" title={title} onClose={() => setOpen(false)}>
-          <div className={styles.body}>
+          <div className={`${styles.body} ${fabSafe ? styles.fabSafe : ''}`}>
             {sections.map((section) =>
               section.kind === 'chips' ? (
                 <div key={section.label} className={styles.section}>

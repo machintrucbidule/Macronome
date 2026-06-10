@@ -59,6 +59,11 @@ value: `size` still controls the desktop width (unchanged ≥561px), while `mobi
   same title+Close top bar; a tap on the scrim above the sheet closes it. For short editors /
   menus: Journal day editor, Repas food-line editor, Poids period detail, account menu, Trier,
   Filtres, small menus.
+- **`headerAction` (optional top-bar slot).** Either mobile variant may render one control in the
+  top bar, **between the title and the Close `×`** (the title takes the remaining width and
+  truncates). Omitted → the bar is exactly title + `×` as before; desktop is unaffected (the bar
+  only exists for a mobile variant). First consumer: the **account sheet's theme toggle** (moved
+  onto the sheet's top row — owner decision, 2026-06-10).
 
 > **Focus an animated overlay with `preventScroll` (applies to every animated overlay).** The
 > focus trap moves focus into the panel on open. A bare `.focus()` makes the browser scroll the
@@ -77,6 +82,14 @@ value: `size` still controls the desktop width (unchanged ≥561px), while `mobi
 | **Full-screen sheet** | Big forms (recipe builder, food sheet, weigh-in, cibles, Repas food picker)                  | `Modal` `mobile="fullscreen"`                                 |
 | **Bottom sheet**      | Short editors / menus (Journal day, food-line, Poids period detail, account, Trier, Filtres) | `Modal` `mobile="sheet"`                                      |
 | **Centered dialog**   | Confirmations (delete meal, clear day, archive, typed-confirm)                               | `Modal` (current centered behaviour, unchanged on mobile too) |
+
+> **Account-menu pages exception (owner decision, 2026-06-11).** On the account-menu pages
+> (`/account`, `/cibles`, `/containers`, `/assistant-ia`, `/parametres`, `/about`), **every** popup —
+> including confirmations (`DeleteConfirm`, `ConfirmTyped` "tout effacer"/import, the Cibles confirms,
+> `MealTemplateDeleteConfirm`) and the container add/edit form — opens as a **bottom sheet**
+> (`mobile="sheet"`) on mobile, above the primary nav. This is an intentional exception to the
+> "confirmations = centered dialog" row above, which **still holds for the primary screens** (delete
+> meal, clear day, archive). Desktop is unchanged (every one keeps its centered `size="confirm"`).
 
 ## Leftover-proration modal (Repas)
 

@@ -14,7 +14,12 @@ interface Props {
 export function MealTemplateDeleteConfirm({ item, onCancel, onConfirm }: Props) {
   const { t } = useTranslation();
   return (
-    <Modal title={t('settings.template.deleteTitle')} size="confirm" onClose={onCancel}>
+    <Modal
+      title={t('settings.template.deleteTitle')}
+      size="confirm"
+      mobile="sheet"
+      onClose={onCancel}
+    >
       <div className={modalStyles.body}>
         <p className={modalStyles.text}>
           <Trans

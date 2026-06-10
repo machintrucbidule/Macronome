@@ -47,6 +47,23 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+/* Phone (mobile-responsive S8 + owner refinement 2026-06-10): the cartouche took too much
+   height. ≤560px we drop the projection tile (the last child), lay the remaining four out
+   2×2 with equal row heights (grid-auto-rows: 1fr → all four cards the same height), tighten
+   the inter-tile gap, and shrink each stat tile's padding via the MetricCard --metric-stat-pad
+   hook (Poids-scoped: only the cartouche's own tiles change; the shared MetricCard default is
+   untouched). Mobile-only — inert ≥561px (desktop keeps the 5-col / ≤900px 2-col grid above). */
+@media (max-width: 560px) {
+  .cartouche {
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: 1fr;
+    gap: var(--sp-4);
+    --metric-stat-pad: var(--sp-3) var(--sp-5);
+  }
+  .cartouche > *:last-child {
+    display: none;
+  }
+}
 
 .rangeEmpty {
   display: flex;

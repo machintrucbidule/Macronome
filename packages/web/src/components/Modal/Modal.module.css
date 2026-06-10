@@ -146,7 +146,7 @@
     white-space: nowrap;
   }
 
-  /* Top bar (title + close) for both mobile variants. */
+  /* Top bar (title + optional action + close) for both mobile variants. */
   .headerBar {
     display: flex;
     align-items: center;
@@ -156,6 +156,21 @@
     top: 0;
     background: var(--bg-elev);
     z-index: 1;
+  }
+  /* The title takes the remaining width (truncating if long) so the optional action sits next
+     to the close "×" on the right, not centred. */
+  .headerTitle {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .headerActions {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: var(--sp-5);
   }
   .close {
     flex: none;
