@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import type { DayDetail } from '@macronome/shared';
-import { formatDateLabel, todayIso } from '../../format';
+import { formatDateLabel, formatDateLabelShort, todayIso } from '../../format';
 import { DateNavigator } from './DateNavigator';
 import { DayKindBadge } from './DayKindBadge';
 import { DayCommentField } from './DayCommentField';
@@ -24,8 +24,11 @@ export function DayHeader({ date, day, onNavigate }: DayHeaderProps) {
     <div className={styles.sticky}>
       <div className={styles.daybar}>
         <DateNavigator date={date} onNavigate={onNavigate} />
+        {/* Two date variants, CSS-toggled (appbarTitle pattern): the long label on desktop, the
+            compact one ≤560px (mobile-responsive S4). Both render; the breakpoint hides one. */}
         <div className={styles.dateLabel}>
-          {formatDateLabel(date, i18n.language)}
+          <span className={styles.dateLong}>{formatDateLabel(date, i18n.language)}</span>
+          <span className={styles.dateShort}>{formatDateLabelShort(date, i18n.language)}</span>
           {isToday && <small>{t('meals.today')}</small>}
         </div>
         <DayKindBadge kind={day.kind} confirmNeeded={day.totals.kcal > 0} />

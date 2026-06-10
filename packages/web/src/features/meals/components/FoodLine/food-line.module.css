@@ -242,3 +242,111 @@
 .unitMenu button.cur {
   color: var(--accent);
 }
+
+/* The four value cells (kcal/L/G/P) are wrapped in `.macros` so the mobile two-row layout can
+   treat them as one cluster. `display: contents` makes the wrapper generate no box, so on desktop
+   the cells remain direct items of the 9-column grid → byte-identical ≥561px. ≤560px the rule is
+   overridden to a flex cluster (the mockup's `.ml-mac`). */
+.macros {
+  display: contents;
+}
+
+/* ===== Mobile two-row food line (mobile-responsive S4, spec §5.3) — inert ≥561px =====
+   The dense 9-column desktop line is cramped at phone width and its `.nm`/`.v` sizes are
+   hard-coded px (so the type layer can't enlarge them). At ≤560px the line reflows to two rows via
+   grid-template-areas: row 1 = grip · name (full width) · quantity (· pin/× parked at the right,
+   interim until they move to the line-editor sheet in S9); row 2 = the macro cluster (kcal bold +
+   "kcal" · L/G/P colour-coded · faint "L·G·P" legend), matching `mockups/05-meals.html` .ml-mac.
+   Desktop renders the 9-column grid unchanged. */
+@media (max-width: 560px) {
+  /* The per-column sub-header ("Aliment Qté kcal L G P") is desktop chrome — drop it. */
+  .lhead {
+    display: none;
+  }
+  .line {
+    grid-template-columns: 18px 1fr auto auto auto;
+    grid-template-areas:
+      'grip name qty pin del'
+      'mac  mac  mac mac mac';
+    row-gap: 3px;
+    min-height: 0;
+    padding: 7px 10px;
+  }
+  .line > :nth-child(1) {
+    grid-area: grip;
+  }
+  .line > :nth-child(2) {
+    grid-area: name;
+  }
+  .line > :nth-child(3) {
+    grid-area: qty;
+  }
+  .line > :nth-child(5) {
+    grid-area: pin;
+  }
+  .line > :nth-child(6) {
+    grid-area: del;
+  }
+  /* Row 2: the macro cluster spans the full width as a flex row (the mockup's .ml-mac). */
+  .macros {
+    grid-area: mac;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 3px 14px;
+    font-family: var(--font-num);
+  }
+  .macros > :nth-child(1) {
+    font-size: var(--fs-13);
+  }
+  /* kcal value carries its unit on mobile ("312 kcal"). */
+  .macros > :nth-child(1)::after {
+    content: ' kcal';
+    font-weight: var(--fw-regular);
+    color: var(--text-faint);
+    font-size: var(--fs-10);
+  }
+  /* Macros colour-coded like the totals dots — but never override the zero-quantity muting (B-107). */
+  .line:not(.zero) .macros > :nth-child(2) {
+    color: var(--c-fat);
+  }
+  .line:not(.zero) .macros > :nth-child(3) {
+    color: var(--c-carb);
+  }
+  .line:not(.zero) .macros > :nth-child(4) {
+    color: var(--c-prot);
+  }
+  .macros > .v {
+    font-size: var(--fs-12);
+    text-align: left;
+  }
+  /* Faint "L·G·P" legend closing the cluster (the column sub-header is gone on mobile). */
+  .macros::after {
+    content: 'L·G·P';
+    color: var(--text-faint);
+    font-size: var(--fs-9);
+  }
+  /* `.nm`/`.qty` are hard-coded px on desktop; set explicit mobile sizes (name --fs-13 = 16px,
+     qty input --fs-13 ≥16px to avoid iOS focus-zoom, cross-cutting rule §8). */
+  .nm {
+    font-size: var(--fs-13);
+  }
+  .qty {
+    font-size: var(--fs-13);
+    width: 52px;
+  }
+  /* Empty "+ aliment" line: a single clean row (its placeholder spans aren't a macro cluster). */
+  .empty {
+    grid-template-columns: 18px 1fr;
+    grid-template-areas: 'grip name';
+  }
+  .empty > :nth-child(n + 3) {
+    display: none;
+  }
+  /* The inline-search (editing) line is grip + the search box: let it span the full row-1 width. */
+  .editing .search {
+    grid-area: auto;
+    grid-row: 1;
+    grid-column: 2 / -1;
+  }
+}

@@ -549,6 +549,10 @@
       "deletePrompt": "Delete the meal \"{{name}}\" from this day?",
       "addPrompt": "New meal name:"
     },
+    "tabs": {
+      "aria": "Meals",
+      "kcal": "{{value}} kcal"
+    },
     "custom": {
       "addTitle": "Custom food",
       "editTitle": "Edit manual entry",

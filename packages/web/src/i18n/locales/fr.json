@@ -549,6 +549,10 @@
       "deletePrompt": "Supprimer le repas « {{name}} » de ce jour ?",
       "addPrompt": "Nom du nouveau repas :"
     },
+    "tabs": {
+      "aria": "Repas",
+      "kcal": "{{value}} kcal"
+    },
     "custom": {
       "addTitle": "Aliment custom",
       "editTitle": "Modifier la saisie manuelle",

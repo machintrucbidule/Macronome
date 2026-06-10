@@ -7,10 +7,12 @@ import { SkeletonRows } from '../../components/states/SkeletonRows';
 import { MealsProvider } from './MealsContext';
 import { useMealsController } from './hooks/useMealsController';
 import { useUndoRedoKeys } from './hooks/useUndoRedoKeys';
+import { useActiveMeal } from './hooks/useActiveMeal';
 import { DayHeader } from './components/DayHeader/DayHeader';
 import { MealsControls } from './components/MealsControls';
 import { MealsOverlays } from './components/MealsOverlays';
 import { MealScroller } from './components/MealScroller/MealScroller';
+import { MealTabs } from './components/MealTabs';
 import { todayIso } from './format';
 import styles from './meals.module.css';
 
@@ -26,6 +28,9 @@ export function MealsPage() {
   useUndoRedoKeys({ undo: ctl.undo, redo: ctl.redo });
   const [clearing, setClearing] = useState(false);
   const [copying, setCopying] = useState(false);
+  // Mobile meal-tab layer (S4): which meal is shown ≤560px. Resets on day change; desktop
+  // renders every column regardless (the tab bar is `display:none` ≥561px).
+  const [activeMeal, setActiveMeal] = useActiveMeal(date, ctl.day?.meals.length ?? 0);
 
   // A copy from an empty yesterday is an expected no-op, shown as a plain info banner;
   // any other failure keeps the generic error message (B-082).
@@ -59,13 +64,20 @@ export function MealsPage() {
                   date={date}
                   onClear={() => setClearing(true)}
                   onCopyYesterday={() => setCopying(true)}
-                  onAddMeal={(name) => void ctl.actions.addMeal(name, ctl.day?.meals.length ?? 0)}
+                  onAddMeal={(name) => {
+                    // The new meal is appended at the current end; activate its mobile tab too
+                    // (spec §5.3 "+ Repas … activates its tab"). No-op on desktop.
+                    const newIndex = ctl.day?.meals.length ?? 0;
+                    void ctl.actions.addMeal(name, newIndex);
+                    setActiveMeal(newIndex);
+                  }}
                   undo={ctl.undo}
                   redo={ctl.redo}
                   canUndo={ctl.canUndo}
                   canRedo={ctl.canRedo}
                 />
-                <MealScroller meals={ctl.day.meals} />
+                <MealScroller meals={ctl.day.meals} activeIndex={activeMeal} />
+                <MealTabs meals={ctl.day.meals} activeIndex={activeMeal} onSelect={setActiveMeal} />
               </>
             )}
           </>

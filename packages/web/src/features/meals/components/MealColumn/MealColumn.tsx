@@ -21,9 +21,13 @@ interface MealColumnProps {
   index: number;
   meals: Meal[];
   width: number;
+  // Mobile meal-tab layer (S4): ≤560px CSS shows only the active column (every column stays
+  // mounted). The flag is surfaced as a `data-meal-col` attribute the scroller's mobile rule
+  // targets; it has no effect on desktop (no ≥561px rule reads it).
+  active?: boolean;
 }
 
-export function MealColumn({ meal, index, meals, width }: MealColumnProps) {
+export function MealColumn({ meal, index, meals, width, active = false }: MealColumnProps) {
   const { t } = useTranslation();
   const { editing, mutations, actions } = useMeals();
   const [confirming, setConfirming] = useState(false);
@@ -52,7 +56,11 @@ export function MealColumn({ meal, index, meals, width }: MealColumnProps) {
   };
 
   return (
-    <div className={styles.col} style={{ width, flexBasis: width }}>
+    <div
+      className={styles.col}
+      style={{ width, flexBasis: width }}
+      data-meal-col={active ? 'active' : 'idle'}
+    >
       <MealHeader
         name={meal.slot_name}
         canMoveLeft={index > 0}

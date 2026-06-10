@@ -1,0 +1,72 @@
+/* Mobile meal-tab bar (mobile-responsive S4, spec §5.3). Hidden by default → absent from the
+   desktop layout + a11y tree; shown only at the phone breakpoint. Desktop byte-identical.
+   Per spec §5.3 the bar is a full-width band integrated with the page chrome (same construction
+   language as the bottom nav — `--bg-elev` + top border), NOT the mockup's detached chips. */
+.tabs {
+  display: none;
+}
+
+@media (max-width: 560px) {
+  .tabs {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    /* Pinned directly above the 56px bottom nav (BottomNav.module.css), same thumb zone. */
+    bottom: calc(56px + env(safe-area-inset-bottom));
+    /* Same band as the bottom nav, distinguished by content (meal segments vs icon+label). */
+    z-index: calc(var(--z-appbar) - 1);
+    background: var(--bg-elev);
+    border-top: var(--bw) solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tab {
+    /* Equal flex → segments share the full width when few; `min-width` makes the band overflow
+       (and scroll) only once meals are numerous (≈5+). */
+    flex: 1 0 auto;
+    min-width: 64px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    min-height: var(--tap);
+    padding: 6px 12px;
+    border: 0;
+    border-right: var(--bw) solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-family: var(--font-body);
+  }
+  .tab:last-child {
+    border-right: 0;
+  }
+
+  .name {
+    font-size: var(--fs-12);
+    font-weight: var(--fw-bold);
+    white-space: nowrap;
+  }
+  .kcal {
+    font-family: var(--font-num);
+    font-size: var(--fs-10);
+    color: var(--text-faint);
+  }
+
+  .active {
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+  }
+  .active .kcal {
+    color: var(--accent);
+  }
+  .empty .kcal {
+    color: var(--text-faint);
+  }
+}

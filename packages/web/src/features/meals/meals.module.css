@@ -48,6 +48,11 @@
   color: var(--text-faint);
   margin-left: var(--sp-4);
 }
+/* The compact mobile date variant is hidden by default; the phone breakpoint swaps the two
+   (mobile-responsive S4). Desktop shows only the long label. */
+.dateShort {
+  display: none;
+}
 .dayComment {
   display: flex;
   align-items: center;
@@ -552,5 +557,56 @@
   }
   .verdict {
     grid-column: auto;
+  }
+}
+
+/* ===== Mobile meal tabs (mobile-responsive S4, spec §5.3) — inert ≥561px =====
+   ≤560px the meal columns become tabs: every column stays mounted, but only the active one is
+   shown (the `MealTabs` band switches it). The attribute selectors target the MealColumn root's
+   `data-meal-col` (set in MealColumn.tsx) — plain DOM attributes, so they cross the CSS-module
+   boundary cleanly; the ≤760 full-width column rule still applies to the single visible column.
+   The Repas content also reserves room for the pinned tab band (the bottom-nav clearance is
+   already on the AppShell page wrapper). Desktop (≥561px) reads none of this. */
+@media (max-width: 560px) {
+  .scroller > [data-meal-col] {
+    display: none;
+  }
+  .scroller > [data-meal-col='active'] {
+    display: flex;
+  }
+  .scrollerWrap {
+    padding-bottom: 64px;
+  }
+
+  /* Day bar → two tidy rows (spec §5.1, mockups/05-meals.html): row 1 = short date · day-kind
+     chip · verdict (pinned right); row 2 = comment field full-width. The DOM order is
+     date · chip · comment · verdict, so the comment is re-ordered last and given full width,
+     and the verdict (last DOM child) is pushed right. */
+  .daybar {
+    gap: var(--sp-3) var(--sp-4);
+  }
+  .dateLong {
+    display: none;
+  }
+  .dateShort {
+    display: inline;
+  }
+  /* "Aujourd'hui" tag dropped on mobile (owner decision 2026-06-10). */
+  .dateLabel small {
+    display: none;
+  }
+  .dayComment {
+    order: 1;
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+  .daybar > :last-child {
+    margin-left: auto;
+  }
+
+  /* Interim until the S9 "⋯" day menu folds them away: let the controls toolbar wrap so no
+     button is clipped at phone width. */
+  .controls {
+    flex-wrap: wrap;
   }
 }

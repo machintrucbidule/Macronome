@@ -165,12 +165,18 @@ function EntryRow({
       ) : (
         <QtyCell mealId={mealId} mealIndex={mealIndex} entry={entry} />
       )}
-      <span className={`${styles.v} num`} style={{ fontWeight: 700 }}>
-        {r0(c.kcal)}
+      {/* The four value cells live in one wrapper so the mobile two-row layout (S4) can lay
+          them out as a single macro cluster (food-line.module.css .macros, the mockup's
+          .ml-mac). `.macros { display: contents }` keeps them as direct grid items on desktop
+          → the 9-column grid is byte-identical ≥561px. */}
+      <span className={styles.macros}>
+        <span className={`${styles.v} num`} style={{ fontWeight: 700 }}>
+          {r0(c.kcal)}
+        </span>
+        <span className={`${styles.v} num`}>{r0(c.fat)}</span>
+        <span className={`${styles.v} num`}>{r0(c.carb)}</span>
+        <span className={`${styles.v} num`}>{r0(c.protein)}</span>
       </span>
-      <span className={`${styles.v} num`}>{r0(c.fat)}</span>
-      <span className={`${styles.v} num`}>{r0(c.carb)}</span>
-      <span className={`${styles.v} num`}>{r0(c.protein)}</span>
       <PinCell mealId={mealId} entryId={entry.id} isPinned={entry.is_pinned} show={showPin} />
       <button
         type="button"

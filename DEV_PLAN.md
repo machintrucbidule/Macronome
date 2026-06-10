@@ -380,7 +380,15 @@ documented here only so the information is ready when the author decides to run 
         New `design/components/bottom-nav.md` + `mobile.md`; `top-nav.md` amended. See
         `DECISIONS.md` "Mobile-responsive S3". Desktop inert ≥561px. No tests (responsive CSS
         verified by inspection; `useIsMobile()` logic test exists from S2).
-  - [ ] **S4** — Repas layout (two-row food line, day-bar wrap, meal tabs).
+  - [x] **S4** — Repas layout: two-row mobile food line (`.macros` cluster via `display:contents`
+        → desktop byte-identical; kcal+unit, L/G/P colour-coded, `L·G·P` legend); meal-tab bar
+        (`MealTabs`, mobile-only band pinned above the bottom nav, name+kcal, one meal visible via
+        `data-meal-col` + active-column CSS) with `useActiveMeal` (reset-on-day, clamp, +Repas
+        activates its tab); day-bar 2-row wrap + mobile short date `formatDateLabelShort`
+        ("mer. 10 juin 26", no "Aujourd'hui"; owner-authorized `format.ts`/`DayHeader.tsx` touch) + interim controls wrap. Two logic tests (`useActiveMeal`, `formatDateLabelShort`); layout
+        verified by inspection. Desktop inert ≥561px. No `design/`/`DECISIONS.md` change
+        (meal-column/food-line + tab-bar doc amendment deferred to S9 per the dev-plan). Deferred to
+        S9: "⋯" day menu, food picker, line-editor sheet, swipe, touch DnD, pin/× relocation.
   - [ ] **S5** — Journal → cards + shared list chrome (toolbar, Trier, ⋯).
   - [ ] **S6** — Recettes → cards (full-screen builder, FAB, Filtres sheet).
   - [ ] **S7** — Aliments → cards (same pattern, pure chrome reuse).

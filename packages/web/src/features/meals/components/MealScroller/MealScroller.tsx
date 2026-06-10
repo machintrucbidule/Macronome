@@ -7,9 +7,12 @@ import styles from '../../meals.module.css';
 // on overflow, and a sticky custom scrollbar synced to the scroll position. View chrome only.
 interface MealScrollerProps {
   meals: Meal[];
+  // Index of the meal shown by the mobile meal-tab layer (S4); ≤560px CSS reveals only that
+  // column. Ignored on desktop, where every column renders side by side.
+  activeIndex: number;
 }
 
-export function MealScroller({ meals }: MealScrollerProps) {
+export function MealScroller({ meals, activeIndex }: MealScrollerProps) {
   const { scrollerRef, barRef, colWidth, bar, atStart, atEnd, sync, scrollBy, onThumbDown } =
     useMealScroller(meals);
 
@@ -43,6 +46,7 @@ export function MealScroller({ meals }: MealScrollerProps) {
             index={i}
             meals={meals}
             width={colWidth}
+            active={i === activeIndex}
           />
         ))}
       </div>
