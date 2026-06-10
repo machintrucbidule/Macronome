@@ -140,3 +140,48 @@ chip shows `label (grams g)` for a portion (B-032), the plain unit otherwise.
 - **empty** — see `states.md` (no foods / empty year / no weigh-ins).
 - **loading** — skeleton rows.
 - **archived** — dimmed row + suffix.
+
+## Mobile: row → card list + shared list chrome (mobile-responsive S5)
+
+On phones (≤560px) the dense tables don't fit. Each list screen renders a **card list**
+instead of its `<table>`, chosen by a `useIsMobile()` render-switch (spec §0.1) — desktop
+renders the **exact existing** table component, untouched. The card components are fed the
+**same** API rows the tables consume (no recomputation; CLAUDE.md rule 2). First consumer:
+**Journal** (`mockups/02-journal.html`); Recettes/Aliments/Poids follow the same pattern.
+
+- **Row → card.** One card per record on `--bg-elev`, `--r-lg`, `--border` (hover
+  `--border-strong`); the **whole card is the tap target**. Journal keeps its day-state
+  **left band** (JR-1/B-077) on the card — green `--ok`, yellow `--accent`, red `--nok`
+  (+ a soft `--nok-soft` full-card tint); the verdict shows as a **static** pill (the
+  interactive badge moves into the editor sheet). Macros keep the L·G·P order + per-macro
+  colours (`--c-fat`/`--c-carb`/`--c-prot`). **No new token.**
+- **Tap → editor.** Tapping a card opens a **bottom-sheet editor** (`Modal mobile="sheet"`,
+  overlay taxonomy §0.2) exposing the same fields the desktop row edits inline (Journal:
+  kcal on summary days, verdict override, activity, comment), **reusing the same
+  components** (`VerdictBadge`, `ActivitySelect`, `CommentCell`) and the same PATCH
+  round-trip — so a mobile edit and a desktop edit are the same mutation. Where the desktop
+  row **also navigates** (Journal date/macros → that day's Repas), the sheet carries an
+  explicit **"Ouvrir la journée"** action so no desktop affordance is lost (owner decision,
+  2026-06-10).
+
+### Shared mobile list chrome (`components/ListChrome/*`)
+
+A sticky **toolbar** + bottom-sheet controls shared by every mobile list — created with its
+first consumer (Journal) and reused **read-only** by Recettes/Aliments/Poids. Mobile-only by
+construction (mounted only inside the `useIsMobile()` branch), so it never affects desktop.
+
+- **`ListToolbar`** — sticky under the app bar (`top: var(--appbar-h)`;
+  `z-index: var(--z-sticky-sub)`; `background: var(--bg)`; bottom `--border`): a `leading`
+  slot (the screen's year selector / search) on the left, trailing action controls on the
+  right.
+- **`SortSheet`** ("Trier") — a toolbar button opening a sheet listing the screen's sort
+  keys + the active direction (▲/▼): the phone equivalent of the desktop sortable headers.
+  Selecting a key calls the screen's existing `onSort(key)` (switch key / toggle direction —
+  identical to clicking a `SortableTh`); the sheet stays open so the flip is visible.
+- **`OverflowMenu`** ("⋯") — a sheet of secondary, full-width actions (e.g. **Export CSV**,
+  moved off the visible toolbar on a phone).
+- **Filtres** — a sibling **Filtres** sheet (min rating, show archived) joins this family
+  with its first consumer in S6 (Recettes/Aliments); Journal/Poids have no filters.
+
+All controls reuse the existing **tap target** (`--tap`), radii (`--r-md`), and the S2 Modal
+`sheet` variant. **No new token.**

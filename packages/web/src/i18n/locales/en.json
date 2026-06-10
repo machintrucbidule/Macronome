@@ -74,6 +74,12 @@
     "loadError": "Couldn't load. Showing cached data; try again later.",
     "typedConfirm": "Type “{{word}}” to confirm."
   },
+  "list": {
+    "sort": "Sort",
+    "sortAsc": "ascending",
+    "sortDesc": "descending",
+    "more": "More actions"
+  },
   "foods": {
     "title": "Foods",
     "count": "{{count}} shown",
@@ -624,6 +630,7 @@
     "nextYear": "Next year",
     "commentPlaceholder": "Add a comment…",
     "kcalPlaceholder": "kcal…",
+    "openDay": "Open the day",
     "legend": {
       "green": "Complete",
       "yellow": "Partial",

@@ -2313,3 +2313,49 @@ change in the `Modal` dir; `Modal.tsx`/`Modal.module.css` are unchanged from S2)
 ≤900px nav-hide claim) and `design/components/modals.md` (sheet `fill-mode` requirement). No
 `tokens.css`/backend/schema change; no new tests (responsive CSS verified by inspection at
 breakpoints; the `useIsMobile()` logic test exists from S2).
+
+## Mobile-responsive S5 — Journal mobile cards + shared list chrome — RESOLVED (user, 2026-06-10)
+
+Fifth slice of the mobile-responsive feature (`specifications/features/mobile-responsive/`,
+spec §4.1–4.2). The Journal screen (`/history`) rendered only the dense desktop `JournalTable`,
+unusable on a phone. S5 introduces the **shared mobile list chrome** (consumed read-only by the
+three later list slices) and the **Journal card view**, both selected by a `useIsMobile()`
+render-switch — desktop renders the **exact existing** `JournalHeader` + `JournalTable` tree,
+untouched.
+
+- **Shared list chrome** (`packages/web/src/components/ListChrome/*`, new): `ListToolbar` (sticky
+  under the app bar — `top: var(--appbar-h)`, `--z-sticky-sub`, `--bg`, bottom `--border` — with
+  a `leading` slot + trailing actions), `SortSheet` ("Trier", a `Modal mobile="sheet"` listing the
+  screen's sort keys + active direction, calling the screen's existing `onSort(key)` so it is the
+  phone equivalent of clicking a `SortableTh`), and `OverflowMenu` ("⋯", a sheet of secondary
+  actions). Generic over the screen's sort-field union; **created here with its first consumer
+  (Journal) and consumed read-only by Recettes (S6), Aliments (S7), Poids (S8)** — the **Filtres**
+  sheet of the same family joins in S6. Reuses the S2 Modal `sheet` variant + existing tokens
+  (`--tap`, `--r-md`); **no new token**, `tokens.css` (owned by S1) untouched.
+- **Journal mobile** (`packages/web/src/features/journal/`, new `JournalMobile`, `JournalCards`,
+  `JournalCard`, `JournalDaySheet`, `journal-mobile.module.css`; render-switch in `JournalPage.tsx`):
+  a **card per day** (date + dow, calories, static verdict pill, L·G·P macros, activity, comment),
+  keeping the JR-1/B-077 day-state band; the **year selector + legend** stay (legend below the
+  sticky toolbar), **Export CSV** moves into the "⋯" sheet (spec §4.2, **superseding** the
+  mockup's visible Export button). Tapping a card opens a **bottom-sheet day editor** reusing
+  `VerdictBadge`, `ActivitySelect`, `CommentCell` and the **same `PATCH /days/:date`** mutation as
+  the desktop row (kcal field shown only on summary/empty days, as `editable_kcal`). The desktop
+  `JournalTable`/`JournalRow`/`JournalHeader`/cells are **not edited**.
+- **"Ouvrir la journée" (owner decision, 2026-06-10).** On desktop a row's date/macros cells
+  navigate to that day's Repas; the mobile editor sheet would otherwise drop that affordance. The
+  sheet therefore carries an explicit **"Ouvrir la journée"** action (`navigate('/day/:date')`) so
+  no desktop capability is lost on mobile. _(Owner chose to add the link rather than rely on the
+  Repas tab + date navigation.)_
+
+**Desktop impact: none** — the render-switch returns `false` ≥561px → the literal current
+`JournalHeader` + `JournalTable` tree; the mobile components never mount on desktop. No
+behaviour, sort, or PATCH path changes; the mobile edits round-trip through the same mutations.
+
+Contract delta: new `packages/web/src/components/ListChrome/` (`ListToolbar.tsx`, `SortSheet.tsx`,
+`OverflowMenu.tsx`, `list-chrome.module.css`, `index.ts`); new `features/journal/components/`
+`JournalMobile.tsx`, `JournalCards.tsx`, `JournalCard.tsx`, `JournalDaySheet.tsx` +
+`features/journal/journal-mobile.module.css`; render-switch wiring in `features/journal/JournalPage.tsx`;
+i18n `list.*` (sort/more) + `journal.openDay` in `en.json`/`fr.json`; amendment to
+`design/components/data-tables.md` (row→card + shared list chrome). No `tokens.css`/backend/schema
+change; no new tests (responsive CSS verified by inspection at breakpoints; the `useIsMobile()`
+logic test exists from S2).

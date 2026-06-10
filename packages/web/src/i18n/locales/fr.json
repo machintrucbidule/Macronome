@@ -74,6 +74,12 @@
     "loadError": "Échec du chargement. Affichage des données en cache ; réessayez plus tard.",
     "typedConfirm": "Tape « {{word}} » pour confirmer."
   },
+  "list": {
+    "sort": "Trier",
+    "sortAsc": "croissant",
+    "sortDesc": "décroissant",
+    "more": "Plus d'actions"
+  },
   "foods": {
     "title": "Aliments",
     "count": "{{count}} affiché",
@@ -624,6 +630,7 @@
     "nextYear": "Année suivante",
     "commentPlaceholder": "Ajouter un commentaire…",
     "kcalPlaceholder": "kcal…",
+    "openDay": "Ouvrir la journée",
     "legend": {
       "green": "Complet",
       "yellow": "Partiel",

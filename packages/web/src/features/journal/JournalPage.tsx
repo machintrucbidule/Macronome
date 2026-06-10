@@ -8,11 +8,13 @@ import { EmptyState } from '../../components/states/EmptyState';
 import { SkeletonRows } from '../../components/states/SkeletonRows';
 import { JournalHeader } from './components/JournalHeader';
 import { JournalTable } from './components/JournalTable';
+import { JournalMobile } from './components/JournalMobile';
 import { currentYear } from './format';
 import { sortRows } from './sort';
 import { useJournal } from './useJournal';
 import { useJournalSort, type JournalSort } from './useJournalSort';
 import { useCsvExport } from '../../lib/useCsvExport';
+import { useIsMobile } from '../../lib/useIsMobile';
 import styles from './journal.module.css';
 
 // Loading → empty → table switch, split out so JournalPage stays under the complexity limit.
@@ -43,6 +45,7 @@ function JournalContent(props: {
 // computes — sorting is presentation-only over the already-loaded year (B-067).
 export function JournalPage() {
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
   const [year, setYear] = useState(currentYear());
   const sort = useJournalSort();
   const csv = useCsvExport(dataApi.exportJournalCsv);
@@ -50,6 +53,12 @@ export function JournalPage() {
 
   const rows = query.data?.data ?? [];
   const sorted = useMemo(() => sortRows(rows, sort.sort, sort.dir), [rows, sort.sort, sort.dir]);
+  const onPatch = (date: string, body: PatchDayRequest): void => patch.mutate({ date, body });
+
+  // Shared header inputs (deduped so the mobile/desktop branches read the same values).
+  const dayCount = query.data?.day_count ?? 0;
+  const minYear = query.data?.min_year ?? null;
+  const maxYear = query.data?.max_year ?? null;
 
   return (
     <AppShell>
@@ -67,21 +76,40 @@ export function JournalPage() {
           </Banner>
         </div>
       )}
-      <JournalHeader
-        year={year}
-        dayCount={query.data?.day_count ?? 0}
-        minYear={query.data?.min_year ?? null}
-        maxYear={query.data?.max_year ?? null}
-        onYear={setYear}
-        onExport={csv.start}
-      />
-      <JournalContent
-        loading={query.isLoading}
-        rows={rows}
-        sorted={sorted}
-        sort={sort}
-        onPatch={(date, body) => patch.mutate({ date, body })}
-      />
+      {isMobile ? (
+        // Mobile (≤560px): card list + shared list chrome + day-editor sheet (S5).
+        <JournalMobile
+          year={year}
+          dayCount={dayCount}
+          minYear={minYear}
+          maxYear={maxYear}
+          loading={query.isLoading}
+          rows={sorted}
+          sort={sort}
+          onYear={setYear}
+          onExport={csv.start}
+          onPatch={onPatch}
+        />
+      ) : (
+        // Desktop (≥561px): the untouched header + dense table — byte-identical to before.
+        <>
+          <JournalHeader
+            year={year}
+            dayCount={dayCount}
+            minYear={minYear}
+            maxYear={maxYear}
+            onYear={setYear}
+            onExport={csv.start}
+          />
+          <JournalContent
+            loading={query.isLoading}
+            rows={rows}
+            sorted={sorted}
+            sort={sort}
+            onPatch={onPatch}
+          />
+        </>
+      )}
     </AppShell>
   );
 }

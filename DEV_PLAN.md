@@ -389,7 +389,16 @@ documented here only so the information is ready when the author decides to run 
         verified by inspection. Desktop inert ≥561px. No `design/`/`DECISIONS.md` change
         (meal-column/food-line + tab-bar doc amendment deferred to S9 per the dev-plan). Deferred to
         S9: "⋯" day menu, food picker, line-editor sheet, swipe, touch DnD, pin/× relocation.
-  - [ ] **S5** — Journal → cards + shared list chrome (toolbar, Trier, ⋯).
+  - [x] **S5** — Journal → cards + shared list chrome. New `components/ListChrome/*`
+        (`ListToolbar` sticky `top:var(--appbar-h)`; `SortSheet` "Trier" → screen's `onSort`;
+        `OverflowMenu` "⋯") — generic, consumed read-only by S6–S8 (Filtres deferred to S6).
+        Journal via `useIsMobile()` render-switch in `JournalPage` (desktop tree byte-identical):
+        `JournalMobile` + `JournalCards`/`JournalCard` (day-state band, static verdict pill) +
+        `JournalDaySheet` (bottom-sheet editor reusing `VerdictBadge`/`ActivitySelect`/`CommentCell` + same `PATCH /days/:date`; kcal on summary days). Legend kept; Export CSV in "⋯".
+        Owner decision: editor sheet adds "Ouvrir la journée" → `/day/:date`. `data-tables.md`
+        amended. See `DECISIONS.md` "Mobile-responsive S5". Desktop inert ≥561px; no `tokens.css`
+        touch; no new tests (responsive CSS verified by inspection; logic reused). typecheck/lint/
+        225 web tests green.
   - [ ] **S6** — Recettes → cards (full-screen builder, FAB, Filtres sheet).
   - [ ] **S7** — Aliments → cards (same pattern, pure chrome reuse).
   - [ ] **S8** — Poids (controls row, chart sizing, period list + detail sheet, FAB).

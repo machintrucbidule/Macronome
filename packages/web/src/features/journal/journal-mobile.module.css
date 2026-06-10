@@ -1,0 +1,215 @@
+/* Journal mobile view (mobile-responsive S5, mockups/02-journal.html). The phone
+   presentation of the day history: a card per day + a bottom-sheet day editor, fed the
+   same JournalRow data as the desktop table. Mounted only inside a useIsMobile() branch
+   (desktop renders the untouched JournalTable), so these rules never apply on desktop.
+   Kept in a separate module from journal.module.css so the desktop file is untouched.
+   Semantic tokens only (CLAUDE.md rule 6). */
+
+/* Sub-header under the sticky toolbar: the day-state legend + day count (scrolls away). */
+.subhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-5);
+}
+.count {
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  color: var(--text-faint);
+}
+
+/* ---- Card list ---- */
+.cardList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+.card {
+  appearance: none;
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: var(--bg-elev);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-5) var(--sp-6);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.card:hover {
+  border-color: var(--border-strong);
+}
+/* Day-state left band, mirroring the desktop row (JR-1 / B-077): green Complet, yellow
+   Partiel, red Rien (also a soft full-card tint); none → no band. Same tokens, no new one. */
+.green {
+  box-shadow: inset 3px 0 0 var(--ok);
+}
+.yellow {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.red {
+  box-shadow: inset 3px 0 0 var(--nok);
+  background: var(--nok-soft);
+}
+
+.top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-4);
+}
+.day {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.date {
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-15);
+}
+.dow {
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  color: var(--text-faint);
+  text-transform: uppercase;
+}
+
+/* Static verdict pill (display-only inside the card; the editable badge lives in the sheet). */
+.badge {
+  flex: none;
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  border: var(--bw) solid var(--border);
+  white-space: nowrap;
+}
+.badgeOk {
+  color: var(--ok);
+  border-color: color-mix(in srgb, var(--ok) 45%, transparent);
+}
+.badgeNok {
+  color: var(--nok);
+  border-color: color-mix(in srgb, var(--nok) 45%, transparent);
+}
+.badgeMuted {
+  color: var(--text-faint);
+}
+
+.row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  margin-top: var(--sp-4);
+}
+.kcal {
+  font-family: var(--font-num);
+  font-size: var(--fs-20);
+  font-weight: var(--fw-bold);
+}
+.kcal small {
+  margin-left: 2px;
+  font-size: var(--fs-11);
+  font-weight: 400;
+  color: var(--text-dim);
+}
+.dash {
+  color: var(--text-faint);
+}
+.macros {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+  font-family: var(--font-num);
+  font-size: var(--fs-13);
+}
+.mFat {
+  color: var(--c-fat);
+}
+.mCarb {
+  color: var(--c-carb);
+}
+.mProt {
+  color: var(--c-prot);
+}
+.macroLegend {
+  margin-left: 2px;
+  font-size: var(--fs-9);
+  color: var(--text-faint);
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-top: var(--sp-4);
+  font-size: var(--fs-12);
+  color: var(--text-dim);
+}
+.metaKey {
+  color: var(--text-faint);
+}
+.comment {
+  margin-top: var(--sp-3);
+  font-size: var(--fs-12);
+  font-style: italic;
+  color: var(--text-dim);
+}
+
+/* ---- Day-editor bottom sheet ---- */
+.sheet {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+  padding: var(--sp-6) var(--sp-6) calc(var(--sp-7) + env(safe-area-inset-bottom));
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.fieldLabel {
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+}
+.sheetInput {
+  width: 100%;
+  background: var(--bg-field);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-md);
+  color: var(--text);
+  font-family: var(--font-num);
+  font-size: var(--fs-13);
+  padding: var(--sp-3) var(--sp-4);
+}
+.sheetInput:focus {
+  outline: none;
+  border-color: var(--focus);
+}
+.openDay {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: var(--tap);
+  margin-top: var(--sp-3);
+  padding: 0 var(--sp-4);
+  background: var(--bg-elev);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-md);
+  color: var(--accent);
+  font-family: var(--font-body);
+  font-size: var(--fs-13);
+  cursor: pointer;
+}
+.openDay:hover {
+  border-color: var(--border-strong);
+}
