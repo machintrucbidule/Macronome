@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { MealEntry } from '@macronome/shared';
+import type { DayDetail, MealEntry } from '@macronome/shared';
 import { Modal } from '../../../../components/Modal/Modal';
 import { evalQuantity } from '../../../../lib/format/parse';
 import { useMeals } from '../../MealsContext';
@@ -87,21 +87,34 @@ function lineName(
   return foodName ?? '…';
 }
 
+// Resolve the tapped line. A persisted line is found by id; a garde-manger scaffold pre-fill line
+// (empty id, pinned, qty 0) is found by its order_index within the meal so it can be edited too.
+function resolveLineEntry(day: DayDetail | undefined, target: LineSheetTarget): MealEntry | null {
+  if (!day) return null;
+  if (target.entryId)
+    return day.meals.flatMap((m) => m.entries).find((e) => e.id === target.entryId) ?? null;
+  const meal = day.meals.find((m) => m.order_index === target.mealIndex);
+  return meal?.entries.find((e) => e.order_index === target.orderIndex) ?? null;
+}
+
 // Quantity + pin controls — only for referenced lines (custom lines edit via the custom modal).
-// Split out so the sheet body stays simple (the `entry && !isCustom` guard appears once).
+// The pin button is shown only for a persisted line (a scaffold pre-fill has no id to pin/unpin —
+// it is pinned via its pantry item; setting a quantity here materializes it first).
 function ReferencedControls({ entry, target }: { entry: MealEntry; target: LineSheetTarget }) {
   const { t } = useTranslation();
   const { actions } = useMeals();
   return (
     <>
       <QtyRow entry={entry} target={target} />
-      <button
-        type="button"
-        className={styles.action}
-        onClick={() => void actions.togglePin(target.mealId, target.entryId, entry.is_pinned)}
-      >
-        {entry.is_pinned ? t('meals.lineSheet.unpin') : t('meals.lineSheet.pin')}
-      </button>
+      {entry.id && (
+        <button
+          type="button"
+          className={styles.action}
+          onClick={() => void actions.togglePin(target.mealId, entry.id, entry.is_pinned)}
+        >
+          {entry.is_pinned ? t('meals.lineSheet.unpin') : t('meals.lineSheet.pin')}
+        </button>
+      )}
     </>
   );
 }
@@ -109,22 +122,22 @@ function ReferencedControls({ entry, target }: { entry: MealEntry; target: LineS
 export function LineEditorSheet({ target }: { target: LineSheetTarget }) {
   const { t } = useTranslation();
   const { actions, day } = useMeals();
-  const entry = day?.meals.flatMap((m) => m.entries).find((e) => e.id === target.entryId) ?? null;
+  const entry = resolveLineEntry(day, target);
   const isCustom = entry?.kind === 'custom';
   const food = useFood(entry && !isCustom ? entry.food_id : null);
   const name = lineName(isCustom, entry, food.data?.data.name);
   const close = actions.closeLineSheet;
 
   // "Change food" / "Edit custom values" hand off to the picker / custom modal — close this sheet
-  // first so the two overlays never stack.
+  // first so the two overlays never stack. `orderIndex` lets a scaffold line re-pick at its row.
   const handoff = (open: () => void) => () => {
     close();
     open();
   };
   const onFood = handoff(() =>
     isCustom
-      ? actions.openCustom(target.mealId, target.mealIndex, target.entryId)
-      : actions.startEdit(target.mealId, target.mealIndex, target.entryId),
+      ? actions.openCustom(target.mealId, target.mealIndex, target.entryId, target.orderIndex)
+      : actions.startEdit(target.mealId, target.mealIndex, target.entryId, target.orderIndex),
   );
 
   return (
@@ -137,13 +150,15 @@ export function LineEditorSheet({ target }: { target: LineSheetTarget }) {
           </span>
         </button>
         {entry && !isCustom && <ReferencedControls entry={entry} target={target} />}
-        <button
-          type="button"
-          className={`${styles.action} ${styles.danger}`}
-          onClick={handoff(() => void actions.deleteEntry(target.mealId, target.entryId))}
-        >
-          {t('meals.lineSheet.delete')}
-        </button>
+        {entry?.id && (
+          <button
+            type="button"
+            className={`${styles.action} ${styles.danger}`}
+            onClick={handoff(() => void actions.deleteEntry(target.mealId, entry.id))}
+          >
+            {t('meals.lineSheet.delete')}
+          </button>
+        )}
       </div>
     </Modal>
   );

@@ -120,17 +120,22 @@ to overlays; desktop (≥561px) is unchanged.
   swipe** on the meal area switches meal (S9); day navigation stays arrows + calendar.
 - **Two-row food line** (S4): row 1 = grip · name · quantity; row 2 = the macro cluster (kcal
   bold + L/G/P colour-coded + `L·G·P` legend). The pin/× icons are **not** on the line.
-- **Tap routing** (S9): tap **name** → full-screen food picker (search-only); tap **quantity**
+- **Tap routing** (S9): tap **name** → **bottom-sheet** food picker (search-only); tap **quantity**
   → inline numeric edit; tap **elsewhere on the line** → bottom-sheet **line editor** (change
-  food · quantity + unit · pin · delete). **Long-press the grip** → touch drag-to-reorder.
+  food · quantity + unit · pin · delete). Works on garde-manger scaffold pre-fill lines too (pinned,
+  qty 0): they resolve by row, and the sheet offers change-food + quantity (no pin/delete until
+  materialised). **Long-press the grip** → touch drag-to-reorder.
 - **Meal “⋯” menu** (S9): a bottom sheet (rename · **gérer les restes** · move left/right ·
   delete). The 🍳 cook button and the footer ⊟ Restes button are **removed on mobile** (owner
   decision 2026-06-11); the leftover popup opens from this sheet.
 - **Day “⋯” menu** (S9): a bottom sheet in the day bar (+ Repas · Copier hier · Vider · undo/
   redo · ✨ Proposition IA) — the desktop controls row is hidden ≤560px.
 
-All overlays follow the §0.2 taxonomy (full-screen picker; bottom sheets for the line/meal/day
-menus). Mechanism: mobile-only CSS + `useIsMobile()` render gates → desktop byte-identical.
+All Repas overlays are **bottom sheets** on mobile (food picker, custom entry, AI dish analysis,
+line/meal/day menus — owner refinement 2026-06-11), anchored just above the bottom nav like every
+other screen's sheets. They render **over** the meal-tabs band (the `Modal` portals its scrim to
+`<body>`, so it escapes the sticky day bar's stacking context that otherwise trapped a sheet under
+the tabs). Mechanism: mobile-only CSS + `useIsMobile()` render gates → desktop byte-identical.
 
 ## Line-list grid (Recipe ingredient builder) — instance B
 

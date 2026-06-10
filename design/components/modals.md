@@ -3,6 +3,12 @@
 All modals share the scrim (foundations) + a `.modal` panel; widths form a size
 scale.
 
+The scrim is **portaled to `<body>`** (mobile-responsive S9 follow-up, 2026-06-11) so its
+`z-index:var(--z-scrim)` always wins against page chrome — a sheet opened from inside a
+stacking-context-forming ancestor (e.g. the sticky Repas day bar) would otherwise be trapped
+_under_ fixed bars like the meal-tabs band. No visual change; click-outside, Escape and the
+focus trap are unaffected.
+
 ## Panel base `.modal`
 
 `background:var(--bg-elev); border:1px solid var(--border-strong);
@@ -39,7 +45,8 @@ value: `size` still controls the desktop width (unchanged ≥561px), while `mobi
 - **`fullscreen`** — `100vw × 100dvh`, `margin:0`, no border/radius; a top bar holding the
   title + a Close (`×`) button (mandatory — the scrim has no reachable outside area);
   scrollable body; `padding-bottom: env(safe-area-inset-bottom)`. For big forms: recipe
-  builder, food sheet, weigh-in, cibles, the Repas food picker.
+  builder, food sheet, weigh-in, cibles. (The Repas food picker / custom / AI sheets use
+  `sheet`, not `fullscreen` — owner refinement 2026-06-11.)
 
 > **Footer actions stay on one tightened row on a phone (owner decision, 2026-06-10).** A
 > three-button footer (the recipe builder's Archiver/Restaurer + Annuler + Enregistrer) overflows
@@ -77,11 +84,11 @@ value: `size` still controls the desktop width (unchanged ≥561px), while `mobi
 
 ### Overlay taxonomy (one interaction language across screens)
 
-| Overlay               | Used for                                                                                     | Basis                                                         |
-| --------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| **Full-screen sheet** | Big forms (recipe builder, food sheet, weigh-in, cibles, Repas food picker)                  | `Modal` `mobile="fullscreen"`                                 |
-| **Bottom sheet**      | Short editors / menus (Journal day, food-line, Poids period detail, account, Trier, Filtres) | `Modal` `mobile="sheet"`                                      |
-| **Centered dialog**   | Confirmations (delete meal, clear day, archive, typed-confirm)                               | `Modal` (current centered behaviour, unchanged on mobile too) |
+| Overlay               | Used for                                                                                                                           | Basis                                                         |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| **Full-screen sheet** | Big forms (recipe builder, food sheet, weigh-in, cibles)                                                                           | `Modal` `mobile="fullscreen"`                                 |
+| **Bottom sheet**      | Short editors / menus (Journal day, Repas food-line/picker/custom/AI/day+meal menus, Poids period detail, account, Trier, Filtres) | `Modal` `mobile="sheet"`                                      |
+| **Centered dialog**   | Confirmations (delete meal, clear day, archive, typed-confirm)                                                                     | `Modal` (current centered behaviour, unchanged on mobile too) |
 
 > **Account-menu pages exception (owner decision, 2026-06-11).** On the account-menu pages
 > (`/account`, `/cibles`, `/containers`, `/assistant-ia`, `/parametres`, `/about`), **every** popup —

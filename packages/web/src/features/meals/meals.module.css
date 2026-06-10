@@ -635,16 +635,17 @@
   }
 
   /* Activity (verdict cluster): drop the "Activité du jour" label, keep the "?" on the same row
-     as the selector (owner refinement 2026-06-10). */
+     as the selector (owner refinement 2026-06-10). The dropdown is right-aligned to the screen edge
+     with the "?" just to its left (owner refinement 2026-06-11): row order is "?" then select (no
+     `order` override), pushed right by `justify-content: flex-end` over the full cell width. */
   .actLabel {
     display: none;
   }
   .actWrap {
     flex-direction: row;
     align-items: center;
+    justify-content: flex-end;
     gap: var(--sp-3);
-  }
-  .actHead {
-    order: 1;
+    width: 100%;
   }
 }

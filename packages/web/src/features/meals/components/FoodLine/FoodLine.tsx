@@ -175,10 +175,11 @@ function EntryRow({
       : actions.startEdit(mealId, mealIndex, entry.id, undefined, initialQuery);
 
   // Mobile: a tap on the line body (anywhere the name/qty cells don't intercept) opens the
-  // bottom-sheet line editor (spec §5.3). Gated to persisted lines (a scaffold pre-fill line has
-  // an empty id → it must be picked via the name first). Desktop passes no handler → unchanged.
-  const openSheet =
-    isMobile && entry.id ? () => actions.openLineSheet(mealId, mealIndex, entry.id) : undefined;
+  // bottom-sheet line editor (spec §5.3). Works for garde-manger scaffold pre-fill lines too
+  // (empty id, pinned, qty 0): the sheet resolves them by `row`. Desktop passes no handler.
+  const openSheet = isMobile
+    ? () => actions.openLineSheet(mealId, mealIndex, entry.id, row)
+    : undefined;
 
   return (
     <div

@@ -40,11 +40,14 @@ export interface CustomTarget {
   orderIndex?: number | null;
 }
 /** Mobile-only: the line whose bottom-sheet editor is open (food · qty · pin · delete, spec §5.3).
- *  Stored on the controller like the other overlays; the sheet resolves the entry from the day. */
+ *  Stored on the controller like the other overlays; the sheet resolves the entry from the day.
+ *  `entryId` is empty for a garde-manger scaffold pre-fill line (pinned, qty 0) — it is then
+ *  resolved by `orderIndex` within the meal instead, so those lines can open the editor too. */
 export interface LineSheetTarget {
   mealId: string;
   mealIndex: number;
   entryId: string;
+  orderIndex: number;
 }
 export interface CustomValues {
   name: string;
@@ -128,9 +131,9 @@ function editActions(d: MealActionDeps) {
     ) => d.setEditing({ mealId, mealIndex, entryId, orderIndex: orderIndex ?? null, initialQuery }),
     closeEdit: () => d.setEditing(null),
     // Mobile line-editor bottom sheet (spec §5.3). Opening it closes any open inline picker first.
-    openLineSheet: (mealId: string, mealIndex: number, entryId: string) => {
+    openLineSheet: (mealId: string, mealIndex: number, entryId: string, orderIndex: number) => {
       d.setEditing(null);
-      d.setLineSheetTarget({ mealId, mealIndex, entryId });
+      d.setLineSheetTarget({ mealId, mealIndex, entryId, orderIndex });
     },
     closeLineSheet: () => d.setLineSheetTarget(null),
   };

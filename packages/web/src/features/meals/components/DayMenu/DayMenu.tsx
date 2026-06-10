@@ -92,6 +92,16 @@ function DayMenuSheet({
   return (
     <Modal title={t('meals.dayMenu.title')} mobile="sheet" size="confirm" onClose={onClose}>
       <div className={styles.menu}>
+        {/* Proposition IA first in the list (owner request 2026-06-11). */}
+        <button type="button" className={styles.item} disabled={!aiReady} onClick={onProposals}>
+          ✨ {t('meals.proposals.button')}
+        </button>
+        {!aiReady && (
+          <span className={styles.hint}>
+            {t('meals.proposals.notConfigured')} —{' '}
+            <Link to="/parametres">{t('meals.proposals.configureLink')}</Link>
+          </span>
+        )}
         <button type="button" className={styles.item} onClick={addMeal}>
           {t('meals.addMeal')}
         </button>
@@ -121,15 +131,6 @@ function DayMenuSheet({
         >
           ↷ {t('meals.redo')}
         </button>
-        <button type="button" className={styles.item} disabled={!aiReady} onClick={onProposals}>
-          ✨ {t('meals.proposals.button')}
-        </button>
-        {!aiReady && (
-          <span className={styles.hint}>
-            {t('meals.proposals.notConfigured')} —{' '}
-            <Link to="/parametres">{t('meals.proposals.configureLink')}</Link>
-          </span>
-        )}
       </div>
     </Modal>
   );

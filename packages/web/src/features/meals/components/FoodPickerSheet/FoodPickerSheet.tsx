@@ -6,12 +6,13 @@ import { useFoodSearch } from '../../hooks/useFoodLookup';
 import type { EditTarget } from '../../hooks/mealActions';
 import styles from './food-picker-sheet.module.css';
 
-// Mobile-only full-screen food picker (spec §5.3 / overlay taxonomy §0.2). Replaces the inline
-// autocomplete on phones: a search field + a tappable result list (foods ∪ recipes via the same
-// `/search/loggable`). A pick routes through `actions.pickFood` (add/replace), "+ Valeurs
-// manuelles" → `actions.openCustom`; both close the editing state, unmounting this sheet. Rendered
-// from MealsOverlays only when `useIsMobile()` — desktop keeps the inline picker untouched.
-// Search-only by owner decision (no "recents": the app has no recently-logged source).
+// Mobile-only food picker (spec §5.3 / overlay taxonomy §0.2). Replaces the inline autocomplete on
+// phones: a search field + a tappable result list (foods ∪ recipes via the same `/search/loggable`),
+// shown as a bottom sheet (owner refinement 2026-06-11 — same anchor as the other meal sheets). A
+// pick routes through `actions.pickFood` (add/replace), "+ Valeurs manuelles" → `actions.openCustom`;
+// both close the editing state, unmounting this sheet. Rendered from MealsOverlays only when
+// `useIsMobile()` — desktop keeps the inline picker untouched. Search-only by owner decision (no
+// "recents": the app has no recently-logged source).
 export function FoodPickerSheet({ target }: { target: EditTarget }) {
   const { t } = useTranslation();
   const { actions, day } = useMeals();
@@ -41,7 +42,7 @@ export function FoodPickerSheet({ target }: { target: EditTarget }) {
     );
 
   return (
-    <Modal title={title} mobile="fullscreen" onClose={actions.closeEdit}>
+    <Modal title={title} mobile="sheet" onClose={actions.closeEdit}>
       <div className={styles.picker}>
         <input
           className={styles.search}

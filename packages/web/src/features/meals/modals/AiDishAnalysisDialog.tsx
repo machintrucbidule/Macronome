@@ -132,7 +132,7 @@ export function AiDishAnalysisDialog({ onClose, onApplied }: AiDishAnalysisDialo
   };
 
   return (
-    <Modal title={t('meals.aiAnalysis.title')} size="confirm" onClose={onClose}>
+    <Modal title={t('meals.aiAnalysis.title')} size="confirm" mobile="sheet" onClose={onClose}>
       <div className={modalStyles.body}>
         <div className={styles.aiHint}>{t('meals.aiAnalysis.intro')}</div>
         <AiImagePicker disabled={busy} onChange={setImageUrls} />

@@ -71,8 +71,6 @@ export function CustomFoodModal({ target, initial }: CustomFoodModalProps) {
   const [protein, setProtein] = useState(initial ? String(initial.snap.protein) : '');
   const [showAi, setShowAi] = useState(false);
 
-  const isValid = numOr0(kcal) > 0;
-
   // Pre-fill the six fields from the AI estimate (1:1 totals — spec/logic/ai-dish-photo-macros.md §5).
   const applyAnalysis = (r: DishPhotoMacros): void => {
     setName(r.dish_name);
@@ -98,7 +96,7 @@ export function CustomFoodModal({ target, initial }: CustomFoodModalProps) {
   // Enter submits when the form is valid (B-087); no-op otherwise. The Modal is a div, not a
   // <form>, so the key is caught on the body wrapper rather than via native form submission.
   const onKeyDown = (e: KeyboardEvent): void => {
-    if (e.key === 'Enter' && isValid) {
+    if (e.key === 'Enter' && numOr0(kcal) > 0) {
       e.preventDefault();
       save();
     }
@@ -123,6 +121,7 @@ export function CustomFoodModal({ target, initial }: CustomFoodModalProps) {
   return (
     <Modal
       title={t(initial ? 'meals.custom.editTitle' : 'meals.custom.addTitle')}
+      mobile="sheet"
       onClose={actions.closeCustom}
     >
       <div className={modalStyles.body} onKeyDown={onKeyDown}>

@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import styles from './Modal.module.css';
 import { useFocusTrap } from './useFocusTrap';
@@ -57,7 +58,10 @@ export function Modal({ title, size = 'md', mobile, headerAction, onClose, child
 
   const scrimVariant =
     variant === 'fullscreen' ? styles.scrimFull : variant === 'sheet' ? styles.scrimSheet : '';
-  return (
+  // Portal to <body> so the scrim escapes any ancestor stacking context (e.g. the sticky day bar's
+  // z-index, which otherwise traps a sheet *under* the Repas meal-tabs bar). The scrim's own
+  // z-index then wins against page chrome, so sheets render over the meal selector.
+  return createPortal(
     <div
       className={`${styles.scrim} ${scrimVariant}`}
       onClick={(e) => {
@@ -90,7 +94,8 @@ export function Modal({ title, size = 'md', mobile, headerAction, onClose, child
         </div>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

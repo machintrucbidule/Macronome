@@ -2720,3 +2720,25 @@ mobile variants and `useIsMobile()` are consumed read-only). New logic tests: `s
 `computeOrder` (gesture wiring + layout verified by inspection, not unit tests). Documented in
 `design/components/data-tables.md` (Repas meal column → Mobile subsection); spec §5 marked applied.
 typecheck + lint + 233 web tests green.
+
+## Mobile-responsive S9 follow-ups — Repas sheets, portal, activity, scaffold tap — RESOLVED (user, 2026-06-11)
+
+Owner refinements to the S9 Repas mobile work:
+
+- **All Repas overlays are bottom sheets** (not full-screen / centered): the food picker, the
+  manual/custom entry (`CustomFoodModal`), and the AI dish analysis (`AiDishAnalysisDialog`) gained
+  `mobile="sheet"` (the picker was `fullscreen`). They anchor just above the bottom nav like every
+  other screen's sheets.
+- **Sheets render over the meal-tabs band.** The `Modal` now **portals its scrim to `document.body`**
+  (`createPortal`), so it escapes the sticky day bar's stacking context (`--z-sticky-sub`) that was
+  trapping the day "⋯" sheet _under_ the meal-tabs bar (clipping its bottom). Shared-Modal change,
+  owner-directed; noted in `design/components/modals.md`. No visual change to other screens' modals.
+- **Day "⋯" menu: "Proposition IA" is the first item.**
+- **Activity selector (mobile):** the dropdown is right-aligned to the screen edge with the "?" just
+  to its left (`.actWrap` → `justify-content:flex-end; width:100%`, dropped the `.actHead` order swap).
+- **Bug fix:** tapping a **garde-manger scaffold pre-fill line** (pinned, qty 0, empty id) now opens
+  the line editor — `LineSheetTarget` carries the row, and the sheet resolves the entry by
+  `order_index` when there is no id (offering change-food + quantity; pin/delete appear once the line
+  is materialised).
+
+Mobile-only / desktop-inert by mechanism. typecheck + lint + 233 web tests green.
