@@ -38,9 +38,25 @@ export function SortSheet<K extends string>({
 
   return (
     <>
-      <button type="button" className={styles.toolBtn} onClick={() => setOpen(true)}>
-        <span aria-hidden="true">⇅</span>
-        {title}
+      <button
+        type="button"
+        className={styles.toolBtn}
+        aria-label={title}
+        title={title}
+        onClick={() => setOpen(true)}
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M7 5v14M7 5 4 8M7 5l3 3" />
+          <path d="M17 19V5M17 19l-3-3M17 19l3-3" />
+        </svg>
       </button>
       {open && (
         <Modal mobile="sheet" title={title} onClose={() => setOpen(false)}>

@@ -3,4 +3,5 @@
 // sheet of the same family is added with its first consumer in S6.
 export { ListToolbar } from './ListToolbar';
 export { SortSheet, type SortOption } from './SortSheet';
+export { FilterSheet, type FilterOption } from './FilterSheet';
 export { OverflowMenu, type OverflowAction } from './OverflowMenu';

@@ -78,6 +78,7 @@
     "sort": "Trier",
     "sortAsc": "croissant",
     "sortDesc": "décroissant",
+    "filter": "Filtrer",
     "more": "Plus d'actions"
   },
   "foods": {
@@ -631,6 +632,7 @@
     "commentPlaceholder": "Ajouter un commentaire…",
     "kcalPlaceholder": "kcal…",
     "openDay": "Ouvrir la journée",
+    "allMonths": "Tous les mois",
     "legend": {
       "green": "Complet",
       "yellow": "Partiel",

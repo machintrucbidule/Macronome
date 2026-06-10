@@ -5,20 +5,6 @@
    Kept in a separate module from journal.module.css so the desktop file is untouched.
    Semantic tokens only (CLAUDE.md rule 6). */
 
-/* Sub-header under the sticky toolbar: the day count (the day-state legend is omitted on
-   mobile — the card colours carry the meaning). Scrolls away with the content. */
-.subhead {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  margin-bottom: var(--sp-5);
-}
-.count {
-  font-family: var(--font-num);
-  font-size: var(--fs-11);
-  color: var(--text-faint);
-}
-
 /* ---- Card list ---- */
 .cardList {
   display: flex;

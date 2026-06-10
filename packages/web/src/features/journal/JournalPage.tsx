@@ -80,7 +80,6 @@ export function JournalPage() {
         // Mobile (≤560px): card list + shared list chrome + day-editor sheet (S5).
         <JournalMobile
           year={year}
-          dayCount={dayCount}
           minYear={minYear}
           maxYear={maxYear}
           loading={query.isLoading}

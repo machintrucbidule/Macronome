@@ -2381,6 +2381,23 @@ desktop-inert:
 - **"⋯" overflow kept = Export CSV (utility explained).** The owner questioned the near-empty
   "⋯" sheet. Its real, spec-mandated content is **Exporter CSV** (the desktop's visible Export
   button, relocated into "⋯" on mobile per spec §4.2 to declutter the toolbar) — a genuine
-  screen-level action and the home for future ones — so per the owner's own rule (keep it if it
-  has a real use) the menu stays and **no month-filter was added**. (A mobile month filter
-  remains available as a separate future change if wanted.)
+  screen-level action and the home for future ones — so the menu stays.
+
+**Second refinement round (owner feedback, 2026-06-10).**
+
+- **Month filter added (`FilterSheet`).** A dedicated **Filtrer** control sits in the toolbar
+  **between Trier and "⋯"** (so Export stays in "⋯"): a new shared `components/ListChrome/FilterSheet`
+  (generic **single-select** sheet; first option = "Tous les mois" reset) wired on Journal to the
+  **months that have data this year** (a presentation-only client filter, like the sort — no
+  backend). Picking a month shows only that month; the button reads **active** (`--accent`) when a
+  month is applied; a stale selection (after a year change) clamps to "all". Multi-control filters
+  (Recettes min-rating + archived) extend this family in S6.
+- **Toolbar chrome controls are icon-only (app-wide convention).** Trier / Filtrer / "⋯" render as
+  **icon-only** square `--tap` buttons (label via `aria-label`/`title`), established as the standing
+  convention for **list-screen toolbar controls across the app** (documented in
+  `design/components/data-tables.md`). It governs these compact chrome controls only — **action
+  buttons** (Save, Export, Cancel, CTAs) keep their text. _(Owner: "applicable à l'ensemble des
+  boutons de l'appli"; scoped to the toolbar chrome controls — the icon-only treatment that makes
+  sense there, not a strip of every labelled action button.)_
+- **Day count hidden on mobile.** The "{n} jours" count is dropped from the Journal mobile view
+  (the sub-header is removed entirely); the desktop header count is unchanged.

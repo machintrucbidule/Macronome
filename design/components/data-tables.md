@@ -179,14 +179,25 @@ construction (mounted only inside the `useIsMobile()` branch), so it never affec
   `z-index: var(--z-sticky-sub)`; `background: var(--bg)`; bottom `--border`): a `leading`
   slot (the screen's year selector / search) on the left, trailing action controls on the
   right.
-- **`SortSheet`** ("Trier") — a toolbar button opening a sheet listing the screen's sort
+- **`SortSheet`** (Trier) — a toolbar button opening a sheet listing the screen's sort
   keys + the active direction (▲/▼): the phone equivalent of the desktop sortable headers.
   Selecting a key calls the screen's existing `onSort(key)` (switch key / toggle direction —
   identical to clicking a `SortableTh`); the sheet stays open so the flip is visible.
-- **`OverflowMenu`** ("⋯") — a sheet of secondary, full-width actions (e.g. **Export CSV**,
+- **`FilterSheet`** (Filtrer) — a toolbar button opening a sheet of **single-select** filter
+  options, the first being the "all / no filter" reset; selecting an option applies it and
+  closes. The button reads **active** (`--accent`) when a non-default option is applied. First
+  consumer: the **Journal month filter** (the months that have data this year, a presentation-
+  only client filter like the sort). Multi-control filters (e.g. Recettes min-rating + show
+  archived) extend this family in S6.
+- **`OverflowMenu`** (⋯) — a sheet of secondary, full-width actions (e.g. **Export CSV**,
   moved off the visible toolbar on a phone).
-- **Filtres** — a sibling **Filtres** sheet (min rating, show archived) joins this family
-  with its first consumer in S6 (Recettes/Aliments); Journal/Poids have no filters.
+
+**Icon-only toolbar controls (convention, owner decision 2026-06-10).** The toolbar chrome
+controls (Trier, Filtrer, ⋯) render as **icon-only** square `--tap` buttons — no visible text
+label — with the label carried by `aria-label`/`title` for a11y. This is the standing
+convention for **list-screen toolbar controls across the app** (Journal S5, Recettes S6,
+Aliments S7, Poids S8). It governs these compact chrome controls only; **action buttons**
+(Save, Export, Cancel, primary CTAs) keep their text labels.
 
 All controls reuse the existing **tap target** (`--tap`), radii (`--r-md`), and the S2 Modal
 `sheet` variant. **No new token.**

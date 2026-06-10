@@ -78,6 +78,7 @@
     "sort": "Sort",
     "sortAsc": "ascending",
     "sortDesc": "descending",
+    "filter": "Filter",
     "more": "More actions"
   },
   "foods": {
@@ -631,6 +632,7 @@
     "commentPlaceholder": "Add a comment…",
     "kcalPlaceholder": "kcal…",
     "openDay": "Open the day",
+    "allMonths": "All months",
     "legend": {
       "green": "Complete",
       "yellow": "Partial",
