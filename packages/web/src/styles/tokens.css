@@ -61,6 +61,7 @@
   --control-h: 30px; /* seg / small inline controls */
   --control-h-md: 36px; /* search inputs, toolbar buttons */
   --avatar: 32px; /* account avatar button */
+  --bp-phone: 560px; /* phone breakpoint (doc constant; literal 560px is used in each @media — a custom property can't be referenced in a media-query condition) */
 
   /* ---- Borders ---- */
   --bw: 1px;
@@ -205,5 +206,27 @@
 @media (max-width: 760px) {
   :root {
     --tap: 44px;
+  }
+}
+
+/* ----------------------------------------------------------------------------
+   Responsive type layer (mobile-responsive spec §1). Larger-bump scale toward
+   native-mobile norms: floor 12px, body 16px. Mobile-only (≤--bp-phone) —
+   desktop px values are untouched (block inert ≥561px).
+   ---------------------------------------------------------------------------- */
+@media (max-width: 560px) {
+  :root {
+    --fs-9: 12px;
+    --fs-10: 12px;
+    --fs-11: 13px;
+    --fs-12: 14px;
+    --fs-13: 16px;
+    --fs-14: 17px;
+    --fs-15: 18px;
+    --fs-16: 19px;
+    --fs-18: 21px;
+    --fs-20: 22px;
+    --fs-22: 24px;
+    --fs-24: 26px;
   }
 }

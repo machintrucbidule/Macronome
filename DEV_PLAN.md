@@ -353,3 +353,23 @@ documented here only so the information is ready when the author decides to run 
           ticked. Green: full gate (check:i18n + check:schema + typecheck + lint + 336 unit + 163
           integration). e2e (proposals dialog → apply) on the PR-to-main gate.
           See `DECISIONS.md` B-123.
+- **Mobile responsive (NOT part of the dev plan).** Make the (desktop-first) SPA usable on
+  phones, built **one slice per session** from the approved design package
+  (`specifications/features/mobile-responsive/` — git-ignored). Each slice is **additive,
+  mobile-scoped (≤560px) and desktop-inert** by mechanism; desktop never changes silently.
+  Ordered slices S1–S10 (`specifications/features/mobile-responsive/dev-plan.md`):
+  - [x] **S1 — Responsive type layer**: mobile-only `@media (max-width:560px)` `--fs-*`
+        override (floor 12px, body 16px) + `--bp-phone: 560px` doc-constant, in the
+        byte-identical `tokens.css` pair + `design/tokens.md`. Desktop inert ≥561px.
+        Reconciled the two `tokens.css` copies to byte-identity (app copy = reference).
+        See `DECISIONS.md` "Mobile-responsive S1". No tests (responsive CSS verified by
+        inspection at breakpoints).
+  - [ ] **S2** — overlay foundations (`useIsMobile()` + Modal `fullscreen`/`sheet`).
+  - [ ] **S3** — mobile shell (app-bar title, bottom nav, account sheet, FAB component).
+  - [ ] **S4** — Repas layout (two-row food line, day-bar wrap, meal tabs).
+  - [ ] **S5** — Journal → cards + shared list chrome (toolbar, Trier, ⋯).
+  - [ ] **S6** — Recettes → cards (full-screen builder, FAB, Filtres sheet).
+  - [ ] **S7** — Aliments → cards (same pattern, pure chrome reuse).
+  - [ ] **S8** — Poids (controls row, chart sizing, period list + detail sheet, FAB).
+  - [ ] **S9** — Repas interactions (food picker, line-editor sheet, swipe, touch DnD).
+  - [ ] **S10** — Stats (wide blocks scroll, mount-time scroll to current period).

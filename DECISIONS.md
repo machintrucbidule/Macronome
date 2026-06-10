@@ -2183,3 +2183,28 @@ an omission when the fixture uses a **non-default** value (`g`, `true` hid the b
   (`ai_proposable = false` alongside the GM-2 `unit = 'ml'`) and asserts they survive export + restore.
 
 No DB/migration change. Completes the IMP-1 envelope's coverage (no new B-number).
+
+## Mobile-responsive S1 — responsive type layer + `--bp-phone` — RESOLVED (user, 2026-06-10)
+
+First slice of the mobile-responsive feature (`specifications/features/mobile-responsive/`,
+spec §1). A **mobile-only** `@media (max-width: 560px)` `:root` override bumps the type scale
+toward native-mobile norms (floor 12px, body 16px: `--fs-9/10 → 12`, `--fs-11 → 13`,
+`--fs-12 → 14`, `--fs-13 → 16`, … `--fs-24 → 26`), keeping micro-labels legible and inputs
+above the iOS focus-zoom threshold. **Desktop impact: none** — the block is inert ≥561px and
+no fixed sizing token (`--tap`, `--appbar-h`, `--control-h`, `--avatar`, column widths) is
+touched. A doc-constant `--bp-phone: 560px` is added (a custom property can't be referenced in
+a media-query condition, so the literal `560px` is repeated in each `@media`; the token exists
+for documentation/JS use). Caveat: components that hard-code px instead of `var(--fs-*)` (meal
+food-line `.nm`/`.v`) are intentionally unaffected — they get explicit mobile sizes in S4.
+
+**`tokens.css` reconciliation (user decision).** The app stylesheet
+`packages/web/src/styles/tokens.css` (the file rendered in the browser) is the **reference**;
+the design-contract copy `design/tokens.css` had drifted in formatting only (Prettier vs.
+hand-authored, identical values). It was reformatted to match the app copy **byte-for-byte**
+(cosmetic, no value change, not loaded by the app → zero rendering impact) before adding the §1
+block, so the two are now truly byte-identical per `CLAUDE.md`.
+
+Contract delta: `packages/web/src/styles/tokens.css` + `design/tokens.css` (the §1 block +
+`--bp-phone`; byte-identical) + `design/tokens.md` (mobile type layer note + `phone` breakpoint
+row). No backend/schema/runtime change; no new tests (responsive CSS verified by inspection at
+breakpoints per the feature dev-plan).

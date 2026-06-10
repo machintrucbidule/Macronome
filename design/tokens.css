@@ -7,23 +7,23 @@
 
 :root {
   /* ---- Type families ---- */
-  --font-display: "Space Mono", "JetBrains Mono", ui-monospace, monospace;
-  --font-body:    "Söhne", "Inter Tight", -apple-system, system-ui, sans-serif;
-  --font-num:     "Space Mono", ui-monospace, monospace; /* tabular figures */
+  --font-display: 'Space Mono', 'JetBrains Mono', ui-monospace, monospace;
+  --font-body: 'Söhne', 'Inter Tight', -apple-system, system-ui, sans-serif;
+  --font-num: 'Space Mono', ui-monospace, monospace; /* tabular figures */
 
   /* ---- Type scale (px) ---- dense desktop UI; numbers use --font-num/tabular */
-  --fs-9: 9px;    /* micro labels, table sub-headers, tags */
-  --fs-10: 10px;  /* uppercase section labels, axis labels */
-  --fs-11: 11px;  /* nav, seg, meta, pills, hints */
-  --fs-12: 12px;  /* dense table cells, secondary controls */
-  --fs-13: 13px;  /* body default, inputs, menu items */
-  --fs-14: 14px;  /* card/meal titles, primary inputs */
-  --fs-15: 15px;  /* login fields, verdict badge */
-  --fs-16: 16px;  /* wordmark, date label, section h1, metric value */
-  --fs-18: 18px;  /* page h1 (toolbars) */
-  --fs-20: 20px;  /* page h1 (screens) */
-  --fs-22: 22px;  /* page h1 (settings/account), cook-mode title */
-  --fs-24: 24px;  /* big metric value (calories, cartouche stat) */
+  --fs-9: 9px; /* micro labels, table sub-headers, tags */
+  --fs-10: 10px; /* uppercase section labels, axis labels */
+  --fs-11: 11px; /* nav, seg, meta, pills, hints */
+  --fs-12: 12px; /* dense table cells, secondary controls */
+  --fs-13: 13px; /* body default, inputs, menu items */
+  --fs-14: 14px; /* card/meal titles, primary inputs */
+  --fs-15: 15px; /* login fields, verdict badge */
+  --fs-16: 16px; /* wordmark, date label, section h1, metric value */
+  --fs-18: 18px; /* page h1 (toolbars) */
+  --fs-20: 20px; /* page h1 (screens) */
+  --fs-22: 22px; /* page h1 (settings/account), cook-mode title */
+  --fs-24: 24px; /* big metric value (calories, cartouche stat) */
 
   --fw-regular: 400;
   --fw-bold: 700;
@@ -33,8 +33,8 @@
   --lh-normal: 1.55;
 
   /* Common letter-spacing for uppercased micro labels */
-  --ls-caps: .05em;   /* default uppercase tracking (.04–.06 in mockups) */
-  --ls-caps-wide: .1em; /* login field labels, tagline */
+  --ls-caps: 0.05em; /* default uppercase tracking (.04–.06 in mockups) */
+  --ls-caps-wide: 0.1em; /* login field labels, tagline */
 
   /* ---- Spacing scale (px) ---- maps to observed mockup rhythm ---- */
   --sp-1: 2px;
@@ -47,7 +47,7 @@
   --sp-8: 16px;
   --sp-9: 20px;
   --sp-10: 24px;
-  --page-gutter: 18px;  /* canonical horizontal page padding everywhere */
+  --page-gutter: 18px; /* canonical horizontal page padding everywhere */
 
   /* ---- Radii ---- */
   --r-sm: 4px;
@@ -56,39 +56,40 @@
   --r-pill: 99px;
 
   /* ---- Sizing ---- */
-  --tap: 40px;          /* min touch target (desktop density) — see media query */
-  --appbar-h: 51px;     /* sticky offset used by table headers (top:51px) */
-  --control-h: 30px;    /* seg / small inline controls */
+  --tap: 40px; /* min touch target (desktop density) — see media query */
+  --appbar-h: 51px; /* sticky offset used by table headers (top:51px) */
+  --control-h: 30px; /* seg / small inline controls */
   --control-h-md: 36px; /* search inputs, toolbar buttons */
-  --avatar: 32px;       /* account avatar button */
+  --avatar: 32px; /* account avatar button */
+  --bp-phone: 560px; /* phone breakpoint (doc constant; literal 560px is used in each @media — a custom property can't be referenced in a media-query condition) */
 
   /* ---- Borders ---- */
   --bw: 1px;
-  --bw-accent: 1.4px;   /* the "tick" ring */
+  --bw-accent: 1.4px; /* the "tick" ring */
 
   /* ---- Motion ---- */
-  --ease: cubic-bezier(.2,.7,.2,1);
-  --dur-fast: .15s;     /* hover/focus transitions */
-  --dur-bar: .2s;       /* progress-bar fills */
-  --dur-theme: .35s;    /* background/color theme cross-fade */
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dur-fast: 0.15s; /* hover/focus transitions */
+  --dur-bar: 0.2s; /* progress-bar fills */
+  --dur-theme: 0.35s; /* background/color theme cross-fade */
 
   /* ---- Z-index layers (canonical; collapses the mockups' ad-hoc values) ---- */
-  --z-sticky-sub: 40;   /* sticky day/sub-bar under the appbar */
-  --z-appbar: 50;       /* top app bar */
-  --z-popover: 60;      /* filter popovers, calendar */
-  --z-menu: 80;         /* account menu, unit menu, context menus */
+  --z-sticky-sub: 40; /* sticky day/sub-bar under the appbar */
+  --z-appbar: 50; /* top app bar */
+  --z-popover: 60; /* filter popovers, calendar */
+  --z-menu: 80; /* account menu, unit menu, context menus */
   --z-autocomplete: 90; /* food autocomplete dropdown */
-  --z-scrim: 100;       /* modal backdrop + modal */
-  --z-cook: 300;        /* cook-mode full-screen takeover */
-  --z-cook-pop: 330;    /* cook-mode menus (autocomplete/unit) sit above takeover */
-  --z-toast: 1000;      /* toasts / transient inline system messages */
+  --z-scrim: 100; /* modal backdrop + modal */
+  --z-cook: 300; /* cook-mode full-screen takeover */
+  --z-cook-pop: 330; /* cook-mode menus (autocomplete/unit) sit above takeover */
+  --z-toast: 1000; /* toasts / transient inline system messages */
 }
 
 /* ============================================================================
    DARK THEME (default)
    ============================================================================ */
 :root,
-[data-theme="dark"] {
+[data-theme='dark'] {
   /* Surfaces */
   --bg: #0d0f12;
   --bg-elev: #15181d;
@@ -105,22 +106,22 @@
   --text-faint: #5e6671;
 
   /* Accent */
-  --accent: #e0b341;        /* the metronome needle — warm amber */
-  --accent-ink: #1a1407;    /* text/icon on accent fills */
+  --accent: #e0b341; /* the metronome needle — warm amber */
+  --accent-ink: #1a1407; /* text/icon on accent fills */
   --focus: #e0b341;
 
   /* Semantic status */
   --ok: #4db07e;
-  --ok-soft: #15301f;       /* CONFIRMED: app value (not login #12281d) */
+  --ok-soft: #15301f; /* CONFIRMED: app value (not login #12281d) */
   --nok: #e5644e;
-  --nok-soft: #341812;      /* CONFIRMED: app value (not login #2b1512) */
+  --nok-soft: #341812; /* CONFIRMED: app value (not login #2b1512) */
 
   /* Calorie target band + deltas (semantic aliases) */
-  --under: #5b9bd8;         /* below the calorie band */
-  --over: var(--nok);       /* above the band */
-  --in-band: var(--ok);     /* within the band */
-  --delta-pos: var(--ok);   /* a "good" delta (e.g. weight down) */
-  --delta-neg: var(--nok);  /* a "bad" delta (e.g. weight up / surplus) */
+  --under: #5b9bd8; /* below the calorie band */
+  --over: var(--nok); /* above the band */
+  --in-band: var(--ok); /* within the band */
+  --delta-pos: var(--ok); /* a "good" delta (e.g. weight down) */
+  --delta-neg: var(--nok); /* a "bad" delta (e.g. weight up / surplus) */
 
   /* Macro channel colours: L (lipides/fat), G (glucides/carb), P (protéines) */
   --c-fat: #e0b341;
@@ -135,22 +136,22 @@
   --star-off: #3a414c;
 
   /* Charts (Weight + Stats) */
-  --grid: #222831;          /* chart gridlines */
-  --none: #222730;          /* heatmap "non saisi" cell (≈ grid, intentionally) */
-  --weight: #e0b341;        /* weighed-point dots + thin raw line */
-  --trend: #e8ebef;         /* EMA smoothed trend (bold) */
-  --traj: #5b9bd8;          /* target trajectory (dashed) */
-  --waistc: #b07ad6;        /* waist overlay */
+  --grid: #222831; /* chart gridlines */
+  --none: #222730; /* heatmap "non saisi" cell (≈ grid, intentionally) */
+  --weight: #e0b341; /* weighed-point dots + thin raw line */
+  --trend: #e8ebef; /* EMA smoothed trend (bold) */
+  --traj: #5b9bd8; /* target trajectory (dashed) */
+  --waistc: #b07ad6; /* waist overlay */
 
   /* Misc */
   --scrollbar: #4a525e;
-  --shadow: 0 18px 50px -12px rgba(0,0,0,.7);
+  --shadow: 0 18px 50px -12px rgba(0, 0, 0, 0.7);
 }
 
 /* ============================================================================
    LIGHT THEME (opt-in)
    ============================================================================ */
-[data-theme="light"] {
+[data-theme='light'] {
   --bg: #f4f2ec;
   --bg-elev: #fbfaf6;
   --bg-elev-2: #ffffff;
@@ -168,9 +169,9 @@
   --focus: #b8860b;
 
   --ok: #1f8a52;
-  --ok-soft: #dcefe3;       /* CONFIRMED: app value (not login #e2f1e8) */
+  --ok-soft: #dcefe3; /* CONFIRMED: app value (not login #e2f1e8) */
   --nok: #c23d27;
-  --nok-soft: #f5ddd6;      /* CONFIRMED: app value (not login #f7e3de) */
+  --nok-soft: #f5ddd6; /* CONFIRMED: app value (not login #f7e3de) */
 
   --under: #2f6fb0;
   --over: var(--nok);
@@ -195,7 +196,7 @@
   --waistc: #8a4fc0;
 
   --scrollbar: #b3aa97;
-  --shadow: 0 18px 50px -16px rgba(40,35,20,.22);
+  --shadow: 0 18px 50px -16px rgba(40, 35, 20, 0.22);
 }
 
 /* ============================================================================
@@ -203,5 +204,29 @@
    Desktop-first. --tap rises to 44px at the mobile breakpoint (CONFIRMED ③C).
    ============================================================================ */
 @media (max-width: 760px) {
-  :root { --tap: 44px; }
+  :root {
+    --tap: 44px;
+  }
+}
+
+/* ----------------------------------------------------------------------------
+   Responsive type layer (mobile-responsive spec §1). Larger-bump scale toward
+   native-mobile norms: floor 12px, body 16px. Mobile-only (≤--bp-phone) —
+   desktop px values are untouched (block inert ≥561px).
+   ---------------------------------------------------------------------------- */
+@media (max-width: 560px) {
+  :root {
+    --fs-9: 12px;
+    --fs-10: 12px;
+    --fs-11: 13px;
+    --fs-12: 14px;
+    --fs-13: 16px;
+    --fs-14: 17px;
+    --fs-15: 18px;
+    --fs-16: 19px;
+    --fs-18: 21px;
+    --fs-20: 22px;
+    --fs-22: 24px;
+    --fs-24: 26px;
+  }
 }

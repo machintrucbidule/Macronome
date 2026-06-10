@@ -33,6 +33,14 @@ Rules: anything numeric (kcal, grams, kg, %, dates, table figures) uses
 `--font-num` with `font-variant-numeric: tabular-nums`. Titles/wordmark use
 `--font-display` (Space Mono, weight 700). Prose/labels use `--font-body`.
 
+**Mobile type layer (≤`--bp-phone`).** The values above are the dense desktop scale.
+At `@media (max-width: 560px)` a `:root` override bumps every `--fs-*` toward
+native-mobile norms — floor 12px, body 16px — so micro-labels stay legible and inputs
+clear the iOS focus-zoom threshold: `--fs-9/10 → 12`, `--fs-11 → 13`, `--fs-12 → 14`,
+`--fs-13 → 16`, `--fs-14 → 17`, `--fs-15 → 18`, `--fs-16 → 19`, `--fs-18 → 21`,
+`--fs-20 → 22`, `--fs-22 → 24`, `--fs-24 → 26`. Mobile-only — inert ≥561px, so the
+desktop px values above are unchanged (mobile-responsive spec §1).
+
 ## Spacing
 
 `--sp-1..--sp-10` (2,4,6,8,10,12,14,16,20,24). Horizontal page padding is always
@@ -42,12 +50,13 @@ meal-column headers and food-line rows sit at the compact floor — B-089).
 
 ## Breakpoints (desktop-first)
 
-| Name | Max-width | Behaviour (from mockups)                                                                        |
-| ---- | --------- | ----------------------------------------------------------------------------------------------- |
-| `lg` | 900px     | metric/cartouche/strip grids collapse to 2-up or 3-up; main `.nav` hidden                       |
-| `md` | 760px     | meal scroller stacks vertically (one meal per row); `--tap` → 44px; nav arrows/scrollbar hidden |
-| `sm` | 520px     | totals grid → 2 columns; tightest dense layouts wrap                                            |
-| `xs` | 420px     | login card padding tightens                                                                     |
+| Name    | Max-width | Behaviour (from mockups)                                                                                                                                                                                                                                                                      |
+| ------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lg`    | 900px     | metric/cartouche/strip grids collapse to 2-up or 3-up; main `.nav` hidden                                                                                                                                                                                                                     |
+| `md`    | 760px     | meal scroller stacks vertically (one meal per row); `--tap` → 44px; nav arrows/scrollbar hidden                                                                                                                                                                                               |
+| `phone` | 560px     | **mobile layout** (mobile-responsive feature): the responsive type layer applies; mobile shell, card lists, overlays and meal tabs trigger here. Doc constant `--bp-phone: 560px` (a custom property can't be used in a media condition, so the literal `560px` is repeated in each `@media`) |
+| `sm`    | 520px     | totals grid → 2 columns; tightest dense layouts wrap                                                                                                                                                                                                                                          |
+| `xs`    | 420px     | login card padding tightens                                                                                                                                                                                                                                                                   |
 
 Note: individual screens used nearby values (820/880/780); these are folded to
 the nearest canonical breakpoint above. The main-nav-hidden rule fires at `lg`.
