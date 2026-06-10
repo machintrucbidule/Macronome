@@ -48,6 +48,7 @@ echo.
 echo ============================================================
 echo  [Macronome] Dev environment starting.
 echo  Open: http://127.0.0.1:5173   (opening automatically)
+echo  Mobile (LAN): see the "Network:" URL printed in the "Macronome Web" window.
 echo  Two windows opened: "Macronome API" and "Macronome Web".
 echo  Stop with:     macronome_stop.bat
 echo  Reset the DB:  macronome_clean_db.bat
