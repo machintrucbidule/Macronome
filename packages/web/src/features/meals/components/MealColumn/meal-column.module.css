@@ -175,13 +175,10 @@
 }
 
 /* Mobile (S9, owner 2026-06-11) — inert ≥561px. Cook mode 🍳 is removed on phones (no trigger →
-   the cook takeover never opens), and the footer ⊟ Restes button moves into the meal "⋯" bottom
-   sheet ("Gérer les restes"). Desktop keeps both. */
+   the cook takeover never opens). The footer ⊟ Restes button stays (owner correction 2026-06-11);
+   its popup opens as a bottom sheet. Desktop keeps the 🍳 button. */
 @media (max-width: 560px) {
   .cookBtn {
-    display: none;
-  }
-  .rbtn {
     display: none;
   }
 }

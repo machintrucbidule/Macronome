@@ -6,8 +6,8 @@ import styles from './meal-column.module.css';
 
 // Meal column header: the 🍳 cook-mode button, name + the ⋯ menu (rename / move / delete — this
 // day's slot only, never the template). On mobile (S9, owner 2026-06-11) the 🍳 button is hidden
-// (CSS) and the ⋯ opens a bottom sheet (with "Gérer les restes") instead of the dropdown; desktop
-// keeps the exact dropdown + 🍳.
+// (CSS) and the ⋯ opens a bottom sheet instead of the dropdown; desktop keeps the exact dropdown +
+// 🍳. The ⊟ Restes button stays in the meal footer on mobile (owner correction 2026-06-11).
 interface MealHeaderProps {
   name: string;
   canMoveLeft: boolean;
@@ -16,7 +16,6 @@ interface MealHeaderProps {
   onRename: () => void;
   onMoveLeft: () => void;
   onMoveRight: () => void;
-  onLeftover: () => void;
   onDelete: () => void;
 }
 
@@ -28,7 +27,6 @@ export function MealHeader({
   onRename,
   onMoveLeft,
   onMoveRight,
-  onLeftover,
   onDelete,
 }: MealHeaderProps) {
   const { t } = useTranslation();
@@ -92,7 +90,6 @@ export function MealHeader({
           onRename={onRename}
           onMoveLeft={onMoveLeft}
           onMoveRight={onMoveRight}
-          onLeftover={onLeftover}
           onDelete={onDelete}
           onClose={() => setOpen(false)}
         />

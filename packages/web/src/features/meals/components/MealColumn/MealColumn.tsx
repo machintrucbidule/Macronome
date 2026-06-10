@@ -82,7 +82,6 @@ export function MealColumn({ meal, index, meals, width, active = false }: MealCo
         }}
         onMoveLeft={() => index > 0 && swap(meals[index - 1] as Meal)}
         onMoveRight={() => index < meals.length - 1 && swap(meals[index + 1] as Meal)}
-        onLeftover={() => actions.openLeftover(meal.id)}
         onDelete={() => setConfirming(true)}
       />
       <div className={styles.lines}>

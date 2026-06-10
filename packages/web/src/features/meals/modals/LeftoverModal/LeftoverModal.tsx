@@ -52,7 +52,11 @@ export function LeftoverModal({ meal }: LeftoverModalProps) {
     fromList ? backToList() : actions.closeLeftover();
 
   return (
-    <Modal title={`${t(titleKey)} — ${meal.slot_name}`} onClose={actions.closeLeftover}>
+    <Modal
+      title={`${t(titleKey)} — ${meal.slot_name}`}
+      mobile="sheet"
+      onClose={actions.closeLeftover}
+    >
       {view.kind === 'list' && (
         <LeftoverList
           meal={meal}

@@ -125,9 +125,9 @@ to overlays; desktop (≥561px) is unchanged.
   food · quantity + unit · pin · delete). Works on garde-manger scaffold pre-fill lines too (pinned,
   qty 0): they resolve by row, and the sheet offers change-food + quantity (no pin/delete until
   materialised). **Long-press the grip** → touch drag-to-reorder.
-- **Meal “⋯” menu** (S9): a bottom sheet (rename · **gérer les restes** · move left/right ·
-  delete). The 🍳 cook button and the footer ⊟ Restes button are **removed on mobile** (owner
-  decision 2026-06-11); the leftover popup opens from this sheet.
+- **Meal “⋯” menu** (S9): a bottom sheet (rename · move left/right · delete). The 🍳 cook button
+  is **removed on mobile**; the **⊟ Restes button stays in the meal footer** (owner correction
+  2026-06-11) and its leftover popup opens as a **bottom sheet**.
 - **Day “⋯” menu** (S9): a bottom sheet in the day bar (+ Repas · Copier hier · Vider · undo/
   redo · ✨ Proposition IA) — the desktop controls row is hidden ≤560px.
 

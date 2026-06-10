@@ -570,7 +570,6 @@
     },
     "meal": {
       "rename": "Rename",
-      "manageLeftover": "Manage leftovers",
       "moveLeft": "← Move left",
       "moveRight": "Move right →",
       "delete": "Delete meal",

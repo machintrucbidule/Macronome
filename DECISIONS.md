@@ -2740,5 +2740,10 @@ Owner refinements to the S9 Repas mobile work:
   the line editor — `LineSheetTarget` carries the row, and the sheet resolves the entry by
   `order_index` when there is no id (offering change-food + quantity; pin/delete appear once the line
   is materialised).
+- **Leftovers correction (supersedes the S9 deviation #2 above).** The earlier S9 decision moved
+  "Gérer les restes" into the meal "⋯" sheet and hid the footer ⊟ Restes button on mobile — that was
+  wrong. The **⊟ Restes button stays in the meal footer** on mobile, and the **`LeftoverModal` opens
+  as a bottom sheet** (`mobile="sheet"`). The meal "⋯" sheet no longer carries a leftovers item; the
+  now-unused `meals.meal.manageLeftover` i18n key was removed.
 
 Mobile-only / desktop-inert by mechanism. typecheck + lint + 233 web tests green.
