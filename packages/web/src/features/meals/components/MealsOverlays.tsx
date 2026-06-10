@@ -1,11 +1,14 @@
 import { useMemo } from 'react';
-import type { CustomValues } from '../hooks/useMealsController';
+import { useIsMobile } from '../../../lib/useIsMobile';
+import type { CustomValues, MealsController } from '../hooks/useMealsController';
 import { useMeals } from '../MealsContext';
 import { ClearDayConfirm } from './ClearDayConfirm';
 import { CopyYesterdayConfirm } from './CopyYesterdayConfirm';
 import { LeftoverModal } from '../modals/LeftoverModal/LeftoverModal';
 import { CustomFoodModal } from '../modals/CustomFoodModal/CustomFoodModal';
 import { CookModeModal } from '../modals/CookModeModal/CookModeModal';
+import { FoodPickerSheet } from './FoodPickerSheet/FoodPickerSheet';
+import { LineEditorSheet } from './LineEditorSheet/LineEditorSheet';
 
 // All Repas overlays in one place (clear-day confirm + leftover / cook / custom modals), so
 // MealsPage stays a thin route container. Reads the controller from context.
@@ -14,6 +17,19 @@ interface Props {
   onCloseClear: () => void;
   copying: boolean;
   onCloseCopy: () => void;
+}
+
+// Mobile-only overlays: the full-screen food picker (replaces the inline autocomplete) and the
+// bottom-sheet line editor (spec §5.3). Kept apart so they never mount on desktop (≥561px).
+function MobileSheets({ ctl }: { ctl: MealsController }) {
+  const isMobile = useIsMobile();
+  if (!isMobile) return null;
+  return (
+    <>
+      {ctl.editing && <FoodPickerSheet target={ctl.editing} />}
+      {ctl.lineSheetTarget && <LineEditorSheet target={ctl.lineSheetTarget} />}
+    </>
+  );
 }
 
 export function MealsOverlays({ clearing, onCloseClear, copying, onCloseCopy }: Props) {
@@ -58,6 +74,7 @@ export function MealsOverlays({ clearing, onCloseClear, copying, onCloseCopy }: 
       {leftoverMeal && <LeftoverModal meal={leftoverMeal} />}
       {cookMeal && <CookModeModal key={cookMeal.id} meal={cookMeal} />}
       {ctl.customTarget && <CustomFoodModal target={ctl.customTarget} initial={customInitial} />}
+      <MobileSheets ctl={ctl} />
     </>
   );
 }

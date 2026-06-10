@@ -343,6 +343,23 @@
     "copyYesterday": "Copy yesterday",
     "undo": "Undo (Ctrl+Z)",
     "redo": "Redo (Ctrl+Y)",
+    "dayMenu": {
+      "open": "Day menu",
+      "title": "Day actions"
+    },
+    "picker": {
+      "titleAdd": "Add a food",
+      "titleReplace": "Replace food"
+    },
+    "lineSheet": {
+      "title": "Edit food",
+      "changeFood": "Change food",
+      "editCustom": "Edit values",
+      "quantity": "Quantity",
+      "pin": "Pin to pantry",
+      "unpin": "Unpin from pantry",
+      "delete": "Remove food"
+    },
     "proposals": {
       "button": "AI proposal",
       "title": "AI proposal",
@@ -553,6 +570,7 @@
     },
     "meal": {
       "rename": "Rename",
+      "manageLeftover": "Manage leftovers",
       "moveLeft": "← Move left",
       "moveRight": "Move right →",
       "delete": "Delete meal",

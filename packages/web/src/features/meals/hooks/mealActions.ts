@@ -39,6 +39,13 @@ export interface CustomTarget {
   entryId: string | null;
   orderIndex?: number | null;
 }
+/** Mobile-only: the line whose bottom-sheet editor is open (food · qty · pin · delete, spec §5.3).
+ *  Stored on the controller like the other overlays; the sheet resolves the entry from the day. */
+export interface LineSheetTarget {
+  mealId: string;
+  mealIndex: number;
+  entryId: string;
+}
 export interface CustomValues {
   name: string;
   kcal: number;
@@ -54,6 +61,7 @@ export interface MealActionDeps {
   date: string;
   setEditing: (t: EditTarget | null) => void;
   setCustomTarget: (t: CustomTarget | null) => void;
+  setLineSheetTarget: (t: LineSheetTarget | null) => void;
   setLeftoverMealId: (id: string | null) => void;
   setCookMealId: (id: string | null) => void;
   setPendingFocus: (id: string | null) => void;
@@ -119,6 +127,12 @@ function editActions(d: MealActionDeps) {
       initialQuery?: string,
     ) => d.setEditing({ mealId, mealIndex, entryId, orderIndex: orderIndex ?? null, initialQuery }),
     closeEdit: () => d.setEditing(null),
+    // Mobile line-editor bottom sheet (spec §5.3). Opening it closes any open inline picker first.
+    openLineSheet: (mealId: string, mealIndex: number, entryId: string) => {
+      d.setEditing(null);
+      d.setLineSheetTarget({ mealId, mealIndex, entryId });
+    },
+    closeLineSheet: () => d.setLineSheetTarget(null),
   };
 }
 

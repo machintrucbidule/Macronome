@@ -1,0 +1,54 @@
+/* Mobile-only "⋯" day menu. The trigger sits at the right of the date row (DayHeader renders it
+   only when useIsMobile()); the sheet body is a vertical action list. Desktop never mounts this. */
+.trigger {
+  margin-left: auto;
+  flex: none;
+  width: var(--tap);
+  height: var(--tap);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  background: var(--bg-elev-2);
+  color: var(--text-dim);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-16);
+  line-height: 1;
+  cursor: pointer;
+}
+.trigger:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  padding: var(--sp-4) 0 var(--sp-5);
+}
+.item {
+  width: 100%;
+  text-align: left;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  padding: 14px var(--sp-5);
+  font-size: var(--fs-13);
+  cursor: pointer;
+}
+.item:active:not(:disabled) {
+  background: var(--bg-elev-2);
+}
+.item:disabled {
+  color: var(--text-faint);
+  cursor: not-allowed;
+}
+.danger {
+  color: var(--nok);
+}
+.hint {
+  color: var(--text-faint);
+  font-size: var(--fs-11);
+  padding: 10px var(--sp-5) 0;
+}

@@ -1,0 +1,76 @@
+/* Mobile-only full-screen food picker body (rendered inside Modal mobile="fullscreen"). All rules
+   only ever apply on the phone breakpoint (the component mounts only when useIsMobile()). */
+.picker {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.search {
+  margin: var(--sp-4) var(--sp-5);
+  padding: 12px 14px;
+  /* --fs-13 = 16px on mobile → no iOS focus-zoom (cross-cutting rule §8). */
+  font-size: var(--fs-13);
+  background: var(--bg-field);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  color: var(--text);
+}
+.search:focus {
+  outline: none;
+  border-color: var(--focus);
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+}
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  width: 100%;
+  text-align: left;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  background: transparent;
+  color: var(--text);
+  padding: 14px var(--sp-5);
+  min-height: var(--tap);
+  cursor: pointer;
+  font-size: var(--fs-13);
+}
+.row:active {
+  background: var(--bg-elev-2);
+}
+/* Current food (when replacing a line): accent left-border, like the pinned line. */
+.cur {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tag {
+  flex: none;
+  font-size: var(--fs-10);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 2px 6px;
+}
+.empty {
+  color: var(--text-faint);
+  padding: var(--sp-6) var(--sp-5);
+}
+.custom {
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  text-align: left;
+  padding: 14px var(--sp-5);
+  font-size: var(--fs-13);
+  cursor: pointer;
+}

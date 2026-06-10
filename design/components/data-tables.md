@@ -109,6 +109,29 @@ L/G/P are tinted with the macro tokens (`--c-fat`/`--c-carb`/`--c-prot`), matchi
 totals dots, **at every width** (owner-approved desktop change, 2026-06-11). `kcal` keeps
 its colour; `.zero` lines stay muted (the tint is gated on `:not(.zero)`).
 
+### Mobile (≤560px) — meal tabs, two-row line, sheets (mobile-responsive S4 + S9)
+
+On phones the dense column scroller becomes a **tab layer** and the inline interactions move
+to overlays; desktop (≥561px) is unchanged.
+
+- **Meal tab bar** (S4): a full-width band pinned above the bottom nav — one segment per meal,
+  two lines (name + kcal), active in `--accent`, horizontal scroll on overflow. **One meal
+  visible** at a time (all columns stay mounted; CSS reveals the active one). A **horizontal
+  swipe** on the meal area switches meal (S9); day navigation stays arrows + calendar.
+- **Two-row food line** (S4): row 1 = grip · name · quantity; row 2 = the macro cluster (kcal
+  bold + L/G/P colour-coded + `L·G·P` legend). The pin/× icons are **not** on the line.
+- **Tap routing** (S9): tap **name** → full-screen food picker (search-only); tap **quantity**
+  → inline numeric edit; tap **elsewhere on the line** → bottom-sheet **line editor** (change
+  food · quantity + unit · pin · delete). **Long-press the grip** → touch drag-to-reorder.
+- **Meal “⋯” menu** (S9): a bottom sheet (rename · **gérer les restes** · move left/right ·
+  delete). The 🍳 cook button and the footer ⊟ Restes button are **removed on mobile** (owner
+  decision 2026-06-11); the leftover popup opens from this sheet.
+- **Day “⋯” menu** (S9): a bottom sheet in the day bar (+ Repas · Copier hier · Vider · undo/
+  redo · ✨ Proposition IA) — the desktop controls row is hidden ≤560px.
+
+All overlays follow the §0.2 taxonomy (full-screen picker; bottom sheets for the line/meal/day
+menus). Mechanism: mobile-only CSS + `useIsMobile()` render gates → desktop byte-identical.
+
 ## Line-list grid (Recipe ingredient builder) — instance B
 
 Same line component, **different column map** (no pin; wider numerics):

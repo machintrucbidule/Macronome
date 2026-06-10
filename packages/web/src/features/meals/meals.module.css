@@ -628,10 +628,10 @@
     right: auto;
   }
 
-  /* Interim until the S9 "⋯" day menu folds them away: let the controls toolbar wrap so no
-     button is clipped at phone width. */
+  /* The day actions move to the "⋯" day menu in the day bar (spec §5.1, S9); the desktop controls
+     toolbar is hidden ≤560px. MealsControls itself is untouched (desktop renders it unchanged). */
   .controls {
-    flex-wrap: wrap;
+    display: none;
   }
 
   /* Activity (verdict cluster): drop the "Activité du jour" label, keep the "?" on the same row

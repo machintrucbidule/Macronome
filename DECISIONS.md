@@ -2697,3 +2697,26 @@ tint is gated on `:not(.zero)`). Implementation: the per-line colour rules moved
 spans gained `fat`/`carb`/`prot` classes (`MealFooter.tsx`) tinted in `meal-column.module.css`. Noted
 in `design/components/data-tables.md` (Repas meal column). No `tokens.css`/backend/schema change; no
 new i18n; no new tests (presentational).
+
+## Mobile-responsive S9 — Repas interactions (picker · line sheet · day/meal menus · swipe · touch reorder) — RESOLVED (user, 2026-06-11)
+
+Slice S9 of the mobile-responsive feature (`specifications/features/mobile-responsive/`) completes
+spec §5: the Repas screen becomes fully usable by finger on phones (≤560px), desktop-inert by
+mechanism (mobile-only CSS + `useIsMobile()` render gates; ≥561px renders the existing tree). Pieces:
+**full-screen food picker** (replaces the inline autocomplete; **search-only** — owner decision: the
+app has no recently-logged source, so no "recents", which would be backend work and a separate future
+task); **bottom-sheet line editor** (change food · quantity+unit · pin · delete — the pin/× leave the
+mobile line); **mobile tap routing** on the two-row line (name → picker, qty → inline edit, body →
+line sheet); **"⋯" day menu** bottom sheet (+ Repas · Copier hier · Vider · undo/redo · **✨
+Proposition IA** — owner decision, since the desktop controls row is hidden ≤560px); **meal-switch
+swipe**; **long-press touch drag-to-reorder** (owner chose the spec gesture over up/down buttons).
+
+**Two owner-directed deviations from spec §5.3 (flagged):** (1) **cook mode 🍳 is removed on mobile**
+(the trigger is hidden ≤560px, so the cook takeover never opens on phones; desktop keeps it); (2) the
+**meal "⋯" menu becomes a bottom sheet on mobile** and gains **"Gérer les restes"**, and the meal-card
+footer **⊟ Restes button is hidden on mobile** (the leftover popup is reached from the meal menu). The
+desktop dropdown + footer Restes button are unchanged. New shared web components: none (the S2 `Modal`
+mobile variants and `useIsMobile()` are consumed read-only). New logic tests: `swipeIntent`,
+`computeOrder` (gesture wiring + layout verified by inspection, not unit tests). Documented in
+`design/components/data-tables.md` (Repas meal column → Mobile subsection); spec §5 marked applied.
+typecheck + lint + 233 web tests green.

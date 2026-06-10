@@ -3,12 +3,17 @@ import type { DayDetail } from '@macronome/shared';
 import { usePantry } from '../../settings/usePantry';
 import { useDay } from './useDay';
 import { useMealHistory } from './useMealHistory';
-import { createMealActions, type CustomTarget, type EditTarget } from './mealActions';
+import {
+  createMealActions,
+  type CustomTarget,
+  type EditTarget,
+  type LineSheetTarget,
+} from './mealActions';
 
 // Screen controller for Repas: the day query + UI state (editing line, open modal, pending qty
 // focus, the load/save error banner). Actions live in mealActions.ts. Components read this
 // through MealsContext (no prop-drilling). It renders server-computed figures; never computes.
-export type { CustomTarget, CustomValues, EditTarget } from './mealActions';
+export type { CustomTarget, CustomValues, EditTarget, LineSheetTarget } from './mealActions';
 
 export function useMealsController(date: string) {
   const day = useDay(date);
@@ -16,6 +21,7 @@ export function useMealsController(date: string) {
   const pantry = usePantry();
   const [editing, setEditing] = useState<EditTarget | null>(null);
   const [customTarget, setCustomTarget] = useState<CustomTarget | null>(null);
+  const [lineSheetTarget, setLineSheetTarget] = useState<LineSheetTarget | null>(null);
   const [leftoverMealId, setLeftoverMealId] = useState<string | null>(null);
   const [cookMealId, setCookMealId] = useState<string | null>(null);
   const [pendingFocus, setPendingFocus] = useState<string | null>(null);
@@ -29,6 +35,7 @@ export function useMealsController(date: string) {
     date,
     setEditing,
     setCustomTarget,
+    setLineSheetTarget,
     setLeftoverMealId,
     setCookMealId,
     setPendingFocus,
@@ -44,6 +51,7 @@ export function useMealsController(date: string) {
     mutations: day,
     editing,
     customTarget,
+    lineSheetTarget,
     leftoverMealId,
     cookMealId,
     pendingFocus,

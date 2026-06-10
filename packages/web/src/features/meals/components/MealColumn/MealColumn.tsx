@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Meal, MealEntry } from '@macronome/shared';
+import { useIsMobile } from '../../../../lib/useIsMobile';
 import { useMeals } from '../../MealsContext';
 import { buildLineRows } from '../../logic/lineRows';
 import { useLineDnd } from '../../hooks/useLineDnd';
+import { useTouchReorder } from '../../hooks/useTouchReorder';
 import { FoodLine } from '../FoodLine/FoodLine';
 import { LineHeader } from './LineHeader';
 import { MealHeader } from './MealHeader';
@@ -36,6 +38,14 @@ export function MealColumn({ meal, index, meals, width, active = false }: MealCo
     rows.flatMap((r) => (r.entry ? ([[r.row, r.entry]] as const) : [])),
   );
   const dnd = useLineDnd(meal.id, byRow, (id, order) => void actions.reorderEntries(id, order));
+  // Mobile long-press touch reorder (S9) runs alongside the desktop native DnD; both commit through
+  // the same reorder action. Inert on desktop (mouse pointers are ignored + handlers unattached).
+  const isMobile = useIsMobile();
+  const touch = useTouchReorder(
+    isMobile,
+    byRow,
+    (order) => void actions.reorderEntries(meal.id, order),
+  );
 
   const isEditing = (row: number, entry: MealEntry | null): boolean => {
     if (!editing || editing.mealIndex !== meal.order_index) return false;
@@ -72,6 +82,7 @@ export function MealColumn({ meal, index, meals, width, active = false }: MealCo
         }}
         onMoveLeft={() => index > 0 && swap(meals[index - 1] as Meal)}
         onMoveRight={() => index < meals.length - 1 && swap(meals[index + 1] as Meal)}
+        onLeftover={() => actions.openLeftover(meal.id)}
         onDelete={() => setConfirming(true)}
       />
       <div className={styles.lines}>
@@ -85,6 +96,7 @@ export function MealColumn({ meal, index, meals, width, active = false }: MealCo
             entry={entry}
             editing={isEditing(row, entry)}
             dnd={dnd}
+            touch={touch}
           />
         ))}
       </div>

@@ -6,6 +6,7 @@ import '../../../../i18n/config';
 import { MealsProvider } from '../../MealsContext';
 import type { MealsController } from '../../hooks/useMealsController';
 import type { LineDnd } from '../../hooks/useLineDnd';
+import type { TouchReorder } from '../../hooks/useTouchReorder';
 import { FoodLine } from './FoodLine';
 import styles from './food-line.module.css';
 
@@ -19,6 +20,8 @@ const dnd: LineDnd = {
   onDragEnd: vi.fn(),
   onDrop: vi.fn(),
 };
+
+const touch: TouchReorder = { grabbedId: null, gripHandlers: () => ({}) };
 
 function entry(): MealEntry {
   return {
@@ -54,7 +57,15 @@ function renderLine(e: MealEntry | null = entry()) {
   const utils = render(
     <QueryClientProvider client={qc}>
       <MealsProvider value={ctrl}>
-        <FoodLine mealId="m1" mealIndex={0} row={0} entry={e} editing={false} dnd={dnd} />
+        <FoodLine
+          mealId="m1"
+          mealIndex={0}
+          row={0}
+          entry={e}
+          editing={false}
+          dnd={dnd}
+          touch={touch}
+        />
       </MealsProvider>
     </QueryClientProvider>,
   );

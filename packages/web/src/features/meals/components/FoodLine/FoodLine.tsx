@@ -1,9 +1,11 @@
 import type { DragEvent } from 'react';
 import type { MealEntry } from '@macronome/shared';
 import { useTranslation } from 'react-i18next';
+import { useIsMobile } from '../../../../lib/useIsMobile';
 import { useMeals } from '../../MealsContext';
 import { useFood } from '../../hooks/useFoodLookup';
 import type { LineDnd } from '../../hooks/useLineDnd';
+import type { TouchReorder } from '../../hooks/useTouchReorder';
 import { r0 } from '../../format';
 import { QtyCell } from './QtyCell';
 import { PinCell } from './PinCell';
@@ -21,6 +23,7 @@ interface FoodLineProps {
   entry: MealEntry | null;
   editing: boolean;
   dnd: LineDnd;
+  touch: TouchReorder;
 }
 
 /** Props every line passes to make itself a drop target for the drag-reorder. */
@@ -30,12 +33,18 @@ const dropProps = (row: number, dnd: LineDnd) => ({
 });
 
 /** Build an entry row's class list (kept out of the component to cap its complexity). */
-function entryRowClass(isZero: boolean, isPinned: boolean, isDragging: boolean): string {
+function entryRowClass(
+  isZero: boolean,
+  isPinned: boolean,
+  isDragging: boolean,
+  isGrabbed: boolean,
+): string {
   return [
     styles.line,
     isZero && styles.zero,
     isPinned && styles.pinned,
     isDragging && styles.dragging,
+    isGrabbed && styles.grabbed,
   ]
     .filter(Boolean)
     .join(' ');
@@ -117,18 +126,38 @@ function NameCell({
   );
 }
 
+// The four value cells (kcal/L/G/P) in one wrapper so the mobile two-row layout (S4) can lay them
+// out as a single macro cluster (food-line.module.css .macros). `.macros { display: contents }`
+// keeps them as direct grid items on desktop → the 9-column grid is byte-identical ≥561px.
+function MacroCells({ c }: { c: MealEntry['consumed'] }) {
+  return (
+    <span className={styles.macros}>
+      <span className={`${styles.v} num`} style={{ fontWeight: 700 }}>
+        {r0(c.kcal)}
+      </span>
+      <span className={`${styles.v} num`}>{r0(c.fat)}</span>
+      <span className={`${styles.v} num`}>{r0(c.carb)}</span>
+      <span className={`${styles.v} num`}>{r0(c.protein)}</span>
+    </span>
+  );
+}
+
 function EntryRow({
   mealId,
   mealIndex,
   row,
   entry,
   dnd,
+  touch,
+  isMobile,
 }: {
   mealId: string;
   mealIndex: number;
   row: number;
   entry: MealEntry;
   dnd: LineDnd;
+  touch: TouchReorder;
+  isMobile: boolean;
 }) {
   const { t } = useTranslation();
   const { actions } = useMeals();
@@ -145,17 +174,33 @@ function EntryRow({
       ? actions.openCustom(mealId, mealIndex, entry.id)
       : actions.startEdit(mealId, mealIndex, entry.id, undefined, initialQuery);
 
+  // Mobile: a tap on the line body (anywhere the name/qty cells don't intercept) opens the
+  // bottom-sheet line editor (spec §5.3). Gated to persisted lines (a scaffold pre-fill line has
+  // an empty id → it must be picked via the name first). Desktop passes no handler → unchanged.
+  const openSheet =
+    isMobile && entry.id ? () => actions.openLineSheet(mealId, mealIndex, entry.id) : undefined;
+
   return (
     <div
-      className={entryRowClass(isZero, entry.is_pinned, dnd.dragId === entry.id)}
+      className={entryRowClass(
+        isZero,
+        entry.is_pinned,
+        dnd.dragId === entry.id,
+        touch.grabbedId === entry.id,
+      )}
       {...dropProps(row, dnd)}
+      onClick={openSheet}
+      // Hit-test target for the mobile long-press reorder; omitted on desktop (DOM unchanged).
+      data-line-row={isMobile ? row : undefined}
     >
       <span
         className={`${styles.grip} ${styles.gripDrag}`}
-        draggable
+        // Desktop uses native HTML5 DnD; on mobile the grip is a long-press handle instead.
+        draggable={!isMobile}
         onDragStart={() => dnd.onDragStart(entry.id, row)}
         onDragEnd={dnd.onDragEnd}
         title={t('meals.line.dragHint')}
+        {...touch.gripHandlers(entry.id, row)}
       />
       <NameCell name={name} isCustom={isCustom} onOpen={openEdit} />
       {isCustom ? (
@@ -165,18 +210,7 @@ function EntryRow({
       ) : (
         <QtyCell mealId={mealId} mealIndex={mealIndex} entry={entry} />
       )}
-      {/* The four value cells live in one wrapper so the mobile two-row layout (S4) can lay
-          them out as a single macro cluster (food-line.module.css .macros, the mockup's
-          .ml-mac). `.macros { display: contents }` keeps them as direct grid items on desktop
-          → the 9-column grid is byte-identical ≥561px. */}
-      <span className={styles.macros}>
-        <span className={`${styles.v} num`} style={{ fontWeight: 700 }}>
-          {r0(c.kcal)}
-        </span>
-        <span className={`${styles.v} num`}>{r0(c.fat)}</span>
-        <span className={`${styles.v} num`}>{r0(c.carb)}</span>
-        <span className={`${styles.v} num`}>{r0(c.protein)}</span>
-      </span>
+      <MacroCells c={c} />
       <PinCell mealId={mealId} entryId={entry.id} isPinned={entry.is_pinned} show={showPin} />
       <button
         type="button"
@@ -191,13 +225,17 @@ function EntryRow({
   );
 }
 
-export function FoodLine({ mealId, mealIndex, row, entry, editing, dnd }: FoodLineProps) {
+export function FoodLine({ mealId, mealIndex, row, entry, editing, dnd, touch }: FoodLineProps) {
   const { t } = useTranslation();
   const { actions } = useMeals();
+  const isMobile = useIsMobile();
   const referencedId = entry?.kind === 'referenced' ? entry.food_id : null;
   const food = useFood(referencedId);
 
-  if (editing) {
+  // Editing on mobile shows the full-screen FoodPickerSheet (rendered by MealsOverlays) instead
+  // of the inline autocomplete — so the inline path is desktop-only. ≤560px the line keeps its
+  // normal entry/empty rendering while the picker overlays it.
+  if (editing && !isMobile) {
     return (
       <div className={`${styles.line} ${styles.editing}`}>
         <span className={styles.grip} />
@@ -226,5 +264,15 @@ export function FoodLine({ mealId, mealIndex, row, entry, editing, dnd }: FoodLi
     );
   }
 
-  return <EntryRow mealId={mealId} mealIndex={mealIndex} row={row} entry={entry} dnd={dnd} />;
+  return (
+    <EntryRow
+      mealId={mealId}
+      mealIndex={mealIndex}
+      row={row}
+      entry={entry}
+      dnd={dnd}
+      touch={touch}
+      isMobile={isMobile}
+    />
+  );
 }

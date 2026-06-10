@@ -431,5 +431,15 @@ documented here only so the information is ready when the author decides to run 
         **list+detail** bullet in `data-tables.md` (dev-plan said "None new" — flagged). i18n
         `weight.detail.*`. See `DECISIONS.md` "Mobile-responsive S8". Desktop inert ≥561px; no
         `tokens.css` touch; no new tests (presentational). typecheck/lint/392 tests + web build green.
-  - [ ] **S9** — Repas interactions (food picker, line-editor sheet, swipe, touch DnD).
+  - [x] **S9** — Repas interactions. Full-screen `FoodPickerSheet` (search-only — owner: no recents
+        source) replacing the inline autocomplete ≤560px; bottom-sheet `LineEditorSheet` (change food ·
+        qty+unit · pin · delete) via a `lineSheetTarget` controller state; mobile tap routing in
+        `FoodLine` (name→picker, qty→inline, body→sheet; pin/× moved off the line). `DayMenu` "⋯" bottom
+        sheet (+ Repas · Copier hier · Vider · undo/redo · ✨ IA — owner) with `.controls` hidden ≤560px.
+        `useMealSwipe` (meal-switch swipe) + `useTouchReorder` (long-press grip reorder, alongside the
+        untouched `useLineDnd`); pure `swipeIntent`/`computeOrder` tests. **Owner deviations:** cook 🍳
+        removed on mobile; meal "⋯" → `MealMenuSheet` (+ Gérer les restes, footer ⊟ Restes hidden ≤560px).
+        **Companion (separate commit):** L/G/P macro values colour-coded on food lines + meal totals,
+        desktop+mobile. `data-tables.md` Mobile subsection; `DECISIONS.md` "Mobile-responsive S9". Desktop
+        inert ≥561px; 233 web tests + typecheck + lint green.
   - [ ] **S10** — Stats (wide blocks scroll, mount-time scroll to current period).

@@ -1,6 +1,8 @@
 import type { Meal } from '@macronome/shared';
+import { useIsMobile } from '../../../../lib/useIsMobile';
 import { MealColumn } from '../MealColumn/MealColumn';
 import { useMealScroller } from './useMealScroller';
+import { useMealSwipe } from '../../hooks/useMealSwipe';
 import styles from '../../meals.module.css';
 
 // Horizontal meal scroller: integer-fit columns (logic/columnFit), overlay ‹ › arrows shown only
@@ -10,14 +12,22 @@ interface MealScrollerProps {
   // Index of the meal shown by the mobile meal-tab layer (S4); ≤560px CSS reveals only that
   // column. Ignored on desktop, where every column renders side by side.
   activeIndex: number;
+  // Switch the active meal (S9): a mobile horizontal swipe on the meal area calls this. Desktop
+  // never invokes it (the swipe handlers are only attached ≤560px).
+  onSwitchMeal?: (index: number) => void;
 }
 
-export function MealScroller({ meals, activeIndex }: MealScrollerProps) {
+export function MealScroller({ meals, activeIndex, onSwitchMeal }: MealScrollerProps) {
   const { scrollerRef, barRef, colWidth, bar, atStart, atEnd, sync, scrollBy, onThumbDown } =
     useMealScroller(meals);
+  const isMobile = useIsMobile();
+  const swipe = useMealSwipe(isMobile && !!onSwitchMeal, (dir) => {
+    const next = Math.min(Math.max(activeIndex + dir, 0), meals.length - 1);
+    onSwitchMeal?.(next);
+  });
 
   return (
-    <div className={styles.scrollerWrap}>
+    <div className={styles.scrollerWrap} {...swipe}>
       {bar.overflow && !atStart && (
         <button
           type="button"

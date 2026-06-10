@@ -1,0 +1,29 @@
+/* Mobile-only meal "⋯" bottom-sheet body (inside Modal mobile="sheet"). Mounted only when
+   useIsMobile(); desktop keeps its dropdown (meal-column.module.css .popmenu). */
+.menu {
+  display: flex;
+  flex-direction: column;
+  padding: var(--sp-4) 0 var(--sp-5);
+}
+.item {
+  width: 100%;
+  text-align: left;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  padding: 14px var(--sp-5);
+  font-size: var(--fs-13);
+  cursor: pointer;
+}
+.item:active:not(:disabled) {
+  background: var(--bg-elev-2);
+}
+.item:disabled {
+  color: var(--text-faint);
+  cursor: not-allowed;
+}
+.danger {
+  color: var(--nok);
+  border-bottom: 0;
+}

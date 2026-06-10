@@ -1,0 +1,101 @@
+/* Mobile-only bottom-sheet line editor body (inside Modal mobile="sheet"). Mounted only when
+   useIsMobile(), so these rules never affect desktop. */
+.sheet {
+  display: flex;
+  flex-direction: column;
+  padding: var(--sp-4) 0 var(--sp-5);
+}
+
+/* Food row: name on the left, a "Changer l'aliment" affordance on the right. */
+.foodRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  width: 100%;
+  text-align: left;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  padding: 14px var(--sp-5);
+  cursor: pointer;
+}
+.foodName {
+  font-size: var(--fs-14);
+  font-weight: var(--fw-bold);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.change {
+  flex: none;
+  font-size: var(--fs-12);
+  color: var(--accent);
+}
+
+.qtyRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: 12px var(--sp-5);
+  border-bottom: 1px solid var(--border);
+}
+.label {
+  flex: 1;
+  color: var(--text-dim);
+  font-size: var(--fs-13);
+}
+.qtyInput {
+  width: 92px;
+  text-align: right;
+  /* --fs-13 = 16px on mobile → no iOS focus-zoom (cross-cutting rule §8). */
+  font-size: var(--fs-13);
+  background: var(--bg-field);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  padding: 8px 10px;
+}
+.qtyInput:focus {
+  outline: none;
+  border-color: var(--focus);
+}
+.unitWrap {
+  position: relative;
+}
+.unitChip {
+  font-family: var(--font-num);
+  font-size: var(--fs-12);
+  color: var(--text-dim);
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 8px 10px;
+  min-width: 40px;
+  cursor: pointer;
+}
+.unitChip:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* Full-width action rows (pin / delete). */
+.action {
+  width: 100%;
+  text-align: left;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  padding: 14px var(--sp-5);
+  font-size: var(--fs-13);
+  cursor: pointer;
+}
+.action:active {
+  background: var(--bg-elev-2);
+}
+.danger {
+  color: var(--nok);
+  border-bottom: 0;
+}

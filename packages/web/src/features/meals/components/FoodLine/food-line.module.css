@@ -267,20 +267,21 @@
 /* ===== Mobile two-row food line (mobile-responsive S4, spec §5.3) — inert ≥561px =====
    The dense 9-column desktop line is cramped at phone width and its `.nm`/`.v` sizes are
    hard-coded px (so the type layer can't enlarge them). At ≤560px the line reflows to two rows via
-   grid-template-areas: row 1 = grip · name (full width) · quantity (· pin/× parked at the right,
-   interim until they move to the line-editor sheet in S9); row 2 = the macro cluster (kcal bold +
-   "kcal" · L/G/P colour-coded · faint "L·G·P" legend), matching `mockups/05-meals.html` .ml-mac.
-   Desktop renders the 9-column grid unchanged. */
+   grid-template-areas: row 1 = grip · name (full width) · quantity; row 2 = the macro cluster
+   (kcal bold + "kcal" · L/G/P colour-coded · faint "L·G·P" legend), matching
+   `mockups/05-meals.html` .ml-mac. Pin (📌) and delete (×) move to the bottom-sheet line editor on
+   mobile (S9) — they are hidden on the line; a tap on the line body opens that sheet. Desktop
+   renders the 9-column grid unchanged. */
 @media (max-width: 560px) {
   /* The per-column sub-header ("Aliment Qté kcal L G P") is desktop chrome — drop it. */
   .lhead {
     display: none;
   }
   .line {
-    grid-template-columns: 18px 1fr auto auto auto;
+    grid-template-columns: 18px 1fr auto;
     grid-template-areas:
-      'grip name qty pin del'
-      'grip mac  mac mac mac';
+      'grip name qty'
+      'grip mac  mac';
     row-gap: 3px;
     min-height: 0;
     padding: 7px 10px;
@@ -300,11 +301,10 @@
   .line > :nth-child(3) {
     grid-area: qty;
   }
-  .line > :nth-child(5) {
-    grid-area: pin;
-  }
+  /* Pin (5) + delete (6) live in the line-editor sheet on mobile (S9) — off the line. */
+  .line > :nth-child(5),
   .line > :nth-child(6) {
-    grid-area: del;
+    display: none;
   }
   /* Row 2: the macro cluster spans the full width as a flex row (the mockup's .ml-mac). */
   .macros {
@@ -358,5 +358,16 @@
     grid-area: auto;
     grid-row: 1;
     grid-column: 2 / -1;
+  }
+  /* Touch reorder (S9): no hover on touch, so the grip is always visible as a drag handle, and
+     `touch-action: none` lets a long-press drag start without the page scrolling. */
+  .gripDrag {
+    opacity: 0.55;
+    touch-action: none;
+  }
+  /* The held line during a long-press reorder: accent tint + lift, so the drag is legible. */
+  .grabbed {
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    box-shadow: inset 2px 0 0 var(--accent);
   }
 }

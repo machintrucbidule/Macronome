@@ -1,24 +1,31 @@
 import { useTranslation } from 'react-i18next';
 import type { DayDetail } from '@macronome/shared';
+import { useIsMobile } from '../../../../lib/useIsMobile';
 import { formatDateLabel, formatDateLabelShort, todayIso } from '../../format';
 import { DateNavigator } from './DateNavigator';
 import { DayKindBadge } from './DayKindBadge';
 import { DayCommentField } from './DayCommentField';
 import { DayVerdictBadge } from './DayVerdictBadge';
+import { DayMenu, type DayMenuActions } from '../DayMenu/DayMenu';
 import { TotalsRow } from '../TotalsRow/TotalsRow';
 import styles from '../../meals.module.css';
 
 // Sticky day header: the date line (navigator + day-kind chip menu + editable comment + OK/NOK
 // badge, B-063/B-064) then the totals row. Stays pinned under the app bar while meals scroll.
+// On mobile (detailed days) the date row also carries the "⋯" day menu (spec §5.1) — the desktop
+// MealsControls row is hidden ≤560px and its day actions live there.
 interface DayHeaderProps {
   date: string;
   day: DayDetail;
   onNavigate: (date: string) => void;
+  /** Day-level actions for the mobile "⋯" menu (omitted on summary days). */
+  menu?: DayMenuActions;
 }
 
-export function DayHeader({ date, day, onNavigate }: DayHeaderProps) {
+export function DayHeader({ date, day, onNavigate, menu }: DayHeaderProps) {
   const { t, i18n } = useTranslation();
   const isToday = date === todayIso();
+  const isMobile = useIsMobile();
 
   return (
     <div className={styles.sticky}>
@@ -34,6 +41,9 @@ export function DayHeader({ date, day, onNavigate }: DayHeaderProps) {
             <span className={styles.dateShort}>{formatDateLabelShort(date, i18n.language)}</span>
             {isToday && <small>{t('meals.today')}</small>}
           </div>
+          {isMobile && menu && day.kind === 'detailed' && (
+            <DayMenu menu={menu} day={day} date={date} />
+          )}
         </div>
         <DayKindBadge kind={day.kind} confirmNeeded={day.totals.kcal > 0} />
         <DayCommentField comment={day.comment} />
