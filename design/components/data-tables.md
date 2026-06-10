@@ -154,7 +154,12 @@ renders the **exact existing** table component, untouched. The card components a
   **left band** (JR-1/B-077) on the card — green `--ok`, yellow `--accent`, red `--nok`
   (+ a soft `--nok-soft` full-card tint); the verdict shows as a **static** pill (the
   interactive badge moves into the editor sheet). Macros keep the L·G·P order + per-macro
-  colours (`--c-fat`/`--c-carb`/`--c-prot`). **No new token.**
+  colours (`--c-fat`/`--c-carb`/`--c-prot`). **Card colour cues carry the meaning so the
+  desktop state legend is omitted on mobile** (owner decision, 2026-06-10): **calories** are
+  tinted by the day **verdict** (same OK `--ok` / NOK `--nok` rule as the badge; default
+  colour when no verdict), and the **activity** value is tinted by its **level** (the
+  B-085/B-101 palette — sedentary `--nok` → lightly `--accent` → gradient to extremely
+  `--ok` — shared with `ActivitySelect` and the Poids period pill). **No new token.**
 - **Tap → editor.** Tapping a card opens a **bottom-sheet editor** (`Modal mobile="sheet"`,
   overlay taxonomy §0.2) exposing the same fields the desktop row edits inline (Journal:
   kcal on summary days, verdict override, activity, comment), **reusing the same

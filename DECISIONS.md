@@ -2359,3 +2359,28 @@ i18n `list.*` (sort/more) + `journal.openDay` in `en.json`/`fr.json`; amendment 
 `design/components/data-tables.md` (row→card + shared list chrome). No `tokens.css`/backend/schema
 change; no new tests (responsive CSS verified by inspection at breakpoints; the `useIsMobile()`
 logic test exists from S2).
+
+**Refinements (owner feedback, 2026-06-10).** Five tweaks after the first review, all still
+desktop-inert:
+
+- **Day-state legend omitted on mobile.** The Complet/Partiel/Rien legend is dropped from the
+  Journal card view; the **card colour cues carry the meaning** instead (next two points). The
+  desktop `JournalHeader` legend is unchanged.
+- **Calories tinted by verdict.** The card's calorie total is coloured by the day's effective
+  verdict — green `--ok` (OK) / red `--nok` (NOK), default colour when no verdict — the **same
+  rule as the verdict badge** (owner: "comme ok/nok, même règle"). The "kcal" unit stays dim.
+- **Activity tinted by level.** The card's activity value uses the **B-085/B-101 activity
+  palette** (sedentary `--nok` → lightly `--accent` → gradient to extremely `--ok`) shared with
+  `ActivitySelect` + the Poids period pill. No new token (color-mix on existing tokens).
+- **Bottom sheets sit above the bottom nav (app-wide).** The S2 `Modal` `sheet` variant now
+  anchors **above** the bottom tab bar (scrim bottom offset `calc(56px + env(safe-area-inset-bottom))`),
+  so the **primary nav stays visible and tappable** while any sheet is open — the Journal day
+  editor, Trier/⋯ sheets, **and** the S3 account menu sheet. This edits the **S2-owned**
+  `Modal.module.css` (`.scrimSheet` + `.sheet`) outside its slice — an **owner-directed**
+  cross-slice refinement (documented in `design/components/modals.md`); `Modal.tsx` unchanged.
+- **"⋯" overflow kept = Export CSV (utility explained).** The owner questioned the near-empty
+  "⋯" sheet. Its real, spec-mandated content is **Exporter CSV** (the desktop's visible Export
+  button, relocated into "⋯" on mobile per spec §4.2 to declutter the toolbar) — a genuine
+  screen-level action and the home for future ones — so per the owner's own rule (keep it if it
+  has a real use) the menu stays and **no month-filter was added**. (A mobile month filter
+  remains available as a separate future change if wanted.)

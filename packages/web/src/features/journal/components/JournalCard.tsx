@@ -22,6 +22,23 @@ const VERDICT_CLASS = {
   NOK: styles.badgeNok,
 } as const;
 
+// Calories follow the verdict colour (same OK/NOK rule as the badge): green when in/under
+// target, red when over; default colour when the day has no verdict.
+const KCAL_CLASS = {
+  OK: styles.kcalOk,
+  NOK: styles.kcalNok,
+} as const;
+
+// Activity value tinted by its level, reusing the B-085/B-101 palette (red → accent →
+// green) that ActivitySelect and the Poids period pill use; the JournalCard mirrors it.
+const ACT_CLASS: Record<ActivityLevel, string | undefined> = {
+  sedentary: styles.actSedentary,
+  lightly_active: styles.actLightly,
+  moderately_active: styles.actModerate,
+  very_active: styles.actVery,
+  extremely_active: styles.actExtreme,
+};
+
 interface JournalCardProps {
   row: Row;
   onOpen: (row: Row) => void;
@@ -30,6 +47,7 @@ interface JournalCardProps {
 export function JournalCard({ row, onOpen }: JournalCardProps) {
   const { t, i18n } = useTranslation();
   const verdict = row.effective_verdict;
+  const activity = row.activity_level as ActivityLevel;
 
   return (
     <button
@@ -49,7 +67,7 @@ export function JournalCard({ row, onOpen }: JournalCardProps) {
       </div>
 
       <div className={styles.row}>
-        <span className={styles.kcal}>
+        <span className={`${styles.kcal} ${verdict ? KCAL_CLASS[verdict] : ''}`}>
           {row.kcal > 0 ? r0(row.kcal) : DASH} <small>kcal</small>
         </span>
         {row.macros ? (
@@ -66,7 +84,7 @@ export function JournalCard({ row, onOpen }: JournalCardProps) {
 
       <div className={styles.meta}>
         <span className={styles.metaKey}>{t('journal.col.activity')}</span>
-        <b>{t(ACTIVITY_LABEL_KEYS[row.activity_level as ActivityLevel].label)}</b>
+        <b className={ACT_CLASS[activity]}>{t(ACTIVITY_LABEL_KEYS[activity].label)}</b>
       </div>
 
       {row.comment && <div className={styles.comment}>« {row.comment} »</div>}

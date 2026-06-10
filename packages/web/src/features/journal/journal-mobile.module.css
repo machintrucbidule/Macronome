@@ -5,13 +5,12 @@
    Kept in a separate module from journal.module.css so the desktop file is untouched.
    Semantic tokens only (CLAUDE.md rule 6). */
 
-/* Sub-header under the sticky toolbar: the day-state legend + day count (scrolls away). */
+/* Sub-header under the sticky toolbar: the day count (the day-state legend is omitted on
+   mobile — the card colours carry the meaning). Scrolls away with the content. */
 .subhead {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--sp-4);
+  justify-content: flex-end;
   margin-bottom: var(--sp-5);
 }
 .count {
@@ -118,6 +117,14 @@
   font-weight: 400;
   color: var(--text-dim);
 }
+/* Calories tinted by the day verdict (same OK/NOK rule as the badge); the "kcal" unit stays
+   dim via `.kcal small` above. No new token. */
+.kcalOk {
+  color: var(--ok);
+}
+.kcalNok {
+  color: var(--nok);
+}
 .dash {
   color: var(--text-faint);
 }
@@ -153,6 +160,24 @@
 }
 .metaKey {
   color: var(--text-faint);
+}
+/* Activity value tinted by level, reusing the B-085/B-101 palette (sedentary red → lightly
+   accent → gradient up to extremely green) shared with ActivitySelect + the Poids period
+   pill. No new token. */
+.actSedentary {
+  color: var(--nok);
+}
+.actLightly {
+  color: var(--accent);
+}
+.actModerate {
+  color: color-mix(in srgb, var(--ok) 45%, var(--accent));
+}
+.actVery {
+  color: color-mix(in srgb, var(--ok) 75%, var(--accent));
+}
+.actExtreme {
+  color: var(--ok);
 }
 .comment {
   margin-top: var(--sp-3);

@@ -40,12 +40,15 @@ value: `size` still controls the desktop width (unchanged ≥561px), while `mobi
   title + a Close (`×`) button (mandatory — the scrim has no reachable outside area);
   scrollable body; `padding-bottom: env(safe-area-inset-bottom)`. For big forms: recipe
   builder, food sheet, weigh-in, cibles, the Repas food picker.
-- **`sheet`** — bottom-anchored (scrim aligns the panel to the bottom edge), full width,
+- **`sheet`** — bottom-anchored **above the bottom tab bar** (the scrim's bottom is offset by
+  the nav height, `calc(56px + env(safe-area-inset-bottom))`, so the primary nav **stays
+  visible and tappable** while a sheet is open — owner decision, 2026-06-10), full width,
   rounded **top** corners only (`--r-lg --r-lg 0 0`), slides up (`@keyframes sheet-up`,
-  `translateY(100%)→0`), `max-height: 90dvh`, scroll body,
-  `padding-bottom: env(safe-area-inset-bottom)`; same title+Close top bar; a tap on the scrim
-  above the sheet closes it. For short editors / menus: Journal day editor, Repas food-line
-  editor, Poids period detail, account menu, Trier, Filtres, small menus.
+  `translateY(100%)→0`), `max-height: calc(90dvh - 56px)`, scroll body; the sheet rests on the
+  nav (which already clears the safe-area inset) so it needs no extra bottom inset of its own;
+  same title+Close top bar; a tap on the scrim above the sheet closes it. For short editors /
+  menus: Journal day editor, Repas food-line editor, Poids period detail, account menu, Trier,
+  Filtres, small menus.
 
 > **Focus an animated overlay with `preventScroll` (applies to every animated overlay).** The
 > focus trap moves focus into the panel on open. A bare `.focus()` makes the browser scroll the

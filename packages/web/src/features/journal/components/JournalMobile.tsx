@@ -9,7 +9,6 @@ import {
   SortSheet,
   type SortOption,
 } from '../../../components/ListChrome';
-import { JournalLegend } from './JournalLegend';
 import { JournalCards } from './JournalCards';
 import { JournalDaySheet } from './JournalDaySheet';
 import { currentYear } from '../format';
@@ -21,9 +20,10 @@ import styles from '../journal-mobile.module.css';
 // Journal mobile view (mobile-responsive S5): the phone presentation rendered when
 // useIsMobile() is true. The app bar already shows the "Journal" title (S3), so the screen
 // adds a sticky toolbar (year selector + Trier + "⋯" export) via the shared list chrome, the
-// day-state legend + count, the card list, and the tap-to-edit day sheet. It consumes the
-// same data + the same sort state + the same onPatch the desktop table does; desktop is
-// untouched (this component never mounts ≥561px).
+// day count, the card list, and the tap-to-edit day sheet. The day-state legend is omitted on
+// mobile (owner decision) — the card calories/verdict/activity colours carry the meaning. It
+// consumes the same data + sort state + onPatch as the desktop table; desktop is untouched
+// (this component never mounts ≥561px).
 interface JournalMobileProps {
   year: number;
   dayCount: number;
@@ -96,7 +96,6 @@ export function JournalMobile(props: JournalMobileProps) {
       </ListToolbar>
 
       <div className={styles.subhead}>
-        <JournalLegend />
         <span className={styles.count}>{t('journal.dayCount', { count: props.dayCount })}</span>
       </div>
 
