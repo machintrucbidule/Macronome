@@ -22,16 +22,21 @@ export function useFocusTrap(panelRef: RefObject<HTMLElement | null>): void {
 
     const previouslyFocused = document.activeElement as HTMLElement | null;
 
-    // Focus the first focusable control, falling back to the panel itself.
+    // Focus the first focusable control, falling back to the panel itself. `preventScroll`
+    // is essential: a bare .focus() makes the browser scroll the focused element into view,
+    // and for a modal that animates in (e.g. the mobile sheet's slide-up) the element is
+    // mid-transform/off-screen at that instant, so the scroll chases its transient position
+    // and fights the animation — the panel visibly overshoots then settles (most visible on
+    // mobile). preventScroll keeps focus without the scroll, so the entrance animation is clean.
     const first = focusable(panel)[0];
-    (first ?? panel).focus();
+    (first ?? panel).focus({ preventScroll: true });
 
     const onKeyDown = (e: KeyboardEvent): void => {
       if (e.key !== 'Tab') return;
       const items = focusable(panel);
       if (items.length === 0) {
         e.preventDefault();
-        panel.focus();
+        panel.focus({ preventScroll: true });
         return;
       }
       const firstItem = items[0];
@@ -40,10 +45,10 @@ export function useFocusTrap(panelRef: RefObject<HTMLElement | null>): void {
       const active = document.activeElement;
       if (e.shiftKey && (active === firstItem || active === panel)) {
         e.preventDefault();
-        lastItem.focus();
+        lastItem.focus({ preventScroll: true });
       } else if (!e.shiftKey && active === lastItem) {
         e.preventDefault();
-        firstItem.focus();
+        firstItem.focus({ preventScroll: true });
       }
     };
 

@@ -41,10 +41,21 @@ value: `size` still controls the desktop width (unchanged ≥561px), while `mobi
   scrollable body; `padding-bottom: env(safe-area-inset-bottom)`. For big forms: recipe
   builder, food sheet, weigh-in, cibles, the Repas food picker.
 - **`sheet`** — bottom-anchored (scrim aligns the panel to the bottom edge), full width,
-  rounded **top** corners only (`--r-lg --r-lg 0 0`), slides up, `max-height: 90dvh`,
-  scroll body, `padding-bottom: env(safe-area-inset-bottom)`; same title+Close top bar; a
-  tap on the scrim above the sheet closes it. For short editors / menus: Journal day editor,
-  Repas food-line editor, Poids period detail, account menu, Trier, Filtres, small menus.
+  rounded **top** corners only (`--r-lg --r-lg 0 0`), slides up (`@keyframes sheet-up`,
+  `translateY(100%)→0`), `max-height: 90dvh`, scroll body,
+  `padding-bottom: env(safe-area-inset-bottom)`; same title+Close top bar; a tap on the scrim
+  above the sheet closes it. For short editors / menus: Journal day editor, Repas food-line
+  editor, Poids period detail, account menu, Trier, Filtres, small menus.
+
+> **Focus an animated overlay with `preventScroll` (applies to every animated overlay).** The
+> focus trap moves focus into the panel on open. A bare `.focus()` makes the browser scroll the
+> focused element into view — and while the panel is animating in (the sheet's slide-up, any
+> future enter transition) the element is mid-transform / partly off-screen, so the scroll chases
+> its transient position and fights the animation: on mobile the panel visibly **overshoots then
+> settles** ("rises too high, comes back down"). Always focus with `.focus({ preventScroll: true })`
+> (see `useFocusTrap.ts`); the trap's Tab-cycling `.focus()` calls use it too, to avoid scroll
+> jumps when tabbing a tall sheet. _(Diagnosed via the S3 account sheet — the sheet variant's first
+> consumer; the variant was dormant in S2. The animation itself was never the problem.)_
 
 ### Overlay taxonomy (one interaction language across screens)
 

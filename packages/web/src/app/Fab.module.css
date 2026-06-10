@@ -1,0 +1,32 @@
+/* Mobile-only FAB (mobile-responsive S3; design/components/bottom-nav.md). Hidden on
+   desktop → absent from layout + tab tree; shown only at the phone breakpoint. */
+.fab {
+  display: none;
+}
+
+@media (max-width: 560px) {
+  .fab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    right: var(--page-gutter);
+    /* Clears the 56px bottom tab bar + safe-area inset (same literal as BottomNav). */
+    bottom: calc(56px + env(safe-area-inset-bottom) + var(--sp-5));
+    /* Above the bottom nav (which is just under the appbar). */
+    z-index: var(--z-appbar);
+    width: 52px;
+    height: 52px;
+    min-width: var(--tap);
+    min-height: var(--tap);
+    border: none;
+    border-radius: var(--r-pill);
+    background: var(--accent);
+    color: var(--accent-ink);
+    box-shadow: var(--shadow);
+    font-family: var(--font-num);
+    font-size: var(--fs-24);
+    line-height: 1;
+    cursor: pointer;
+  }
+}

@@ -1,22 +1,46 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink } from 'react-router-dom';
 import { authApi } from '../api/auth';
+import { Modal } from '../components/Modal/Modal';
+import { ThemeToggle } from './ThemeToggle';
+import { useIsMobile } from '../lib/useIsMobile';
 import { initials, useSession } from './useSession';
 import styles from './AppShell.module.css';
 
-// Account menu (specifications/screens/settings.md): the top-right avatar dropdown holding
-// the non-primary screens (Compte, Cibles, Contenants, Assistant IA, Paramètres) + logout. A native
-// <details> gives click-to-open + Esc; a pointerdown handler closes it on an outside click (B-131,
-// which a bare <details> does NOT do); navigating also closes it.
+// Account menu (specifications/screens/settings.md): the top-right avatar holding the
+// non-primary screens (Compte, Cibles, Contenants, Assistant IA, Paramètres) + À propos +
+// logout. Desktop (≥561px) keeps the native <details> dropdown (B-131 outside-click close).
+// Mobile (≤560px, mobile-responsive S3, spec §2.4) renders a bottom sheet (Modal mobile="sheet",
+// the S2 sheet variant's first consumer) that also carries the theme toggle moved out of the
+// appbar. The two paths are selected by useIsMobile() — desktop dropdown stays byte-identical.
+
+const LINKS = [
+  { to: '/account', key: 'menu.account' },
+  { to: '/cibles', key: 'cibles.title' },
+  { to: '/containers', key: 'containers.title' },
+  { to: '/assistant-ia', key: 'settings.ai.title' },
+  { to: '/parametres', key: 'settings.title' },
+  { to: '/about', key: 'menu.about' },
+] as const;
+
+async function logout(): Promise<void> {
+  await authApi.logout();
+  window.location.assign('/login');
+}
+
 export function AccountMenu() {
+  return useIsMobile() ? <AccountSheet /> : <AccountDropdown />;
+}
+
+// Desktop dropdown — unchanged behaviour (native <details> + outside-click close, B-131).
+function AccountDropdown() {
   const { t } = useTranslation();
   const session = useSession();
   const ref = useRef<HTMLDetailsElement>(null);
   const close = (): void => ref.current?.removeAttribute('open');
   const item = styles.acctItem ?? '';
 
-  // Close on an outside click (B-131): native <details> only closes on Esc / re-clicking the summary.
   useEffect(() => {
     const onDown = (e: PointerEvent): void => {
       const el = ref.current;
@@ -26,32 +50,17 @@ export function AccountMenu() {
     return () => document.removeEventListener('pointerdown', onDown);
   }, []);
 
-  const logout = async (): Promise<void> => {
-    await authApi.logout();
-    window.location.assign('/login');
-  };
-
   return (
     <details ref={ref} className={styles.acct}>
       <summary className={styles.acctSummary} title={session.data?.user.username}>
         {initials(session.data?.user.username)}
       </summary>
       <div className={styles.acctPop}>
-        <NavLink to="/account" className={item} onClick={close}>
-          {t('menu.account')}
-        </NavLink>
-        <NavLink to="/cibles" className={item} onClick={close}>
-          {t('cibles.title')}
-        </NavLink>
-        <NavLink to="/containers" className={item} onClick={close}>
-          {t('containers.title')}
-        </NavLink>
-        <NavLink to="/assistant-ia" className={item} onClick={close}>
-          {t('settings.ai.title')}
-        </NavLink>
-        <NavLink to="/parametres" className={item} onClick={close}>
-          {t('settings.title')}
-        </NavLink>
+        {LINKS.slice(0, 5).map((l) => (
+          <NavLink key={l.to} to={l.to} className={item} onClick={close}>
+            {t(l.key)}
+          </NavLink>
+        ))}
         <div className={styles.acctSep} />
         <NavLink to="/about" className={item} onClick={close}>
           {t('menu.about')}
@@ -62,5 +71,52 @@ export function AccountMenu() {
         </button>
       </div>
     </details>
+  );
+}
+
+// Mobile bottom sheet — theme toggle (moved off the appbar) + the secondary destinations.
+function AccountSheet() {
+  const { t } = useTranslation();
+  const session = useSession();
+  const [open, setOpen] = useState(false);
+  const close = (): void => setOpen(false);
+  const item = styles.sheetItem ?? '';
+
+  return (
+    <>
+      <button
+        type="button"
+        className={styles.acctSummary}
+        title={session.data?.user.username}
+        onClick={() => setOpen(true)}
+      >
+        {initials(session.data?.user.username)}
+      </button>
+      {open && (
+        <Modal
+          mobile="sheet"
+          title={session.data?.user.username ?? t('menu.account')}
+          onClose={close}
+        >
+          <div className={styles.sheetBody}>
+            <div className={styles.sheetThemeRow}>
+              <ThemeToggle />
+            </div>
+            {LINKS.map((l) => (
+              <NavLink key={l.to} to={l.to} className={item} onClick={close}>
+                {t(l.key)}
+              </NavLink>
+            ))}
+            <button
+              type="button"
+              className={`${item} ${styles.logout}`}
+              onClick={() => void logout()}
+            >
+              {t('menu.logout')}
+            </button>
+          </div>
+        </Modal>
+      )}
+    </>
   );
 }

@@ -370,7 +370,16 @@ documented here only so the information is ready when the author decides to run 
         CSS). Dormant until S3 consumes it. Desktop inert ≥561px. `design/components/modals.md`
         §Mobile variants + overlay taxonomy. See `DECISIONS.md` "Mobile-responsive S2".
         One justified logic test (`useIsMobile.test.ts`); layout verified by inspection.
-  - [ ] **S3** — mobile shell (app-bar title, bottom nav, account sheet, FAB component).
+  - [x] **S3** — mobile shell: route-derived app-bar title + hide top nav/theme ≤560px;
+        new `app/BottomNav.tsx` (6 primary routes, icon+label, `display:none` ≥561px); account
+        menu → `Modal mobile="sheet"` render-switch (first consumer of the S2 sheet, theme toggle
+        moved in); new `app/Fab.tsx` (created, unwired until S6/S7/S8). Plus a measured
+        mobile-only `overflow-x: clip` safety net on the shell root (`.root`) — un-adapted pages
+        overflow horizontally at ≤560px, which expands the mobile layout viewport and dislocates
+        the fixed shell; clipping pins it (interim: wide content clipped until S4–S8 reflow it).
+        New `design/components/bottom-nav.md` + `mobile.md`; `top-nav.md` amended. See
+        `DECISIONS.md` "Mobile-responsive S3". Desktop inert ≥561px. No tests (responsive CSS
+        verified by inspection; `useIsMobile()` logic test exists from S2).
   - [ ] **S4** — Repas layout (two-row food line, day-bar wrap, meal tabs).
   - [ ] **S5** — Journal → cards + shared list chrome (toolbar, Trier, ⋯).
   - [ ] **S6** — Recettes → cards (full-screen builder, FAB, Filtres sheet).

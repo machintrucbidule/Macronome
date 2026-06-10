@@ -1,0 +1,49 @@
+/* Mobile bottom tab bar (mobile-responsive S3; design/components/bottom-nav.md).
+   Hidden by default → absent from the desktop layout + a11y/tab tree; shown only at the
+   phone breakpoint. Desktop byte-identical. */
+.bottomnav {
+  display: none;
+}
+
+@media (max-width: 560px) {
+  .bottomnav {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    /* Between --z-sticky-sub (40) and --z-appbar (50), per spec §2.2 — no new token. */
+    z-index: calc(var(--z-appbar) - 1);
+    height: 56px; /* bar height; AppShell page bottom-padding clears the same literal */
+    background: var(--bg-elev);
+    border-top: var(--bw) solid var(--border);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .bottomnav a {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-height: var(--tap);
+    text-decoration: none;
+    color: var(--text-dim);
+    font-family: var(--font-num);
+  }
+  .bottomnav a.active {
+    color: var(--accent);
+  }
+
+  .ic {
+    width: 24px;
+    height: 24px;
+    flex: none;
+  }
+
+  .lbl {
+    font-size: var(--fs-9);
+    line-height: 1;
+  }
+}

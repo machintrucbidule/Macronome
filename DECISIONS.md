@@ -2238,3 +2238,78 @@ Contract delta: `packages/web/src/components/Modal/Modal.tsx` + `Modal.module.cs
 variants + close button); new `packages/web/src/lib/useIsMobile.ts` (+ `useIsMobile.test.ts`, the
 one justified logic test — layout is verified by inspection); `design/components/modals.md`
 (§Mobile variants + overlay taxonomy). No `tokens.css`/backend/schema change.
+
+## Mobile-responsive S3 — mobile shell (bottom nav + app-bar title + account sheet + FAB) — RESOLVED (user, 2026-06-10)
+
+Third slice of the mobile-responsive feature (`specifications/features/mobile-responsive/`,
+spec §2). It lands the **mobile app shell** — the most visible phone win (the desktop top
+text nav overflows a 360px screen) — and is consumed (bottom bar + page bottom-padding) by
+every later screen slice; the `Fab` it creates is wired later (S6/S7/S8).
+
+- **Mobile app-bar title** (≤560px): the appbar swaps the **wordmark** for the **current
+  screen title**, derived from the route inside `AppShell` (a `pathname → i18n-key` map — no
+  feature page is edited, keeping the slice desktop-inert). The primary nav `.nav` and the
+  theme segmented toggle are hidden ≤560px (the theme toggle moves into the account sheet).
+- **`BottomNav`** (`app/BottomNav.tsx` + `.module.css`, new): fixed bottom tab bar, the 6
+  primary routes (Repas · Journal · Poids · Aliments · Recettes · Stats) as icon + short
+  label, active in `--accent`, safe-area inset, `display:none` ≥561px. Repas lit on both `/`
+  and `/day/:date` (B-014), reusing the top nav's `mealsActive` rule. **Design decision:** the
+  bar height (56px) and the matching mobile page bottom-padding are a **layout literal**, not a
+  new token — `tokens.css` is owned by slice S1 and not edited here; the z-index uses
+  `calc(var(--z-appbar) - 1)` (between `--z-sticky-sub` and `--z-appbar`), no new token.
+- **Account menu → bottom sheet** (≤560px): `AccountMenu.tsx` becomes a `useIsMobile()`
+  render-switch — desktop keeps the **exact `<details>` dropdown untouched**; mobile renders an
+  avatar button opening a `Modal mobile="sheet"` (the S2 sheet variant's **first consumer**)
+  holding the theme toggle + the 7 secondary destinations as `--tap` rows.
+- **`Fab`** (`app/Fab.tsx` + `.module.css`, new): floating "+" (props `onClick` + `label`),
+  bottom-right above the bottom bar, safe-area aware, `display:none` ≥561px. **Created but not
+  rendered anywhere this slice** (placed by each screen in S6/S7/S8), so `AppShell.*` is never
+  re-edited after S3.
+
+- **Mobile horizontal-overflow safety net** (`AppShell.module.css` `.root`, ≤560px:
+  `overflow-x: clip`): a **measured fix** for a bug found while testing S3 on a phone — the bottom
+  nav appeared only after scrolling to the bottom, and the account sheet's scrim drifted
+  down-and-right. Diagnosis (live DOM inspection): **no** ancestor of the shell carries a
+  containing-block trigger (`transform`/`filter`/`contain`/`will-change`) — the only transforms are
+  the leaf `.tick` brand marks — so `position:fixed` correctly targets the layout viewport. The real
+  cause is that screens not yet mobile-adapted (Repas's dense grid, wide tables) **overflow
+  horizontally** at ≤560px; on mobile that **expands the layout viewport**, so every `position:fixed`
+  element then references the enlarged viewport. (A portal to `body` would **not** fix this — it
+  references the same enlarged viewport.) `overflow-x: clip` on the shell root contains the overflow
+  so the layout viewport stays equal to the visual viewport; `clip` (not `hidden`) creates **no**
+  scroll container — the sticky appbar / table headers keep sticking — and **no** containing block —
+  the fixed `BottomNav` stays viewport-pinned and unclipped. Owner decision (2026-06-10): the global
+  safety net over the page-by-page alternative. **Interim cost (flagged, not silent):** content
+  wider than the screen is clipped (no side-scroll) on un-adapted pages until each page's slice (S4
+  Repas, S5–S8 lists) reflows it.
+
+- **Focus animated overlays with `preventScroll`** (`useFocusTrap.ts`): a **measured fix** for a
+  glitch found while testing S3 on a phone — opening the account sheet, the panel "rose too high
+  then came back down" (every open, mobile only — Chrome + Firefox mobile, worse on Firefox; **not**
+  reproducible on desktop). Root cause: the focus trap moved focus into the panel on open with a
+  bare `.focus()`, which makes the browser **scroll the focused element into view**; because the
+  sheet is mid slide-up (partly off-screen) at that instant, the scroll chases its transient
+  position and fights the animation → the oscillation. Frame-by-frame extraction of a phone screen
+  recording (ffmpeg) confirmed the panel's top oscillating while its resting position stayed
+  correct. Fix: focus with `.focus({ preventScroll: true })` (open + the Tab-cycle calls). The
+  slide-up animation and the panel geometry were **never** the problem — `Modal.tsx`/`Modal.module.css`
+  are unchanged from S2. **General rule (documented in `modals.md` for future overlays):** any overlay
+  that animates in must focus with `preventScroll`. _(Three earlier hypotheses — a sticky-in-transform
+  header ghost; a `fixed`-in-sticky-ancestor layering issue "fixed" by portaling to `<body>`; then an
+  `animation-fill-mode`/anchor rework — were each tried and **reverted** after measurement disproved
+  them; recorded so the dead ends aren't re-explored.)_
+
+**Desktop impact: none** — every new rule is `@media (max-width: 560px)`, every new DOM node is
+`display:none` ≥561px (absent from layout + tab order), and the account sheet is a render-switch
+that returns the unchanged `<details>` dropdown ≥561px. The theme toggle is hidden on mobile by
+wrapping it in a span styled in `AppShell.module.css` — `ThemeToggle.*` is not edited.
+
+Contract delta: `packages/web/src/app/AppShell.tsx` + `AppShell.module.css` + `AccountMenu.tsx`;
+new `packages/web/src/app/BottomNav.tsx` (+ `.module.css`) and `Fab.tsx` (+ `.module.css`);
+`packages/web/src/components/Modal/useFocusTrap.ts` (the `preventScroll` fix above — the only
+change in the `Modal` dir; `Modal.tsx`/`Modal.module.css` are unchanged from S2); new
+`design/components/bottom-nav.md` + `design/components/mobile.md`; amendments to
+`design/components/top-nav.md` (mobile account sheet + a doc-accuracy flag on its unimplemented
+≤900px nav-hide claim) and `design/components/modals.md` (sheet `fill-mode` requirement). No
+`tokens.css`/backend/schema change; no new tests (responsive CSS verified by inspection at
+breakpoints; the `useIsMobile()` logic test exists from S2).

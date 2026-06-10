@@ -162,3 +162,75 @@
 .logout {
   color: var(--nok);
 }
+
+/* ===== Mobile shell (mobile-responsive S3, spec §2) — inert ≥561px =====
+   The mobile app-bar title is hidden by default; the phone breakpoint hides the
+   wordmark / primary nav / theme toggle and shows the title, and pads the page body to
+   clear the fixed bottom tab bar. Desktop (≥561px) renders exactly as before. */
+.appbarTitle {
+  display: none;
+}
+
+@media (max-width: 560px) {
+  /* Mobile horizontal-overflow safety net. Screens not yet mobile-adapted (Repas grid,
+     wide tables) overflow horizontally at ≤560px; on mobile that EXPANDS the layout
+     viewport, which dislocates every `position:fixed` element (the bottom tab bar drifts
+     below the fold, the account sheet's scrim drifts down-and-right). `overflow-x: clip`
+     contains the overflow so the layout viewport stays = the visual viewport, keeping the
+     fixed shell correctly pinned. `clip` (not `hidden`) does NOT create a scroll container,
+     so the sticky appbar/table headers still stick to the viewport, and it does NOT become a
+     containing block, so the fixed BottomNav stays viewport-fixed (and unclipped). Interim:
+     content wider than the screen is clipped (no side-scroll) until each page's slice (S4–S8)
+     reflows it. Desktop inert (≥561px). */
+  .root {
+    overflow-x: clip;
+  }
+  .wordmark,
+  .nav,
+  .themeToggleWrap {
+    display: none;
+  }
+  .appbarTitle {
+    display: block;
+    font-family: var(--font-display);
+    font-size: var(--fs-16);
+    font-weight: var(--fw-bold);
+  }
+  /* Clear the fixed 56px bottom tab bar (see BottomNav.module.css) + safe-area inset. */
+  .page,
+  .pageFlush {
+    padding-bottom: calc(56px + env(safe-area-inset-bottom) + var(--sp-5));
+  }
+}
+
+/* Account bottom sheet (≤560px, rendered by AccountMenu via Modal mobile="sheet"). These
+   classes are only applied on the mobile render path, so they have no desktop effect. */
+.sheetBody {
+  display: flex;
+  flex-direction: column;
+  padding: 0 var(--sp-5) var(--sp-5);
+}
+.sheetThemeRow {
+  display: flex;
+  justify-content: center;
+  padding: var(--sp-3) 0 var(--sp-5);
+}
+.sheetItem {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: var(--tap);
+  padding: var(--sp-3);
+  color: var(--text);
+  text-decoration: none;
+  font-family: var(--font-body);
+  font-size: var(--fs-13);
+  border: 0;
+  background: transparent;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  text-align: left;
+}
+.sheetItem:hover {
+  background: var(--bg-elev-2);
+}
