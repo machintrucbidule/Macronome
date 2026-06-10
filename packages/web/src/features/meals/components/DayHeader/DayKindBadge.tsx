@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useIsMobile } from '../../../../lib/useIsMobile';
 import { useMeals } from '../../MealsContext';
 import { ConvertToSummaryConfirm } from './ConvertToSummaryConfirm';
 import styles from './DayKindBadge.module.css';
@@ -16,6 +17,7 @@ interface Props {
 
 export function DayKindBadge({ kind, confirmNeeded }: Props) {
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
   const { actions } = useMeals();
   const [open, setOpen] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -57,7 +59,8 @@ export function DayKindBadge({ kind, confirmNeeded }: Props) {
         aria-label={t('meals.dayType.switch')}
         onClick={() => setOpen((o) => !o)}
       >
-        <span>{t(`meals.dayType.${kind}`)}</span>
+        {/* Compact chip ≤560px: just the first letter (C / P); the menu keeps the full labels. */}
+        <span>{isMobile ? t(`meals.dayType.${kind}`).charAt(0) : t(`meals.dayType.${kind}`)}</span>
         <span className={styles.caret}>▾</span>
       </button>
       {open && (

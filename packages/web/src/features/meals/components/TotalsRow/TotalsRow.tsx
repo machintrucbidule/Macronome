@@ -3,6 +3,7 @@ import type { DayDetail } from '@macronome/shared';
 import { CalorieCard } from '../../../../components/MetricCard/CalorieCard';
 import { MacroCard } from '../../../../components/MetricCard/MacroCard';
 import { formatInt } from '../../../../lib/format/number';
+import { useIsMobile } from '../../../../lib/useIsMobile';
 import { useMeals } from '../../MealsContext';
 import { VerdictCluster } from './VerdictCluster';
 import styles from '../../meals.module.css';
@@ -19,6 +20,11 @@ export function TotalsRow({ day }: TotalsRowProps) {
   const s = day.target_snapshot;
   const macroStatus = { ok: t('meals.status.ok'), bad: t('meals.status.sous') };
   const partiel = day.kind === 'summary';
+  // The macro cards are narrow at phone width (2-col grid), so they use abbreviated labels
+  // (Lip/Gluc/Prot) ≤560px to keep label + threshold on one line. Desktop keeps the full names.
+  const isMobile = useIsMobile();
+  const macroLabel = (key: 'fat' | 'carb' | 'protein'): string =>
+    t(isMobile ? `meals.card.${key}Short` : `meals.card.${key}`);
 
   return (
     <div className={styles.totals}>
@@ -39,7 +45,7 @@ export function TotalsRow({ day }: TotalsRowProps) {
         placeholder={t('meals.card.caloriesPlaceholder')}
       />
       <MacroCard
-        label={t('meals.card.fat')}
+        label={macroLabel('fat')}
         value={day.totals.fat}
         threshold={s.fat_floor_g}
         mode="floor"
@@ -51,7 +57,7 @@ export function TotalsRow({ day }: TotalsRowProps) {
         muted={partiel}
       />
       <MacroCard
-        label={t('meals.card.carb')}
+        label={macroLabel('carb')}
         value={day.totals.carb}
         threshold={s.carb_ceiling_g}
         mode="ceiling"
@@ -63,7 +69,7 @@ export function TotalsRow({ day }: TotalsRowProps) {
         muted={partiel}
       />
       <MacroCard
-        label={t('meals.card.protein')}
+        label={macroLabel('protein')}
         value={day.totals.protein}
         threshold={s.protein_floor_g}
         mode="floor"

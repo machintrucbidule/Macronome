@@ -18,6 +18,12 @@
   margin-bottom: var(--sp-6);
   flex-wrap: wrap;
 }
+/* Date group (nav + label). `display:contents` on desktop → the wrapper is inert and the
+   children sit directly in the day bar as before; ≤560px it becomes a flex row that claims its
+   own line (mobile-responsive S4). */
+.dateRow {
+  display: contents;
+}
 .dateNav {
   display: flex;
   gap: var(--sp-2);
@@ -578,12 +584,18 @@
     padding-bottom: 64px;
   }
 
-  /* Day bar → two tidy rows (spec §5.1, mockups/05-meals.html): row 1 = short date · day-kind
-     chip · verdict (pinned right); row 2 = comment field full-width. The DOM order is
-     date · chip · comment · verdict, so the comment is re-ordered last and given full width,
-     and the verdict (last DOM child) is pushed right. */
+  /* Day bar → two rows (spec §5.1, owner refinement 2026-06-10): row 1 = short date (its own
+     line via .dateRow); row 2 = day-kind chip · verdict · comment. DOM order is
+     dateRow · chip · comment · verdict, so the comment is re-ordered after the verdict (which
+     therefore sits to its left, as requested) while sharing the row instead of taking it whole. */
   .daybar {
     gap: var(--sp-3) var(--sp-4);
+  }
+  .dateRow {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-4);
+    flex: 1 1 100%;
   }
   .dateLong {
     display: none;
@@ -597,16 +609,42 @@
   }
   .dayComment {
     order: 1;
-    flex: 1 1 100%;
-    min-width: 0;
+    flex: 1 1 120px;
+    min-width: 120px;
   }
-  .daybar > :last-child {
-    margin-left: auto;
+  /* Shrink the verdict badge (the day bar's last child → the VerdictBadge button) so the chip ·
+     verdict · comment row fits; the "A"/"F" sub-label is set by DayVerdictBadge. */
+  .daybar > :last-child > button {
+    padding: 4px 9px;
+    font-size: var(--fs-13);
+    gap: 4px;
+  }
+  /* The verdict override menu is right-anchored (fine on desktop, where the badge is far right);
+     on mobile the badge sits mid-bar, so a right-anchored menu overflows the left edge and gets
+     clipped. Re-anchor it to the badge's left edge ≤560px so it opens to the right, on-screen.
+     Targeted by [role=menu] so only the day bar's verdict menu is affected (no shared edit). */
+  .daybar > :last-child > [role='menu'] {
+    left: 0;
+    right: auto;
   }
 
   /* Interim until the S9 "⋯" day menu folds them away: let the controls toolbar wrap so no
      button is clipped at phone width. */
   .controls {
     flex-wrap: wrap;
+  }
+
+  /* Activity (verdict cluster): drop the "Activité du jour" label, keep the "?" on the same row
+     as the selector (owner refinement 2026-06-10). */
+  .actLabel {
+    display: none;
+  }
+  .actWrap {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--sp-3);
+  }
+  .actHead {
+    order: 1;
   }
 }

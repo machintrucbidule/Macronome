@@ -267,13 +267,19 @@
     grid-template-columns: 18px 1fr auto auto auto;
     grid-template-areas:
       'grip name qty pin del'
-      'mac  mac  mac mac mac';
+      'grip mac  mac mac mac';
     row-gap: 3px;
     min-height: 0;
     padding: 7px 10px;
   }
+  /* The grip spans both rows (full line height) so the drag anchor is centered against the
+     whole food item and the macro cluster aligns under the name (col 2), not under the grip. */
   .line > :nth-child(1) {
     grid-area: grip;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   .line > :nth-child(2) {
     grid-area: name;

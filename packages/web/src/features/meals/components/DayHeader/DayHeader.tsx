@@ -23,13 +23,17 @@ export function DayHeader({ date, day, onNavigate }: DayHeaderProps) {
   return (
     <div className={styles.sticky}>
       <div className={styles.daybar}>
-        <DateNavigator date={date} onNavigate={onNavigate} />
-        {/* Two date variants, CSS-toggled (appbarTitle pattern): the long label on desktop, the
-            compact one ≤560px (mobile-responsive S4). Both render; the breakpoint hides one. */}
-        <div className={styles.dateLabel}>
-          <span className={styles.dateLong}>{formatDateLabel(date, i18n.language)}</span>
-          <span className={styles.dateShort}>{formatDateLabelShort(date, i18n.language)}</span>
-          {isToday && <small>{t('meals.today')}</small>}
+        {/* Date group wrapped so it can claim its own row ≤560px (`.dateRow`, mobile-responsive
+            S4); `display:contents` keeps it inert on desktop. */}
+        <div className={styles.dateRow}>
+          <DateNavigator date={date} onNavigate={onNavigate} />
+          {/* Two date variants, CSS-toggled (appbarTitle pattern): the long label on desktop, the
+              compact one ≤560px. Both render; the breakpoint hides one. */}
+          <div className={styles.dateLabel}>
+            <span className={styles.dateLong}>{formatDateLabel(date, i18n.language)}</span>
+            <span className={styles.dateShort}>{formatDateLabelShort(date, i18n.language)}</span>
+            {isToday && <small>{t('meals.today')}</small>}
+          </div>
         </div>
         <DayKindBadge kind={day.kind} confirmNeeded={day.totals.kcal > 0} />
         <DayCommentField comment={day.comment} />

@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import type { Verdict } from '@macronome/shared';
+import { useIsMobile } from '../../../../lib/useIsMobile';
 import { useMeals } from '../../MealsContext';
 import { VerdictBadge } from '../../../../components/VerdictBadge/VerdictBadge';
 
@@ -14,15 +15,20 @@ interface Props {
 
 export function DayVerdictBadge({ effective, auto, override }: Props) {
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
   const { actions } = useMeals();
 
+  // The badge sits next to the comment field in the mobile day bar, so its `auto`/`forcé`
+  // sub-label is abbreviated to its first letter (A / F) ≤560px to keep the row compact. The
+  // menu labels are untouched. Desktop shows the full words.
+  const sub = (full: string): string => (isMobile ? full.charAt(0) : full);
   const labels = {
     forceOk: t('meals.verdict.forceOk'),
     forceNok: t('meals.verdict.forceNok'),
     autoCalc: (a: Verdict | null) =>
       a ? t('meals.verdict.autoCalcWith', { v: a }) : t('meals.verdict.autoCalc'),
-    auto: t('meals.verdict.auto'),
-    forced: t('meals.verdict.forced'),
+    auto: sub(t('meals.verdict.auto')),
+    forced: sub(t('meals.verdict.forced')),
   };
 
   return (

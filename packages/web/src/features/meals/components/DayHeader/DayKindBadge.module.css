@@ -40,6 +40,16 @@
   opacity: 0.6;
 }
 
+/* Compact single-letter chip on phones (mobile-responsive S4): tighter padding, no letter
+   tracking, so the day bar fits the chip · verdict · comment on one row. Desktop inert. */
+@media (max-width: 560px) {
+  .chip {
+    padding: 4px 7px;
+    letter-spacing: 0;
+    gap: 2px;
+  }
+}
+
 .menu {
   position: absolute;
   left: 0;
