@@ -19,7 +19,7 @@
   background: var(--bg-elev);
   border: var(--bw) solid var(--border);
   border-radius: var(--r-lg);
-  padding: var(--sp-5) var(--sp-6);
+  padding: var(--sp-4) var(--sp-6);
   color: inherit;
   font: inherit;
   cursor: pointer;
@@ -90,7 +90,7 @@
   align-items: baseline;
   justify-content: space-between;
   gap: var(--sp-4);
-  margin-top: var(--sp-4);
+  margin-top: var(--sp-2);
 }
 .kcal {
   font-family: var(--font-num);
@@ -140,7 +140,7 @@
   display: flex;
   align-items: center;
   gap: var(--sp-3);
-  margin-top: var(--sp-4);
+  margin-top: var(--sp-2);
   font-size: var(--fs-12);
   color: var(--text-dim);
 }
@@ -166,7 +166,7 @@
   color: var(--ok);
 }
 .comment {
-  margin-top: var(--sp-3);
+  margin-top: var(--sp-2);
   font-size: var(--fs-12);
   font-style: italic;
   color: var(--text-dim);
