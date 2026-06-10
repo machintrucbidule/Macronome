@@ -1,0 +1,131 @@
+/* Aliments mobile view (mobile-responsive S7, mockups/03-recipes.html / spec §4.3 — same
+   pattern as Recettes, owner decision). The phone presentation of the food list: a card per
+   food, fed the same Food data as the desktop table. Mounted only inside a useIsMobile()
+   branch (desktop renders the untouched FoodTable), so these rules never apply on desktop.
+   Kept in a separate module from foods.module.css so the desktop file is untouched. The card
+   anatomy mirrors recipes-mobile.module.css. Card content is spec-strict (owner, S7):
+   name + rating, kcal/100g + L·G·P, portion — no visibility tag, no comment. Semantic tokens
+   only (CLAUDE.md rule 6). */
+
+.cardList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+.card {
+  appearance: none;
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: var(--bg-elev);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-4) var(--sp-6);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.card:hover {
+  border-color: var(--border-strong);
+}
+/* Archived foods read dimmed, mirroring the desktop row's archived styling. */
+.archived {
+  opacity: 0.6;
+}
+
+/* ---- Top: name + rating (and an "archivé" tag when archived) ---- */
+.top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-4);
+}
+.name {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-15);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.topRight {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.archivedTag {
+  font-family: var(--font-num);
+  font-size: var(--fs-9);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-pill);
+  padding: 1px 6px;
+}
+
+/* ---- Row: kcal/100g + macros L·G·P ---- */
+.row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  margin-top: var(--sp-2);
+}
+.kcal {
+  font-family: var(--font-num);
+  font-size: var(--fs-20);
+  font-weight: var(--fw-bold);
+}
+.kcal small {
+  margin-left: 2px;
+  font-size: var(--fs-11);
+  font-weight: 400;
+  color: var(--text-dim);
+}
+.macros {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+  font-family: var(--font-num);
+  font-size: var(--fs-13);
+}
+.mFat {
+  color: var(--c-fat);
+}
+.mCarb {
+  color: var(--c-carb);
+}
+.mProt {
+  color: var(--c-prot);
+}
+.macroLegend {
+  margin-left: 2px;
+  font-size: var(--fs-9);
+  color: var(--text-faint);
+}
+
+/* ---- Portion: a single labelled line (the table's display-only Portion column) ---- */
+.portion {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+  margin-top: var(--sp-3);
+}
+.portionLabel {
+  flex: none;
+  font-family: var(--font-num);
+  font-size: var(--fs-9);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-faint);
+}
+.portionValue {
+  min-width: 0;
+  font-family: var(--font-num);
+  font-size: var(--fs-12);
+  color: var(--text-dim);
+}

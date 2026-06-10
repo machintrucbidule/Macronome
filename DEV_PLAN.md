@@ -409,7 +409,16 @@ documented here only so the information is ready when the author decides to run 
         builder footer (owner). i18n `recipes.archivedTag`; `data-tables.md` `FiltersSheet` bullet
         (flagged). See `DECISIONS.md` "Mobile-responsive S6". Desktop inert ≥561px; no `tokens.css`
         touch; no new tests (presentational). typecheck/lint/392 web+all tests green.
-  - [ ] **S7** — Aliments → cards (same pattern, pure chrome reuse).
+  - [x] **S7** — Aliments → cards (same Recettes pattern, pure chrome reuse). `useIsMobile()`
+        render-switch in `FoodsPage` (desktop tree extracted verbatim to `FoodsDesktop`):
+        `FoodsMobile` + `FoodCards`/`FoodCard` (**spec-strict**, owner: name+stars + "Archivé" tag,
+        kcal/100g + L·G·P, single Portion line — no visibility/comment), same server state +
+        `InfiniteScrollFooter`. Chrome = `ListToolbar` (search) + `SortSheet` (7 keys) + shared
+        `FiltersSheet` consumed read-only (min-rating + **visibility** chips + show-archived). `Fab`
+        → food sheet; tap card → sheet; `FoodModal` gained a `mobile` prop → `Modal` `fullscreen`.
+        Archive via sheet footer. i18n `foods.archivedTag`. **Zero shared file edited; no amendment**
+        (documented S5/S6 chrome consumer). See `DECISIONS.md` "Mobile-responsive S7". Desktop inert
+        ≥561px; no `tokens.css` touch; no new tests (presentational). typecheck/lint/225 web tests green.
   - [ ] **S8** — Poids (controls row, chart sizing, period list + detail sheet, FAB).
   - [ ] **S9** — Repas interactions (food picker, line-editor sheet, swipe, touch DnD).
   - [ ] **S10** — Stats (wide blocks scroll, mount-time scroll to current period).

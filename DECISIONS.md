@@ -2482,3 +2482,55 @@ button` padding `9px 8px`, `white-space: nowrap`) so all three fit **one line** 
   the **S2-owned** `Modal.module.css` outside its slice — an **owner-directed** cross-slice
   refinement (precedent: the S5 sheets-above-nav change), documented in
   `design/components/modals.md`; mobile-only, desktop footers unchanged.
+
+---
+
+## Mobile-responsive S7 — Aliments mobile cards (Recettes pattern reuse) — RESOLVED (user, 2026-06-10)
+
+Seventh slice of the mobile-responsive feature (`specifications/features/mobile-responsive/`, spec
+§4.3). The Aliments screen (`/foods`) rendered only the dense `FoodTable` (one ≤820px column-hide),
+cramped on a phone. S7 gives Aliments the **same mobile treatment Recettes got in S6** (owner
+decision: Aliments follows the Recettes pattern, not separately mocked) — a `useIsMobile()`
+render-switch to a card list with the shared list chrome and a FAB to the full-screen food sheet.
+**Pure pattern consumption: no `[shared]` file edited, no new contract surface.**
+
+- **Render-switch + desktop extraction** (`features/foods/FoodsPage.tsx`). The page gains
+  `useIsMobile()` and branches to `FoodsMobile` (≤560px) or `FoodsDesktop` (≥561px). The desktop
+  toolbar + error banner + loading/empty/table/footer were extracted **verbatim** into the new
+  `FoodsDesktop` component (a pure refactor — identical rendered DOM) so the page stays a thin
+  switch; the two branches share a spread `common` props object (desktop adds the per-row
+  archive/restore). `FoodsToolbar`/`FoodTable`/`FoodRow`/`FiltersPopover`/`foods.module.css` are
+  **not edited**.
+- **Aliments mobile** (`features/foods/components/` new `FoodsMobile`, `FoodCards`, `FoodCard`,
+  `foods-mobile.module.css`): a **card per food** with **spec-strict content** (owner decision,
+  this session) — name + rating stars (+ an "Archivé" tag when archived); kcal/100g · L·G·P macros;
+  a single **Portion** line (`portionSummary`). **No** visibility tag, **no** comment on the card
+  (both are mobile-omitted; visibility is still filterable). Reuses the existing `Stars`,
+  `kcalDisplay`/`gramsDisplay`/`portionSummary`, fed the **same server-sorted/filtered `Food[]`**
+  and the **same `InfiniteScrollFooter`** as desktop (filtering/sorting stay server-side). Archived
+  foods read **dimmed**. Sticky chrome via the shared `ListToolbar` (search in `leading`) +
+  `SortSheet` (the 7 server-sortable keys: name/kcal/F/C/P/note/visibilité) + `FiltersSheet`.
+- **`FiltersSheet` consumed read-only** (created in S6). Aliments has **one more filter than
+  Recettes** — visibility — handled by a second `kind:'chips'` section (`FiltersSheet` already
+  supports N sections): min-rating chips + visibility chips + show-archived toggle; funnel reads
+  **active** when `minRating>0 || visibility!=='all' || showArchived`. The shared chrome
+  (`ListToolbar`/`SortSheet`/`FiltersSheet`/`list-chrome.module.css`/`filters-sheet.module.css`) is
+  **not edited**.
+- **FAB + full-screen food sheet.** `Fab` (created unwired in S3) is wired in `FoodsMobile` → opens
+  the add sheet; tapping a card opens the edit sheet. `FoodModal` gained an optional `mobile` prop
+  forwarded to `Modal` (passed `"fullscreen"` from the page) so the sheet is a full-screen takeover
+  ≤560px and **inert on desktop** (Modal applies the variant only when its own `useIsMobile()` is
+  true). Archive/restore stay reached in the food sheet's existing footer (mirrors the S6 builder —
+  no per-card archive control).
+
+**Desktop impact: none** — the render-switch returns `false` ≥561px → the `FoodsDesktop` tree
+(identical to the former inline desktop JSX) renders unchanged; the mobile components never mount;
+the `FoodModal` `mobile` prop is inert on desktop.
+
+Contract delta: new `features/foods/components/` `FoodsMobile.tsx`, `FoodsDesktop.tsx`,
+`FoodCards.tsx`, `FoodCard.tsx` + `features/foods/foods-mobile.module.css`; render-switch +
+`mobile="fullscreen"` wiring in `FoodsPage.tsx`; `mobile` prop on `FoodModal.tsx`; i18n
+`foods.archivedTag` (en/fr). **No design-system amendment** (the row→card variant + shared chrome
+were already promoted to `design/components/data-tables.md` in S5/S6; Aliments is a documented
+consumer). No `tokens.css`/backend/schema change; no new tests (responsive CSS verified by
+inspection; the card/mobile components are presentational — no new logic).

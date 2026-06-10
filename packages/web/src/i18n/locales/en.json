@@ -90,6 +90,7 @@
     "archive": "Archive",
     "restore": "Restore",
     "empty": "No foods yet. Add your first food.",
+    "archivedTag": "Archived",
     "col": {
       "name": "Name",
       "kcal": "kcal/100g",

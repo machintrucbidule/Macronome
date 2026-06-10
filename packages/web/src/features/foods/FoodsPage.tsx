@@ -1,21 +1,19 @@
 import { useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import type { Food } from '@macronome/shared';
 import { AppShell } from '../../app/AppShell';
-import { Banner } from '../../components/Banner/Banner';
-import { EmptyState } from '../../components/states/EmptyState';
-import { SkeletonRows } from '../../components/states/SkeletonRows';
-import { FoodsToolbar } from './components/FoodsToolbar';
-import { FoodTable, type SortField } from './components/FoodTable';
+import { FoodsDesktop } from './components/FoodsDesktop';
+import { FoodsMobile } from './components/FoodsMobile';
+import type { SortField } from './components/FoodTable';
 import type { MinRating, VisibilityFilter } from './components/FiltersPopover';
 import { FoodModal } from './modals/FoodModal';
 import { ArchiveConfirm } from './modals/ArchiveConfirm';
 import { useFoodMutations, useFoodsList } from './useFoods';
-import { InfiniteScrollFooter } from '../../lib/InfiniteScrollFooter';
+import { useIsMobile } from '../../lib/useIsMobile';
 
-// Aliments page (specifications/screens/food-db.md): owns filter/sort/modal state,
-// fetches via TanStack Query (server-side search/filter/sort), and renders the dense
-// table + add/edit + archive-confirm modals. It renders; it never computes.
+// Aliments page (specifications/screens/food-db.md): owns filter/sort/modal state, fetches via
+// TanStack Query (server-side search/filter/sort), and switches between the desktop table
+// (FoodsDesktop) and the mobile card list (FoodsMobile, mobile-responsive S7) via useIsMobile().
+// It renders; it never computes.
 type ModalState = { mode: 'add' } | { mode: 'edit'; food: Food } | null;
 
 interface FilterState {
@@ -49,7 +47,7 @@ function isDuplicateName(foods: Food[], name: string, editingId: string | null):
 }
 
 export function FoodsPage() {
-  const { t } = useTranslation();
+  const isMobile = useIsMobile();
   const [q, setQ] = useState('');
   const [minRating, setMinRating] = useState<MinRating>(0);
   const [visibility, setVisibility] = useState<VisibilityFilter>('all');
@@ -74,46 +72,43 @@ export function FoodsPage() {
   const editingId = modal?.mode === 'edit' ? modal.food.id : null;
   const isDuplicate = (name: string): boolean => isDuplicateName(foods, name, editingId);
 
+  const common = {
+    foods,
+    loading: list.isLoading,
+    isError: list.isError,
+    list,
+    q,
+    minRating,
+    visibility,
+    showArchived,
+    sort,
+    dir,
+    onQ: setQ,
+    onMinRating: setMinRating,
+    onVisibility: setVisibility,
+    onShowArchived: setShowArchived,
+    onSort,
+    onAdd: () => setModal({ mode: 'add' }),
+    onOpen: (food: Food) => setModal({ mode: 'edit', food }),
+  };
+
   return (
     <AppShell>
-      <FoodsToolbar
-        count={foods.length}
-        q={q}
-        minRating={minRating}
-        visibility={visibility}
-        showArchived={showArchived}
-        onQ={setQ}
-        onMinRating={setMinRating}
-        onVisibility={setVisibility}
-        onShowArchived={setShowArchived}
-        onAdd={() => setModal({ mode: 'add' })}
-      />
-
-      {list.isError && <Banner tone="warning">{t('common.loadError')}</Banner>}
-
-      {list.isLoading ? (
-        <SkeletonRows />
-      ) : foods.length === 0 ? (
-        <EmptyState>{t('foods.empty')}</EmptyState>
+      {isMobile ? (
+        <FoodsMobile {...common} />
       ) : (
-        <>
-          <FoodTable
-            foods={foods}
-            sort={sort}
-            dir={dir}
-            onSort={onSort}
-            onOpen={(food) => setModal({ mode: 'edit', food })}
-            onArchive={(food) => setArchiveTarget(food)}
-            onRestore={(food) => restore.mutate(food.id)}
-          />
-          <InfiniteScrollFooter query={list} />
-        </>
+        <FoodsDesktop
+          {...common}
+          onArchive={(food) => setArchiveTarget(food)}
+          onRestore={(food) => restore.mutate(food.id)}
+        />
       )}
 
       {modal && (
         <FoodModal
           food={modal.mode === 'edit' ? modal.food : null}
           isDuplicate={isDuplicate}
+          mobile="fullscreen"
           onClose={() => setModal(null)}
           onArchive={(food) => {
             setModal(null);
