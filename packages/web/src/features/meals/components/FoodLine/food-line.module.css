@@ -251,6 +251,19 @@
   display: contents;
 }
 
+/* Macro values colour-coded L/G/P (fat/carb/prot) at every width (owner-approved desktop change,
+   2026-06-11) — same tokens as the totals dots. kcal (child 1) keeps its colour; zero-quantity
+   lines stay muted (B-107), so the tint is gated on `:not(.zero)`. */
+.line:not(.zero) .macros > :nth-child(2) {
+  color: var(--c-fat);
+}
+.line:not(.zero) .macros > :nth-child(3) {
+  color: var(--c-carb);
+}
+.line:not(.zero) .macros > :nth-child(4) {
+  color: var(--c-prot);
+}
+
 /* ===== Mobile two-row food line (mobile-responsive S4, spec §5.3) — inert ≥561px =====
    The dense 9-column desktop line is cramped at phone width and its `.nm`/`.v` sizes are
    hard-coded px (so the type layer can't enlarge them). At ≤560px the line reflows to two rows via
@@ -312,16 +325,7 @@
     color: var(--text-faint);
     font-size: var(--fs-10);
   }
-  /* Macros colour-coded like the totals dots — but never override the zero-quantity muting (B-107). */
-  .line:not(.zero) .macros > :nth-child(2) {
-    color: var(--c-fat);
-  }
-  .line:not(.zero) .macros > :nth-child(3) {
-    color: var(--c-carb);
-  }
-  .line:not(.zero) .macros > :nth-child(4) {
-    color: var(--c-prot);
-  }
+  /* (Macro L/G/P colour-coding now lives in base scope — applies at every width.) */
   .macros > .v {
     font-size: var(--fs-12);
     text-align: left;

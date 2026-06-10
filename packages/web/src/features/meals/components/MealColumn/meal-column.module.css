@@ -162,3 +162,14 @@
   font-weight: var(--fw-bold);
   text-align: right;
 }
+/* L/G/P meal totals tinted with the macro tokens, matching the per-line macros + the totals dots
+   (owner-approved desktop change, 2026-06-11). kcal (the first .footV) is left untinted. */
+.fat {
+  color: var(--c-fat);
+}
+.carb {
+  color: var(--c-carb);
+}
+.prot {
+  color: var(--c-prot);
+}

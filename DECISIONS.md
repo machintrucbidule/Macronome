@@ -2684,3 +2684,16 @@ FAB's ~62px reach). Passed by `FoodsMobile`/`RecipesMobile` (both sheets) and `C
 keep the tighter padding; the single-select `FilterSheet` and `OverflowMenu` (Journal-only / single-
 item) are untouched. Shared ListChrome edit (S5/S6-owned), owner-directed — flagged. No new i18n;
 no new tests (presentational). typecheck + lint + 392 tests + web build green.
+
+## Meals — colour-code L/G/P macro values (desktop + mobile) — RESOLVED (user, 2026-06-11)
+
+**Owner-approved desktop change** (raised alongside the mobile-responsive S9 slice; committed
+**separately** from S9 per the "desktop never changes silently" rule). The per-line **L/G/P** macro
+values **and** the meal-footer **L/G/P** totals are now tinted with the macro tokens
+(`--c-fat`/`--c-carb`/`--c-prot`) — the same tokens as the totals dots and the S4 mobile food line —
+**at every width**, on the Repas screen. `kcal` keeps its colour; quantity-0 lines stay muted (the
+tint is gated on `:not(.zero)`). Implementation: the per-line colour rules moved from the
+`@media (max-width:560px)` block into base scope in `food-line.module.css`; the three footer total
+spans gained `fat`/`carb`/`prot` classes (`MealFooter.tsx`) tinted in `meal-column.module.css`. Noted
+in `design/components/data-tables.md` (Repas meal column). No `tokens.css`/backend/schema change; no
+new i18n; no new tests (presentational).

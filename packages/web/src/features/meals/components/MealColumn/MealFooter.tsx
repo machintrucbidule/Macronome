@@ -29,9 +29,11 @@ export function MealFooter({ mealId, totals }: MealFooterProps) {
         </div>
         <span className={styles.wt}>{r0(totals.weight_g)} g</span>
         <span className={styles.footV}>{r0(totals.kcal)}</span>
-        <span className={styles.footV}>{r0(totals.fat)}</span>
-        <span className={styles.footV}>{r0(totals.carb)}</span>
-        <span className={styles.footV}>{r0(totals.protein)}</span>
+        {/* L/G/P totals colour-coded like the per-line macros + the totals dots (owner-approved
+            desktop change, 2026-06-11); kcal stays its colour. */}
+        <span className={`${styles.footV} ${styles.fat}`}>{r0(totals.fat)}</span>
+        <span className={`${styles.footV} ${styles.carb}`}>{r0(totals.carb)}</span>
+        <span className={`${styles.footV} ${styles.prot}`}>{r0(totals.protein)}</span>
         <span />
         <span />
       </div>

@@ -104,6 +104,11 @@ the instant qty > 0; B-107), `.pinned`
 (`background:var(--bg-field)`, inline search input), `.dragging` (`opacity:.4`).
 Hover reveals grip/pin/del. A meal keeps ≥2 trailing empty lines, ≥15 lines min.
 
+**Macro values colour-coded.** The per-line **L/G/P** macros **and** the meal-total
+L/G/P are tinted with the macro tokens (`--c-fat`/`--c-carb`/`--c-prot`), matching the
+totals dots, **at every width** (owner-approved desktop change, 2026-06-11). `kcal` keeps
+its colour; `.zero` lines stay muted (the tint is gated on `:not(.zero)`).
+
 ## Line-list grid (Recipe ingredient builder) — instance B
 
 Same line component, **different column map** (no pin; wider numerics):
