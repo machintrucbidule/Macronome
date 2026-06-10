@@ -16,6 +16,9 @@ interface RecipeBuilderModalProps {
   recipeId: string | null;
   onClose: () => void;
   onArchive: (recipe: RecipeSummary) => void;
+  // Mobile-only Modal variant (S6): the builder opens full-screen ≤560px. Inert on desktop —
+  // Modal applies the variant only when its own useIsMobile() is true (so desktop stays `wide`).
+  mobile?: 'fullscreen' | 'sheet';
 }
 
 // Footer left action: archive (active recipe), restore (archived recipe), or nothing
@@ -44,7 +47,12 @@ function FooterLeftAction({
   );
 }
 
-export function RecipeBuilderModal({ recipeId, onClose, onArchive }: RecipeBuilderModalProps) {
+export function RecipeBuilderModal({
+  recipeId,
+  onClose,
+  onArchive,
+  mobile,
+}: RecipeBuilderModalProps) {
   const { t } = useTranslation();
   const isEdit = recipeId !== null;
   const loaded = useRecipe(recipeId);
@@ -79,14 +87,14 @@ export function RecipeBuilderModal({ recipeId, onClose, onArchive }: RecipeBuild
   const title = t(isEdit ? 'recipes.modal.editTitle' : 'recipes.modal.addTitle');
   if (isEdit && !hydrated) {
     return (
-      <Modal title={title} onClose={onClose}>
+      <Modal title={title} {...(mobile ? { mobile } : {})} onClose={onClose}>
         <div className={modalStyles.body}>{t('common.loading')}</div>
       </Modal>
     );
   }
 
   return (
-    <Modal title={title} size="wide" onClose={onClose}>
+    <Modal title={title} size="wide" {...(mobile ? { mobile } : {})} onClose={onClose}>
       <div className={modalStyles.body}>
         <BuilderFields draft={draft} full={full} preview={preview.data} error={error} set={set} />
       </div>

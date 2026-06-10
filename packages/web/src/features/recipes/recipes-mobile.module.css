@@ -1,0 +1,135 @@
+/* Recettes mobile view (mobile-responsive S6, mockups/03-recipes.html / spec §4.3). The phone
+   presentation of the recipe list: a card per recipe, fed the same RecipeSummary data as the
+   desktop table. Mounted only inside a useIsMobile() branch (desktop renders the untouched
+   RecipesTable), so these rules never apply on desktop. Kept in a separate module from
+   recipes.module.css so the desktop file is untouched. The card anatomy reuses the Journal
+   mobile card language (journal-mobile.module.css). Semantic tokens only (CLAUDE.md rule 6). */
+
+.cardList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+.card {
+  appearance: none;
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: var(--bg-elev);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-4) var(--sp-6);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.card:hover {
+  border-color: var(--border-strong);
+}
+/* Archived recipes read dimmed, mirroring the desktop row's archived styling. */
+.archived {
+  opacity: 0.6;
+}
+
+/* ---- Top: name + rating (and an "archivée" tag when archived) ---- */
+.top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-4);
+}
+.name {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-15);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.topRight {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.archivedTag {
+  font-family: var(--font-num);
+  font-size: var(--fs-9);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-pill);
+  padding: 1px 6px;
+}
+
+/* ---- Row: kcal/100g + macros L·G·P ---- */
+.row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  margin-top: var(--sp-2);
+}
+.kcal {
+  font-family: var(--font-num);
+  font-size: var(--fs-20);
+  font-weight: var(--fw-bold);
+}
+.kcal small {
+  margin-left: 2px;
+  font-size: var(--fs-11);
+  font-weight: 400;
+  color: var(--text-dim);
+}
+.macros {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+  font-family: var(--font-num);
+  font-size: var(--fs-13);
+}
+.mFat {
+  color: var(--c-fat);
+}
+.mCarb {
+  color: var(--c-carb);
+}
+.mProt {
+  color: var(--c-prot);
+}
+.macroLegend {
+  margin-left: 2px;
+  font-size: var(--fs-9);
+  color: var(--text-faint);
+}
+
+/* ---- Meta: Lot / Portions / g·portion (each value centred under its label) ---- */
+.meta {
+  display: flex;
+  gap: var(--sp-4);
+  margin-top: var(--sp-3);
+}
+.kv {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  text-align: center;
+}
+.k {
+  font-family: var(--font-num);
+  font-size: var(--fs-9);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-faint);
+}
+.kv b {
+  font-family: var(--font-num);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-bold);
+  color: var(--text);
+}

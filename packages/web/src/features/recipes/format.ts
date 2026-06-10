@@ -9,3 +9,9 @@ export function kcalDisplay(n: number): string {
 export function gramsDisplay(n: number): string {
   return (Math.round(n * 10) / 10).toString();
 }
+
+// Whole-gram display for the compact mobile recipe card meta (Lot / g·portion), where the
+// 1-decimal precision is noise on large weights (owner decision, 2026-06-10). Display-only.
+export function gramsInt(n: number): string {
+  return Math.round(n).toString();
+}

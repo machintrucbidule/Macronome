@@ -40,6 +40,16 @@ value: `size` still controls the desktop width (unchanged ≥561px), while `mobi
   title + a Close (`×`) button (mandatory — the scrim has no reachable outside area);
   scrollable body; `padding-bottom: env(safe-area-inset-bottom)`. For big forms: recipe
   builder, food sheet, weigh-in, cibles, the Repas food picker.
+
+> **Footer actions stay on one tightened row on a phone (owner decision, 2026-06-10).** A
+> three-button footer (the recipe builder's Archiver/Restaurer + Annuler + Enregistrer) overflows
+> a 360px full-screen modal at the desktop paddings and clips "Enregistrer". ≤560px the `.actions`
+> footer + its buttons get **tighter padding and gaps** (`.actions` padding `14px 8px 16px`,
+> `gap: --sp-3`; `.actions button` padding `9px 8px`, `white-space: nowrap`) so all three fit
+> **one line** while keeping the left/right grouping (Archiver left, Annuler/Enregistrer right) —
+> Space Mono is monospace, so the worst case leaves ~18px spare at 360px. Mobile-only; desktop
+> footers are unchanged.
+
 - **`sheet`** — bottom-anchored **above the bottom tab bar** (the scrim's bottom is offset by
   the nav height, `calc(56px + env(safe-area-inset-bottom))`, so the primary nav **stays
   visible and tappable** while a sheet is open — owner decision, 2026-06-10), full width,

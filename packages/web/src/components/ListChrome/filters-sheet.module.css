@@ -1,0 +1,40 @@
+/* Multi-control "Filtres" bottom-sheet body (mobile-responsive S6, design/components/
+   data-tables.md). The single-select sibling (FilterSheet) reuses the chrome .sheetBody; this
+   sheet stacks several filter sections (a chip group + a toggle), so it gets its own spacing.
+   The funnel button itself reuses the shared toolBtn/toolBtnActive classes from
+   list-chrome.module.css (consumed, not edited). Mobile-only by construction — these rules only
+   apply inside a Modal mobile="sheet". Semantic tokens only (CLAUDE.md rule 6). */
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+  padding: var(--sp-6) var(--sp-6) calc(var(--sp-7) + env(safe-area-inset-bottom));
+}
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.sectionLabel {
+  margin: 0;
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+}
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+}
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-height: var(--tap);
+  font-size: var(--fs-14);
+  color: var(--text);
+  cursor: pointer;
+}

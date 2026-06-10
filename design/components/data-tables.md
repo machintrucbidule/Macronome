@@ -187,8 +187,14 @@ construction (mounted only inside the `useIsMobile()` branch), so it never affec
   options, the first being the "all / no filter" reset; selecting an option applies it and
   closes. The button reads **active** (`--accent`) when a non-default option is applied. First
   consumer: the **Journal month filter** (the months that have data this year, a presentation-
-  only client filter like the sort). Multi-control filters (e.g. Recettes min-rating + show
-  archived) extend this family in S6.
+  only client filter like the sort).
+- **`FiltersSheet`** (Filtrer, **multi-control** — mobile-responsive S6) — the same funnel
+  button + active state, opening a sheet that stacks **several filter sections** in one place:
+  a single-select **chip group** (reusing the `Chip` component) and/or a boolean **toggle**.
+  The button reads **active** when any section is off its default; the sheet stays open across
+  selections (several controls) and closes via the Modal. First consumer: the **Recettes**
+  filters (min-rating chips + show-archived toggle, the desktop `FiltersPopover` controls in
+  one sheet); reused **read-only** by Aliments (S7).
 - **`OverflowMenu`** (⋯) — a sheet of secondary, full-width actions (e.g. **Export CSV**,
   moved off the visible toolbar on a phone).
 

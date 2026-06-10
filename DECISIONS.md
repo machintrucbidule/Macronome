@@ -2401,3 +2401,84 @@ desktop-inert:
   sense there, not a strip of every labelled action button.)_
 - **Day count hidden on mobile.** The "{n} jours" count is dropped from the Journal mobile view
   (the sub-header is removed entirely); the desktop header count is unchanged.
+
+## Mobile-responsive S6 — Recettes mobile cards + shared multi-control FiltersSheet — RESOLVED (user, 2026-06-10)
+
+Sixth slice of the mobile-responsive feature (`specifications/features/mobile-responsive/`, spec
+§4.3 + §9). The Recettes screen (`/recipes`) rendered only the dense 10-column `RecipesTable`,
+overflowing on a phone. S6 adds the **mobile card view**, the **last shared list-chrome member**
+(the multi-control filter sheet), and wires the **FAB** to the full-screen builder — all behind a
+`useIsMobile()` render-switch so desktop renders the **exact existing** table tree.
+
+- **Render-switch + desktop extraction** (`features/recipes/RecipesPage.tsx`). The page gains
+  `useIsMobile()` and branches to `RecipesMobile` (≤560px) or `RecipesDesktop` (≥561px). The
+  desktop toolbar + loading/empty/table/footer were extracted **verbatim** into the new
+  `RecipesDesktop` component (a pure refactor — identical rendered DOM) so the page stays a thin
+  switch under the 80-line lint budget; the two branches share a spread `common` props object
+  (desktop adds the per-row archive/restore). `RecipesToolbar`/`RecipesTable`/`RecipeRow` are
+  **not edited**.
+- **Recettes mobile** (`features/recipes/components/` new `RecipesMobile`, `RecipeCards`,
+  `RecipeCard`, `recipes-mobile.module.css`): a **card per recipe** (name + rating stars; kcal/100g
+  - L·G·P macros; a Lot / Portions / g·portion meta row), reusing the existing `Stars` component
+    and `kcalDisplay`/`gramsDisplay`, fed the **same server-sorted/filtered `RecipeSummary[]`** and
+    the **same `InfiniteScrollFooter`** as desktop (filtering/sorting stay server-side; the mobile
+    view never re-filters). Archived recipes read **dimmed** + an "Archivée" tag. Sticky chrome via
+    the shared `ListToolbar` (search field in the `leading` slot) + `SortSheet` (name / Lot /
+    Portions / Note — the four server-sortable keys) + the new `FiltersSheet`.
+- **New shared `FiltersSheet`** (`components/ListChrome/FiltersSheet.tsx` + `filters-sheet.module.css`,
+  exported from the chrome barrel). The **multi-control** member of the list-chrome filter family
+  (the single-select `FilterSheet` from S5 stays for Journal's month filter): one `Modal mobile="sheet"`
+  stacking several declarative `sections` — a single-select **chip group** (reusing `Chip`) and/or a
+  boolean **toggle**. First consumer = Recettes (min-rating chips + show-archived toggle — the desktop
+  `FiltersPopover` controls in one sheet); funnel button reads **active** when any section is off
+  default; sheet stays open across selections. **Created here, consumed read-only by Aliments (S7).**
+  Reuses the chrome `toolBtn` styling + the S2 Modal `sheet` variant; **no new token**;
+  `list-chrome.module.css` (owned by S5) untouched.
+- **FAB + full-screen builder.** `Fab` (created unwired in S3) is wired in `RecipesMobile` → opens
+  the add builder; tapping a card opens the edit builder. `RecipeBuilderModal` gained an optional
+  `mobile` prop forwarded to `Modal` (passed `"fullscreen"` from the page) so the builder is a
+  full-screen takeover ≤560px and **inert on desktop** (Modal applies the variant only when its own
+  `useIsMobile()` is true → desktop stays `size="wide"`).
+- **Archive/restore via the builder footer (owner decision, 2026-06-10).** Unlike the desktop row's
+  inline 🗑/↺ icon, the mobile card is a single tap target with **no per-card archive control**;
+  archive/restore is reached inside the builder's existing footer. _(Owner chose the cleaner card +
+  one extra tap over a per-card icon; matches the mockup, which shows no card archive affordance.)_
+
+**Desktop impact: none** — the render-switch returns `false` ≥561px → the `RecipesDesktop` tree
+(identical to the former inline desktop JSX) renders unchanged; the mobile components never mount;
+the builder's `mobile` prop is inert on desktop.
+
+Contract delta: new `features/recipes/components/` `RecipesMobile.tsx`, `RecipesDesktop.tsx`,
+`RecipeCards.tsx`, `RecipeCard.tsx` + `features/recipes/recipes-mobile.module.css`; new shared
+`components/ListChrome/FiltersSheet.tsx` + `filters-sheet.module.css` (+ barrel export); render-switch
+
+- `mobile="fullscreen"` wiring in `RecipesPage.tsx`; `mobile` prop on `RecipeBuilderModal.tsx`; i18n
+  `recipes.archivedTag` (en/fr); a `FiltersSheet` bullet added to `design/components/data-tables.md`
+  (_flagged_: the dev-plan said "no new amendment" — this is a faithful accuracy update turning the
+  doc's forward-reference into a description of the realized component, not a new design decision).
+  No `tokens.css`/backend/schema change; no new tests (responsive CSS verified by inspection;
+  `FiltersSheet` is presentational — no new logic).
+
+**Refinements (owner feedback, 2026-06-10).**
+
+- **Card meta — whole grams + centred values.** The card's Lot / g·portion figures round to
+  **integers** (new `features/recipes/format.ts` `gramsInt` — the 1-decimal precision is noise on
+  large weights), and each value is **centred under its label** (`.kv` → `align-items:center;
+text-align:center; flex:1`, the three columns spread across the card). Macros (per-100 g L·G·P)
+  keep `gramsDisplay`. Mobile-card only; the desktop table is unchanged.
+- **Search placeholder shortened to "Rechercher" / "Search" (Aliments + Recettes, desktop +
+  mobile — owner decision).** The `foods.searchPlaceholder` and `recipes.searchPlaceholder` i18n
+  strings drop the "(insensible aux accents)…" / "(accent-insensitive)…" parenthetical in both
+  locales. **This is an explicit owner-approved change that affects desktop too** (not a mobile
+  slice mechanism) — the owner asked for it on both screens at both widths.
+- **Builder footer kept on one tightened row on mobile.** At the desktop paddings the recipe
+  builder's three buttons (Archiver/Restaurer + Annuler + Enregistrer) overflow a 360px
+  full-screen modal and clip "Enregistrer". ≤560px the `Modal` `.actions` footer + its buttons get
+  **tighter padding and gaps** (`.actions` padding `14px 8px 16px`, `gap: --sp-3`; `.actions
+button` padding `9px 8px`, `white-space: nowrap`) so all three fit **one line** while keeping the
+  left/right grouping — Space Mono is monospace, so the worst case ("Restaurer"/"Annuler"/
+  "Enregistrer") leaves ~18px spare at 360px. _(First attempt used `flex-wrap: wrap`; the owner
+  rejected the resulting two-line footer — wants the three on one line, untruncated.)_ This edits
+  the **S2-owned** `Modal.module.css` outside its slice — an **owner-directed** cross-slice
+  refinement (precedent: the S5 sheets-above-nav change), documented in
+  `design/components/modals.md`; mobile-only, desktop footers unchanged.

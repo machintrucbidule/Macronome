@@ -399,7 +399,16 @@ documented here only so the information is ready when the author decides to run 
         amended. See `DECISIONS.md` "Mobile-responsive S5". Desktop inert ≥561px; no `tokens.css`
         touch; no new tests (responsive CSS verified by inspection; logic reused). typecheck/lint/
         225 web tests green.
-  - [ ] **S6** — Recettes → cards (full-screen builder, FAB, Filtres sheet).
+  - [x] **S6** — Recettes → cards (full-screen builder, FAB, Filtres sheet). `useIsMobile()`
+        render-switch in `RecipesPage` (desktop tree extracted verbatim to `RecipesDesktop`):
+        `RecipesMobile` + `RecipeCards`/`RecipeCard` (name+stars, kcal/100g + L·G·P, Lot/Portions/
+        g·portion; dimmed + "Archivée" when archived), same server state + `InfiniteScrollFooter`.
+        Chrome = `ListToolbar` (search) + `SortSheet` + new shared **`FiltersSheet`** (multi-control:
+        min-rating chips + show-archived toggle; consumed read-only by S7). `Fab` → builder; tap card
+        → builder; `RecipeBuilderModal` gained a `mobile` prop → `Modal` `fullscreen`. Archive via
+        builder footer (owner). i18n `recipes.archivedTag`; `data-tables.md` `FiltersSheet` bullet
+        (flagged). See `DECISIONS.md` "Mobile-responsive S6". Desktop inert ≥561px; no `tokens.css`
+        touch; no new tests (presentational). typecheck/lint/392 web+all tests green.
   - [ ] **S7** — Aliments → cards (same pattern, pure chrome reuse).
   - [ ] **S8** — Poids (controls row, chart sizing, period list + detail sheet, FAB).
   - [ ] **S9** — Repas interactions (food picker, line-editor sheet, swipe, touch DnD).

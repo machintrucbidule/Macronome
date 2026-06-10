@@ -1,20 +1,19 @@
 import { useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import type { RecipeSummary } from '@macronome/shared';
 import { AppShell } from '../../app/AppShell';
-import { EmptyState } from '../../components/states/EmptyState';
-import { SkeletonRows } from '../../components/states/SkeletonRows';
-import { RecipesToolbar } from './components/RecipesToolbar';
-import { RecipesTable, type SortField } from './components/RecipesTable';
+import { RecipesDesktop } from './components/RecipesDesktop';
+import { RecipesMobile } from './components/RecipesMobile';
+import type { SortField } from './components/RecipesTable';
 import type { MinRating } from './components/FiltersPopover';
 import { RecipeBuilderModal } from './modals/RecipeBuilderModal';
 import { RecipeArchiveConfirm } from './modals/RecipeArchiveConfirm';
 import { useRecipeMutations, useRecipesList } from './useRecipes';
-import { InfiniteScrollFooter } from '../../lib/InfiniteScrollFooter';
+import { useIsMobile } from '../../lib/useIsMobile';
 
 // Recettes page (specifications/screens/recipe.md): owns search/filter/sort/modal state,
-// fetches via TanStack Query (server-side search/filter/sort), and renders the table +
-// builder + archive confirm. It renders; it never computes (derived figures come from the API).
+// fetches via TanStack Query (server-side search/filter/sort), and renders the desktop table or
+// the mobile card list (useIsMobile render-switch, S6) + the shared builder / archive confirm.
+// It renders; it never computes (derived figures come from the API).
 type ModalState = { mode: 'add' } | { mode: 'edit'; id: string } | null;
 
 interface FilterState {
@@ -36,7 +35,7 @@ function buildListParams(s: FilterState) {
 }
 
 export function RecipesPage() {
-  const { t } = useTranslation();
+  const isMobile = useIsMobile();
   const [q, setQ] = useState('');
   const [minRating, setMinRating] = useState<MinRating>(0);
   const [showArchived, setShowArchived] = useState(false);
@@ -57,41 +56,43 @@ export function RecipesPage() {
     }
   };
 
+  // Props shared by both presentations (the desktop table and the mobile card list consume the
+  // same server-side state + handlers); desktop adds the per-row archive/restore actions.
+  const common = {
+    recipes,
+    loading: list.isLoading,
+    list,
+    q,
+    minRating,
+    showArchived,
+    sort,
+    dir,
+    onQ: setQ,
+    onMinRating: setMinRating,
+    onShowArchived: setShowArchived,
+    onSort,
+    onAdd: () => setModal({ mode: 'add' }),
+    onOpen: (recipe: RecipeSummary) => setModal({ mode: 'edit', id: recipe.id }),
+  };
+
   return (
     <AppShell>
-      <RecipesToolbar
-        count={recipes.length}
-        q={q}
-        minRating={minRating}
-        showArchived={showArchived}
-        onQ={setQ}
-        onMinRating={setMinRating}
-        onShowArchived={setShowArchived}
-        onAdd={() => setModal({ mode: 'add' })}
-      />
-
-      {list.isLoading ? (
-        <SkeletonRows />
-      ) : recipes.length === 0 ? (
-        <EmptyState>{t('recipes.empty')}</EmptyState>
+      {isMobile ? (
+        // Mobile (≤560px): card list + shared list chrome + FAB → full-screen builder (S6).
+        <RecipesMobile {...common} />
       ) : (
-        <>
-          <RecipesTable
-            recipes={recipes}
-            sort={sort}
-            dir={dir}
-            onSort={onSort}
-            onOpen={(recipe) => setModal({ mode: 'edit', id: recipe.id })}
-            onArchive={(recipe) => setArchiveTarget(recipe)}
-            onRestore={(recipe) => restore.mutate(recipe.id)}
-          />
-          <InfiniteScrollFooter query={list} />
-        </>
+        // Desktop (≥561px): the untouched toolbar + dense table — byte-identical to before.
+        <RecipesDesktop
+          {...common}
+          onArchive={(recipe) => setArchiveTarget(recipe)}
+          onRestore={(recipe) => restore.mutate(recipe.id)}
+        />
       )}
 
       {modal && (
         <RecipeBuilderModal
           recipeId={modal.mode === 'edit' ? modal.id : null}
+          mobile="fullscreen"
           onClose={() => setModal(null)}
           onArchive={(recipe) => {
             setModal(null);

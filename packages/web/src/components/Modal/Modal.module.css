@@ -127,6 +127,25 @@
     animation: sheet-up 180ms ease-out;
   }
 
+  /* Keep the three-button builder footer on ONE row without clipping (owner decision,
+     2026-06-10). Archiver/Restaurer + Annuler + Enregistrer overflow a 360px full-screen modal
+     at the desktop paddings, clipping "Enregistrer". Tightening the footer + button padding and
+     gaps fits all three on one line (Space Mono is monospace, so the worst case — "Restaurer" +
+     "Annuler" + "Enregistrer" — leaves ~18px spare at 360px) while keeping the left/right
+     grouping (Archiver left, Annuler/Enregistrer right). Mobile-only; desktop footers unchanged. */
+  .actions {
+    flex-wrap: nowrap;
+    gap: var(--sp-3);
+    padding: 14px 8px 16px;
+  }
+  .actionsRight {
+    gap: var(--sp-3);
+  }
+  .actions button {
+    padding: 9px 8px;
+    white-space: nowrap;
+  }
+
   /* Top bar (title + close) for both mobile variants. */
   .headerBar {
     display: flex;
