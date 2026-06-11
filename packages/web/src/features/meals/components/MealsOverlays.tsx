@@ -37,7 +37,10 @@ export function MealsOverlays({ clearing, onCloseClear, copying, onCloseCopy }: 
 
   const customInitial = useMemo<CustomValues | null>(() => {
     const target = ctl.customTarget;
-    if (!target?.entryId || !ctl.day) return null;
+    if (!target) return null;
+    // New line: seed from the AI dish-photo prefill when present (QP-1/B-158); edit: from the entry.
+    if (!target.entryId) return target.prefill ?? null;
+    if (!ctl.day) return null;
     const entry = ctl.day.meals.flatMap((m) => m.entries).find((e) => e.id === target.entryId);
     if (!entry) return null;
     return {

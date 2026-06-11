@@ -13,6 +13,21 @@ holds **totals**, so the AI result maps 1:1 (`spec/logic/ai-dish-photo-macros.md
   holds only Cancel/Save). Ghost/secondary style (`buttons.md`).
 - Opens the analysis sub-dialog over the modal (same nesting as `ParseLabelDialog` over `FoodModal`).
 
+### Mobile one-tap entry point (QP-1/B-158)
+
+On the **phone layout (≤560px) only**, a streamlined second entry point sits in the **meal-column
+header**, in the slot of the (CSS-hidden ≤560px) 🍳 cuisine button: a **📷 button with a small "+"
+badge** (CSS overlay — the app uses emoji, no icon library). It **skips the sub-dialog**: tapping
+opens the **device camera directly** (single shot, no note, reusing the `capture="environment"`
+input), **auto-runs** the same `POST /ai/dish-photo-macros` analysis with a busy indicator, then on
+success opens the **custom-entry modal pre-filled** (the same six-field 1:1 mapping) — instead of
+pre-filling an already-open modal. **States** mirror the sub-dialog: a busy notice and, on failure,
+a **dismissible** banner under the header (mapped from the same error codes); on **"no food
+detected"** (DS-1/B-160) the no-food message shows and **nothing opens**. The button appears **only
+when the `dish_photo_macros` task is configured** (link + key + model, `ai-connection.md`/B-117) and
+is **hidden on desktop** (which keeps the in-modal "Analyse par IA" path unchanged). Tap target ≥44px;
+semantic tokens only.
+
 ## Analysis sub-dialog
 
 A `modals.md` **sm/md** panel titled "Analyse par IA":

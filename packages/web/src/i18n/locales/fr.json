@@ -613,6 +613,9 @@
         "ai_unavailable": "Le service IA est momentanément surchargé. Réessaie dans un instant."
       }
     },
+    "photoEntry": {
+      "button": "Photo d'un plat → IA"
+    },
     "leftover": {
       "button": "Restes",
       "title": "Déduire un reste",

@@ -4,33 +4,17 @@ import type { DishPhotoMacros } from '@macronome/shared';
 import { Modal, modalStyles } from '../../../components/Modal/Modal';
 import { Button } from '../../../components/Button/Button';
 import { Banner } from '../../../components/Banner/Banner';
-import { ApiError } from '../../../api/client';
 import { useIsMobile } from '../../../lib/useIsMobile';
 import { useDishPhotoMacros } from '../hooks/useAi';
+import { ACCEPT, readAsDataUrl } from '../lib/imagePick';
+import { mapAiError } from '../lib/aiError';
 import styles from './modals.module.css';
 
 // "Analyse par IA" sub-dialog (design/components/ai-dish-analysis.md, B-118). Mirrors the foods
 // ParseLabelDialog: up to 4 dish photos AND/OR a note (at least one) → POST /ai/dish-photo-macros,
 // and on success pre-fill the parent custom-entry form. Persists nothing; reads images to data URLs.
+// ACCEPT/readAsDataUrl/error-mapping are shared with the mobile one-tap entry (lib/, QP-1/B-158).
 const MAX_IMAGES = 4;
-const ACCEPT = 'image/jpeg,image/png,image/webp';
-const KNOWN_ERRORS = new Set([
-  'ai_not_configured',
-  'ai_unauthorized',
-  'ai_unreachable',
-  'ai_bad_response',
-  'ai_rate_limited',
-  'ai_unavailable',
-]);
-
-function readAsDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const r = new FileReader();
-    r.onload = () => resolve(r.result as string);
-    r.onerror = () => reject(new Error('read_failed'));
-    r.readAsDataURL(file);
-  });
-}
 
 /** Selected-image thumbnails with a remove (×) each. */
 function Thumbnails({
@@ -174,9 +158,9 @@ export function AiDishAnalysisDialog({ onClose, onApplied }: AiDishAnalysisDialo
           onApplied(res.data);
         },
         onError: (err) => {
-          const code = err instanceof ApiError ? err.code : 'ai_bad_response';
-          setErrorCode(KNOWN_ERRORS.has(code) ? code : 'ai_bad_response');
-          setErrorDetail(err instanceof ApiError ? (err.details?.provider_message ?? null) : null);
+          const { code, detail } = mapAiError(err);
+          setErrorCode(code);
+          setErrorDetail(detail);
         },
       },
     );

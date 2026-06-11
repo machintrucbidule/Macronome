@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { MealEntry } from '@macronome/shared';
-import { buildLineRows } from './lineRows';
+import { buildLineRows, firstFreeSlot } from './lineRows';
 
 // Positional rows (B-028): entries land at their order_index; blank rows in between are
 // kept; there are always ≥2 trailing empties and ≥ minLines total.
@@ -29,5 +29,30 @@ describe('buildLineRows (B-028)', () => {
     expect(rows[20]?.entry).toBe(e);
     expect(rows[21]?.entry).toBeNull();
     expect(rows[22]?.entry).toBeNull();
+  });
+});
+
+describe('firstFreeSlot (QP-1/B-158)', () => {
+  it('returns 0 when the meal has no entries', () => {
+    expect(firstFreeSlot([])).toBe(0);
+  });
+
+  it('returns the first internal gap', () => {
+    // rows 0,1,3 taken → first free is 2
+    expect(firstFreeSlot([entry('a', 0), entry('b', 1), entry('c', 3)])).toBe(2);
+  });
+
+  it('skips placeholders occupying rows 0..n and returns the first gap after them', () => {
+    // garde-manger placeholders at 0,1,2 occupy their order_index → first free is 3
+    expect(firstFreeSlot([entry('p0', 0), entry('p1', 1), entry('p2', 2)])).toBe(3);
+  });
+
+  it('appends after the last line when every row up to the max is taken', () => {
+    expect(firstFreeSlot([entry('a', 0), entry('b', 1), entry('c', 2)])).toBe(3);
+  });
+
+  it('fills a leading gap before later rows', () => {
+    // rows 2,3 taken, 0 and 1 free → first free is 0
+    expect(firstFreeSlot([entry('a', 2), entry('b', 3)])).toBe(0);
   });
 });

@@ -613,6 +613,9 @@
         "ai_unavailable": "The AI service is momentarily overloaded. Please try again."
       }
     },
+    "photoEntry": {
+      "button": "Photograph a dish → AI"
+    },
     "leftover": {
       "button": "Leftover",
       "title": "Deduct a leftover",

@@ -38,6 +38,9 @@ export interface CustomTarget {
   mealIndex: number;
   entryId: string | null;
   orderIndex?: number | null;
+  /** Seed values for a *new* line (QP-1/B-158): the AI dish-photo estimate pre-fills the modal.
+   *  Only meaningful when `entryId` is null; the edit case reads from the existing entry instead. */
+  prefill?: CustomValues | null;
 }
 /** Mobile-only: the line whose bottom-sheet editor is open (food · qty · pin · delete, spec §5.3).
  *  Stored on the controller like the other overlays; the sheet resolves the entry from the day.
@@ -146,9 +149,16 @@ function customActions(d: MealActionDeps, run: Run, resolveMealId: ResolveMealId
       mealIndex: number,
       entryId: string | null,
       orderIndex?: number | null,
+      prefill?: CustomValues | null,
     ) => {
       d.setEditing(null);
-      d.setCustomTarget({ mealId, mealIndex, entryId, orderIndex: orderIndex ?? null });
+      d.setCustomTarget({
+        mealId,
+        mealIndex,
+        entryId,
+        orderIndex: orderIndex ?? null,
+        prefill: prefill ?? null,
+      });
     },
     closeCustom: () => d.setCustomTarget(null),
     saveCustom: (target: CustomTarget, v: CustomValues): Promise<void> =>

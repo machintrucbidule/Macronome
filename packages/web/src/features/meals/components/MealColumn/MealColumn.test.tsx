@@ -15,6 +15,19 @@ vi.mock('./MealFooter', () => ({ MealFooter: () => null }));
 vi.mock('../../hooks/useLineDnd', () => ({
   useLineDnd: () => ({ dragId: null, onDragStart: vi.fn(), onDragEnd: vi.fn(), onDrop: vi.fn() }),
 }));
+// The mobile one-tap photo entry (QP-1/B-158) reads the settings query + AI mutation; stub it as
+// not-ready so this delete-flow test needs no QueryClient (parity with the other stubbed hooks).
+vi.mock('../../hooks/useMealPhotoEntry', () => ({
+  useMealPhotoEntry: () => ({
+    ready: false,
+    busy: false,
+    message: null,
+    trigger: vi.fn(),
+    dismiss: vi.fn(),
+    inputRef: { current: null },
+    inputProps: {},
+  }),
+}));
 
 afterEach(async () => {
   cleanup();

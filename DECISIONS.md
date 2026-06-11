@@ -3155,3 +3155,43 @@ short-circuit, no-mapping note, new oracle 6b); `spec/api/ai.md` (response examp
 `detected:true`/absent → mapped with `detected:true`); web `AiDishAnalysisDialog` test
 (`detected:false` shows the message + does not call `onApplied`; `detected:true` applies). Full
 suite + typecheck + lint green; mobile/desktop visual check deferred to the owner.
+
+---
+
+## QP-1 — Mobile one-tap photo meal entry (B-158) — RESOLVED
+
+A streamlined mobile entry point that composes existing pieces — no new behaviour in the API, DB,
+DTO, or domain (web-only). Owner-approved.
+
+**Decision.** On the **phone layout (≤560px) only**, the meal-column header shows a **📷 button with
+a "+" badge** in the slot of the (CSS-hidden ≤560px) 🍳 cuisine button. Tapping it opens the
+**device camera directly** (single shot, no note), **auto-runs** the existing dish-photo analysis
+(`POST /ai/dish-photo-macros`), and on success opens the **`CustomFoodModal` pre-filled** on the
+**shown meal** at the **first free slot**, where the line is created on validation. On **"no food
+detected"** (DS-1/B-160) it shows the no-food message and does **not** open the modal; on error a
+**dismissible** banner under the header, nothing added. The button is shown **only when the
+`dish_photo_macros` task is configured** (link + key + a vision model, B-117) and is **hidden on
+desktop** (which keeps the 🍳 button + the in-modal "Analyse par IA" path unchanged). It is a second
+entry point to the **same** analysis, not a new AI use.
+
+**Implementation notes (web).** Reuses `capture="environment"` (B-143), `useDishPhotoMacros`
+(B-118), the `detected` flag (DS-1), and the `order_index` slot model (B-028). The
+camera→analyse→prefill wiring lives in a new `useMealPhotoEntry` hook; a pure `firstFreeSlot(entries)`
+helper (in `logic/lineRows.ts`) computes the insertion row (first empty row, skipping garde-manger
+qty-0 placeholders, else append). To pre-fill a **new** custom line, `openCustom` gained an optional
+`prefill` carried on `CustomTarget`, and `CustomFoodModal`'s add/edit title now derives from
+`target.entryId` (so a prefilled new line still reads "Ajouter"). `readAsDataUrl`/`ACCEPT` and the AI
+error-code mapping were extracted to `features/meals/lib/` and shared with `AiDishAnalysisDialog`.
+
+**Rationale.** Cuts the photo→line path on mobile from ~5 steps to one tap, reusing the existing
+analysis verbatim. Desktop is untouched.
+
+**Contract delta.** `specifications/screens/meals.md` (mobile one-tap entry in the Repas AI note);
+`design/components/ai-dish-analysis.md` (new mobile trigger section) + `design/components/mobile.md`
+(one line); i18n key `meals.photoEntry.button` (fr/en). **No** `spec/logic/ai-dish-photo-macros.md`,
+API, schema, or DTO change.
+
+**Acceptance.** `firstFreeSlot` unit test (gaps / placeholders / append); `macrosToCustomValues`
+mapping test; `useMealPhotoEntry` test (gating; `detected:true` → `openCustom` at first free slot
+with prefill; `detected:false` → no-food message, no open; error → warning, nothing added). Full
+suite (459) + typecheck + lint green; mobile camera/visual check deferred to the owner.

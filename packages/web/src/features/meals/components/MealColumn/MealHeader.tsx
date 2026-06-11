@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../../../../lib/useIsMobile';
 import { MealMenuSheet } from './MealMenuSheet';
@@ -17,6 +17,9 @@ interface MealHeaderProps {
   onMoveLeft: () => void;
   onMoveRight: () => void;
   onDelete: () => void;
+  /** Mobile-only extra control in the button row (the 📷+ one-tap photo entry, QP-1/B-158). It sits
+   *  in the 🍳 slot, which is CSS-hidden ≤560px; null on desktop / when the AI task is unconfigured. */
+  extra?: ReactNode;
 }
 
 export function MealHeader({
@@ -28,6 +31,7 @@ export function MealHeader({
   onMoveLeft,
   onMoveRight,
   onDelete,
+  extra,
 }: MealHeaderProps) {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
@@ -52,6 +56,7 @@ export function MealHeader({
   return (
     <div className={styles.head}>
       <span className={styles.name}>{name}</span>
+      {extra}
       <button
         type="button"
         className={styles.cookBtn}

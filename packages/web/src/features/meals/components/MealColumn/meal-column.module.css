@@ -56,6 +56,48 @@
   border-color: var(--accent);
 }
 
+/* Mobile one-tap photo entry (QP-1/B-158): styled like .cookBtn but with a "+" badge overlay. It
+   mounts only on the phone layout (the component is gated), so no media query is needed here. */
+.photoBtn {
+  position: relative;
+  border: 1px solid var(--border);
+  background: var(--bg-elev-2);
+  color: var(--text-dim);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-14);
+  line-height: 1;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 5px 8px;
+  cursor: pointer;
+}
+.photoBtn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.photoBadge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: var(--fs-12);
+  font-weight: var(--fw-bold);
+  line-height: 1;
+}
+.photoErrDetail {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--fs-12);
+  opacity: 0.85;
+}
+
 .menuWrap {
   position: relative;
 }

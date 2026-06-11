@@ -77,4 +77,9 @@ until each page's slice (S4 Repas, S5–S8 lists) reflows it.
   navigates day-to-day — **swipe-left = next, swipe-right = previous** — mirroring the ‹ ›
   arrows. Gestures starting on a button/input/menu keep their own behaviour (shared swipe
   hook). Same direction convention as the Repas meal-tab swipe (`dir −1/+1`).
+- **One-tap dish photo in the meal header (QP-1/B-158).** On the phone layout, the meal-column
+  header shows a **📷 + badge** button in the slot of the (hidden ≤560px) 🍳 cuisine button: it
+  opens the camera, auto-runs the AI dish-photo analysis, and opens the custom line pre-filled at the
+  first free slot. Shown only when the dish-photo AI task is configured; hidden on desktop. See
+  `ai-dish-analysis.md`.
 - **Out of scope:** pull-to-refresh, landscape-specific layouts, offline.

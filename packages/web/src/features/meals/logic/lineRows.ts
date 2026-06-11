@@ -32,3 +32,20 @@ export function buildLineRows(entries: MealEntry[], minLines: number): LineRow[]
   for (let row = 0; row < rowCount; row++) rows.push({ row, entry: byRow.get(row) ?? null });
   return rows;
 }
+
+// First insertable slot for a new line (QP-1/B-158): the first row with no entry, scanning from 0.
+// Garde-manger placeholders (pinned, qty 0) occupy their order_index like any entry, so they are
+// skipped — the new line never collides with one. If every row up to the max is taken, append after
+// the last line. Same order_index mapping as buildLineRows; pure (no I/O).
+export function firstFreeSlot(entries: MealEntry[]): number {
+  const taken = new Set<number>();
+  let maxRow = -1;
+  for (const e of entries) {
+    taken.add(e.order_index);
+    if (e.order_index > maxRow) maxRow = e.order_index;
+  }
+  for (let row = 0; row <= maxRow; row++) {
+    if (!taken.has(row)) return row;
+  }
+  return maxRow + 1;
+}

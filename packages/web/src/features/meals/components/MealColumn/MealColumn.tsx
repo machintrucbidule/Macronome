@@ -6,9 +6,12 @@ import { useMeals } from '../../MealsContext';
 import { buildLineRows } from '../../logic/lineRows';
 import { useLineDnd } from '../../hooks/useLineDnd';
 import { useTouchReorder } from '../../hooks/useTouchReorder';
+import { useMealPhotoEntry } from '../../hooks/useMealPhotoEntry';
 import { FoodLine } from '../FoodLine/FoodLine';
 import { LineHeader } from './LineHeader';
 import { MealHeader } from './MealHeader';
+import { MealPhotoButton } from './MealPhotoButton';
+import { MealPhotoFeedback } from './MealPhotoFeedback';
 import { MealFooter } from './MealFooter';
 import { MealDeleteConfirm } from './MealDeleteConfirm';
 import styles from './meal-column.module.css';
@@ -41,11 +44,9 @@ export function MealColumn({ meal, index, meals, width, active = false }: MealCo
   // Mobile long-press touch reorder (S9) runs alongside the desktop native DnD; both commit through
   // the same reorder action. Inert on desktop (mouse pointers are ignored + handlers unattached).
   const isMobile = useIsMobile();
-  const touch = useTouchReorder(
-    isMobile,
-    byRow,
-    (order) => void actions.reorderEntries(meal.id, order),
-  );
+  const touch = useTouchReorder(isMobile, byRow, (o) => void actions.reorderEntries(meal.id, o));
+  // Mobile one-tap photo → AI → custom line (QP-1/B-158); wiring + state live in the hook.
+  const photo = useMealPhotoEntry(meal);
 
   const isEditing = (row: number, entry: MealEntry | null): boolean => {
     if (!editing || editing.mealIndex !== meal.order_index) return false;
@@ -83,7 +84,9 @@ export function MealColumn({ meal, index, meals, width, active = false }: MealCo
         onMoveLeft={() => index > 0 && swap(meals[index - 1] as Meal)}
         onMoveRight={() => index < meals.length - 1 && swap(meals[index + 1] as Meal)}
         onDelete={() => setConfirming(true)}
+        extra={photo.ready ? <MealPhotoButton busy={photo.busy} onClick={photo.trigger} /> : null}
       />
+      <MealPhotoFeedback photo={photo} />
       <div className={styles.lines}>
         <LineHeader />
         {rows.map(({ row, entry }) => (

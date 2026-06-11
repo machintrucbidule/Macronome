@@ -120,7 +120,7 @@ export function CustomFoodModal({ target, initial }: CustomFoodModalProps) {
 
   return (
     <Modal
-      title={t(initial ? 'meals.custom.editTitle' : 'meals.custom.addTitle')}
+      title={t(target.entryId ? 'meals.custom.editTitle' : 'meals.custom.addTitle')}
       onClose={actions.closeCustom}
     >
       <div className={modalStyles.body} onKeyDown={onKeyDown}>
