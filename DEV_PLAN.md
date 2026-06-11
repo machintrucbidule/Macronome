@@ -442,4 +442,16 @@ documented here only so the information is ready when the author decides to run 
         **Companion (separate commit):** L/G/P macro values colour-coded on food lines + meal totals,
         desktop+mobile. `data-tables.md` Mobile subsection; `DECISIONS.md` "Mobile-responsive S9". Desktop
         inert ≥561px; 233 web tests + typecheck + lint green.
-  - [ ] **S10** — Stats (wide blocks scroll, mount-time scroll to current period).
+  - [x] **S10** — Stats: wide blocks scroll horizontally inside their own block ≤560px
+        instead of shrinking to an illegible width. New local `ScrollBlock` (div `.scroll` +
+        a `useLayoutEffect` gated by `useIsMobile()` that sets `scrollLeft = scrollWidth` on
+        mount / `dep` change → opens scrolled to the right edge = most-recent/current period).
+        `stats.module.css` `@media (max-width:560px)`: `.scroll` (`overflow-x:auto`),
+        `.scroll > svg` (`width:max-content` — heatmap native cell size), `.bars { min-width:
+    640px }` (the two monthly pivots). `AdherenceSections` wraps `<Heatmap>` (`dep={year}`);
+        `MonthlyBars`/`MonthCalorieBars` wrap their `chart.plot` (`dep={monthly}`, legend left
+        outside so it stays fixed). **Shared `components/Chart/Heatmap.*` untouched** (handled
+        externally via the local `.scroll > svg` rule). No amendment (dev-plan: None); no
+        `tokens.css`/`DECISIONS.md` change. Desktop inert ≥561px; typecheck/lint/233 web tests +
+        web build green; no new tests (layout behaviour). **Closes the mobile-responsive
+        milestone (S1–S10).**

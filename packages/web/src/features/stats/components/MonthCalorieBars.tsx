@@ -7,6 +7,7 @@ import { ChartTooltip, type TooltipPoint } from '../../../components/Chart/Chart
 import { ColumnHits, type ColumnHit } from '../../../components/Chart/ColumnHits';
 import { type ChartBox, linear, niceDomain, polyline } from '../../../components/Chart/scale';
 import { monthLabel, r0 } from '../format';
+import { ScrollBlock } from './ScrollBlock';
 import chart from '../../../components/Chart/Chart.module.css';
 import styles from '../stats.module.css';
 
@@ -104,41 +105,47 @@ export function MonthCalorieBars({
 
   return (
     <div className={chart.chart}>
-      <div className={chart.plot}>
-        <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" className={styles.bars}>
-          <ChartGridlines box={BOX} lo={lo} hi={hi} y={y} />
-          {zone && (
-            <rect
-              className={styles.zone}
-              x={PAD.l}
-              y={y(zone.cal_max)}
-              width={W - PAD.l - PAD.r}
-              height={Math.max(0, y(zone.cal_min) - y(zone.cal_max))}
+      <ScrollBlock dep={monthly}>
+        <div className={chart.plot}>
+          <svg
+            viewBox={`0 0 ${W} ${H}`}
+            preserveAspectRatio="xMidYMid meet"
+            className={styles.bars}
+          >
+            <ChartGridlines box={BOX} lo={lo} hi={hi} y={y} />
+            {zone && (
+              <rect
+                className={styles.zone}
+                x={PAD.l}
+                y={y(zone.cal_max)}
+                width={W - PAD.l - PAD.r}
+                height={Math.max(0, y(zone.cal_min) - y(zone.cal_max))}
+              />
+            )}
+            {monthly.map((m, i) => (
+              <AvgBarGroup
+                key={m.month}
+                m={m}
+                cx={cxOf(i)}
+                barW={barW}
+                base={base}
+                y={y}
+                lang={i18n.language}
+              />
+            ))}
+            {globalPath && <path className={styles.avgLine} d={globalPath} />}
+            <ColumnHits
+              columns={columns}
+              width={slot}
+              top={PAD.t}
+              height={base - PAD.t}
+              onHover={setHovered}
+              onLeave={() => setHovered(null)}
             />
-          )}
-          {monthly.map((m, i) => (
-            <AvgBarGroup
-              key={m.month}
-              m={m}
-              cx={cxOf(i)}
-              barW={barW}
-              base={base}
-              y={y}
-              lang={i18n.language}
-            />
-          ))}
-          {globalPath && <path className={styles.avgLine} d={globalPath} />}
-          <ColumnHits
-            columns={columns}
-            width={slot}
-            top={PAD.t}
-            height={base - PAD.t}
-            onHover={setHovered}
-            onLeave={() => setHovered(null)}
-          />
-        </svg>
-        {hovered && <ChartTooltip point={hovered} box={BOX} />}
-      </div>
+          </svg>
+          {hovered && <ChartTooltip point={hovered} box={BOX} />}
+        </div>
+      </ScrollBlock>
       <ChartLegend series={LEGEND} />
     </div>
   );

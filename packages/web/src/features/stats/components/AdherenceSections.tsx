@@ -5,6 +5,7 @@ import { SkeletonRows } from '../../../components/states/SkeletonRows';
 import { KeyFigures } from './KeyFigures';
 import { MonthCalorieBars } from './MonthCalorieBars';
 import { MonthlyBars } from './MonthlyBars';
+import { ScrollBlock } from './ScrollBlock';
 import { Signals } from './Signals';
 import { YearSelector } from './YearSelector';
 import styles from '../stats.module.css';
@@ -17,6 +18,16 @@ interface Props {
   loading: boolean;
   year: number;
   onYear: (year: number) => void;
+}
+
+/** Fraction (0–1) of the full Jan→Dec heatmap occupied up to the last logged day, so the
+ * mobile scroll lands there (≈ today for the current year, ≈ Dec for a past full year)
+ * instead of on the empty future tail. Undefined when nothing is logged. */
+function lastLoggedRatio(cells: AdherenceResponse['heatmap']): number | undefined {
+  for (let i = cells.length - 1; i >= 0; i--) {
+    if (cells[i]!.status !== 'none') return (i + 1) / cells.length;
+  }
+  return undefined;
 }
 
 export function AdherenceSections({ data, loading, year, onYear }: Props) {
@@ -33,7 +44,9 @@ export function AdherenceSections({ data, loading, year, onYear }: Props) {
         ) : (
           <>
             <KeyFigures data={data.key} />
-            <Heatmap cells={data.heatmap} />
+            <ScrollBlock dep={year} targetRatio={lastLoggedRatio(data.heatmap)}>
+              <Heatmap cells={data.heatmap} />
+            </ScrollBlock>
             <h3 className={styles.h3}>{t('stats.section.monthly')}</h3>
             <MonthlyBars monthly={data.monthly} />
           </>

@@ -7,6 +7,7 @@ import { ChartTooltip, type TooltipPoint } from '../../../components/Chart/Chart
 import { ColumnHits, type ColumnHit } from '../../../components/Chart/ColumnHits';
 import { type ChartBox, linear } from '../../../components/Chart/scale';
 import { monthLabel, pct } from '../format';
+import { ScrollBlock } from './ScrollBlock';
 import chart from '../../../components/Chart/Chart.module.css';
 import styles from '../stats.module.css';
 
@@ -47,43 +48,49 @@ export function MonthlyBars({ monthly }: { monthly: MonthlyStat[] }) {
 
   return (
     <div className={chart.chart}>
-      <div className={chart.plot}>
-        <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" className={styles.bars}>
-          <ChartGridlines box={BOX} lo={0} hi={maxTotal} y={y} />
-          {monthly.map((m, i) => {
-            const x = PAD.l + slot * i + (slot - barW) / 2;
-            const okH = base - y(m.ok_count);
-            const nokH = base - y(m.nok_count);
-            return (
-              <g key={m.month}>
-                <rect
-                  className={styles.barNok}
-                  x={x}
-                  y={base - okH - nokH}
-                  width={barW}
-                  height={nokH}
-                />
-                <rect className={styles.barOk} x={x} y={base - okH} width={barW} height={okH} />
-                <text className={styles.barTop} x={x + barW / 2} y={base - okH - nokH - 4}>
-                  {pct(m.ok_rate)}
-                </text>
-                <text className={styles.axis} x={x + barW / 2} y={H - 8}>
-                  {monthLabel(m.month, i18n.language)}
-                </text>
-              </g>
-            );
-          })}
-          <ColumnHits
-            columns={columns}
-            width={slot}
-            top={PAD.t}
-            height={base - PAD.t}
-            onHover={setHovered}
-            onLeave={() => setHovered(null)}
-          />
-        </svg>
-        {hovered && <ChartTooltip point={hovered} box={BOX} />}
-      </div>
+      <ScrollBlock dep={monthly}>
+        <div className={chart.plot}>
+          <svg
+            viewBox={`0 0 ${W} ${H}`}
+            preserveAspectRatio="xMidYMid meet"
+            className={styles.bars}
+          >
+            <ChartGridlines box={BOX} lo={0} hi={maxTotal} y={y} />
+            {monthly.map((m, i) => {
+              const x = PAD.l + slot * i + (slot - barW) / 2;
+              const okH = base - y(m.ok_count);
+              const nokH = base - y(m.nok_count);
+              return (
+                <g key={m.month}>
+                  <rect
+                    className={styles.barNok}
+                    x={x}
+                    y={base - okH - nokH}
+                    width={barW}
+                    height={nokH}
+                  />
+                  <rect className={styles.barOk} x={x} y={base - okH} width={barW} height={okH} />
+                  <text className={styles.barTop} x={x + barW / 2} y={base - okH - nokH - 4}>
+                    {pct(m.ok_rate)}
+                  </text>
+                  <text className={styles.axis} x={x + barW / 2} y={H - 8}>
+                    {monthLabel(m.month, i18n.language)}
+                  </text>
+                </g>
+              );
+            })}
+            <ColumnHits
+              columns={columns}
+              width={slot}
+              top={PAD.t}
+              height={base - PAD.t}
+              onHover={setHovered}
+              onLeave={() => setHovered(null)}
+            />
+          </svg>
+          {hovered && <ChartTooltip point={hovered} box={BOX} />}
+        </div>
+      </ScrollBlock>
       <ChartLegend series={LEGEND} />
     </div>
   );

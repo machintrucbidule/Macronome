@@ -198,3 +198,64 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* Mobile-responsive S10 (spec §7 + owner refinements): the Stats screen on phones.
+   Desktop inert (≥561px nothing here applies). */
+@media (max-width: 560px) {
+  /* The page header is redundant with the mobile app-bar title (S3); the "as of" date adds
+     little on a phone. Hide both (owner). */
+  .head {
+    display: none;
+  }
+  /* Year selector before the section title (owner). */
+  .sectionHead {
+    flex-direction: row-reverse;
+  }
+  /* Make the 8 top metric tiles (rolling + keys) noticeably shorter (owner): the height is
+     driven by the big value font (stat `--fs-24` → 26px on mobile), so shrink the value plus
+     the padding and inner gap. Scoped to the stats grids via structural selectors — the
+     MetricCard DOM is stable (label / value / optional note) — so the shared component is not
+     edited. The stat cards also expose `--metric-stat-pad` (S8). */
+  .rolling,
+  .keys {
+    gap: var(--sp-3);
+  }
+  .rolling {
+    --metric-stat-pad: var(--sp-3) var(--sp-5);
+  }
+  .keys {
+    margin-bottom: var(--sp-4);
+  }
+  .keys > div {
+    padding: var(--sp-3) var(--sp-4);
+  }
+  .rolling > div,
+  .keys > div {
+    gap: 2px;
+  }
+  .rolling > div > div:nth-child(2) {
+    font-size: var(--fs-16);
+  }
+  .keys > div > div:nth-child(2) {
+    font-size: var(--fs-14);
+  }
+  /* Wide blocks (adherence heatmap, monthly pivots) scroll horizontally inside their own
+     block instead of shrinking to an illegible width; `ScrollBlock` opens them at the right
+     edge (current period). */
+  .scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* Heatmap (shared Chart component, untouched): a fixed min-width forces it past the
+     viewport so it scrolls at a readable cell size — `width:max-content` collapsed to the
+     container for a viewBox SVG, so an explicit floor is used. Targeted via the element
+     selector to override the shared Heatmap.module.css `.svg` rule without editing it. */
+  .scroll > svg {
+    min-width: 720px;
+  }
+  /* Monthly pivots (MonthlyBars + MonthCalorieBars share `.bars`; native viewBox is 720). */
+  .bars {
+    min-width: 640px;
+  }
+}
