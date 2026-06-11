@@ -29,6 +29,21 @@ export function FoodPickerSheet({ target }: { target: EditTarget }) {
 
   const title = target.entryId ? t('meals.picker.titleReplace') : t('meals.picker.titleAdd');
 
+  // B-159: the custom option leads the list when the field is empty (the common "new line" case)
+  // and trails it once the user types. Empty = trimmed query (parity with the inline Autocomplete).
+  const customFirst = query.trim() === '';
+  const customBtn = (
+    <button
+      type="button"
+      className={styles.custom}
+      onClick={() =>
+        actions.openCustom(target.mealId, target.mealIndex, target.entryId, target.orderIndex)
+      }
+    >
+      {t('meals.search.custom')}
+    </button>
+  );
+
   const pick = (id: string): void =>
     void actions.pickFood(
       {
@@ -53,6 +68,7 @@ export function FoodPickerSheet({ target }: { target: EditTarget }) {
           onChange={(e) => setQuery(e.target.value)}
         />
         <div className={styles.results}>
+          {customFirst && customBtn}
           {results.map((r) => (
             <button
               key={r.id}
@@ -69,15 +85,7 @@ export function FoodPickerSheet({ target }: { target: EditTarget }) {
             </button>
           ))}
           {results.length === 0 && <div className={styles.empty}>{t('meals.search.empty')}</div>}
-          <button
-            type="button"
-            className={styles.custom}
-            onClick={() =>
-              actions.openCustom(target.mealId, target.mealIndex, target.entryId, target.orderIndex)
-            }
-          >
-            {t('meals.search.custom')}
-          </button>
+          {!customFirst && customBtn}
         </div>
       </div>
     </Modal>

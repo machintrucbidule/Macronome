@@ -64,8 +64,25 @@ function AutocompleteList({
   onHover,
   onCustom,
 }: ListProps) {
+  // The custom option is mouse-only (never keyboard-highlighted). B-159: it leads the list when the
+  // query is empty (the common "new line" case) and trails it once the user types, so Enter/Tab keep
+  // selecting the first food (B-023). Empty = trimmed query, matching the Tab handler's convention.
+  const customNode =
+    onCustom && customOptionLabel ? (
+      <div
+        className={styles.customOpt}
+        onMouseDown={(e) => {
+          e.preventDefault();
+          onCustom();
+        }}
+      >
+        {customOptionLabel}
+      </div>
+    ) : null;
+  const customFirst = query.trim() === '';
   return (
     <div className={styles.ac} id={listId} role="listbox">
+      {customFirst && customNode}
       {items.map((item, i) => (
         <div
           key={item.id}
@@ -93,17 +110,7 @@ function AutocompleteList({
         </div>
       ))}
       {items.length === 0 && <div className={styles.empty}>{emptyLabel}</div>}
-      {onCustom && customOptionLabel && (
-        <div
-          className={styles.customOpt}
-          onMouseDown={(e) => {
-            e.preventDefault();
-            onCustom();
-          }}
-        >
-          {customOptionLabel}
-        </div>
-      )}
+      {!customFirst && customNode}
     </div>
   );
 }

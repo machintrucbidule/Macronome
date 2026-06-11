@@ -3195,3 +3195,29 @@ API, schema, or DTO change.
 mapping test; `useMealPhotoEntry` test (gating; `detected:true` → `openCustom` at first free slot
 with prefill; `detected:false` → no-food message, no open; error → warning, nothing added). Full
 suite (459) + typecheck + lint green; mobile camera/visual check deferred to the owner.
+
+---
+
+## PK-1 — Repas picker: custom option first when empty (B-159) — RESOLVED
+
+A small web-only UX refinement to the "+ aliment" picker. Owner-approved.
+
+**Decision.** The **"+ Valeurs manuelles (custom)…"** option is shown **first** (leading row) when
+the search field is **empty** — the common case when opening a brand-new line, where manual entry is
+often what the user wants — and **returns to last** (trailing row) **as soon as text is typed**,
+which is the prior behaviour. While searching it therefore stays at the bottom and does **not**
+interfere with Enter/Tab selecting the first matching food (**B-023 preserved**); the custom option
+is never keyboard-highlighted (mouse/tap only). Applies on **desktop** (the shared `Autocomplete`)
+and **mobile** (`FoodPickerSheet`). "Empty" = the **trimmed** query is empty (parity with the
+Autocomplete Tab handler's convention).
+
+**Rationale.** Puts the most likely action one tap away on an empty picker without changing the
+search ergonomics once the user starts typing.
+
+**Contract delta.** `design/components/forms-inputs.md` (custom option = leading when empty, trailing
+while searching) + `specifications/screens/meals.md` (picker note). **No** i18n, API, schema, DTO,
+domain, or keyboard-behaviour change (B-023/B-105 intact).
+
+**Acceptance.** `Autocomplete` test extended (B-159): custom precedes the first item on an empty /
+whitespace query, follows it once typing; the existing B-023 Enter/Tab tests stay green. Full suite
+(462) + typecheck + lint green; mobile `FoodPickerSheet` visual check deferred to the owner.

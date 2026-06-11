@@ -98,8 +98,10 @@ box-shadow:var(--shadow); max-height:240–300px; overflow:auto; min-width:260�
   recipe cycle) → `opacity:.4; cursor:not-allowed`; **empty** `.empty` →
   "Aucun résultat" in `--text-faint`.
 - **tags**: a `portion` tag and a `recette` (`--recipe`) badge can appear inline.
-- A trailing **custom option** `.custom-opt` (`color:var(--accent)`) → "+ Valeurs
-  manuelles (custom)…" opens the custom-food modal.
+- A **custom option** `.custom-opt` (`color:var(--accent)`) → "+ Valeurs
+  manuelles (custom)…" opens the custom-food modal. It is **leading** (first row) when the query is
+  **empty** and **trailing** (last row) once the user types (B-159) — so Enter/Tab keep selecting the
+  first food while searching (B-023). It is never keyboard-highlighted (mouse/tap only).
 - Keyboard: ↑/↓ move `.hi`, Enter selects, Esc closes; Tab navigates the grid.
 
 ## Inline editable cells

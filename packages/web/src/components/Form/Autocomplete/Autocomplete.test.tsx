@@ -28,6 +28,24 @@ function renderAc(items: AutocompleteItem[], onPick = vi.fn(), opts: { query?: s
   return { input: container.querySelector('input') as HTMLInputElement, onPick, onClose };
 }
 
+function renderWithCustom(query: string) {
+  const { container } = render(
+    <Autocomplete
+      query={query}
+      onQueryChange={vi.fn()}
+      items={ITEMS}
+      emptyLabel="Aucun"
+      customOptionLabel="+ Valeurs manuelles"
+      onPick={vi.fn()}
+      onCustom={vi.fn()}
+      onClose={vi.fn()}
+    />,
+  );
+  const custom = container.querySelector('[class*="customOpt"]') as HTMLElement;
+  const firstItem = container.querySelector('[role="option"]') as HTMLElement;
+  return { custom, firstItem };
+}
+
 describe('Autocomplete Enter selection (B-023)', () => {
   it('selects the first suggestion on Enter with no manual highlight', () => {
     const { input, onPick } = renderAc(ITEMS);
@@ -53,6 +71,26 @@ describe('Autocomplete Enter selection (B-023)', () => {
     const { input, onPick } = renderAc([{ id: 'x', name: 'Indispo', disabled: true }, ITEMS[1]!]);
     fireEvent.keyDown(input, { key: 'Enter' });
     expect(onPick).not.toHaveBeenCalled();
+  });
+});
+
+describe('Autocomplete custom option position (B-159)', () => {
+  const FOLLOWING = Node.DOCUMENT_POSITION_FOLLOWING;
+
+  it('leads the list when the query is empty (custom before the first item)', () => {
+    const { custom, firstItem } = renderWithCustom('');
+    // custom precedes firstItem ⇒ firstItem follows custom in document order
+    expect(custom.compareDocumentPosition(firstItem) & FOLLOWING).toBeTruthy();
+  });
+
+  it('treats a whitespace-only query as empty (custom still leads)', () => {
+    const { custom, firstItem } = renderWithCustom('   ');
+    expect(custom.compareDocumentPosition(firstItem) & FOLLOWING).toBeTruthy();
+  });
+
+  it('trails the list once the user types (custom after the first item)', () => {
+    const { custom, firstItem } = renderWithCustom('a');
+    expect(firstItem.compareDocumentPosition(custom) & FOLLOWING).toBeTruthy();
   });
 });
 
