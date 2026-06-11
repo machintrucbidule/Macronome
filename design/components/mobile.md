@@ -69,4 +69,12 @@ until each page's slice (S4 Repas, S5–S8 lists) reflows it.
   focus with `.focus({ preventScroll: true })`; a bare `.focus()` scroll-into-view fights the
   enter animation and makes the panel overshoot on mobile. See `modals.md` (handled in
   `useFocusTrap.ts`).
+- **Date headers stay single-line (DH-1).** Where a screen shows a compact date on mobile
+  (Repas day band), it renders on **one line, no wrap**: the localised month is abbreviated
+  to its **first 4 letters** (any locale — keeps juin/juil · June/July distinct) and the
+  date text / adjacent controls are trimmed to fit rather than wrapping.
+- **Swipe a date band to change day (DH-1).** A horizontal swipe on a day's date band
+  navigates day-to-day — **swipe-left = next, swipe-right = previous** — mirroring the ‹ ›
+  arrows. Gestures starting on a button/input/menu keep their own behaviour (shared swipe
+  hook). Same direction convention as the Repas meal-tab swipe (`dir −1/+1`).
 - **Out of scope:** pull-to-refresh, landscape-specific layouts, offline.

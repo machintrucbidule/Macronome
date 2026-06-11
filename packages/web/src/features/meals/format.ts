@@ -33,15 +33,19 @@ export function formatDateLabel(date: string, locale: string): string {
   });
 }
 
-/** Compact day label for the mobile day bar (mobile-responsive S4): short weekday + day + month
- *  + 2-digit year, e.g. fr "mar. 10 juin 26". Desktop keeps the long label above. */
+/** Compact day label for the mobile day bar (mobile-responsive S4 / B-153): short weekday + day
+ *  + month abbreviated to its first 4 letters + 2-digit year, e.g. fr "mar. 10 juin 26",
+ *  "mer. 10 sept 26". The 4-letter month (any locale) keeps the row on one line while staying
+ *  distinct (juin/juil, June/July). Built from parts so the locale's own order/separators hold.
+ *  Desktop keeps the long label above. */
 export function formatDateLabelShort(date: string, locale: string): string {
-  return parseIso(date).toLocaleDateString(locale, {
+  const parts = new Intl.DateTimeFormat(locale, {
     weekday: 'short',
     day: 'numeric',
     month: 'long',
     year: '2-digit',
-  });
+  }).formatToParts(parseIso(date));
+  return parts.map((p) => (p.type === 'month' ? p.value.slice(0, 4) : p.value)).join('');
 }
 
 /** Round to a whole number for display (totals/macros shown as integers). */

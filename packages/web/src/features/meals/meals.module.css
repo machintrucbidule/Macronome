@@ -597,6 +597,16 @@
     gap: var(--sp-4);
     flex: 1 1 100%;
   }
+  /* Keep the whole date band on one line (B-153): no wrap + a slightly smaller label, paired
+     with the 4-letter month (format.ts) and the trimmed "⋯" trigger below, so the short date
+     never spills onto a second line — even for a long month (septembre/décembre). */
+  .dateRow,
+  .dateLabel {
+    white-space: nowrap;
+  }
+  .dateLabel {
+    font-size: var(--fs-14);
+  }
   .dateLong {
     display: none;
   }
@@ -610,7 +620,13 @@
   .dayComment {
     order: 1;
     flex: 1 1 120px;
-    min-width: 120px;
+    /* min-width:0 (not the desktop 120px) so this flex item — and its input below — can shrink
+       to the row instead of pushing the comment field past the day bar's right padding edge
+       (B-155: the input's default min-width:auto otherwise overflows on the right). */
+    min-width: 0;
+  }
+  .dayComment input {
+    min-width: 0;
   }
   /* Shrink the verdict badge (the day bar's last child → the VerdictBadge button) so the chip ·
      verdict · comment row fits; the "A"/"F" sub-label is set by DayVerdictBadge. */

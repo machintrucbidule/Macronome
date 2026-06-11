@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import type { DayDetail } from '@macronome/shared';
 import { useIsMobile } from '../../../../lib/useIsMobile';
-import { formatDateLabel, formatDateLabelShort, todayIso } from '../../format';
+import { useMealSwipe } from '../../hooks/useMealSwipe';
+import { formatDateLabel, formatDateLabelShort, shiftIso, todayIso } from '../../format';
 import { DateNavigator } from './DateNavigator';
 import { DayKindBadge } from './DayKindBadge';
 import { DayCommentField } from './DayCommentField';
@@ -26,13 +27,17 @@ export function DayHeader({ date, day, onNavigate, menu }: DayHeaderProps) {
   const { t, i18n } = useTranslation();
   const isToday = date === todayIso();
   const isMobile = useIsMobile();
+  // Swipe the date band to change day on mobile (B-154): left = next, right = prev — same
+  // convention as the ‹ › arrows and the meal-tab swipe (dir −1/+1). The hook ignores gestures
+  // starting on a button/input/menu, so the ‹ › / ⋯ / comment controls keep their own behaviour.
+  const dateSwipe = useMealSwipe(isMobile, (dir) => onNavigate(shiftIso(date, dir)));
 
   return (
     <div className={styles.sticky}>
       <div className={styles.daybar}>
         {/* Date group wrapped so it can claim its own row ≤560px (`.dateRow`, mobile-responsive
             S4); `display:contents` keeps it inert on desktop. */}
-        <div className={styles.dateRow}>
+        <div className={styles.dateRow} {...dateSwipe}>
           <DateNavigator date={date} onNavigate={onNavigate} />
           {/* Two date variants, CSS-toggled (appbarTitle pattern): the long label on desktop, the
               compact one ≤560px. Both render; the breakpoint hides one. */}

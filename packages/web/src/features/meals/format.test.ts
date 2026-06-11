@@ -21,6 +21,14 @@ describe('formatDateLabelShort', () => {
     expect(short).toContain('26');
   });
 
+  it('abbreviates a long month to its first 4 letters (B-153)', () => {
+    // 2026-09-10 → September: "septembre" must collapse to "sept" so the mobile date row stays
+    // on one line; juin/juil and June/July stay distinct under the same 4-letter rule.
+    const short = formatDateLabelShort('2026-09-10', 'fr');
+    expect(short).toContain('sept');
+    expect(short).not.toContain('septembre');
+  });
+
   it('is locale-aware (English short form)', () => {
     // en short weekday + month-day order; just assert it stays compact and 2-digit-year.
     const short = formatDateLabelShort('2026-06-10', 'en');

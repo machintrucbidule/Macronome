@@ -3052,3 +3052,36 @@ already-public `/health` is read).
 `UpdateCard` version line, `haptics` no-op guard, `AiDishAnalysisDialog` mobile camera input. Web build
 produces `dist/sw.js` + `manifest.webmanifest` + icons. Full web suite + typecheck + lint + check:i18n
 green. Device check (install/standalone/update/camera/haptics) deferred to the owner.
+
+---
+
+## DH-1 — Mobile Repas date band: single line + 4-letter month + swipe (B-153, B-154) — RESOLVED
+
+Refines the archived two-row mobile day bar (B-054). Two owner-approved deltas to the
+mobile date band (≤560px), code + contract:
+
+- **B-153 — single line, 4-letter month.** The compact date renders on **one line, no wrap**.
+  **Owner decision:** the localised month is abbreviated to its **first 4 letters, in any
+  language** (fr janv/févr/mars/avri/mai/juin/juil/août/sept/octo/nove/déce; en
+  Janu/Febr/…/June/July/…) — 4 letters keeps juin/juil and June/July distinct; **no trailing
+  period**. The date text and the "⋯" day-menu trigger are slightly trimmed to fit.
+- **B-154 — swipe to change day.** A horizontal swipe on the date band navigates day-to-day:
+  **swipe-left = next, swipe-right = previous**, parity with the ‹ › arrows; reuses the
+  existing `useMealSwipe` hook (same `dir −1/+1` convention as the meal-tab swipe). The
+  arrows/calendar/⋯/comment controls keep their own taps (hook ignores gestures starting on
+  a button/input/menu).
+
+**Rationale:** keeps the refined two-row day bar on one line on narrow phones without
+losing month legibility, and adds a thumb-friendly day navigation that mirrors the existing
+swipe language — no desktop change (all rules are `@media (max-width:560px)` / `useIsMobile()`).
+
+**Contract delta.** `specifications/screens/meals.md` (responsive ≤560px date-band note) +
+`design/components/mobile.md` (single-line abbreviated date header + date-band swipe
+convention). Bundled in the same change: **B-155** — a mobile-only **bug** fix (the row-2
+day-comment input overflowed the right edge; `min-width:0` lets the flex item shrink to the
+bar's padding edge) — code-only, conforms to the B-054 layout, **no contract change**. No
+API / schema / DTO change.
+
+**Acceptance.** `formatDateLabelShort` unit test extended (long month → first 4 letters).
+Web suite + typecheck + lint green. Visual checks (one-line date, swipe day-nav, comment
+alignment at ≤560px) deferred to the owner.

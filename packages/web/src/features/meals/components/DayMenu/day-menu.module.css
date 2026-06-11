@@ -3,8 +3,10 @@
 .trigger {
   margin-left: auto;
   flex: none;
-  width: var(--tap);
-  height: var(--tap);
+  /* Trimmed below --tap (B-153) so the single-line date row fits even with a long month; this
+     trigger is mounted only on the mobile (≤560px) date row, so no other use is affected. */
+  width: 34px;
+  height: 34px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
