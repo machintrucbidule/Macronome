@@ -24,8 +24,11 @@ export const DishPhotoMacrosRequestSchema = z
   });
 export type DishPhotoMacrosRequest = z.infer<typeof DishPhotoMacrosRequestSchema>;
 
-/** Aggregated estimate — all numbers are totals in SI units (g, kcal). Maps 1:1 to the form. */
+/** Aggregated estimate — all numbers are totals in SI units (g, kcal). Maps 1:1 to the form when
+ *  `detected` is true; when `detected` is false (DS-1/B-160) no food was identified, the numbers
+ *  are 0 and the client shows a no-food message instead of pre-filling. */
 export const DishPhotoMacrosSchema = z.object({
+  detected: z.boolean(),
   dish_name: z.string(),
   kcal: z.number(),
   weight_g: z.number(),

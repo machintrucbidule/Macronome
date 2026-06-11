@@ -26,11 +26,21 @@ These calls make an **outbound request** to the user's configured OpenAI-compati
   → **200** `{ "data": DishPhotoMacros }` where
 
   ```json
-  { "dish_name": "…", "kcal": 620, "weight_g": 350, "fat_g": 18, "carb_g": 80, "protein_g": 24 }
+  {
+    "detected": true,
+    "dish_name": "…",
+    "kcal": 620,
+    "weight_g": 350,
+    "fat_g": 18,
+    "carb_g": 80,
+    "protein_g": 24
+  }
   ```
 
   All numbers are **totals** (SI: grams, kcal), aggregated across all images into one result; the
-  model always estimates every field (`spec/logic/ai-dish-photo-macros.md`).
+  model always estimates every field (`spec/logic/ai-dish-photo-macros.md`). **`detected`**
+  (DS-1/B-160) is `false` only when no food could be identified at all — then the numeric fields are
+  `0`, the client shows a no-food message and pre-fills nothing; otherwise `true` (the normal case).
 
   **Errors:** `422 validation_error` (bad body); `409 ai_not_configured` (no `base_url`/`api_key`,
   or `tasks.dish_photo_macros.model` is `null`); `502 ai_unauthorized` (upstream 401/403);

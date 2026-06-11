@@ -44,15 +44,20 @@ return format is guaranteed regardless of what the user typed.
 The app appends, verbatim:
 
 > Respond with ONLY one JSON object, no markdown, no commentary, matching exactly:
-> `{"dish_name":string,"calories_kcal":number,"weight_g":number,"fat_g":number,"carb_g":number,"protein_g":number}`.
+> `{"detected":boolean,"dish_name":string,"calories_kcal":number,"weight_g":number,"fat_g":number,"carb_g":number,"protein_g":number}`.
+> Set `"detected"` to **false** ONLY when no food can be identified at all (in the photo(s) and/or
+> description); otherwise set it to **true** and estimate every other field.
 > All numbers are **totals** for the whole dish, based on the provided photo(s) and/or written
 > description, in **SI units**
-> (grams for weight and macros, kcal for energy), as plain numbers (no units, no quotes). Always
-> give your **best estimate for every field — never omit a field or use null**. If several dishes
-> appear, **aggregate them into one result** and combine their names in `dish_name`.
+> (grams for weight and macros, kcal for energy), as plain numbers (no units, no quotes). When
+> `"detected"` is true, always give your **best estimate for every field — never omit a field or
+> use null**; when `"detected"` is false the numeric fields may be `0`. If several dishes appear,
+> **aggregate them into one result** and combine their names in `dish_name`.
 
 This encodes two product decisions (DECISIONS B-118): **aggregate multiple dishes into one
-result** and **always estimate every field** (no nulls).
+result** and **always estimate every field** (no nulls). A third (DS-1/B-160) adds the
+**`detected` flag** so a "no food in the photo" outcome is surfaced cleanly instead of leaking a
+sentinel into `dish_name` — see §4/§5.
 
 ## 4. Response parsing & validation (pure function)
 
@@ -61,11 +66,17 @@ result** and **always estimate every field** (no nulls).
 1. **Unwrap** an optional markdown code fence (`/`json … ```), then take the first balanced
 `{ … }` object if extra prose surrounds it.
 2. `JSON.parse`.
-3. **Coerce** each numeric field: accept a number, or a numeric **string** (`"160"`, comma →
+3. **Detection short-circuit (DS-1/B-160).** Read `detected`: **absent → `true`** (back-compat with
+   the pre-B-160 six-field format). When `detected === false`, no food was identified → return a
+   **zeroed** result `{ detected:false, dish_name:"", kcal:0, weight_g:0, fat_g:0, carb_g:0,
+protein_g:0 }` **without** validating `dish_name`/the numbers (avoids a false `ai_bad_response`
+   when the model returns nulls/empty fields alongside `detected:false`); the web shows the no-food
+   message and does **not** pre-fill (§5). When `detected` is true/absent, continue with steps 4-6.
+4. **Coerce** each numeric field: accept a number, or a numeric **string** (`"160"`, comma →
    dot) → number. (Tolerant coercion — models often quote numbers.)
-4. **Validate** the shape: `dish_name` non-empty string; `calories_kcal`, `weight_g`, `fat_g`,
+5. **Validate** the shape: `dish_name` non-empty string; `calories_kcal`, `weight_g`, `fat_g`,
    `carb_g`, `protein_g` all **finite and ≥ 0** after coercion.
-5. **Map** to the result `{ dish_name, kcal: calories_kcal, weight_g, fat_g, carb_g, protein_g }`.
+6. **Map** to the result `{ detected:true, dish_name, kcal: calories_kcal, weight_g, fat_g, carb_g, protein_g }`.
 
 Any failure (not parseable, missing field, non-numeric, negative, `null`) → **`ai_bad_response`**.
 No rounding here — the web rounds for display per `00-conventions.md`; these totals fill the
@@ -73,11 +84,17 @@ custom-entry form, which already holds raw values.
 
 ## 5. Mapping to the custom-entry form
 
-The result maps **1:1** (the form holds **totals**, not per-100 g — `screens/meals.md` custom
-inline editor): `dish_name → name`, `kcal → kcal`, `weight_g → served weight`, `fat_g/carb_g/
-protein_g → fat/carb/protein`. No unit conversion. `dish_name` arrives in the **user's UI language**
-(§2 language clause), so the pre-filled name reads naturally and is stored that way. The user saves
-later through the normal `POST /meals/:id/entries` (`kind:'custom'`) flow — this call persists nothing.
+When `detected:true`, the result maps **1:1** (the form holds **totals**, not per-100 g —
+`screens/meals.md` custom inline editor): `dish_name → name`, `kcal → kcal`, `weight_g → served
+weight`, `fat_g/carb_g/protein_g → fat/carb/protein`. No unit conversion. `dish_name` arrives in
+the **user's UI language** (§2 language clause), so the pre-filled name reads naturally and is
+stored that way. The user saves later through the normal `POST /meals/:id/entries` (`kind:'custom'`)
+flow — this call persists nothing.
+
+When **`detected:false`** (DS-1/B-160), there is **no mapping**: the form is left untouched and the
+analysis dialog instead shows a **no-food message** (info tone, dialog stays open so the user can
+retake a photo, refine the note, or close — `design/components/ai-dish-analysis.md`). Nothing is
+pre-filled, so no sentinel ever reaches the `name` field.
 
 ## 6. Error codes
 
@@ -88,12 +105,16 @@ Reuses `ai-connection.md` §7: `ai_not_configured` (no `base_url`/`api_key`, or
 ## 7. Worked examples (oracles)
 
 1. **Clean JSON.** `{"dish_name":"Pasta","calories_kcal":620,"weight_g":350,"fat_g":18,"carb_g":80,"protein_g":24}`
-   → `{name:"Pasta", kcal:620, weight_g:350, fat_g:18, carb_g:80, protein_g:24}`.
+   → `{detected:true, name:"Pasta", kcal:620, weight_g:350, fat_g:18, carb_g:80, protein_g:24}`
+   (`detected` absent → `true`, back-compat).
 2. **Fenced JSON.** the same wrapped in `json … ` → accepted (fence stripped).
 3. **Quoted numbers.** `"calories_kcal":"620"` → coerced to `620`.
 4. **Missing field.** no `protein_g` → **`ai_bad_response`**.
 5. **Negative / NaN.** `"weight_g":-5` or `"fat_g":"abc"` → **`ai_bad_response`**.
-6. **Empty name.** `"dish_name":""` → **`ai_bad_response`**.
+6. **Empty name.** `"dish_name":""` (with `detected` absent/true) → **`ai_bad_response`**.
+   6b. **No food detected (DS-1/B-160).** `{"detected":false,"dish_name":"","calories_kcal":0,"weight_g":0,"fat_g":0,"carb_g":0,"protein_g":0}`
+   → `{detected:false, name:"", kcal:0, weight_g:0, fat_g:0, carb_g:0, protein_g:0}` (accepted; no
+   validation of the zeroed fields, no pre-fill — the web shows the no-food message).
 7. **Prompt assembly.** `note` present → text part = `prompt` + note + format instruction + the
    dish-name language clause (`Write the "dish_name" in French.` for `locale:'fr'`), in that order,
    followed by the image parts; `note` empty → text part = `prompt` + format instruction + the

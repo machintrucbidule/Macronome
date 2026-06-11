@@ -603,6 +603,7 @@
       "analyze": "Analyser",
       "analyzing": "Analyse en cours…",
       "busy": "L'analyse peut prendre jusqu'à une minute…",
+      "noFood": "Aucun aliment détecté sur la photo. Reprends une photo ou ajoute une description.",
       "errors": {
         "ai_not_configured": "Configure d'abord la liaison IA dans les Paramètres.",
         "ai_unauthorized": "Le fournisseur a rejeté la clé API.",

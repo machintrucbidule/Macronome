@@ -603,6 +603,7 @@
       "analyze": "Analyze",
       "analyzing": "Analyzing…",
       "busy": "Analysis can take up to a minute…",
+      "noFood": "No food detected in the photo. Retake a photo or add a description.",
       "errors": {
         "ai_not_configured": "Set up the AI connection in Settings first.",
         "ai_unauthorized": "The provider rejected the API key.",

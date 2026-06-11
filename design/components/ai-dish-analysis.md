@@ -39,6 +39,11 @@ A `modals.md` **sm/md** panel titled "Analyse par IA":
   error code (`ai_not_configured` / `ai_unauthorized` / `ai_unreachable` / `ai_bad_response`); the
   dialog stays open so the user can retry or cancel. `ai_not_configured` hints to set up the AI
   connection in Paramètres first.
+- **no food detected (DS-1/B-160)**: when the analysis returns `detected:false` (no food could be
+  identified), the dialog **stays open** and shows an **info banner** (`toasts-warnings.md`,
+  info tone) — "Aucun aliment détecté sur la photo. Reprends une photo ou ajoute une description." —
+  and **nothing is pre-filled** (no sentinel ever reaches the custom-entry `name`). The user can
+  retake a photo, refine the note, retry, or cancel. The banner clears on the next "Analyser".
 - **success**: the dialog closes and the six fields of the custom-entry form are **pre-filled**
   (name, calories, served weight, fat, carb, protein) from the result; the user reviews/edits and
   saves normally. (No toast required; the filled form is the feedback.)

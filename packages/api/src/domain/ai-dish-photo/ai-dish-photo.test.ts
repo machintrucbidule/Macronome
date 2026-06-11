@@ -8,6 +8,7 @@ import { parseDishPhotoResult } from './parse.js';
 const CLEAN =
   '{"dish_name":"Pasta","calories_kcal":620,"weight_g":350,"fat_g":18,"carb_g":80,"protein_g":24}';
 const EXPECTED = {
+  detected: true,
   dish_name: 'Pasta',
   kcal: 620,
   weight_g: 350,
@@ -16,7 +17,7 @@ const EXPECTED = {
   protein_g: 24,
 };
 
-test('§7.1 clean JSON → mapped result (calories_kcal → kcal)', () => {
+test('§7.1 clean JSON → mapped result (calories_kcal → kcal; detected absent → true)', () => {
   const r = parseDishPhotoResult(CLEAN);
   expect(r.ok).toBe(true);
   if (r.ok) expect(r.data).toEqual(EXPECTED);
@@ -67,6 +68,39 @@ test('§7.6 empty name → not ok', () => {
     '{"dish_name":"","calories_kcal":620,"weight_g":350,"fat_g":18,"carb_g":80,"protein_g":24}',
   );
   expect(r.ok).toBe(false);
+});
+
+test('§7.6b no food detected → ok, zeroed result, no validation (DS-1/B-160)', () => {
+  const r = parseDishPhotoResult(
+    '{"detected":false,"dish_name":"","calories_kcal":0,"weight_g":0,"fat_g":0,"carb_g":0,"protein_g":0}',
+  );
+  expect(r.ok).toBe(true);
+  if (r.ok)
+    expect(r.data).toEqual({
+      detected: false,
+      dish_name: '',
+      kcal: 0,
+      weight_g: 0,
+      fat_g: 0,
+      carb_g: 0,
+      protein_g: 0,
+    });
+});
+
+test('§7.6b detected:false short-circuits even with junk in the other fields', () => {
+  const r = parseDishPhotoResult(
+    '{"detected":false,"dish_name":"Aucun aliment","calories_kcal":null,"weight_g":-5,"fat_g":"abc"}',
+  );
+  expect(r.ok).toBe(true);
+  if (r.ok) expect(r.data.detected).toBe(false);
+});
+
+test('§7.x detected:true with valid fields → mapped with detected:true', () => {
+  const r = parseDishPhotoResult(
+    '{"detected":true,"dish_name":"Pasta","calories_kcal":620,"weight_g":350,"fat_g":18,"carb_g":80,"protein_g":24}',
+  );
+  expect(r.ok).toBe(true);
+  if (r.ok) expect(r.data).toEqual(EXPECTED);
 });
 
 test('§7.x not JSON at all → not ok', () => {

@@ -1,9 +1,11 @@
 import type { DishPhotoMacros } from '@macronome/shared';
 
 // Response parsing & validation (spec/logic/ai-dish-photo-macros.md §4). Pure: unwrap an
-// optional markdown code fence, take the first balanced { … } object, JSON.parse, coerce
-// numeric strings (comma → dot), validate dish_name non-empty + 5 numbers finite ≥ 0, map
-// calories_kcal → kcal. Any failure → { ok: false } (the service maps it to ai_bad_response).
+// optional markdown code fence, take the first balanced { … } object, JSON.parse, then — when a
+// food is detected — coerce numeric strings (comma → dot), validate dish_name non-empty + 5
+// numbers finite ≥ 0, map calories_kcal → kcal. When `detected:false` (DS-1/B-160) short-circuit
+// to a zeroed result without validation (the web shows a no-food message, no pre-fill). Any
+// failure → { ok: false } (the service maps it to ai_bad_response).
 
 export type DishPhotoParseResult = { ok: true; data: DishPhotoMacros } | { ok: false };
 
@@ -47,6 +49,25 @@ export function parseDishPhotoResult(text: string): DishPhotoParseResult {
   } catch {
     return { ok: false };
   }
+
+  // detected: absent → true (back-compat with the pre-B-160 six-field format). When false, no food
+  // was identified → zeroed result, no validation of the other fields (the web shows a no-food
+  // message and pre-fills nothing, so dish_name/macros are irrelevant — spec §4 step 3).
+  if (obj.detected === false) {
+    return {
+      ok: true,
+      data: {
+        detected: false,
+        dish_name: '',
+        kcal: 0,
+        weight_g: 0,
+        fat_g: 0,
+        carb_g: 0,
+        protein_g: 0,
+      },
+    };
+  }
+
   if (typeof obj.dish_name !== 'string' || obj.dish_name.trim() === '') return { ok: false };
 
   const kcal = nonNeg(obj.calories_kcal);
@@ -66,6 +87,14 @@ export function parseDishPhotoResult(text: string): DishPhotoParseResult {
 
   return {
     ok: true,
-    data: { dish_name: obj.dish_name.trim(), kcal, weight_g, fat_g, carb_g, protein_g },
+    data: {
+      detected: true,
+      dish_name: obj.dish_name.trim(),
+      kcal,
+      weight_g,
+      fat_g,
+      carb_g,
+      protein_g,
+    },
   };
 }

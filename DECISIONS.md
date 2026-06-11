@@ -3121,3 +3121,37 @@ API / schema / DTO change.
 **Acceptance.** `formatDateLabelShort` unit test extended (long month → first 4 letters).
 Web suite + typecheck + lint green. Visual checks (one-line date, swipe day-nav, comment
 alignment at ≤560px) deferred to the owner.
+
+---
+
+## DS-1 — AI dish-photo "no food detected" status (B-160) — RESOLVED
+
+The AI dish-photo analysis previously forced the model to _always_ estimate the six fields
+(`spec/logic/ai-dish-photo-macros.md` §3), so a photo with no identifiable food leaked the model's
+refusal into the **`dish_name`** field, which `applyAnalysis` then pre-filled into the custom-entry
+**name** — polluting the line with a sentinel string.
+
+**Decision (owner-approved):** add a **`detected` boolean** to the hard-coded response-format
+contract. The model sets `detected:false` **only** when no food can be identified at all (numeric
+fields then `0`); otherwise `detected:true` and estimates every field as before. On `detected:false`
+the analysis dialog **stays open** and shows an **info banner** ("Aucun aliment détecté sur la
+photo. Reprends une photo ou ajoute une description.") and **nothing is pre-filled**; on
+`detected:true` the behaviour is unchanged. The parser treats a **missing `detected` as `true`**
+(back-compat with the pre-B-160 format) and, on `detected:false`, short-circuits to a zeroed result
+without validating the other fields (so a model that returns nulls/empty fields alongside the flag
+doesn't trip `ai_bad_response`).
+
+**Rationale:** surfaces "no food" cleanly at the point of analysis instead of polluting the form,
+without changing the happy path. It is also the prerequisite for **QP-1/B-158** (the mobile one-tap
+photo flow must, on "no food", show the message and not open the custom modal).
+
+**Contract delta.** `spec/logic/ai-dish-photo-macros.md` §3/§4/§5/§7 (the `detected` field, parse
+short-circuit, no-mapping note, new oracle 6b); `spec/api/ai.md` (response example +
+`detected`); `packages/shared/src/dto/ai.ts` (additive `detected: z.boolean()` on
+`DishPhotoMacrosSchema`); `design/components/ai-dish-analysis.md` (no-food state); i18n key
+`meals.aiAnalysis.noFood` (fr/en). **No DB / API-shape change** beyond the additive DTO field.
+
+**Acceptance.** API parse tests extended (`detected:false` → ok/zeroed/no validation;
+`detected:true`/absent → mapped with `detected:true`); web `AiDishAnalysisDialog` test
+(`detected:false` shows the message + does not call `onApplied`; `detected:true` applies). Full
+suite + typecheck + lint green; mobile/desktop visual check deferred to the owner.

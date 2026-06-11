@@ -151,6 +151,7 @@ export function AiDishAnalysisDialog({ onClose, onApplied }: AiDishAnalysisDialo
   const [note, setNote] = useState('');
   const [errorCode, setErrorCode] = useState<string | null>(null);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
+  const [noFood, setNoFood] = useState(false);
   const analyse = useDishPhotoMacros();
 
   const busy = analyse.isPending;
@@ -160,10 +161,18 @@ export function AiDishAnalysisDialog({ onClose, onApplied }: AiDishAnalysisDialo
     if (!canSubmit || busy) return;
     setErrorCode(null);
     setErrorDetail(null);
+    setNoFood(false);
     analyse.mutate(
       { images: imageUrls, ...(note.trim() ? { note: note.trim() } : {}) },
       {
-        onSuccess: (res) => onApplied(res.data),
+        // DS-1/B-160: no food identified → keep the dialog open with an info message, no pre-fill.
+        onSuccess: (res) => {
+          if (!res.data.detected) {
+            setNoFood(true);
+            return;
+          }
+          onApplied(res.data);
+        },
         onError: (err) => {
           const code = err instanceof ApiError ? err.code : 'ai_bad_response';
           setErrorCode(KNOWN_ERRORS.has(code) ? code : 'ai_bad_response');
@@ -194,6 +203,7 @@ export function AiDishAnalysisDialog({ onClose, onApplied }: AiDishAnalysisDialo
             {t('meals.aiAnalysis.busy')}
           </div>
         )}
+        {noFood && <Banner tone="info">{t('meals.aiAnalysis.noFood')}</Banner>}
         {errorCode && (
           <Banner tone="warning">
             {t(`meals.aiAnalysis.errors.${errorCode}`)}
