@@ -3221,3 +3221,29 @@ domain, or keyboard-behaviour change (B-023/B-105 intact).
 **Acceptance.** `Autocomplete` test extended (B-159): custom precedes the first item on an empty /
 whitespace query, follows it once typing; the existing B-023 Enter/Tab tests stay green. Full suite
 (462) + typecheck + lint green; mobile `FoodPickerSheet` visual check deferred to the owner.
+
+---
+
+## DK-2 — Day-kind selector aligned to the verdict badge (B-161) — RESOLVED
+
+A cosmetic, web-only CSS alignment. Owner-approved.
+
+**Decision.** The Repas day-line **Complet/Partiel chip** (`DayKindBadge`) is sized to **match the
+OK/NOK verdict badge** (`badges-verdict.md` §A) in **height** and uses the **`--r-md`** corner radius
+(instead of `--r-pill`), while **keeping its compact type** (`--font-num`, `--fs-10` uppercase) and
+its **compact horizontal padding** (`3px 8px` desktop / `4px 7px` mobile, unchanged). The added
+height comes from a `min-height` (≈30px desktop, ≈28px mobile, matched to the verdict badge) plus the
+chip's existing flex centering — **not** from L/R padding. The verdict badge is untouched (the two
+are separate CSS, not a shared primitive).
+
+**Rationale.** The two clickable badges sit side by side on the day line; matching height + radius
+makes them read as a consistent pair. Resolves a contradiction in `badges-verdict.md` §D, which said
+"same metrics as §A" while the realized chip was a compact `--r-pill` pill.
+
+**Contract delta.** `design/components/badges-verdict.md` §D — rephrased: the chip keeps its compact
+font + L/R padding but is sized to §A's height and uses `--r-md`. **No** API/DB/DTO/domain/i18n/
+behaviour change; CSS only.
+
+**Acceptance.** Cosmetic — **no dedicated test**. Full suite + typecheck + lint green; the exact
+height (≈30/≈28px) is matched to the verdict badge and visually verified by the owner (desktop +
+mobile).

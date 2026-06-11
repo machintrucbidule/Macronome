@@ -49,7 +49,10 @@ Same clickable-badge-with-menu pattern as §A/§C, but it switches the **day kin
 (Complet ⟷ Partiel) rather than the verdict. It lives on the Repas date line, replacing
 the inert day-type tag and the former "Passer en jour détaillé" banner.
 
-- Chip `.kind` (clickable): same metrics as §A, colour-coded by current kind —
+- Chip `.kind` (clickable): a **compact** variant — it keeps its own small type (`--font-num;
+  --fs-10; uppercase; ls .08em`) and tight horizontal padding (smaller than §A), but is **sized to
+  §A's height** and uses the **`--r-md`** radius (not `--r-pill`) so the Complet/Partiel selector
+  lines up with the OK/NOK badge on the day line (B-161). Colour-coded by current kind —
   **complet** `color:var(--ok); background:var(--ok-soft); border:1px solid
 color-mix(in srgb, var(--ok) 45%, transparent)`; **partiel** uses the established
   Partiel/summary yellow `--accent` (the calendar partial dot colour): `color:var(--accent);

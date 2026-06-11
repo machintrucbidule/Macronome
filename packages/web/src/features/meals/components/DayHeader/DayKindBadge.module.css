@@ -10,8 +10,12 @@
   font-size: var(--fs-10);
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  /* B-161: align to the OK/NOK verdict badge (badges-verdict.md §A) in height + corner radius,
+     while keeping the chip's compact font and L/R padding. The extra height comes from min-height
+     (box-sizing:border-box → includes padding+border) + flex centering, not from L/R padding. */
   padding: 3px 8px;
-  border-radius: var(--r-pill);
+  min-height: 30px;
+  border-radius: var(--r-md);
   border: 1px solid var(--border-strong);
   background: transparent;
   color: var(--text-dim);
@@ -45,6 +49,9 @@
 @media (max-width: 560px) {
   .chip {
     padding: 4px 7px;
+    /* Match the mobile verdict badge height (meals.module.css `.daybar > :last-child > button`,
+       4px 9px / --fs-13 ≈ 28px); radius --r-md inherited. L/R padding unchanged (B-161). */
+    min-height: 28px;
     letter-spacing: 0;
     gap: 2px;
   }
