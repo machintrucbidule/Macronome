@@ -1,13 +1,15 @@
 import type { Food as FoodModel, FoodPortion as FoodPortionModel, Prisma } from '@prisma/client';
 import type { FoodListQuery } from '@macronome/shared';
 import { prisma } from '../prisma.js';
+import { foodUsageMap, rankByUsage } from './food-usage.js';
 
 // Repository for food + food_portion. Every method is scoped by the authenticated
 // `userId` (CLAUDE.md rule 3); a cross-tenant id simply resolves to null → 404 at
 // the controller. No business logic here — the service computes normalized_name,
 // warnings, and DTO shape. Portions are read/written explicitly (no Prisma relation).
 
-export type FoodWithPortions = FoodModel & { portions: FoodPortionModel[] };
+// `usage` is attached only on a `sort=usage` list (FU-1/B-151) — the 90-day meal-log count.
+export type FoodWithPortions = FoodModel & { portions: FoodPortionModel[]; usage?: number };
 
 export interface FoodWriteData {
   name: string;
@@ -23,8 +25,9 @@ export interface FoodWriteData {
   portions: { label: string; grams: number }[];
 }
 
-/** Map the `sort` query field to its column; id is always the tiebreak. */
-const SORT_COLUMN: Record<FoodListQuery['sort'], keyof FoodModel> = {
+/** Map the `sort` query field to its column; id is always the tiebreak. `usage` has no column
+ *  (derived at query time) and is handled by a separate ranking path. */
+const SORT_COLUMN: Record<Exclude<FoodListQuery['sort'], 'usage'>, keyof FoodModel> = {
   name: 'name',
   kcal: 'kcalPer100g',
   fat: 'fatPer100g',
@@ -90,11 +93,36 @@ async function syncPortions(
 /** `q.normalized` is the pre-normalized search term, injected by the service. */
 type ListQuery = FoodListQuery & { normalized?: string };
 
+/** Usage-sorted list (FU-1/B-151): rank the full match set by 90-day usage, then paginate by
+ *  cursor-id slicing over the deterministic order (no DB column for usage). Rows carry the count.
+ *  The match set is a single user's bounded catalog, like the AI candidate read. */
+async function listByUsage(
+  userId: string,
+  query: ListQuery,
+): Promise<{ rows: FoodWithPortions[]; nextCursor: string | null }> {
+  const matches = await prisma.food.findMany({ where: buildWhere(userId, query) });
+  const usage = await foodUsageMap(
+    userId,
+    matches.map((f) => f.id),
+  );
+  const ranked = rankByUsage(matches, usage, query.dir);
+  const after = query.cursor ? ranked.findIndex((f) => f.id === query.cursor) : -1;
+  const begin = after >= 0 ? after + 1 : 0;
+  const page = ranked.slice(begin, begin + query.limit);
+  const nextCursor = begin + query.limit < ranked.length ? (page.at(-1)?.id ?? null) : null;
+  const rows = await withPortions(page);
+  return {
+    rows: rows.map((r) => ({ ...r, usage: usage.get(r.id)?.count ?? 0 })),
+    nextCursor,
+  };
+}
+
 export const foodRepo = {
   async list(
     userId: string,
     query: ListQuery,
   ): Promise<{ rows: FoodWithPortions[]; nextCursor: string | null }> {
+    if (query.sort === 'usage') return listByUsage(userId, query);
     const column = SORT_COLUMN[query.sort];
     const orderBy: Prisma.FoodOrderByWithRelationInput[] = [
       { [column]: query.dir },

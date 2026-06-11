@@ -4,8 +4,17 @@ import { SortableTh, tableStyles } from '../../../components/DataTable/SortableT
 import { FoodRow } from './FoodRow';
 
 // Sortable foods table (specifications/screens/food-db.md). Sortable columns:
-// Nom·kcal·L·G·P·Note·Visib. The Portion column is display-only (DECISIONS Gap #10).
-export type SortField = 'name' | 'kcal' | 'fat' | 'carb' | 'protein' | 'rating' | 'visibility';
+// Nom·kcal·L·G·P·Note·Visib·Utilisation. The Portion column is display-only (DECISIONS Gap #10).
+// `usage` is the 90-day meal-log count (FU-1/B-151); default sort stays A→Z (name).
+export type SortField =
+  | 'name'
+  | 'kcal'
+  | 'fat'
+  | 'carb'
+  | 'protein'
+  | 'rating'
+  | 'visibility'
+  | 'usage';
 
 interface FoodTableProps {
   foods: Food[];
@@ -51,6 +60,7 @@ export function FoodTable({
             <th>{t('foods.col.portion')}</th>
             {th('rating', 'center')}
             {th('visibility', 'center')}
+            {th('usage', 'right')}
             <th aria-label="actions" />
           </tr>
         </thead>

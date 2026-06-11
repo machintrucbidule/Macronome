@@ -48,6 +48,15 @@ export function FoodCard({ food, onOpen }: FoodCardProps) {
         <span className={styles.portionLabel}>{t('foods.col.portion')}</span>
         <span className={styles.portionValue}>{portionSummary(food.named_portions)}</span>
       </div>
+
+      {/* Usage count shown only when the list is usage-sorted (FU-1/B-151), mirroring the
+          desktop column; the default spec-strict card content is unchanged otherwise. */}
+      {food.usage !== undefined && (
+        <div className={styles.portion}>
+          <span className={styles.portionLabel}>{t('foods.col.usage')}</span>
+          <span className={styles.portionValue}>{food.usage}</span>
+        </div>
+      )}
     </button>
   );
 }

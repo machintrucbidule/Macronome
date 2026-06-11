@@ -39,6 +39,7 @@ function toDto(row: FoodWithPortions): Food {
     recipe_id: row.recipeId,
     named_portions: row.portions.map((p) => ({ id: p.id, label: p.label, grams: num(p.grams) })),
     archived_at: row.archivedAt ? row.archivedAt.toISOString() : null,
+    ...(row.usage !== undefined ? { usage: row.usage } : {}),
   };
 }
 

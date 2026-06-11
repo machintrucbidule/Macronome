@@ -2898,3 +2898,43 @@ title); `HitAreas.tsx`/`ColumnHits.tsx` (emit client anchor); `WeightChart.tsx` 
 labelled rows); `Heatmap.tsx` (`cellTip` + styled tooltip); `format.ts` (`monthYearLabel`); i18n
 `stats.calorie.*` + reworded `stats.monthly.tooltip*` (fr + en). Tests: `ChartTooltip.test.tsx`
 (portal via `screen`), `Heatmap.test.tsx` (`cellTip` rounding + non-logged). No DB/schema/API/DTO change.
+
+---
+
+## FU-1 / B-151 — food/recipe search-picker ordering by usage — RESOLVED (user, 2026-06-11)
+
+**Problem.** The search **pickers** listed foods (and loggable recipes) **A→Z by name**, so the
+foods the user logs most often sank below rarely-used ones and had to be scrolled past.
+
+**Decision (behaviour).**
+
+- **Usage = count of meal logs over the last 90 days**, ties broken by **most-recent use**, then
+  **name**. Decay is implicit: a food not logged within the window drops to count 0 and sinks to the
+  alphabetical tail. The window is `FOOD_USAGE_WINDOW_DAYS = 90` (shared tuning constant).
+- **Most-used-first becomes the default** for the **search pickers**: the Repas food picker and the
+  recipe-ingredient picker (both via `GET /search/loggable`), and the garde-manger pantry picker
+  (via `GET /foods?sort=usage&dir=desc`). Recipes rank by **their own logged usage** (their derived
+  `food` row is referenced by `meal_entry.food_id`, so one per-`food_id` aggregation covers both).
+- **The Aliments management page keeps its A→Z default**, and **gains a sortable "Utilisation (90 j)"
+  column** that shows the per-food 90-day count (desktop column + mobile Trier option + a count line
+  on the mobile card when usage-sorted). _(User picked the visible-count option; default stays
+  alphabetical; sort offered on mobile too.)_
+
+**Decision (where it is computed).** Usage is **derived at query time** from `meal_entry` — **no
+stored column / no migration** (CLAUDE.md rule 2: the web reads the order, never computes it). New
+`api/src/data/repositories/food-usage.ts`: `foodUsageMap(userId, foodIds)` (90-day COUNT + MAX(date)
+per food, user-scoped via `day_log`, extending the AI `lastEatenMap` pattern) + a pure `rankByUsage`
+comparator (count → recency → name → id). `loggable.repo.ts` fetches the full match set, ranks, then
+takes the page; `food.repo.ts` adds a `sort=usage` branch that ranks the match set and paginates by
+**cursor-id slicing** over the deterministic order (other sorts keep the DB keyset path). The
+usage-sorted Food carries a `usage` integer (absent on other sorts).
+
+**Spec impact:** `spec/api/foods-recipes.md` (`GET /foods` `sort` enum + `usage` semantics + the
+`usage` response field; `/search/loggable` ordering). `shared/dto/food.ts` (`FOOD_SORT_FIELDS`
+gains `usage`; `FoodSchema.usage?`), `shared/constants/tuning.ts` (`FOOD_USAGE_WINDOW_DAYS`).
+`specifications/screens/food-db.md` (sortable Utilisation column, A→Z default kept, mobile),
+`meals.md`/`recipe.md`/`settings.md` (picker = most-used-first). **Code:** api `food-usage.ts`,
+`loggable.repo.ts`, `food.repo.ts`, `services/foods.ts`; web `settings/useFoodPicker.ts`,
+`foods/components/FoodTable.tsx`/`FoodRow.tsx`/`FoodsMobile.tsx`/`FoodCard.tsx`; i18n `foods.col.usage`
+(fr + en). Tests: `food-usage.test.ts` (ranking) + integration (`/search/loggable` + `/foods?sort=usage`
+90-day window; default `/foods` stays A→Z). **No DB/schema change.**

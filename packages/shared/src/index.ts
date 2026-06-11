@@ -11,6 +11,7 @@ export type { ActivityLevel } from './constants/activity.js';
 export {
   SUGGEST_RANGE_HALF_WIDTH_KCAL,
   RECENT_ACTIVITY_WINDOW_DAYS,
+  FOOD_USAGE_WINDOW_DAYS,
   EMA_ALPHA,
   STATS_ROLLING_WINDOWS,
   BEST_MONTH_MIN_DAYS,

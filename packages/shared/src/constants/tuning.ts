@@ -9,6 +9,10 @@ export const SUGGEST_RANGE_HALF_WIDTH_KCAL = 50;
 /** Look-back window (calendar days) for the recent-average activity used on Cibles. */
 export const RECENT_ACTIVITY_WINDOW_DAYS = 30;
 
+/** Look-back window (calendar days) for the food/recipe search-picker usage ranking (FU-1/B-151):
+ *  results are ordered by how many times each food was logged within this window. */
+export const FOOD_USAGE_WINDOW_DAYS = 90;
+
 /** Smoothing factor for the weight EMA trend (DECISIONS Gap #9; tune post-load). */
 export const EMA_ALPHA = 0.35;
 

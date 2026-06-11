@@ -52,6 +52,7 @@ export function FoodsMobile(props: FoodsMobileProps) {
     { key: 'protein', label: t('foods.col.protein') },
     { key: 'rating', label: t('foods.col.rating') },
     { key: 'visibility', label: t('foods.col.visibility') },
+    { key: 'usage', label: t('foods.col.usage') },
   ];
 
   const ratings: MinRating[] = [0, 1, 2, 3];

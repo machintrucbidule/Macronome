@@ -99,7 +99,8 @@
       "protein": "P",
       "portion": "Portion",
       "rating": "Rating",
-      "visibility": "Visib."
+      "visibility": "Visib.",
+      "usage": "Usage (90 d)"
     },
     "visibility": {
       "all": "All",
