@@ -48,7 +48,7 @@ export function AdherenceSections({ data, loading, year, onYear }: Props) {
               <Heatmap cells={data.heatmap} />
             </ScrollBlock>
             <h3 className={styles.h3}>{t('stats.section.monthly')}</h3>
-            <MonthlyBars monthly={data.monthly} />
+            <MonthlyBars monthly={data.monthly} year={year} />
           </>
         )}
       </section>
@@ -57,7 +57,7 @@ export function AdherenceSections({ data, loading, year, onYear }: Props) {
         <>
           <section className={styles.section}>
             <h2 className={styles.h2}>{t('stats.section.avgCalories')}</h2>
-            <MonthCalorieBars monthly={data.monthly} />
+            <MonthCalorieBars monthly={data.monthly} year={year} />
           </section>
           <section className={styles.section}>
             <h2 className={styles.h2}>{t('stats.section.signals')}</h2>

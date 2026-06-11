@@ -1,16 +1,17 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import type { MonthlyStat } from '@macronome/shared';
 import { ChartGridlines } from '../../../components/Chart/ChartGridlines';
 import { ChartLegend, type Series } from '../../../components/Chart/ChartLegend';
 import {
   ChartTooltip,
   type TipContent,
-  type TooltipPoint,
+  type TooltipAnchor,
 } from '../../../components/Chart/ChartTooltip';
 import { ColumnHits, type ColumnHit } from '../../../components/Chart/ColumnHits';
 import { type ChartBox, linear, niceDomain, polyline } from '../../../components/Chart/scale';
-import { monthLabel, r0 } from '../format';
+import { monthLabel, monthYearLabel, r0 } from '../format';
 import { ScrollBlock } from './ScrollBlock';
 import chart from '../../../components/Chart/Chart.module.css';
 import styles from '../stats.module.css';
@@ -34,16 +35,14 @@ const LEGEND: Series[] = [
   { shape: 'dot', token: '--accent', labelKey: 'stats.legend.zone' },
 ];
 
-/** Structured per-month tooltip: month title + one avg-kcal value per line (CT-1/B-140). */
-function tipFor(m: MonthlyStat, lang: string, t: (k: string) => string): TipContent {
-  return {
-    title: monthLabel(m.month, lang),
-    rows: [
-      `OK ${r0(m.avg_kcal_ok)}`,
-      `NOK ${r0(m.avg_kcal_nok)}`,
-      `${t('stats.legend.avgGlobal')} ${r0(m.avg_kcal_global)} kcal`,
-    ],
-  };
+/** Structured per-month tooltip: "Month YYYY" title + one labelled avg-kcal line each
+ * (OK / NOK only when present, global always); CT-1/B-140 follow-up. */
+function tipFor(m: MonthlyStat, year: number, lang: string, t: TFunction): TipContent {
+  const rows: string[] = [];
+  if (m.avg_kcal_ok !== null) rows.push(t('stats.calorie.tooltipOk', { v: r0(m.avg_kcal_ok) }));
+  if (m.avg_kcal_nok !== null) rows.push(t('stats.calorie.tooltipNok', { v: r0(m.avg_kcal_nok) }));
+  rows.push(t('stats.calorie.tooltipGlobal', { v: r0(m.avg_kcal_global) }));
+  return { title: monthYearLabel(m.month, year, lang), rows };
 }
 
 /** One month: OK/NOK bars (when present), the month label, and the global-average dot. */
@@ -90,9 +89,9 @@ function AvgBarGroup({
   );
 }
 
-export function MonthCalorieBars({ monthly }: { monthly: MonthlyStat[] }) {
+export function MonthCalorieBars({ monthly, year }: { monthly: MonthlyStat[]; year: number }) {
   const { t, i18n } = useTranslation();
-  const [hovered, setHovered] = useState<TooltipPoint | null>(null);
+  const [hovered, setHovered] = useState<TooltipAnchor | null>(null);
   const base = H - PAD.b;
   const values = monthly.flatMap((m) =>
     [
@@ -112,7 +111,7 @@ export function MonthCalorieBars({ monthly }: { monthly: MonthlyStat[] }) {
 
   const columns: ColumnHit[] = monthly.map((m, i) => ({
     x: PAD.l + slot * i,
-    point: { cx: cxOf(i), cy: y(m.avg_kcal_global), tip: tipFor(m, i18n.language, t) },
+    point: { cx: cxOf(i), cy: y(m.avg_kcal_global), tip: tipFor(m, year, i18n.language, t) },
   }));
 
   return (
@@ -158,7 +157,7 @@ export function MonthCalorieBars({ monthly }: { monthly: MonthlyStat[] }) {
               onLeave={() => setHovered(null)}
             />
           </svg>
-          {hovered && <ChartTooltip point={hovered} box={BOX} />}
+          {hovered && <ChartTooltip anchor={hovered} />}
         </div>
       </ScrollBlock>
       <ChartLegend series={LEGEND} />

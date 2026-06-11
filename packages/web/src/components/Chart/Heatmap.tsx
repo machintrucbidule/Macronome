@@ -1,13 +1,16 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { HeatmapCell } from '@macronome/shared';
-import { monthLabel, weekdayNarrow } from '../../features/stats/format';
+import { formatDate, monthLabel, weekdayNarrow } from '../../features/stats/format';
+import { svgPointToClient } from './anchor';
+import { ChartTooltip, type TipContent, type TooltipAnchor } from './ChartTooltip';
 import styles from './Heatmap.module.css';
 
 // Calendar heatmap (design/components/charts.md; spec/logic/stats-adherence.md §3): one
 // square per calendar date of the year laid out GitHub-style (weeks → columns, weekdays →
 // rows, Monday first). Green OK / red NOK / grey not-logged. Inline SVG, semantic tokens
-// only (rule 6). Status is server-computed; this only places + colours the cells.
+// only (rule 6). Status is server-computed; this only places + colours the cells. Hovering a
+// cell surfaces the shared styled tooltip (CT-1/B-140 follow-up) instead of the native <title>.
 
 const CELL = 11;
 const GAP = 3;
@@ -20,6 +23,14 @@ const WEEKDAY_ROWS = [0, 2, 4, 6]; // labelled every other row (charts.md §heat
 function mondayIndex(date: string): number {
   const p = date.split('-');
   return (new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2])).getDay() + 6) % 7;
+}
+
+/** Styled-tooltip content for a cell: full date title + kcal (when logged) + status line. */
+export function cellTip(cell: HeatmapCell, t: (k: string) => string, lang: string): TipContent {
+  const rows: string[] = [];
+  if (cell.kcal !== null) rows.push(`${Math.round(cell.kcal)} kcal`);
+  rows.push(t(`stats.status.${cell.status}`));
+  return { title: formatDate(cell.date, lang), rows };
 }
 
 interface Placed {
@@ -55,6 +66,7 @@ function monthTicks(placed: Placed[], locale: string): { col: number; label: str
 
 export function Heatmap({ cells }: { cells: HeatmapCell[] }) {
   const { t, i18n } = useTranslation();
+  const [hovered, setHovered] = useState<TooltipAnchor | null>(null);
   const { placed, cols } = useMemo(() => layout(cells), [cells]);
   const ticks = useMemo(() => monthTicks(placed, i18n.language), [placed, i18n.language]);
   const width = LEFT + Math.max(cols, 1) * STEP;
@@ -62,45 +74,52 @@ export function Heatmap({ cells }: { cells: HeatmapCell[] }) {
   const cls = { OK: styles.ok, NOK: styles.nok, none: styles.none } as const;
 
   return (
-    <svg
-      viewBox={`0 0 ${width} ${height}`}
-      preserveAspectRatio="xMinYMin meet"
-      className={styles.svg}
-      role="img"
-      aria-label={t('stats.heatmap.label')}
-    >
-      {WEEKDAY_ROWS.map((row) => (
-        <text
-          key={`dow-${row}`}
-          x={LEFT - 4}
-          y={TOP + row * STEP + CELL - 1}
-          textAnchor="end"
-          className={styles.month}
-        >
-          {weekdayNarrow(row, i18n.language)}
-        </text>
-      ))}
-      {ticks.map((tk) => (
-        <text key={tk.label} x={LEFT + tk.col * STEP} y={10} className={styles.month}>
-          {tk.label}
-        </text>
-      ))}
-      {placed.map((p) => (
-        <rect
-          key={p.cell.date}
-          x={LEFT + p.col * STEP}
-          y={TOP + p.row * STEP}
-          width={CELL}
-          height={CELL}
-          rx={2}
-          className={cls[p.cell.status]}
-        >
-          <title>
-            {`${p.cell.date} · ${t(`stats.status.${p.cell.status}`)}`}
-            {p.cell.kcal !== null ? ` · ${Math.round(p.cell.kcal)} kcal` : ''}
-          </title>
-        </rect>
-      ))}
-    </svg>
+    <>
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        preserveAspectRatio="xMinYMin meet"
+        className={styles.svg}
+        role="img"
+        aria-label={t('stats.heatmap.label')}
+      >
+        {WEEKDAY_ROWS.map((row) => (
+          <text
+            key={`dow-${row}`}
+            x={LEFT - 4}
+            y={TOP + row * STEP + CELL - 1}
+            textAnchor="end"
+            className={styles.month}
+          >
+            {weekdayNarrow(row, i18n.language)}
+          </text>
+        ))}
+        {ticks.map((tk) => (
+          <text key={tk.label} x={LEFT + tk.col * STEP} y={10} className={styles.month}>
+            {tk.label}
+          </text>
+        ))}
+        {placed.map((p) => (
+          <rect
+            key={p.cell.date}
+            x={LEFT + p.col * STEP}
+            y={TOP + p.row * STEP}
+            width={CELL}
+            height={CELL}
+            rx={2}
+            className={cls[p.cell.status]}
+            onMouseEnter={(e) => {
+              const a = svgPointToClient(
+                e.currentTarget,
+                LEFT + p.col * STEP + CELL / 2,
+                TOP + p.row * STEP,
+              );
+              if (a) setHovered({ ...a, tip: cellTip(p.cell, t, i18n.language) });
+            }}
+            onMouseLeave={() => setHovered(null)}
+          />
+        ))}
+      </svg>
+      {hovered && <ChartTooltip anchor={hovered} />}
+    </>
   );
 }

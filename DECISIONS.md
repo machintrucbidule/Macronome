@@ -2867,3 +2867,34 @@ multi-line layout + caret + in-viewport positioning + entrance). **Code (web-onl
 `features/stats/components/MonthlyBars.tsx` + `MonthCalorieBars.tsx`, `HitAreas.tsx` (`HitPoint.tip`
 → `TipContent`); i18n `stats.monthly.tooltip` split into `tooltipOk`/`tooltipNok`. Test:
 `ChartTooltip.test.tsx` (bold title + one node per row). No DB/schema/API/DTO change.
+
+**Follow-up (author, 2026-06-11, same day).** The first pass (commit `e8fd548`) did not actually
+keep the card in the viewport: it was `position:absolute` **inside** the chart's horizontal-scroll
+wrapper (`ScrollBlock`, `overflow-x:auto`), which **clipped** it on mobile (truncated, mispositioned
+left of the column). Per author feedback the card is reworked into a **proper, useful tooltip**:
+
+- **Escape the overflow.** The card is now **portaled to `<body>` and `position:fixed`** at the
+  hovered point's **client coords** (mapped via the SVG `getScreenCTM` — new `Chart/anchor.ts`
+  `svgPointToClient`). The flip/clamp now measures against the real viewport and works everywhere.
+  `ChartTooltip` takes a resolved `TooltipAnchor { x, y, tip }` instead of `(point, box)`; the hit
+  layers (`HitAreas`/`ColumnHits`/heatmap cells) compute the client anchor on hover.
+- **Readable title, centered + larger.** Title is a **full date**: `Février 2026` for a month column
+  (new capitalized `monthYearLabel(month, year, locale)`, so the bars get the **year** via a new
+  `year` prop threaded from `AdherenceSections`), `10 juin 2026` for a weigh-in (`formatDate`), the
+  cell's full date for the heatmap. `.tipTitle` is `text-align:center` + `--fs-12`.
+- **Self-describing rows.** `21 jours OK` / `10 jours NOK` (i18n `stats.monthly.tooltipOk/Nok` →
+  "{{ok}} jours OK"); avg-kcal `Moyenne des jours OK/NOK/globale : {{v}} kcal` (new `stats.calorie.*`
+  keys, OK/NOK rows omitted when absent); heatmap `1600 kcal` + status.
+- **Heatmap styled too (author-approved this run, contract change).** The dense heatmap's native
+  `<title>` is replaced by the same styled tooltip (was kept native by the prior contract). `Heatmap`
+  tracks a hovered anchor + new pure `cellTip` helper.
+
+**Follow-up spec impact:** `design/components/charts.md` (§Shared primitives Tooltips bullet +
+heatmap line rewritten — all charts incl. heatmap use the styled card; portal/fixed + full-date
+centered title + self-describing rows). **Code (web-only):** new `Chart/anchor.ts`; `ChartTooltip.tsx`
+(portal + `TooltipAnchor`); `Chart.module.css` (`position:fixed`, `--z-toast`, centered `--fs-12`
+title); `HitAreas.tsx`/`ColumnHits.tsx` (emit client anchor); `WeightChart.tsx` (`formatDate` title);
+`MonthlyBars.tsx`/`MonthCalorieBars.tsx` + `AdherenceSections.tsx` (`year` prop, `monthYearLabel`,
+labelled rows); `Heatmap.tsx` (`cellTip` + styled tooltip); `format.ts` (`monthYearLabel`); i18n
+`stats.calorie.*` + reworded `stats.monthly.tooltip*` (fr + en). Tests: `ChartTooltip.test.tsx`
+(portal via `screen`), `Heatmap.test.tsx` (`cellTip` rounding + non-logged). No DB/schema/API/DTO change.

@@ -1,19 +1,26 @@
 import { useLayoutEffect, useRef, useState } from 'react';
-import type { ChartBox } from './scale';
+import { createPortal } from 'react-dom';
 import styles from './Chart.module.css';
 
-// Styled chart tooltip (B-056; design/components/charts.md §Shared primitives). The weight
-// chart and the two Stats bar charts use this floating HTML card instead of the native <title>.
-// CT-1/B-140: structured multi-line content (bold title + one value per line), a caret pointing
-// at the anchor, and viewport flip/clamp so it is never clipped. Pure presentation — it only
-// formats values it receives (CLAUDE.md rule 2 untouched).
+// Styled chart tooltip (B-056; refined CT-1/B-140). The weight chart, the two Stats bar charts
+// and the heatmap use this floating card instead of the native <title>. Structured multi-line
+// content (centered title + one value per line), a caret pointing at the anchor, and — key for
+// mobile — it is portaled to <body> and `position: fixed`, so it escapes the horizontal-scroll
+// wrappers and flips/clamps against the real viewport. Pure presentation (CLAUDE.md rule 2).
 export interface TipContent {
   title: string;
   rows: string[];
 }
+/** viewBox anchor carried by a column/point hit before it is mapped to client coords. */
 export interface TooltipPoint {
   cx: number;
   cy: number;
+  tip: TipContent;
+}
+/** Resolved client/viewport anchor the card is drawn at (portaled to <body>, fixed). */
+export interface TooltipAnchor {
+  x: number;
+  y: number;
   tip: TipContent;
 }
 
@@ -33,7 +40,7 @@ function clampDx(r: DOMRect): number {
 
 // Measure the rendered card against the viewport and nudge it back in-view. Runs after every
 // layout: resets when the anchor moves, then converges in a pass or two (each run cancels the
-// residual overflow). Position-only, so cx/cy map 1:1 to the viewBox (the SVG is xMidYMid meet).
+// residual overflow). The card is fixed-positioned in a body portal, so nothing clips it.
 function useViewportClamp(sig: string): {
   ref: React.RefObject<HTMLDivElement>;
   place: Placement;
@@ -69,32 +76,33 @@ function useViewportClamp(sig: string): {
   return { ref, place };
 }
 
-export function ChartTooltip({ point, box }: { point: TooltipPoint; box: ChartBox }) {
-  const sig = `${point.cx},${point.cy}`;
+export function ChartTooltip({ anchor }: { anchor: TooltipAnchor }) {
+  const sig = `${anchor.x},${anchor.y}`;
   const { ref, place } = useViewportClamp(sig);
   const transform = `translate(calc(-50% + ${place.dx}px), ${
     place.below ? 'calc(8px)' : 'calc(-100% - 8px)'
   })`;
 
-  return (
+  return createPortal(
     <div
       ref={ref}
       className={`${styles.tooltip}${place.below ? ` ${styles.below}` : ''}`}
       style={{
-        left: `${(point.cx / box.w) * 100}%`,
-        top: `${(point.cy / box.h) * 100}%`,
+        left: `${anchor.x}px`,
+        top: `${anchor.y}px`,
         transform,
         // keep the caret over the anchor even after a horizontal clamp
         ['--caret-x' as string]: `clamp(8px, calc(50% - ${place.dx}px), calc(100% - 8px))`,
       }}
       role="status"
     >
-      <div className={styles.tipTitle}>{point.tip.title}</div>
-      {point.tip.rows.map((row, i) => (
+      <div className={styles.tipTitle}>{anchor.tip.title}</div>
+      {anchor.tip.rows.map((row, i) => (
         <div className={styles.tipRow} key={i}>
           {row}
         </div>
       ))}
-    </div>
+    </div>,
+    document.body,
   );
 }

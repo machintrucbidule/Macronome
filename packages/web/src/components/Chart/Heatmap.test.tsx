@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render } from '@testing-library/react';
 import type { HeatmapCell } from '@macronome/shared';
 import i18n from '../../i18n/config';
-import { Heatmap } from './Heatmap';
+import { Heatmap, cellTip } from './Heatmap';
 
 // The heatmap places + colours server-computed cells. It derives nothing; it only rounds
 // the kcal readout for display (00-conventions.md) and labels the weekday rows (charts.md).
@@ -19,11 +19,15 @@ const cell = (over: Partial<HeatmapCell>): HeatmapCell => ({
 });
 
 describe('Heatmap', () => {
-  it('rounds the kcal value in the cell tooltip to an integer (B-057)', () => {
-    const { container } = render(<Heatmap cells={[cell({ kcal: 1600.4 })]} />);
-    const title = container.querySelector('title')?.textContent ?? '';
-    expect(title).toContain('1600 kcal');
-    expect(title).not.toContain('1600.4');
+  it('rounds the kcal value in the styled cell tooltip to an integer (B-057)', () => {
+    const tip = cellTip(cell({ kcal: 1600.4 }), (k) => k, 'fr');
+    expect(tip.rows).toContain('1600 kcal');
+    expect(tip.rows.join(' ')).not.toContain('1600.4');
+  });
+
+  it('omits the kcal line on a non-logged cell, keeping the status line', () => {
+    const tip = cellTip(cell({ kcal: null, status: 'none' }), (k) => k, 'fr');
+    expect(tip.rows).toEqual(['stats.status.none']);
   });
 
   it('renders weekday row labels every other row (B-073)', () => {

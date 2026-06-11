@@ -784,7 +784,12 @@
     },
     "heatmap": { "label": "Adherence calendar" },
     "status": { "OK": "OK", "NOK": "NOK", "none": "not logged" },
-    "monthly": { "tooltipOk": "{{ok}} OK", "tooltipNok": "{{nok}} NOK" },
+    "monthly": { "tooltipOk": "{{ok}} OK days", "tooltipNok": "{{nok}} NOK days" },
+    "calorie": {
+      "tooltipOk": "Avg OK days: {{v}} kcal",
+      "tooltipNok": "Avg NOK days: {{v}} kcal",
+      "tooltipGlobal": "Global average: {{v}} kcal"
+    },
     "legend": {
       "ok": "OK days",
       "nok": "NOK days",

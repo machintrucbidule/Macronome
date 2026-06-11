@@ -1,4 +1,5 @@
-import type { TooltipPoint } from './ChartTooltip';
+import { svgPointToClient } from './anchor';
+import type { TooltipAnchor, TooltipPoint } from './ChartTooltip';
 import styles from './Chart.module.css';
 
 // Transparent per-column hit-areas for the inline bar charts: one full-height band per
@@ -23,7 +24,7 @@ export function ColumnHits({
   width: number;
   top: number;
   height: number;
-  onHover: (point: TooltipPoint) => void;
+  onHover: (anchor: TooltipAnchor) => void;
   onLeave: () => void;
 }) {
   return (
@@ -36,7 +37,10 @@ export function ColumnHits({
           y={top}
           width={width}
           height={height}
-          onMouseEnter={() => onHover(c.point)}
+          onMouseEnter={(e) => {
+            const a = svgPointToClient(e.currentTarget, c.point.cx, c.point.cy);
+            if (a) onHover({ ...a, tip: c.point.tip });
+          }}
           onMouseLeave={onLeave}
         />
       ))}

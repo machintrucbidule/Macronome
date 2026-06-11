@@ -22,6 +22,15 @@ export function monthLabel(month: number, locale: string): string {
   return new Date(2020, month - 1, 1).toLocaleDateString(locale, { month: 'short' });
 }
 
+/** Localized capitalized "Month YYYY" for a 1–12 month + year, e.g. "Février 2026". */
+export function monthYearLabel(month: number, year: number, locale: string): string {
+  const s = new Date(year, month - 1, 1).toLocaleDateString(locale, {
+    month: 'long',
+    year: 'numeric',
+  });
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 /** Narrow weekday label for a Monday-first index (0 = Mon … 6 = Sun), e.g. "L" / "M".
  * 2024-01-01 is a Monday, so day index maps straight to the weekday. */
 export function weekdayNarrow(mondayIndex: number, locale: string): string {

@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next';
 import type { MonthlyStat } from '@macronome/shared';
 import { ChartGridlines } from '../../../components/Chart/ChartGridlines';
 import { ChartLegend, type Series } from '../../../components/Chart/ChartLegend';
-import { ChartTooltip, type TooltipPoint } from '../../../components/Chart/ChartTooltip';
+import { ChartTooltip, type TooltipAnchor } from '../../../components/Chart/ChartTooltip';
 import { ColumnHits, type ColumnHit } from '../../../components/Chart/ColumnHits';
 import { type ChartBox, linear } from '../../../components/Chart/scale';
-import { monthLabel, pct } from '../format';
+import { monthLabel, monthYearLabel, pct } from '../format';
 import { ScrollBlock } from './ScrollBlock';
 import chart from '../../../components/Chart/Chart.module.css';
 import styles from '../stats.module.css';
@@ -26,9 +26,9 @@ const LEGEND: Series[] = [
   { shape: 'dot', token: '--nok', labelKey: 'stats.legend.nok' },
 ];
 
-export function MonthlyBars({ monthly }: { monthly: MonthlyStat[] }) {
+export function MonthlyBars({ monthly, year }: { monthly: MonthlyStat[]; year: number }) {
   const { t, i18n } = useTranslation();
-  const [hovered, setHovered] = useState<TooltipPoint | null>(null);
+  const [hovered, setHovered] = useState<TooltipAnchor | null>(null);
   const base = H - PAD.b;
   const maxTotal = Math.max(1, ...monthly.map((m) => m.ok_count + m.nok_count));
   const y = linear(0, maxTotal, base, PAD.t);
@@ -40,7 +40,7 @@ export function MonthlyBars({ monthly }: { monthly: MonthlyStat[] }) {
       cx: PAD.l + slot * i + slot / 2,
       cy: y(m.ok_count + m.nok_count),
       tip: {
-        title: monthLabel(m.month, i18n.language),
+        title: monthYearLabel(m.month, year, i18n.language),
         rows: [
           t('stats.monthly.tooltipOk', { ok: m.ok_count }),
           t('stats.monthly.tooltipNok', { nok: m.nok_count }),
@@ -91,7 +91,7 @@ export function MonthlyBars({ monthly }: { monthly: MonthlyStat[] }) {
               onLeave={() => setHovered(null)}
             />
           </svg>
-          {hovered && <ChartTooltip point={hovered} box={BOX} />}
+          {hovered && <ChartTooltip anchor={hovered} />}
         </div>
       </ScrollBlock>
       <ChartLegend series={LEGEND} />

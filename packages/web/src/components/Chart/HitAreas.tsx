@@ -1,4 +1,5 @@
-import type { TipContent } from './ChartTooltip';
+import { svgPointToClient } from './anchor';
+import type { TipContent, TooltipAnchor } from './ChartTooltip';
 import styles from './Chart.module.css';
 
 // Transparent point hit-areas (B-018): the visible weight/waist dots are intentionally tiny
@@ -14,7 +15,7 @@ export interface HitPoint {
 
 interface HitAreasProps {
   points: HitPoint[];
-  onHover: (point: HitPoint) => void;
+  onHover: (anchor: TooltipAnchor) => void;
   onLeave: () => void;
 }
 
@@ -29,7 +30,10 @@ export function HitAreas({ points, onHover, onLeave }: HitAreasProps) {
           cy={p.cy}
           r={8}
           aria-hidden="true"
-          onMouseEnter={() => onHover(p)}
+          onMouseEnter={(e) => {
+            const c = svgPointToClient(e.currentTarget, p.cx, p.cy);
+            if (c) onHover({ ...c, tip: p.tip });
+          }}
           onMouseLeave={onLeave}
         />
       ))}

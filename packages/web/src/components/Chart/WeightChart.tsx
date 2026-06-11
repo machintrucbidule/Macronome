@@ -3,10 +3,11 @@ import { useTranslation } from 'react-i18next';
 import type { WeighIn, WeightPoint, WeightRange } from '@macronome/shared';
 import { ChartAxes } from './ChartAxes';
 import { ChartLegend, type Series } from './ChartLegend';
-import { ChartTooltip } from './ChartTooltip';
+import { ChartTooltip, type TooltipAnchor } from './ChartTooltip';
 import { HitAreas, type HitPoint } from './HitAreas';
 import { RangeControl } from './RangeControl';
 import { WEIGHT_BOX as B, linear, niceDomain, polyline, toMs } from './scale';
+import { formatDate } from '../../features/stats/format';
 import styles from './Chart.module.css';
 
 // Weight chart (design/components/charts.md §Weight chart): one inline SVG, layered
@@ -65,20 +66,21 @@ function buildHits(
   x: (v: number) => number,
   y: (v: number) => number,
   wy: (v: number) => number,
+  lang: string,
 ): HitPoint[] {
   return [
     ...weighIns.map((p) => ({
       id: `h-${p.id}`,
       cx: x(toMs(p.date)),
       cy: y(p.weight_kg),
-      tip: { title: p.date, rows: [`${p.weight_kg} kg`] },
+      tip: { title: formatDate(p.date, lang), rows: [`${p.weight_kg} kg`] },
     })),
     ...(showWaist
       ? waistPts.map((p) => ({
           id: `wh-${p.id}`,
           cx: x(toMs(p.date)),
           cy: wy(p.waist_cm!),
-          tip: { title: p.date, rows: [`${p.waist_cm} cm`] },
+          tip: { title: formatDate(p.date, lang), rows: [`${p.waist_cm} cm`] },
         }))
       : []),
   ];
@@ -86,8 +88,8 @@ function buildHits(
 
 export function WeightChart(props: WeightChartProps) {
   const { weighIns, ema, trajectory, goal, showWaist, onToggleWaist, range, onRange } = props;
-  const { t } = useTranslation();
-  const [hovered, setHovered] = useState<HitPoint | null>(null);
+  const { t, i18n } = useTranslation();
+  const [hovered, setHovered] = useState<TooltipAnchor | null>(null);
   const { x, y, wy, yDomain, wDomain, xDomain } = useMemo(
     () => buildScales(weighIns, ema, trajectory, goal),
     [weighIns, ema, trajectory, goal],
@@ -99,7 +101,7 @@ export function WeightChart(props: WeightChartProps) {
   const waistPts = weighIns.filter((p) => p.waist_cm !== null);
   const waistPath = polyline(waistPts.map((p) => ({ x: x(toMs(p.date)), y: wy(p.waist_cm!) })));
   const goalY = goal !== null ? y(goal) : null;
-  const hits = buildHits(weighIns, waistPts, showWaist, x, y, wy);
+  const hits = buildHits(weighIns, waistPts, showWaist, x, y, wy, i18n.language);
 
   return (
     <div className={styles.chart} data-chart="weight">
@@ -158,7 +160,7 @@ export function WeightChart(props: WeightChartProps) {
             ))}
           <HitAreas points={hits} onHover={setHovered} onLeave={() => setHovered(null)} />
         </svg>
-        {hovered && <ChartTooltip point={hovered} box={B} />}
+        {hovered && <ChartTooltip anchor={hovered} />}
       </div>
       <ChartLegend series={showWaist ? [...LEGEND, WAIST_LEGEND] : LEGEND} />
     </div>

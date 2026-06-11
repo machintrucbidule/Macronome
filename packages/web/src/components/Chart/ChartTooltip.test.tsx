@@ -1,41 +1,38 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { cleanup, render } from '@testing-library/react';
-import type { ChartBox } from './scale';
+import { cleanup, render, screen } from '@testing-library/react';
 import { ChartTooltip } from './ChartTooltip';
 
-// CT-1/B-140: the styled tooltip renders a title line + one value per row, from a structured
-// TipContent. Pure presentation — this guards the multi-line shape (title first, then rows).
-const BOX: ChartBox = { w: 100, h: 100, padL: 0, padR: 0, padT: 0, padB: 0 };
-
+// CT-1/B-140: the styled tooltip renders a centered title line + one value per row, from a
+// structured TipContent, and is portaled to <body> (queried via `screen`, not the container).
 afterEach(() => cleanup());
 
 describe('ChartTooltip', () => {
   it('renders the title first, then one node per value row', () => {
-    const { getByRole } = render(
+    render(
       <ChartTooltip
-        point={{ cx: 50, cy: 50, tip: { title: 'June', rows: ['15 OK', '5 NOK'] } }}
-        box={BOX}
+        anchor={{
+          x: 50,
+          y: 50,
+          tip: { title: 'Février 2026', rows: ['21 jours OK', '10 jours NOK'] },
+        }}
       />,
     );
 
-    const card = getByRole('status');
+    const card = screen.getByRole('status');
     const children = [...card.children];
     expect(children).toHaveLength(3); // title + 2 rows
-    expect(children[0]?.textContent).toBe('June');
-    expect(children.slice(1).map((c) => c.textContent)).toEqual(['15 OK', '5 NOK']);
+    expect(children[0]?.textContent).toBe('Février 2026');
+    expect(children.slice(1).map((c) => c.textContent)).toEqual(['21 jours OK', '10 jours NOK']);
   });
 
   it('renders a single-row tip (weight point)', () => {
-    const { getByRole } = render(
-      <ChartTooltip
-        point={{ cx: 50, cy: 50, tip: { title: '2026-06-10', rows: ['78.5 kg'] } }}
-        box={BOX}
-      />,
+    render(
+      <ChartTooltip anchor={{ x: 50, y: 50, tip: { title: '10 juin 2026', rows: ['78.5 kg'] } }} />,
     );
-    const card = getByRole('status');
+    const card = screen.getByRole('status');
     const children = [...card.children];
     expect(children).toHaveLength(2);
-    expect(children[0]?.textContent).toBe('2026-06-10');
+    expect(children[0]?.textContent).toBe('10 juin 2026');
     expect(children[1]?.textContent).toBe('78.5 kg');
   });
 });
