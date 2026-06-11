@@ -2778,3 +2778,46 @@ so pre-target months are not left unshaded when an early target exists.
 `features/stats/components/MonthCalorieBars.tsx` (per-month rects, `zone` prop dropped) +
 `AdherenceSections.tsx`. New oracle in `domain/stats/stats.test.ts` (2-target stepping +
 retroactive fallback + `monthEndDate` edges). No DB/schema change.
+
+## EC-1 / B-138, B-139 — numeric écart vs target on Journal + Repas cards — RESOLVED (author, 2026-06-11)
+
+**Problem.** Both adherence surfaces showed only a word/badge (Journal: OK/NOK badge; Repas
+cards: OK / En-dessous / Dessus) — never **by how much** the day is off target. The user wants
+the signed kcal/macro écart, colour-coded, on each surface.
+
+**Decision (behaviour).**
+
+- **B-138 (Journal verdict column).** Show the signed **kcal écart vs the day's frozen band**:
+  under `cal_min` → `kcal − cal_min` (negative) in **green**; over `cal_max` → `kcal − cal_max`
+  (positive) in **red**; inside the band (OK) → **nothing**. Only logged days (green/yellow) carry
+  it (a red/empty day has no real total → no écart). **Desktop:** right-aligned so the écarts line
+  up vertically down the column. **Mobile:** to the **left** of the OK/NOK badge (no alignment).
+- **B-139 (Repas 4 cards).** **Calories:** OK → nothing; below → red `value − cal_min`; above → red
+  `value − cal_max`; **to the right** of the status word, **always red**. **Lipides/Protéines**
+  (floor) & **Glucides** (ceiling): always show `value − threshold` **below** the status word,
+  **right-aligned**, **green when on target (`ok`) else red** (floor: below red / at-or-above green;
+  ceiling: below green / above red).
+- **Intentional asymmetry (recorded, not a conflict):** Journal under-target is **green**
+  (retrospective bilan), Repas under-kcal is **red** (building the day) — both explicit user choices.
+
+**Decision (where the figure is computed) — the server/client split.** Each surface follows the
+pattern already established in its own code, which is also the rule-2-faithful choice there:
+
+- **B-138 → server-computed.** `JournalRow` does not expose the band and the journal verdict is
+  already fully server-computed, so the écart is computed server-side as **one additive field**
+  `kcal_gap: number | null` on `JournalRow` (null = in band, or a non-logged day). The web only
+  renders it → strict CLAUDE.md rule 2. New pure `domain/day-verdict/verdict.ts kcalBandGap`.
+- **B-139 → client-side display derivation.** The Repas cards already receive `value` + thresholds
+  and already derive the status word + bar colours locally (documented "display-only, never
+  authoritative"). The écart `value − threshold` is the same nature of display derivation, so it is
+  computed in the card from props it already holds — **no DTO/API change**. (The pre-existing
+  client-computed status word is left as-is; moving it server-side is out of scope.)
+
+**Spec impact:** B-138 — `spec/api/days-meals-leftover.md §Journal` (`kcal_gap`),
+`shared/dto/day.ts` (`JournalRow.kcal_gap`), `specifications/screens/history.md`,
+`design/components/data-tables.md`. B-139 — `design/components/metric-cards.md`,
+`specifications/screens/meals.md` (no DTO/API change). **Code:** api `kcalBandGap` +
+`services/journal.ts` (`toRow`/`emptyRow`); web shared `lib/format/number.ts signedInt`,
+`JournalRow.tsx`/`JournalCard.tsx` (+ module CSS), `CalorieCard.tsx`/`MacroCard.tsx` +
+`BandCard.module.css`. Tests: `kcalBandGap` oracle + journal integration `kcal_gap`; RTL écart
+tests for `JournalRow`, `CalorieCard`, `MacroCard`. No DB/schema change.

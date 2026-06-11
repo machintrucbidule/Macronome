@@ -115,6 +115,28 @@
   box-shadow: inset 3px 0 0 var(--nok);
 }
 
+/* Verdict cell = the OK/NOK badge + the signed kcal écart vs the frozen band (B-138). The
+   écart is pushed to the right edge (margin-left:auto) so the numbers line up vertically down
+   the column; tabular figures keep the digits aligned. Under cal_min → green, over → red. */
+.verdictCell {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.gap {
+  margin-left: auto;
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-12);
+  white-space: nowrap;
+}
+.gapUnder {
+  color: var(--ok);
+}
+.gapOver {
+  color: var(--nok);
+}
+
 /* Day-state legend (next to the year selector): a small swatch + label per state. */
 .legend {
   display: flex;

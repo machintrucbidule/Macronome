@@ -78,6 +78,27 @@ Three modes:
   the value as **`—`**, **hides the bar**, and **omits the status word** — the card stays
   neutral (no `.good`/`.bad`). Only the editable Calories card shows a band on a Partiel day.
 
+## Signed écart vs target (B-139)
+
+Each card also shows the **numeric écart vs its target**, a signed integer (`.ecart`,
+`--font-num; tabular-nums; --fw-bold; --fs-11`) coloured by `--ok` (green) / `--nok` (red). The
+écart is a **display derivation** of the same `value` + threshold the card already holds (same
+nature as the status word it already computes) — not an authoritative figure.
+
+- **Calories card** — placed **to the right** of the status word (after `.c-status` in
+  `.c-bot`). **Always red.** OK (in band) → **nothing**; below → `value − cal_min` (negative);
+  above → `value − cal_max` (positive). Red even on the `.kcal.under` (blue) card — the écart
+  colour is independent of the card state.
+- **Macro cards** — rendered **below** the status word, **right-aligned** (`.c-status` and
+  `.ecart` stacked in a right-aligned column, `margin-left:auto`). **Always shown** when a
+  threshold exists (hidden when the threshold is null or the card is muted). Value = `value −
+threshold`; **colour = green iff on target (`ok`), else red** — which is exactly: **floor**
+  (protein, fat) below → red, at/above → green; **ceiling** (carbs) below → green, above → red.
+
+> Sign convention is retained verbatim (a deficit reads negative, a surplus positive); the
+> Repas under-kcal is **red** (building the day) — the opposite of the Journal écart where
+> under-target is green (retrospective bilan). Both are intentional (B-138/B-139).
+
 ## Verdict cluster (right cell)
 
 `.verdict` column, right-aligned, `min-width:150px`:

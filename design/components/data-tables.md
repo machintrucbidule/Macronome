@@ -53,6 +53,16 @@ A small **state legend** sits in the header to the right of the year selector, r
 `ChartLegend` swatch pattern (`legend`/`legendItem`): three items **Complet · Partiel · Rien**,
 each a small square swatch in the matching state colour. `--font-num; --fs-11; --text-dim`.
 
+## Verdict-cell kcal écart (Journal, B-138)
+
+The Verdict cell holds the OK/NOK badge **plus** a signed kcal écart vs the day's frozen band
+(server-provided `kcal_gap`). The cell is a `flex` row; the écart is pushed to the right edge
+(`margin-left:auto`, `--font-num; tabular-nums; --fs-12`) so the figures **line up vertically
+down the column**. Colour: under `cal_min` → **green** `--ok` (negative écart); over `cal_max` →
+**red** `--nok` (positive); **inside the band → nothing rendered**. Only logged (green/yellow)
+days carry it. On **mobile** cards the écart sits to the **left** of the static verdict pill
+(`--fs-11`, same green/red rule, no alignment requirement).
+
 ## Target history table (Cibles, TH-1 / B-091)
 
 The "Historique des cibles" panel reuses the **shared table conventions** above (no

@@ -15,7 +15,7 @@ afterEach(async () => {
   vi.restoreAllMocks();
 });
 
-function row(state: DayState): Row {
+function row(state: DayState, gap: number | null = null): Row {
   return {
     date: '2026-01-01',
     kcal: 0,
@@ -23,6 +23,7 @@ function row(state: DayState): Row {
     verdict_auto: null,
     verdict_override: null,
     effective_verdict: null,
+    kcal_gap: gap,
     activity_level: 'sedentary',
     comment: null,
     kind: state === 'green' ? 'detailed' : state === 'yellow' ? 'summary' : null,
@@ -31,12 +32,12 @@ function row(state: DayState): Row {
   };
 }
 
-function renderRow(state: DayState) {
+function renderRow(state: DayState, gap: number | null = null) {
   return render(
     <MemoryRouter>
       <table>
         <tbody>
-          <JournalRow row={row(state)} onPatch={vi.fn()} />
+          <JournalRow row={row(state, gap)} onPatch={vi.fn()} />
         </tbody>
       </table>
     </MemoryRouter>,
@@ -62,6 +63,27 @@ describe('JournalRow state band (JR-1 / B-077)', () => {
   it('applies no band class on a future-empty (none) day', () => {
     const { container } = renderRow('none');
     expect((container.querySelector('tr') as HTMLElement).className).toBe('');
+  });
+});
+
+describe('JournalRow kcal écart (B-138)', () => {
+  it('shows a green negative écart when under cal_min', () => {
+    const { container } = renderRow('green', -400);
+    const gap = container.querySelector(`.${styles.gap}`) as HTMLElement;
+    expect(gap.textContent).toBe('−400');
+    expect(gap.className).toContain(styles.gapUnder);
+  });
+
+  it('shows a red positive écart when over cal_max', () => {
+    const { container } = renderRow('green', 300);
+    const gap = container.querySelector(`.${styles.gap}`) as HTMLElement;
+    expect(gap.textContent).toBe('+300');
+    expect(gap.className).toContain(styles.gapOver);
+  });
+
+  it('shows no écart inside the band (kcal_gap null)', () => {
+    const { container } = renderRow('green', null);
+    expect(container.querySelector(`.${styles.gap}`)).toBeNull();
   });
 });
 

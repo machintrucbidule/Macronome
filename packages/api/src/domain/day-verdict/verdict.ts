@@ -24,6 +24,14 @@ export function autoVerdict(kcal: number, calMin: number, calMax: number): Verdi
   return calorieStatus(kcal, calMin, calMax) === 'OK' ? 'OK' : 'NOK';
 }
 
+/** Signed kcal écart vs the frozen band (B-138): below cal_min → kcal − cal_min (negative),
+ *  above cal_max → kcal − cal_max (positive), inside the band → null (nothing to show). */
+export function kcalBandGap(kcal: number, calMin: number, calMax: number): number | null {
+  if (kcal < calMin) return kcal - calMin;
+  if (kcal > calMax) return kcal - calMax;
+  return null;
+}
+
 /** Effective verdict = manual override if set, else the auto value (00-conventions.md). */
 export function effectiveVerdict(override: Verdict | null, auto: Verdict | null): Verdict | null {
   return override ?? auto;

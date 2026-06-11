@@ -40,3 +40,9 @@ export function formatFixed(n: number, digits: number): string {
 export function formatUpTo(n: number, maxDigits: number): string {
   return formatter(0, maxDigits).format(n);
 }
+
+/** Signed integer with a real minus sign: "+300", "−120", "0" (e.g. a kcal/macro écart). */
+export function signedInt(n: number): string {
+  const r = Math.round(n);
+  return `${r > 0 ? '+' : r < 0 ? '−' : ''}${formatInt(Math.abs(r))}`;
+}

@@ -156,10 +156,13 @@ leftover_net_grams,entry_ids:[...]}`.
   (> today, ≤ Dec 31) that already has a row (listed inline — author decision). Future days are
   never generated as empties.
   → 200 `{data:[{date,kcal,macros:{L,G,P}|null,verdict_auto,verdict_override,
-effective_verdict,activity_level,comment,kind,state,editable_kcal}], day_count, min_year, max_year}`.
+effective_verdict,kcal_gap,activity_level,comment,kind,state,editable_kcal}], day_count, min_year, max_year}`.
   `kind` is `null` for an empty row; `state` is the calorie-driven colour
   (`none|green|yellow|red`, `logic/day-snapshot-verdict.md §8`); `editable_kcal` is true on any
-  non-`green` day (the Calories cell creates/updates a summary day). Macros are null for summary
+  non-`green` day (the Calories cell creates/updates a summary day). `kcal_gap` is the **signed
+  kcal écart vs the day's frozen band** (B-138), server-computed so the web never derives it
+  (CLAUDE.md rule 2): `kcal − cal_min` when below (negative), `kcal − cal_max` when above
+  (positive), and `null` inside the band (OK) or on a non-logged (`red`/empty/`none`) day. Macros are null for summary
   and empty days. `day_count` is the number of **logged** days (calorie-bearing, date ≤ today) —
   distinct from the rendered row count. `min_year`/`max_year` are the global span of the user's
   day rows (across all years, independent of `year`; both `null` when none) — they bound the year

@@ -3,6 +3,7 @@ import { render } from '@testing-library/react';
 import i18n from '../../i18n/config';
 import { formatInt } from '../../lib/format/number';
 import { MacroCard } from './MacroCard';
+import styles from './BandCard.module.css';
 
 // B-019: macro amounts and target thresholds render as integers (no raw float like
 // "max. 135.29999999999998 g"). MacroCard is a pure presentational component; the
@@ -59,5 +60,55 @@ describe('MacroCard muted (B-086)', () => {
     const spans = [...container.querySelectorAll('span')];
     expect(spans.length).toBe(3);
     expect(spans[2]?.textContent).toBe('—'); // the value span shows just the em-dash
+  });
+});
+
+// B-139: each macro card shows the signed écart vs its threshold below the status word — floor
+// (protein/fat): below red / at-or-above green; ceiling (carb): below green / above red.
+describe('MacroCard écart (B-139)', () => {
+  const STATUS = { ok: 'OK', bad: 'NOK' };
+  function card(props: Partial<Parameters<typeof MacroCard>[0]>) {
+    return render(
+      <MacroCard
+        label="M"
+        value={0}
+        threshold={60}
+        mode="floor"
+        thresholdText="t"
+        status={STATUS}
+        unit="g"
+        {...props}
+      />,
+    );
+  }
+  const ecart = (c: HTMLElement): HTMLElement => c.querySelector(`.${styles.ecart}`) as HTMLElement;
+
+  it('floor below threshold → red negative écart', () => {
+    const { container } = card({ value: 40, threshold: 60, mode: 'floor' });
+    expect(ecart(container).textContent).toBe('−20');
+    expect(ecart(container).className).toContain(styles.ecartBad);
+  });
+
+  it('floor at or above threshold → green positive écart', () => {
+    const { container } = card({ value: 80, threshold: 60, mode: 'floor' });
+    expect(ecart(container).textContent).toBe('+20');
+    expect(ecart(container).className).toContain(styles.ecartGood);
+  });
+
+  it('ceiling above threshold → red positive écart', () => {
+    const { container } = card({ value: 250, threshold: 200, mode: 'ceiling' });
+    expect(ecart(container).textContent).toBe('+50');
+    expect(ecart(container).className).toContain(styles.ecartBad);
+  });
+
+  it('ceiling below threshold → green negative écart', () => {
+    const { container } = card({ value: 150, threshold: 200, mode: 'ceiling' });
+    expect(ecart(container).textContent).toBe('−50');
+    expect(ecart(container).className).toContain(styles.ecartGood);
+  });
+
+  it('no écart when there is no threshold or the card is muted', () => {
+    expect(ecart(card({ value: 40, threshold: null }).container)).toBeNull();
+    expect(ecart(card({ value: 40, threshold: 60, muted: true }).container)).toBeNull();
   });
 });

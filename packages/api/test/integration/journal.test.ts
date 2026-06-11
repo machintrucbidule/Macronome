@@ -42,6 +42,7 @@ interface Row {
   state: string;
   kind: string | null;
   kcal: number;
+  kcal_gap: number | null;
   editable_kcal: boolean;
 }
 const rowMap = (data: Row[]): Map<string, Row> => new Map(data.map((r) => [r.date, r]));
@@ -85,6 +86,24 @@ describe('GET /journal — full calendar trame (day-model)', () => {
     expect(res.body.data[0].date).toBe(future);
     expect(res.body.data[0].state).toBe('yellow');
     expect(res.body.day_count).toBe(0); // future days never count until their date arrives
+  });
+});
+
+describe('GET /journal — kcal écart vs the frozen band (B-138)', () => {
+  it('exposes a signed kcal_gap for logged days, null inside the band and on red days', async () => {
+    const { agent, userId } = await authedAgent(app, 'dave');
+    await seedDay(userId, '2024-06-01', 1500); // under cal_min (1900) → -400
+    await seedDay(userId, '2024-06-02', 2000); // inside band → null
+    await seedDay(userId, '2024-06-04', 2400); // over cal_max (2100) → +300
+
+    const res = await agent.get('/api/v1/journal?year=2024');
+    expect(res.status).toBe(200);
+    const byDate = rowMap(res.body.data as Row[]);
+    expect(byDate.get('2024-06-01')!.kcal_gap).toBe(-400);
+    expect(byDate.get('2024-06-02')!.kcal_gap).toBeNull();
+    expect(byDate.get('2024-06-04')!.kcal_gap).toBe(300);
+    // a red, empty trame day carries no écart (no real total).
+    expect(byDate.get('2024-06-03')!.kcal_gap).toBeNull();
   });
 });
 

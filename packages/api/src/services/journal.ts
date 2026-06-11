@@ -6,6 +6,7 @@ import {
   autoVerdict,
   dayState,
   effectiveVerdict,
+  kcalBandGap,
   type ResolvedSnapshot,
 } from '../domain/day-verdict/index.js';
 import { computeDayTotals } from './day-assembler.js';
@@ -33,6 +34,9 @@ function toRow(aggregate: DayAggregate): JournalRow {
   const date = isoOf(aggregate);
   const kind = dayLog.kind as 'detailed' | 'summary';
   const state = dayState({ kind, dayKcal: kcal, isFuture: isFuture(date) });
+  // Écart shown only for days that actually carry a calorie value (green/yellow); a red/empty
+  // day has no real total, so no écart (avoids a misleading −cal_min on a no-data day). B-138.
+  const isLoggedState = state === 'green' || state === 'yellow';
   return {
     date,
     kcal,
@@ -40,6 +44,7 @@ function toRow(aggregate: DayAggregate): JournalRow {
     verdict_auto: auto,
     verdict_override: override,
     effective_verdict: effectiveVerdict(override, auto),
+    kcal_gap: isLoggedState ? kcalBandGap(kcal, snapshot.cal_min, snapshot.cal_max) : null,
     activity_level: dayLog.activityLevel,
     comment: dayLog.comment,
     kind,
@@ -59,6 +64,7 @@ function emptyRow(date: string): JournalRow {
     verdict_auto: null,
     verdict_override: null,
     effective_verdict: null,
+    kcal_gap: null,
     activity_level: DEFAULT_ACTIVITY_LEVEL,
     comment: null,
     kind: null,

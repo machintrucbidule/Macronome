@@ -3,6 +3,7 @@ export {
   dayKcal,
   calorieStatus,
   autoVerdict,
+  kcalBandGap,
   effectiveVerdict,
   type Verdict,
   type CalorieStatus,

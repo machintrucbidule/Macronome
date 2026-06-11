@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { signedInt } from '../../lib/format/number';
 import styles from './BandCard.module.css';
 
 // Wide calorie card with the three-zone target band (design/components/metric-cards.md).
@@ -11,6 +12,13 @@ interface CalorieStatus {
   inBand: string;
   under: string;
   over: string;
+}
+
+/** Signed kcal écart vs the band (B-139): how far below cal_min or above cal_max, null in-band. */
+function kcalGap(value: number, min: number, max: number): number | null {
+  if (value < min) return value - min;
+  if (value > max) return value - max;
+  return null;
 }
 
 interface CalorieCardProps {
@@ -91,6 +99,8 @@ export function CalorieCard({
   const under = value < min;
   const over = value > max;
   const ok = !under && !over;
+  // Always rendered red — both directions are off target (B-139).
+  const gap = kcalGap(value, min, max);
 
   const fillColor = ok ? 'var(--in-band)' : under ? 'var(--under)' : 'var(--over)';
   const band = `linear-gradient(90deg,
@@ -128,6 +138,9 @@ export function CalorieCard({
         <span className={styles.status}>
           {ok ? status.inBand : under ? status.under : status.over}
         </span>
+        {gap !== null && (
+          <span className={`${styles.ecart} ${styles.ecartBad}`}>{signedInt(gap)}</span>
+        )}
       </div>
     </div>
   );

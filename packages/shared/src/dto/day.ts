@@ -252,6 +252,10 @@ export interface JournalRow {
   verdict_auto: Verdict | null;
   verdict_override: Verdict | null;
   effective_verdict: Verdict | null;
+  /** Signed kcal écart vs the day's frozen band, server-computed (B-138): below cal_min →
+   *  kcal − cal_min (negative, rendered green); above cal_max → kcal − cal_max (positive, red);
+   *  null when inside the band (OK) or on a non-logged (red/empty) day — the web only renders it. */
+  kcal_gap: number | null;
   activity_level: string;
   comment: string | null;
   /** The day's kind, or null for an empty (never-touched) trame row (day-model). */

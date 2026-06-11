@@ -11,6 +11,7 @@ import { ActivitySelect } from '../../../components/ActivitySelect/ActivitySelec
 import { tableStyles } from '../../../components/DataTable/SortableTh';
 import { CommentCell } from './CommentCell';
 import { CaloriesCell } from './CaloriesCell';
+import { signedInt } from '../../../lib/format/number';
 import { formatDow, formatJournalDate, r0 } from '../format';
 import styles from '../journal.module.css';
 
@@ -75,13 +76,25 @@ export function JournalRow({ row, onPatch }: JournalRowProps) {
         )}
       </td>
       <td>
-        <VerdictBadge
-          effective={row.effective_verdict}
-          auto={row.verdict_auto}
-          override={row.verdict_override}
-          labels={verdictLabels}
-          onSet={(v) => onPatch(row.date, { verdict_override: v })}
-        />
+        <div className={styles.verdictCell}>
+          <VerdictBadge
+            effective={row.effective_verdict}
+            auto={row.verdict_auto}
+            override={row.verdict_override}
+            labels={verdictLabels}
+            onSet={(v) => onPatch(row.date, { verdict_override: v })}
+          />
+          {/* Signed kcal écart vs the frozen band (B-138): under cal_min green, over cal_max
+              red, nothing inside the band. Server-provided (row.kcal_gap); right-aligned so the
+              écarts line up vertically down the column. */}
+          {row.kcal_gap !== null && (
+            <span
+              className={`${styles.gap} ${row.kcal_gap < 0 ? styles.gapUnder : styles.gapOver}`}
+            >
+              {signedInt(row.kcal_gap)}
+            </span>
+          )}
+        </div>
       </td>
       <td>
         <ActivitySelect

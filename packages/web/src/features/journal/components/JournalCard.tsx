@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { ACTIVITY_LABEL_KEYS, type ActivityLevel, type JournalRow as Row } from '@macronome/shared';
+import { signedInt } from '../../../lib/format/number';
 import { formatDow, formatJournalDate, r0 } from '../format';
 import styles from '../journal-mobile.module.css';
 
@@ -61,8 +62,21 @@ export function JournalCard({ row, onOpen }: JournalCardProps) {
           <span className={styles.date}>{formatJournalDate(row.date, i18n.language)}</span>
           <span className={styles.dow}>{formatDow(row.date, i18n.language)}</span>
         </div>
-        <span className={`${styles.badge} ${verdict ? VERDICT_CLASS[verdict] : styles.badgeMuted}`}>
-          {verdict ?? DASH}
+        <span className={styles.verdictWrap}>
+          {/* Signed kcal écart vs the frozen band (B-138), to the left of the badge (mobile,
+              alignment not required): under cal_min green, over cal_max red, nothing inside. */}
+          {row.kcal_gap !== null && (
+            <span
+              className={`${styles.gap} ${row.kcal_gap < 0 ? styles.gapUnder : styles.gapOver}`}
+            >
+              {signedInt(row.kcal_gap)}
+            </span>
+          )}
+          <span
+            className={`${styles.badge} ${verdict ? VERDICT_CLASS[verdict] : styles.badgeMuted}`}
+          >
+            {verdict ?? DASH}
+          </span>
         </span>
       </div>
 

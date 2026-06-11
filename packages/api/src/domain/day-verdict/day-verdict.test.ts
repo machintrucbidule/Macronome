@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { autoVerdict, calorieStatus, dayKcal, effectiveVerdict } from './verdict.js';
+import { autoVerdict, calorieStatus, dayKcal, effectiveVerdict, kcalBandGap } from './verdict.js';
 import { resolveSnapshot } from './snapshot.js';
 import { dayState, isLoggedDay } from './state.js';
 
@@ -16,6 +16,17 @@ test('auto verdict — OK / NOK(DÉPASSÉ) / NOK(SOUS) (§5)', () => {
 
   expect(autoVerdict(0, 1900, 2100)).toBe('NOK');
   expect(calorieStatus(0, 1900, 2100)).toBe('SOUS');
+});
+
+test('kcalBandGap — signed écart vs the frozen band (B-138)', () => {
+  // inside the band (OK) → nothing to show
+  expect(kcalBandGap(2000, 1900, 2100)).toBeNull();
+  expect(kcalBandGap(1900, 1900, 2100)).toBeNull(); // on the lower edge = OK
+  expect(kcalBandGap(2100, 1900, 2100)).toBeNull(); // on the upper edge = OK
+  // below cal_min → negative écart (green, rendered client-side)
+  expect(kcalBandGap(1500, 1900, 2100)).toBe(-400);
+  // above cal_max → positive écart (red)
+  expect(kcalBandGap(2400, 1900, 2100)).toBe(300);
 });
 
 test('dayKcal sums consumed entry kcal; pantry zero contributes 0', () => {

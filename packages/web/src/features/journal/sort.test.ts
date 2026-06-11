@@ -12,6 +12,7 @@ function row(p: Partial<JournalRow> & { date: string }): JournalRow {
     verdict_auto: p.verdict_auto ?? null,
     verdict_override: p.verdict_override ?? null,
     effective_verdict: p.effective_verdict ?? null,
+    kcal_gap: p.kcal_gap ?? null,
     activity_level: p.activity_level ?? 'sedentary',
     comment: p.comment ?? null,
     kind: p.kind ?? 'detailed',

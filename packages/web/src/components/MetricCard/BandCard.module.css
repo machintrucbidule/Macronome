@@ -114,3 +114,29 @@
 .kcal.under .val {
   color: var(--under);
 }
+
+/* Signed écart vs target (B-139). kcal: to the right of the status word, always red. Macros:
+   stacked below the status word, right-aligned, green when on target else red. Its colour is set
+   by .ecartGood/.ecartBad (independent of the card state, so the kcal écart stays red even on an
+   under-target/blue card). */
+.statusCol {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-left: auto;
+}
+.statusCol .status {
+  margin-left: 0;
+}
+.ecart {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-11);
+  font-weight: var(--fw-bold);
+}
+.ecartGood {
+  color: var(--ok);
+}
+.ecartBad {
+  color: var(--nok);
+}

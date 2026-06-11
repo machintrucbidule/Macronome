@@ -85,6 +85,26 @@
   color: var(--text-faint);
 }
 
+/* Verdict cluster on a card: the signed kcal écart (B-138) sits to the left of the badge. */
+.verdictWrap {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.gap {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-11);
+  white-space: nowrap;
+}
+.gapUnder {
+  color: var(--ok);
+}
+.gapOver {
+  color: var(--nok);
+}
+
 .row {
   display: flex;
   align-items: baseline;

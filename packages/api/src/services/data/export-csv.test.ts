@@ -35,6 +35,7 @@ function journalRow(over: Partial<JournalRow>): JournalRow {
     verdict_auto: 'OK',
     verdict_override: null,
     effective_verdict: 'OK',
+    kcal_gap: null,
     activity_level: 'sedentary',
     comment: null,
     kind: 'detailed',

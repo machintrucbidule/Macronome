@@ -1,4 +1,4 @@
-import { formatInt } from '../../lib/format/number';
+import { formatInt, signedInt } from '../../lib/format/number';
 import styles from './BandCard.module.css';
 
 // Macro card with a directional threshold bar (design/components/metric-cards.md):
@@ -15,6 +15,11 @@ interface MacroCardProps {
   unit: string;
   /** Partiel (summary) day: only kcal is meaningful, so show "—" and no bar/status (B-086). */
   muted?: boolean;
+}
+
+/** Écart colour class (B-139): green when on target (ok), else red. */
+function ecartClass(ok: boolean): string {
+  return (ok ? styles.ecartGood : styles.ecartBad) ?? '';
 }
 
 // The directional zone/fill bar, extracted so MacroCard itself stays simple. The notch (B-044)
@@ -75,7 +80,19 @@ export function MacroCard({
       )}
       <div className={styles.bot}>
         <span className={styles.val}>{muted ? '—' : `${formatInt(value)} ${unit}`}</span>
-        {!muted && <span className={styles.status}>{ok ? status.ok : status.bad}</span>}
+        {!muted && (
+          <span className={styles.statusCol}>
+            <span className={styles.status}>{ok ? status.ok : status.bad}</span>
+            {/* Signed écart vs the threshold (B-139), below the status, right-aligned. Floor:
+                below red / at-or-above green; ceiling: below green / above red — i.e. green iff
+                on target (ok), else red. Hidden when there is no threshold. */}
+            {threshold !== null && (
+              <span className={`${styles.ecart} ${ecartClass(ok)}`}>
+                {signedInt(value - threshold)}
+              </span>
+            )}
+          </span>
+        )}
       </div>
     </div>
   );

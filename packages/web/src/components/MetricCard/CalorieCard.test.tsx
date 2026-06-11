@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render } from '@testing-library/react';
 import { CalorieCard } from './CalorieCard';
+import styles from './BandCard.module.css';
 
 // DK-1 / B-079: the Repas calorie card is editable on a Partiel day (writes summary_kcal),
 // read-only on a Complet day. Labels/status are passed in, so no i18n is needed here.
@@ -49,5 +50,26 @@ describe('CalorieCard editable (DK-1 / B-079)', () => {
     fireEvent.change(input, { target: { value: '' } }); // invalid
     fireEvent.blur(input);
     expect(onSave).not.toHaveBeenCalled();
+  });
+});
+
+describe('CalorieCard kcal écart (B-139)', () => {
+  it('shows a red negative écart below cal_min', () => {
+    const { container } = renderCard({ value: 1800 }); // 1800 − 1900
+    const ecart = container.querySelector(`.${styles.ecart}`) as HTMLElement;
+    expect(ecart.textContent).toBe('−100');
+    expect(ecart.className).toContain(styles.ecartBad);
+  });
+
+  it('shows a red positive écart above cal_max', () => {
+    const { container } = renderCard({ value: 2300 }); // 2300 − 2100
+    const ecart = container.querySelector(`.${styles.ecart}`) as HTMLElement;
+    expect(ecart.textContent).toBe('+200');
+    expect(ecart.className).toContain(styles.ecartBad);
+  });
+
+  it('shows no écart inside the band', () => {
+    const { container } = renderCard({ value: 2000 });
+    expect(container.querySelector(`.${styles.ecart}`)).toBeNull();
   });
 });
