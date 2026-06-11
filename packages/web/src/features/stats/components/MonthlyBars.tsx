@@ -39,10 +39,13 @@ export function MonthlyBars({ monthly }: { monthly: MonthlyStat[] }) {
     point: {
       cx: PAD.l + slot * i + slot / 2,
       cy: y(m.ok_count + m.nok_count),
-      tip: `${monthLabel(m.month, i18n.language)} · ${t('stats.monthly.tooltip', {
-        ok: m.ok_count,
-        nok: m.nok_count,
-      })}`,
+      tip: {
+        title: monthLabel(m.month, i18n.language),
+        rows: [
+          t('stats.monthly.tooltipOk', { ok: m.ok_count }),
+          t('stats.monthly.tooltipNok', { nok: m.nok_count }),
+        ],
+      },
     },
   }));
 

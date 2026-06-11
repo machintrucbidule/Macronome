@@ -1,3 +1,4 @@
+import type { TipContent } from './ChartTooltip';
 import styles from './Chart.module.css';
 
 // Transparent point hit-areas (B-018): the visible weight/waist dots are intentionally tiny
@@ -8,7 +9,7 @@ export interface HitPoint {
   id: string;
   cx: number;
   cy: number;
-  tip: string;
+  tip: TipContent;
 }
 
 interface HitAreasProps {

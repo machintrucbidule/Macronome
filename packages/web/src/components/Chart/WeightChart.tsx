@@ -71,14 +71,14 @@ function buildHits(
       id: `h-${p.id}`,
       cx: x(toMs(p.date)),
       cy: y(p.weight_kg),
-      tip: `${p.date} · ${p.weight_kg} kg`,
+      tip: { title: p.date, rows: [`${p.weight_kg} kg`] },
     })),
     ...(showWaist
       ? waistPts.map((p) => ({
           id: `wh-${p.id}`,
           cx: x(toMs(p.date)),
           cy: wy(p.waist_cm!),
-          tip: `${p.date} · ${p.waist_cm} cm`,
+          tip: { title: p.date, rows: [`${p.waist_cm} cm`] },
         }))
       : []),
   ];

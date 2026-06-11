@@ -3,7 +3,11 @@ import { useTranslation } from 'react-i18next';
 import type { MonthlyStat } from '@macronome/shared';
 import { ChartGridlines } from '../../../components/Chart/ChartGridlines';
 import { ChartLegend, type Series } from '../../../components/Chart/ChartLegend';
-import { ChartTooltip, type TooltipPoint } from '../../../components/Chart/ChartTooltip';
+import {
+  ChartTooltip,
+  type TipContent,
+  type TooltipPoint,
+} from '../../../components/Chart/ChartTooltip';
 import { ColumnHits, type ColumnHit } from '../../../components/Chart/ColumnHits';
 import { type ChartBox, linear, niceDomain, polyline } from '../../../components/Chart/scale';
 import { monthLabel, r0 } from '../format';
@@ -29,6 +33,18 @@ const LEGEND: Series[] = [
   { shape: 'line', token: '--text', labelKey: 'stats.legend.avgGlobal' },
   { shape: 'dot', token: '--accent', labelKey: 'stats.legend.zone' },
 ];
+
+/** Structured per-month tooltip: month title + one avg-kcal value per line (CT-1/B-140). */
+function tipFor(m: MonthlyStat, lang: string, t: (k: string) => string): TipContent {
+  return {
+    title: monthLabel(m.month, lang),
+    rows: [
+      `OK ${r0(m.avg_kcal_ok)}`,
+      `NOK ${r0(m.avg_kcal_nok)}`,
+      `${t('stats.legend.avgGlobal')} ${r0(m.avg_kcal_global)} kcal`,
+    ],
+  };
+}
 
 /** One month: OK/NOK bars (when present), the month label, and the global-average dot. */
 function AvgBarGroup({
@@ -94,13 +110,9 @@ export function MonthCalorieBars({ monthly }: { monthly: MonthlyStat[] }) {
   const cxOf = (i: number): number => PAD.l + slot * i + slot / 2;
   const globalPath = polyline(monthly.map((m, i) => ({ x: cxOf(i), y: y(m.avg_kcal_global) })));
 
-  const tipFor = (m: MonthlyStat): string =>
-    `${monthLabel(m.month, i18n.language)} · OK ${r0(m.avg_kcal_ok)} · NOK ${r0(
-      m.avg_kcal_nok,
-    )} · ${t('stats.legend.avgGlobal')} ${r0(m.avg_kcal_global)} kcal`;
   const columns: ColumnHit[] = monthly.map((m, i) => ({
     x: PAD.l + slot * i,
-    point: { cx: cxOf(i), cy: y(m.avg_kcal_global), tip: tipFor(m) },
+    point: { cx: cxOf(i), cy: y(m.avg_kcal_global), tip: tipFor(m, i18n.language, t) },
   }));
 
   return (

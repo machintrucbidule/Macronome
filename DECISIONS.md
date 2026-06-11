@@ -2831,3 +2831,39 @@ pattern already established in its own code, which is also the rule-2-faithful c
 `JournalRow.tsx`/`JournalCard.tsx` (badge slot + module CSS), `CalorieCard.tsx`/`MacroCard.tsx` +
 `BandCard.module.css` (macro écart row→column at ≤560px). Tests: `kcalUpperGap` oracle + journal
 integration `kcal_gap`; RTL écart tests for `JournalRow`, `CalorieCard`, `MacroCard`. No DB/schema change.
+
+## CT-1 / B-140 — multi-line styled chart tooltip + in-viewport flip/clamp — RESOLVED (author, 2026-06-11)
+
+**Problem.** The styled HTML chart tooltip (`ChartTooltip`, B-056/SC-1) rendered a single
+pre-joined line `"title · val1 · val2"` and had **no edge handling**, so near a chart border it
+was clipped by the viewport. The user asked for a **multi-line** layout (bold title, one value per
+line), the card to **always stay in the viewport**, and — as a follow-up this session — to "make it
+a proper, pretty tooltip".
+
+**Decision (behaviour).**
+
+- **Layout.** The card shows a **bold title line** then **one value per line** (no `·` inside the
+  card). Title/rows per chart: weight point → `date` / `78.5 kg` (waist → `date` / `85 cm`); OK-NOK
+  bars → `month` / `15 OK` / `5 NOK`; avg-kcal bars → `month` / `OK 1800` / `NOK 1950` /
+  `Moyenne globale 1875 kcal`.
+- **In-viewport.** The card **flips/clamps** to stay fully visible: defaults above the anchor, flips
+  **below** near the top edge, shifts **horizontally** near the left/right edges; never clipped, on
+  desktop and mobile.
+- **Polish (pretty tooltip).** A **caret** triangle points at the anchor (bottom edge by default,
+  top edge when flipped below, kept aligned with the anchor after a horizontal clamp), a clear
+  title/value **type hierarchy** (`--text` bold title, `--text-dim` `--font-num` rows), refined
+  surface/spacing, and a subtle fade+rise entrance **frozen under `prefers-reduced-motion`**.
+  All semantic tokens (no hex), so it tracks the theme.
+
+**Decision (where it is computed).** Pure presentation, web-only (CLAUDE.md rule 2 untouched — no
+nutrition figure is computed; the tooltip only formats values it already receives). `TooltipPoint.tip`
+changes from `string` to a structured `TipContent { title: string; rows: string[] }`; the flip/clamp
+is a `useLayoutEffect` measurement in `ChartTooltip` against `window`.
+
+**Spec impact:** `design/components/charts.md` (§Shared chart primitives — Tooltips bullet rewritten:
+multi-line layout + caret + in-viewport positioning + entrance). **Code (web-only):**
+`components/Chart/ChartTooltip.tsx` (structured `tip` + clamp), `Chart.module.css` (`.tipTitle`/
+`.tipRow`/`.below` + caret pseudo-elements + entrance keyframes), tip builders in `WeightChart.tsx`,
+`features/stats/components/MonthlyBars.tsx` + `MonthCalorieBars.tsx`, `HitAreas.tsx` (`HitPoint.tip`
+→ `TipContent`); i18n `stats.monthly.tooltip` split into `tooltipOk`/`tooltipNok`. Test:
+`ChartTooltip.test.tsx` (bold title + one node per row). No DB/schema/API/DTO change.

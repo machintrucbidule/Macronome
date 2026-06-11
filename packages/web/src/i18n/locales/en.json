@@ -784,7 +784,7 @@
     },
     "heatmap": { "label": "Adherence calendar" },
     "status": { "OK": "OK", "NOK": "NOK", "none": "not logged" },
-    "monthly": { "tooltip": "{{ok}} OK · {{nok}} NOK" },
+    "monthly": { "tooltipOk": "{{ok}} OK", "tooltipNok": "{{nok}} NOK" },
     "legend": {
       "ok": "OK days",
       "nok": "NOK days",

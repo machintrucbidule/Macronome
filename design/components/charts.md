@@ -9,11 +9,24 @@ tokens** (never baked hex) — critical for the trend line (see theming.md).
 - **Gridlines** `.gridline`: `stroke:var(--grid); stroke-width:1`.
 - **Axis labels** `.axislbl`: `--font-num; --fs-10; fill:var(--text-faint)`.
 - **Tooltips**: native SVG `<title>` per point/cell (date · value · status) — used by
-  the heatmap. **Exception (B-056, extended SC-1/B-111):** the **weight chart** and the
-  **two Stats bar charts** (OK/NOK stacked + avg kcal/month) use a **styled HTML
-  tooltip** instead — a floating card (`--bg-elev-2`, `--border`, `--r-md`, shadow,
-  `--font-num`/`--fs-11`) anchored to the hovered point/column, content `date · value`
-  (bars: a per-month summary). The dense heatmap keeps the native `<title>`.
+  the heatmap. **Exception (B-056, extended SC-1/B-111, refined CT-1/B-140):** the
+  **weight chart** and the **two Stats bar charts** (OK/NOK stacked + avg kcal/month)
+  use a **styled HTML tooltip** instead — a floating card (`--bg-elev-2`, `--border`,
+  `--r-md`, shadow, `--font-num`/`--fs-11`) anchored to the hovered point/column. The
+  dense heatmap keeps the native `<title>`. The styled card (CT-1/B-140):
+  - **Layout** — a **bold title line** (`--text`, `--fw-bold`) followed by **one value
+    per line** (`--text-dim`, tabular numerals); no `·` separators inside the card. Title
+    = the date (weight) or month label (bars); rows = the per-series values (e.g. `78.5 kg`;
+    `15 OK` / `5 NOK`; `OK 1800` / `NOK 1950` / `Moyenne globale 1875 kcal`).
+  - **Caret** — a small triangle on the card edge pointing at the hovered point, matching
+    the card fill + `--border`; on the **bottom** edge by default (card above the point),
+    moved to the **top** edge when the card flips below, and kept aligned with the anchor
+    after a horizontal clamp.
+  - **Positioning** — the card **flips/clamps to stay fully within the viewport**:
+    defaults above the anchor, **flips below** near the top edge, and **shifts
+    horizontally** near the left/right edges; never clipped, on desktop and mobile.
+  - **Entrance** — a subtle fade + 2px rise (~120ms), **frozen** under
+    `prefers-reduced-motion`.
 - **Legend** `.legend`: `--font-num; --fs-11; color:var(--text-dim)`; swatches —
   line `i` (`border-top:2px solid currentColor`), dashed `i.dash`
   (`border-top:2px dashed`), dot `i.dot` (8px circle). Colour set inline per

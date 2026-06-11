@@ -784,7 +784,7 @@
     },
     "heatmap": { "label": "Calendrier d'adhérence" },
     "status": { "OK": "OK", "NOK": "NOK", "none": "non saisi" },
-    "monthly": { "tooltip": "{{ok}} OK · {{nok}} NOK" },
+    "monthly": { "tooltipOk": "{{ok}} OK", "tooltipNok": "{{nok}} NOK" },
     "legend": {
       "ok": "Jours OK",
       "nok": "Jours NOK",

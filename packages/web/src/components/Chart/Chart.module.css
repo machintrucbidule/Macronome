@@ -25,21 +25,82 @@
   position: relative;
 }
 
-/* styled weight-chart tooltip (B-056; design/components/charts.md) */
+/* styled chart tooltip (B-056; refined CT-1/B-140; design/components/charts.md). Multi-line
+   card (bold title + one value per line), a caret pointing at the anchor, viewport flip/clamp
+   driven from ChartTooltip.tsx (transform + --caret-x set inline). Semantic tokens only. */
 .tooltip {
   position: absolute;
-  transform: translate(-50%, calc(-100% - 8px));
   pointer-events: none;
-  white-space: nowrap;
   background: var(--bg-elev-2);
   border: var(--bw) solid var(--border);
   border-radius: var(--r-md);
   box-shadow: var(--shadow);
-  padding: 4px 8px;
+  padding: 6px 9px;
   font-family: var(--font-num);
   font-size: var(--fs-11);
   color: var(--text);
   z-index: 1;
+  animation: tipIn 120ms ease-out;
+}
+.tipTitle {
+  font-weight: var(--fw-bold);
+  color: var(--text);
+  white-space: nowrap;
+}
+.tipRow {
+  margin-top: 2px;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* caret: an outline triangle (::before, --border) with the fill triangle (::after,
+   --bg-elev-2) 1px inset on top. Bottom edge by default; top edge when the card flips below. */
+.tooltip::before,
+.tooltip::after {
+  content: '';
+  position: absolute;
+  left: var(--caret-x, 50%);
+  width: 0;
+  height: 0;
+  border: 6px solid transparent;
+  margin-left: -6px;
+}
+.tooltip::after {
+  border-width: 5px;
+  margin-left: -5px;
+}
+.tooltip:not(.below)::before {
+  top: 100%;
+  border-top-color: var(--border);
+}
+.tooltip:not(.below)::after {
+  top: 100%;
+  border-top-color: var(--bg-elev-2);
+}
+.tooltip.below::before {
+  bottom: 100%;
+  border-bottom-color: var(--border);
+}
+.tooltip.below::after {
+  bottom: 100%;
+  border-bottom-color: var(--bg-elev-2);
+}
+
+@keyframes tipIn {
+  from {
+    opacity: 0;
+    margin-top: 2px;
+  }
+  to {
+    opacity: 1;
+    margin-top: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tooltip {
+    animation: none;
+  }
 }
 
 /* axes + gridlines (design/components/charts.md §Shared primitives) */
