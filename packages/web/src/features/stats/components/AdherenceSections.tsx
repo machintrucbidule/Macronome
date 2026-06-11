@@ -57,7 +57,7 @@ export function AdherenceSections({ data, loading, year, onYear }: Props) {
         <>
           <section className={styles.section}>
             <h2 className={styles.h2}>{t('stats.section.avgCalories')}</h2>
-            <MonthCalorieBars monthly={data.monthly} zone={data.target_zone} />
+            <MonthCalorieBars monthly={data.monthly} />
           </section>
           <section className={styles.section}>
             <h2 className={styles.h2}>{t('stats.section.signals')}</h2>

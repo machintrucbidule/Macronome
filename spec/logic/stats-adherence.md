@@ -72,6 +72,23 @@ bars. It is never null — a month present in the pivot has ≥ 1 logged day.
 > NOK `1800` — gives `avg_kcal_ok = (1600+1500)/2 = 1550`,
 > `avg_kcal_nok = 1800`, and `avg_kcal_global = (1600+1500+1800)/3 = 1633.33…`.
 
+**Per-month target zone (CZ-1/B-141).** The shaded band is resolved **per month**
+from the Target in effect on the month's **end date** (last calendar day): the latest
+`effective_from ≤ end_date`, falling back to the **earliest** Target for months before
+any Target exists (retroactive — mirrors the calorie resolution in
+`day-snapshot-verdict.md §2` / B-090 and the per-period weight rate in
+`weight-periods-trajectory.md §4` / B-099). The band therefore **steps** at each target
+boundary, so a year spanning several targets is shaded faithfully rather than at the
+current band throughout. It is `null` only when the user has no Target at all. Each
+`monthly` entry carries its own `target_zone`; the response's top-level `target_zone`
+(the band in effect **today**) is unchanged and still drives the rolling-card / signals.
+
+> **Worked example — per-month band** (oracle, CZ-1/B-141): targets `[1500,1600]` then
+> `[1400,1500]` from `effective_from = 2026-04-01`. March (end date `2026-03-31`, before
+> the switch) is shaded `[1500,1600]`; May (end date `2026-05-31`, after) is shaded
+> `[1400,1500]`; February (before any target — but the earliest is `2026-01-15`) falls
+> back to the earliest band `[1500,1600]`. The band steps down between March and May.
+
 ## 6. Key figures
 
 - **Year OK rate** = OK / logged days in the selected year.

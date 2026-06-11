@@ -62,8 +62,11 @@ Key figures `.keyfigs`: inline `.kf` blocks (label `--fs-10` + value
 - **Monthly OK/NOK stacked bars** (`viewBox 740×200`): OK segment `var(--ok)`,
   NOK `var(--nok)`, `rx:1`; % label above; month label below.
 - **Avg kcal/month grouped bars** (`viewBox 740×230`): OK bar `var(--ok)`, NOK
-  bar `var(--nok)`; a **target zone** rect `fill: color-mix(in srgb, var(--accent)
-16%, transparent)`; a **global average** polyline + dots in `var(--text)`.
+  bar `var(--nok)`; a **target zone** band `fill: color-mix(in srgb, var(--accent)
+16%, transparent)` drawn **per month** (one rect spanning each month's column, from that
+  month's own `target_zone`), so the band **steps** across target changes and a month is
+  omitted when it has no band (CZ-1/B-141); a **global average** polyline + dots in
+  `var(--text)`.
 - **Axes (SC-1/B-112):** both Stats bar charts draw a **left value axis** (`.axislbl` —
   day count for the OK/NOK chart, kcal for the avg-kcal chart) with **horizontal
   gridlines** (`.gridline`), plus the existing month labels along the bottom.

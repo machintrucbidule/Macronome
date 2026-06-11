@@ -4,6 +4,7 @@ export { mean, okRate, vsTarget, addDays, latestDate, type DayStat } from './uti
 export { rolling, windowStats, inWindow, type WindowStats } from './rolling.js';
 export { heatmap } from './heatmap.js';
 export { monthlyPivot } from './monthly.js';
+export { zoneAsOf, monthEndDate, type TargetBand } from './monthly-zones.js';
 export { currentOkStreak, currentNokRun } from './streak.js';
 export { bestMonth } from './best-month.js';
 export { signals } from './signals.js';

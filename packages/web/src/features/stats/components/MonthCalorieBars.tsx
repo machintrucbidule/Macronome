@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { MonthlyStat, TargetZone } from '@macronome/shared';
+import type { MonthlyStat } from '@macronome/shared';
 import { ChartGridlines } from '../../../components/Chart/ChartGridlines';
 import { ChartLegend, type Series } from '../../../components/Chart/ChartLegend';
 import { ChartTooltip, type TooltipPoint } from '../../../components/Chart/ChartTooltip';
@@ -13,9 +13,10 @@ import styles from '../stats.module.css';
 
 // Average calories per month, split OK/NOK (spec/logic/stats-adherence.md §5): two grouped
 // bars per month over the shaded target band [cal_min, cal_max], plus the global-average
-// polyline + dots in var(--text) (B-111). Left kcal axis + gridlines + legend (B-112) and a
-// styled per-month tooltip (B-111). Inline SVG, semantic tokens only; averages are
-// server-computed (full precision), shown rounded to integer kcal.
+// polyline + dots in var(--text) (B-111). The band is resolved per month from the target in
+// effect then, so it steps across target changes (CZ-1/B-141). Left kcal axis + gridlines +
+// legend (B-112) and a styled per-month tooltip (B-111). Inline SVG, semantic tokens only;
+// averages are server-computed (full precision), shown rounded to integer kcal.
 
 const W = 720;
 const H = 220;
@@ -73,20 +74,19 @@ function AvgBarGroup({
   );
 }
 
-export function MonthCalorieBars({
-  monthly,
-  zone,
-}: {
-  monthly: MonthlyStat[];
-  zone: TargetZone | null;
-}) {
+export function MonthCalorieBars({ monthly }: { monthly: MonthlyStat[] }) {
   const { t, i18n } = useTranslation();
   const [hovered, setHovered] = useState<TooltipPoint | null>(null);
   const base = H - PAD.b;
   const values = monthly.flatMap((m) =>
-    [m.avg_kcal_ok, m.avg_kcal_nok, m.avg_kcal_global].filter((v): v is number => v !== null),
+    [
+      m.avg_kcal_ok,
+      m.avg_kcal_nok,
+      m.avg_kcal_global,
+      m.target_zone?.cal_min ?? null,
+      m.target_zone?.cal_max ?? null,
+    ].filter((v): v is number => v !== null),
   );
-  if (zone) values.push(zone.cal_min, zone.cal_max);
   const [lo, hi] = niceDomain(values.length ? values : [0, 1]);
   const y = linear(lo, hi, base, PAD.t);
   const slot = (W - PAD.l - PAD.r) / Math.max(monthly.length, 1);
@@ -113,14 +113,17 @@ export function MonthCalorieBars({
             className={styles.bars}
           >
             <ChartGridlines box={BOX} lo={lo} hi={hi} y={y} />
-            {zone && (
-              <rect
-                className={styles.zone}
-                x={PAD.l}
-                y={y(zone.cal_max)}
-                width={W - PAD.l - PAD.r}
-                height={Math.max(0, y(zone.cal_min) - y(zone.cal_max))}
-              />
+            {monthly.map((m, i) =>
+              m.target_zone ? (
+                <rect
+                  key={m.month}
+                  className={styles.zone}
+                  x={PAD.l + slot * i}
+                  y={y(m.target_zone.cal_max)}
+                  width={slot}
+                  height={Math.max(0, y(m.target_zone.cal_min) - y(m.target_zone.cal_max))}
+                />
+              ) : null,
             )}
             {monthly.map((m, i) => (
               <AvgBarGroup

@@ -8,6 +8,7 @@ import {
 import { bestMonth } from './best-month.js';
 import { heatmap } from './heatmap.js';
 import { monthlyPivot } from './monthly.js';
+import { monthEndDate, type TargetBand } from './monthly-zones.js';
 import { rolling } from './rolling.js';
 import { signals } from './signals.js';
 import { currentNokRun, currentOkStreak } from './streak.js';
@@ -108,7 +109,7 @@ test('monthly pivot splits counts + avg kcal over OK / NOK days (§4–5)', () =
     d('2026-05-02', 1500, 'OK'),
     d('2026-05-03', 1800, 'NOK'),
   ];
-  const [m] = monthlyPivot(may);
+  const [m] = monthlyPivot(may, [], 2026);
   expect(m).toMatchObject({
     month: 5,
     ok_count: 2,
@@ -119,6 +120,38 @@ test('monthly pivot splits counts + avg kcal over OK / NOK days (§4–5)', () =
   expect(m!.ok_rate).toBe(2 / 3);
   // Global mean over ALL logged days of the month (OK + NOK): (1600+1500+1800)/3 (§5).
   expect(m!.avg_kcal_global).toBeCloseTo((1600 + 1500 + 1800) / 3, 6);
+  // No target history → no shaded band for the month (§5, CZ-1/B-141).
+  expect(m!.target_zone).toBeNull();
+});
+
+test('monthly target band steps per month across a 2-target history (§5, CZ-1/B-141)', () => {
+  // Target A [1500,1600] then target B [1400,1500] from 2026-04-01. Months are shaded by
+  // the band of the target effective on the month's END date (B-099 pattern): March (before
+  // the switch) = A, May (after) = B. A February day (before any target) falls back to the
+  // earliest band A (retroactive, B-090).
+  const targets: TargetBand[] = [
+    { effectiveFrom: '2026-01-15', cal_min: 1500, cal_max: 1600 },
+    { effectiveFrom: '2026-04-01', cal_min: 1400, cal_max: 1500 },
+  ];
+  const logged: DayStat[] = [
+    d('2026-02-10', 1550, 'OK'),
+    d('2026-03-10', 1550, 'OK'),
+    d('2026-05-10', 1450, 'OK'),
+  ];
+  const byMonth = Object.fromEntries(
+    monthlyPivot(logged, targets, 2026).map((m) => [m.month, m.target_zone]),
+  );
+  expect(byMonth[2]).toEqual({ cal_min: 1500, cal_max: 1600 }); // retroactive earliest (B-090)
+  expect(byMonth[3]).toEqual({ cal_min: 1500, cal_max: 1600 }); // before the 04-01 switch → A
+  expect(byMonth[5]).toEqual({ cal_min: 1400, cal_max: 1500 }); // after the switch → B
+});
+
+test('monthEndDate returns the last calendar day of the month (CZ-1/B-141)', () => {
+  expect(monthEndDate(2026, 1)).toBe('2026-01-31');
+  expect(monthEndDate(2026, 2)).toBe('2026-02-28'); // non-leap February
+  expect(monthEndDate(2024, 2)).toBe('2024-02-29'); // leap February
+  expect(monthEndDate(2026, 4)).toBe('2026-04-30');
+  expect(monthEndDate(2026, 12)).toBe('2026-12-31');
 });
 
 test('heatmap fills every calendar date of the year, none/null where not logged (§3)', () => {

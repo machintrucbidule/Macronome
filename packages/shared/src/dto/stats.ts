@@ -56,6 +56,11 @@ export interface MonthlyStat {
   /** Mean kcal over ALL logged days of the month (OK + NOK); feeds the global-average
    * polyline on the avg-kcal chart. Never null — a month present here has ≥1 logged day. */
   avg_kcal_global: number;
+  /** The calorie band shaded behind this month's bars, resolved from the target in
+   * effect on the month's end date (B-099 pattern; earliest target as the retroactive
+   * fallback, B-090). The chart's band steps per month across target changes (CZ-1/B-141).
+   * Null when the user has no target at all. */
+  target_zone: TargetZone | null;
 }
 
 /** Best month = highest ok_rate among months with ≥ BEST_MONTH_MIN_DAYS logged days. */

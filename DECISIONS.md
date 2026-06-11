@@ -2747,3 +2747,34 @@ Owner refinements to the S9 Repas mobile work:
   now-unused `meals.meal.manageLeftover` i18n key was removed.
 
 Mobile-only / desktop-inert by mechanism. typecheck + lint + 233 web tests green.
+
+## CZ-1 / B-141 — Stats avg-kcal chart: target zone follows the target history — RESOLVED (author, 2026-06-11)
+
+**Problem.** The monthly avg-kcal chart shaded a **single flat band** spanning the whole
+year, taken from the target **in effect today** (`services/stats.ts → currentZone`,
+`MonthCalorieBars.tsx`). When the target changed during the year the band was wrong for
+every month a different target applied — the same defect the per-period weight trajectory
+already fixed (WT-1/B-099).
+
+**Decision.** The band is now resolved **per month** from the Target in effect on the
+month's **end date** (last calendar day): the latest `effective_from ≤ end_date`, falling
+back to the **earliest** Target for months before any Target exists (retroactive — mirrors
+`currentAsOf` / B-090 and the per-period rate / B-099). The band therefore **steps** at each
+target boundary. Resolution reads the **live target history** (`targetRepo.list`), like the
+weight trajectory — not the per-day frozen snapshots (B-100 governs the rolling window, a
+different surface). The response's top-level `target_zone` (band in effect today) is
+**unchanged** and still drives the rolling cards / signals.
+
+**Rationale.** Mirrors WT-1/B-099 exactly (the item's own reference). Reading the end date
+matches how a month is "closed"; the earliest-target fallback keeps parity with `currentAsOf`
+so pre-target months are not left unshaded when an early target exists.
+
+**Spec impact:** `spec/logic/stats-adherence.md §5` (per-month band + worked example),
+`spec/api/weight-targets-stats-settings.md §Stats` (`monthly[].target_zone`),
+`design/components/charts.md` (per-month stepped band), `specifications/screens/stats.md §C`.
+**Code:** shared `dto/stats.ts` (`MonthlyStat.target_zone`); api new pure
+`domain/stats/monthly-zones.ts` (`zoneAsOf` + `monthEndDate`) + `monthly.ts`
+(`monthlyPivot(logged, targets, year)`) + `services/stats.ts` (`targetBands`); web
+`features/stats/components/MonthCalorieBars.tsx` (per-month rects, `zone` prop dropped) +
+`AdherenceSections.tsx`. New oracle in `domain/stats/stats.test.ts` (2-target stepping +
+retroactive fallback + `monthEndDate` edges). No DB/schema change.

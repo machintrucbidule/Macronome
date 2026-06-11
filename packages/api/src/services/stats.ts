@@ -18,6 +18,7 @@ import {
   rolling,
   signals,
   type DayStat,
+  type TargetBand,
 } from '../domain/stats/index.js';
 import { toDayStats } from './day-stat.js';
 import { todayString } from './day-context.js';
@@ -34,6 +35,17 @@ async function currentZone(userId: string): Promise<TargetZone | null> {
   const target = await targetRepo.currentAsOf(userId, new Date());
   if (!target) return null;
   return { cal_min: num(target.calorieMin), cal_max: num(target.calorieMax) };
+}
+
+/** The user's full target history reduced to effective date + calorie band (CZ-1/B-141):
+ * lets the domain resolve each month's shaded band from the target that applied then. */
+async function targetBands(userId: string): Promise<TargetBand[]> {
+  const targets = await targetRepo.list(userId);
+  return targets.map((t) => ({
+    effectiveFrom: t.effectiveFrom.toISOString().slice(0, 10),
+    cal_min: num(t.calorieMin),
+    cal_max: num(t.calorieMax),
+  }));
 }
 
 // Rolling only looks back the widest window from the latest logged day, so the read is
@@ -65,9 +77,10 @@ export async function getRolling(userId: string): Promise<RollingResponse> {
 /** GET /stats/adherence?year=YYYY — heatmap + monthly pivots + key figures + signals.
  * Needs full history (overall ok-rate, best month), read lightweight (M9d perf). */
 export async function getAdherence(userId: string, year: number): Promise<AdherenceResponse> {
-  const [days, zone] = await Promise.all([
+  const [days, zone, bands] = await Promise.all([
     dayStatRepo.readLightweight(userId),
     currentZone(userId),
+    targetBands(userId),
   ]);
   // Future planned days (date > today) are excluded from every aggregate until they
   // arrive (stats-adherence.md §1) — filtering here covers ok-rate, streak, best month,
@@ -77,7 +90,7 @@ export async function getAdherence(userId: string, year: number): Promise<Adhere
   const yearLogged = logged.filter(inYear);
   return {
     heatmap: heatmap(yearLogged, year),
-    monthly: monthlyPivot(yearLogged),
+    monthly: monthlyPivot(yearLogged, bands, year),
     key: {
       year_ok_rate: okRate(yearLogged),
       overall_ok_rate: okRate(logged),
