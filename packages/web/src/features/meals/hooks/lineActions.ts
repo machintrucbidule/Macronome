@@ -47,10 +47,18 @@ export function pickActions(d: MealActionDeps, run: Run, resolveMealId: ResolveM
         (async () => {
           if (t.entryId) {
             const before = findEntry(d.day, t.entryId);
+            // Swap path (B-150): re-resolve the unit/portion for the NEW food and send them, so a
+            // stale portion_id from the old food can't survive (the server would 422 it). Same
+            // precedence as ADD (B-109): pin → first named portion → g; the qty value is preserved.
+            const slot = d.day.query.data?.meals.find((m) => m.order_index === t.mealIndex);
+            const pin = d.pantry.find(
+              (p) => p.meal_slot_name === slot?.slot_name && p.food_id === foodId,
+            );
+            const def = resolveEntryDefaultUnit({ pin, portions });
             await d.day.updateEntry.mutateAsync({
               mealId: t.mealId,
               id: t.entryId,
-              body: { food_id: foodId },
+              body: { food_id: foodId, unit: def.unit, portion_id: def.portion_id },
             });
             d.setPendingFocus(t.entryId);
             if (before?.food_id)
@@ -58,8 +66,8 @@ export function pickActions(d: MealActionDeps, run: Run, resolveMealId: ResolveM
                 d.recordHistory,
                 t.mealId,
                 t.entryId,
-                { food_id: before.food_id },
-                { food_id: foodId },
+                { food_id: before.food_id, unit: before.unit, portion_id: before.portion_id },
+                { food_id: foodId, unit: def.unit, portion_id: def.portion_id },
               );
           } else {
             const slot = d.day.query.data?.meals.find((m) => m.order_index === t.mealIndex);
