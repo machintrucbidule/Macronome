@@ -56,38 +56,47 @@
   border-color: var(--accent);
 }
 
-/* Mobile one-tap photo entry (QP-1/B-158): styled like .cookBtn but with a "+" badge overlay. It
-   mounts only on the phone layout (the component is gated), so no media query is needed here. */
+/* Mobile one-tap photo entry (QP-1/B-158): same size as .cookBtn (never taller; may be a touch
+   wider), with a small "+" badge on the camera icon's top-right corner. Mounts only on the phone
+   layout (the component is gated), so no media query is needed here. */
 .photoBtn {
-  position: relative;
   border: 1px solid var(--border);
   background: var(--bg-elev-2);
   color: var(--text-dim);
   border-radius: var(--r-sm);
   font-size: var(--fs-14);
   line-height: 1;
-  min-width: 44px;
-  min-height: 44px;
   padding: 5px 8px;
   cursor: pointer;
+}
+.photoBtn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
 }
 .photoBtn:disabled {
   opacity: 0.6;
   cursor: default;
 }
+/* The badge anchors to the icon (not the button), so it hugs the camera's top-right corner and
+   may overflow the glyph slightly while staying inside the button. */
+.photoIcon {
+  position: relative;
+  display: inline-block;
+  line-height: 1;
+}
 .photoBadge {
   position: absolute;
-  top: -5px;
-  right: -5px;
+  top: -6px;
+  right: -6px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
+  width: 12px;
+  height: 12px;
   border-radius: var(--r-pill);
   background: var(--accent);
   color: var(--accent-ink);
-  font-size: var(--fs-12);
+  font-size: 10px;
   font-weight: var(--fw-bold);
   line-height: 1;
 }

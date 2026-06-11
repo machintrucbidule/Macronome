@@ -20,9 +20,11 @@ export function MealPhotoButton({ busy, onClick }: MealPhotoButtonProps) {
       disabled={busy}
       onClick={onClick}
     >
-      📷
-      <span className={styles.photoBadge} aria-hidden="true">
-        +
+      <span className={styles.photoIcon}>
+        📷
+        <span className={styles.photoBadge} aria-hidden="true">
+          +
+        </span>
       </span>
     </button>
   );
