@@ -160,6 +160,25 @@ sign-up). Login is rate-limited with lockout backoff and keeps you signed in acr
 
 ---
 
+## On your phone (install as an app)
+
+Macronome's UI is **mobile-responsive**, and it's an installable **PWA**: add it to your home
+screen and it launches full-screen (no browser bar), with the OS status bar following the in-app
+light/dark theme. New versions install silently and apply on the next launch.
+
+![Macronome on mobile](docs/img/preview_mobile.png)
+
+**Install it:**
+
+- **Android / Chrome (Chromium):** open the app, then tap the **Install app** button in
+  **Settings → Update**, or use the browser menu's **"Add to Home screen / Install app"**.
+- **iPhone / iPad (Safari):** open the app, tap **Share**, then **"Add to Home Screen"**.
+
+Once installed it runs like a native app. Two mobile extras: snap a **dish photo** for AI macro
+estimation, and light **haptic feedback** on key actions.
+
+---
+
 ## Tech stack
 
 npm-workspaces monorepo (`shared` · `api` · `web`) · **Node 22** + TypeScript + **Express 5** ·

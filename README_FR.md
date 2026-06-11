@@ -174,6 +174,27 @@ temporisation de verrouillage et te garde connecté au fil des redémarrages.
 
 ---
 
+## Sur ton téléphone (installer comme une app)
+
+L'interface de Macronome est **responsive mobile**, et c'est une **PWA** installable : ajoute-la à
+ton écran d'accueil et elle se lance en plein écran (sans barre du navigateur), la barre d'état du
+système suivant le thème clair/sombre de l'app. Les nouvelles versions s'installent en silence et
+s'appliquent au prochain lancement.
+
+![Macronome sur mobile](docs/img/preview_mobile.png)
+
+**Installation :**
+
+- **Android / Chrome (Chromium) :** ouvre l'app, puis touche le bouton **Installer l'app** dans
+  **Paramètres → Mise à jour**, ou utilise le menu du navigateur **« Ajouter à l'écran d'accueil /
+  Installer l'application »**.
+- **iPhone / iPad (Safari) :** ouvre l'app, touche **Partager**, puis **« Sur l'écran d'accueil »**.
+
+Une fois installée, elle fonctionne comme une app native. Deux atouts mobiles : prends une **photo
+d'un plat** pour l'estimation IA des macros, et un léger **retour haptique** sur les actions clés.
+
+---
+
 ## Pile technique
 
 Monorepo npm-workspaces (`shared` · `api` · `web`) · **Node 22** + TypeScript + **Express 5** ·
