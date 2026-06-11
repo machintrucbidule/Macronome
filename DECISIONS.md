@@ -3006,3 +3006,49 @@ Journal desktop/mobile sheet), JournalCard (mobile read-only), Poids `PeriodRow`
 **Acceptance.** Visual check at every surface in light + dark (five distinct, correctly-ordered
 tints); lint + typecheck + full suite green. Cosmetic — no dedicated domain test (palette carries no
 logic).
+
+## PWA-1 / B-142, B-143, B-144 — Installable PWA + native capabilities — RESOLVED (user, 2026-06-11)
+
+BACKLOG PWA-1 (second-to-last batch). Turns the already-mobile SPA into an **installable** PWA and
+adds two phone-native touches. **Improvement batch** (new contract surface). New ADR-0003 is the
+authoritative record of the deployment-neutral PWA shape (app-shell service worker, **no offline
+data**, served as static files by the existing `serveSpa` — no ADR-0001 conflict).
+
+**B-142 — installable + silent auto-update + manual refresh + version.** `vite-plugin-pwa` (Workbox)
+emits the `manifest.webmanifest` (`display: standalone`, `start_url: '/'`, theme/background, icons) +
+a service worker precaching the **app shell only**; `navigateFallbackDenylist: [/^\/api\//]` mirrors
+`serveSpa`. **Owner decision — silent updates:** a new build installs in the background and activates
+on the **next launch** (no in-session prompt, no surprise reload); a manual **"Forcer la mise à jour"**
+button in Paramètres forces immediate activation + reload. A `theme-color` meta tracks the live `--bg`
+token (OS status bar follows the theme; no raw hex — read via `getComputedStyle`). **Owner decision —
+version display:** the running version is shown on the update card, read from `GET /api/v1/health`;
+this **lifts the ADR-0002 "web display deferred" note** (ADR-0002 amended).
+
+**B-143 — camera capture (mobile).** **Owner decision:** a **separate "Prendre une photo" button**
+beside "Ajouter des photos" in the AI dish-photo dialog (a single-shot `capture="environment"` input),
+shown **only on the phone layout** (`useIsMobile()`), feeding the same base64 picker; gallery
+multi-select is preserved; desktop unchanged.
+
+**B-144 — native (scoped by owner).** **Install invite** (Android/Chromium `beforeinstallprompt`) as
+an "Installer l'app" button in the update card, hidden once installed/standalone or where the event
+never fires (**iOS Safari → no in-app hint**, by decision). **Haptics** — light `navigator.vibrate` on
+two key successes (adding a Repas entry, applying an AI proposal), silent no-op where unsupported.
+**Web Share and barcode scan are excluded** (owner).
+
+**Icon (owner-validated).** New PWA mark: transparent exterior, opaque **dark inner disc** (`#0d0f12`)
+filling the ring, **thicker** amber ring + needle, central pivot dot. Maskable + apple-touch composite
+on the dark disc (opaque). The existing `favicon.svg` and the `00-foundations.md` brand mark are
+**unchanged** (new asset, not a brand-mark redefinition). Icons are pre-generated once
+(`@vite-pwa/assets-generator`, manual `gen:icons`) and committed under `packages/web/public`, so CI /
+Docker need no `sharp`.
+
+**Contract delta.** New `docs/architecture/decisions/0003-pwa.md`; ADR-0002 amended (version display
+lifted); new `design/components/pwa.md`; `design/components/ai-dish-analysis.md` amended (camera
+button). Local (git-ignored, not committed): `specifications/screens/settings.md` (update card) +
+`specifications/screens/meals.md` (camera button). No API / schema / migration / DTO change (only the
+already-public `/health` is read).
+
+**Acceptance.** Behavioural unit tests: `syncThemeColor`, `registerSw.forceUpdate`, `useInstallPrompt`,
+`UpdateCard` version line, `haptics` no-op guard, `AiDishAnalysisDialog` mobile camera input. Web build
+produces `dist/sw.js` + `manifest.webmanifest` + icons. Full web suite + typecheck + lint + check:i18n
+green. Device check (install/standalone/update/camera/haptics) deferred to the owner.

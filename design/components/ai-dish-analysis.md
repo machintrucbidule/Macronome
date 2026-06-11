@@ -20,6 +20,11 @@ A `modals.md` **sm/md** panel titled "Analyse par IA":
 - **Image picker** — a file input (`accept="image/*"`, **multiple**) plus a drop area; selected
   images show as **thumbnails** with a remove (×) each. Cap **4** images (matches `spec/api/ai.md`);
   adding beyond the cap is blocked with a faint hint. Accepts jpeg/png/webp.
+  - **Camera capture (mobile, PWA-1/B-143)** — beside "Ajouter des photos", a second
+    **"Prendre une photo"** button shown **only on the phone layout** (≤560px) opens the
+    device camera directly (a single-shot input with `capture="environment"`), feeding the
+    **same** picker (same base64 path, same 4-image cap). The gallery button keeps its
+    multi-select; on desktop only the gallery button is shown (camera button hidden).
 - **Note field** — a `textarea` ("Description", `forms-inputs.md`) for what was eaten. It can be the
   **sole input** (e.g. "3 tranches de saucisson, 2 tranches de pain") — an image is not required.
 - **Actions** — `Cancel` (ghost) + **"Analyser"** (primary), enabled when **at least one** of an

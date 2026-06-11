@@ -15,9 +15,20 @@ function resolveTheme(mode: Theme): 'light' | 'dark' {
   return mode;
 }
 
+// Keep the PWA `theme-color` meta (OS status-bar colour) in sync with the active theme by
+// reading the live `--bg` token — no hardcoded hex, so it tracks the palette (PWA-1, rule 6).
+export function syncThemeColor(): void {
+  if (typeof document === 'undefined') return;
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (!meta) return;
+  const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
+  if (bg) meta.setAttribute('content', bg);
+}
+
 export function applyTheme(mode: Theme): void {
   document.documentElement.setAttribute('data-theme', resolveTheme(mode));
   localStorage.setItem(THEME_STORAGE_KEY, mode);
+  syncThemeColor();
 }
 
 export function applyLocale(locale: Locale): void {

@@ -596,6 +596,7 @@
       "title": "AI analysis",
       "intro": "Add a photo, a description, or both.",
       "addImages": "Add photos",
+      "takePhoto": "Take a photo",
       "imagesHint": "Up to 4 photos (JPEG, PNG, WebP).",
       "note": "Description",
       "notePlaceholder": "e.g. 3 slices of saucisson, 2 slices of bread…",
@@ -992,6 +993,20 @@
       "parseError": "Unreadable file: not a valid Macronome extract.",
       "importError": "Import failed: invalid or incompatible extract.",
       "wipeError": "Deletion failed. Please try again."
+    },
+    "update": {
+      "title": "Updates",
+      "version": "Version {{version}}",
+      "refresh": {
+        "label": "Force update",
+        "desc": "New versions apply on next launch; this button applies one right now.",
+        "button": "Update"
+      },
+      "install": {
+        "label": "Install the app",
+        "desc": "Add Macronome to your home screen to open it like an app.",
+        "button": "Install"
+      }
     }
   },
   "containers": {

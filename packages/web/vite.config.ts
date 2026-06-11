@@ -1,11 +1,49 @@
 import { fileURLToPath } from 'node:url';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
+import { VitePWA } from 'vite-plugin-pwa';
 
 // SPA build. Dev server proxies /api → the local API (ops.md §3).
 // @macronome/shared is aliased to source so dev needs no prebuild.
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    // Installable PWA (PWA-1, ADR-0003). App-shell precache only — `navigateFallbackDenylist`
+    // keeps /api out of the SW (mirrors serveSpa); there is NO runtime caching of data.
+    // registerType 'prompt' = a new build installs in the background and activates on the next
+    // launch (no in-session reload); we register manually (lib/pwa/registerSw.ts) and the
+    // Paramètres button forces immediate activation. Icons are committed (gen:icons).
+    VitePWA({
+      registerType: 'prompt',
+      injectRegister: null,
+      includeAssets: ['favicon.svg', 'favicon.ico', 'apple-touch-icon-180x180.png'],
+      workbox: {
+        navigateFallbackDenylist: [/^\/api\//],
+        cleanupOutdatedCaches: true,
+      },
+      manifest: {
+        name: 'Macronome',
+        short_name: 'Macronome',
+        description: 'Suivi nutrition & poids',
+        lang: 'fr',
+        theme_color: '#0d0f12',
+        background_color: '#0d0f12',
+        display: 'standalone',
+        start_url: '/',
+        icons: [
+          { src: 'pwa-64x64.png', sizes: '64x64', type: 'image/png' },
+          { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+          {
+            src: 'maskable-icon-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
+        ],
+      },
+    }),
+  ],
   resolve: {
     alias: {
       '@macronome/shared': fileURLToPath(new URL('../shared/src/index.ts', import.meta.url)),

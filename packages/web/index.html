@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="alternate icon" href="/favicon.ico" />
+    <!-- PWA (PWA-1, ADR-0003). theme-color tracks the live --bg token at runtime
+         (src/app/applySettings.ts → syncThemeColor); the manifest link is injected by
+         vite-plugin-pwa. apple-* give iOS a standalone home-screen entry. -->
+    <meta name="theme-color" content="#0d0f12" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Macronome" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
     <title>Macronome</title>
   </head>
   <body>

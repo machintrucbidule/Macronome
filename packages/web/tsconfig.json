@@ -12,5 +12,11 @@
     "types": ["node", "vite/client"]
   },
   "references": [{ "path": "../shared" }],
-  "include": ["src/**/*", "src/**/*.json", "vite.config.ts", "vitest.config.ts"]
+  "include": [
+    "src/**/*",
+    "src/**/*.json",
+    "vite.config.ts",
+    "vitest.config.ts",
+    "pwa-assets.config.ts"
+  ]
 }

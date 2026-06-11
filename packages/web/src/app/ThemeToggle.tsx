@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { syncThemeColor } from './applySettings';
 import styles from './ThemeToggle.module.css';
 
 // Appbar dark/light segmented toggle (design/components/00-foundations.md §Segmented control,
@@ -19,6 +20,7 @@ export function ThemeToggle() {
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem(STORAGE_KEY, theme);
+    syncThemeColor();
   }, [theme]);
 
   return (

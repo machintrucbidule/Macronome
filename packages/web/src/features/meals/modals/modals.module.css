@@ -231,6 +231,17 @@
   justify-content: flex-start;
   margin-bottom: var(--sp-4);
 }
+/* Gallery + (mobile) camera buttons side by side; one full-width button on desktop. */
+.aiPick {
+  display: flex;
+  gap: var(--sp-3);
+}
+.aiPick > .aiDrop {
+  width: auto;
+  flex: 1;
+  padding-left: var(--sp-3);
+  padding-right: var(--sp-3);
+}
 .aiDrop {
   width: 100%;
   border: 1px dashed var(--border-strong);

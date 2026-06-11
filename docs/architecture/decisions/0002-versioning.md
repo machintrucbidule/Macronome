@@ -42,6 +42,9 @@ in sync everywhere** — without hand-syncing the number across many files (the 
 
 4. **Web display is deferred** — the owner will decide later how/where the SPA shows the version
    (it can read `/api/v1/health` or take a Vite build-time define). No web change in this decision.
+   _Amendment (PWA-1, 2026-06-11):_ this deferral is now **lifted**. The SPA surfaces the running
+   version on the Paramètres "Mise à jour" card, read from `GET /api/v1/health` (the chosen path
+   above). See ADR-0003 and DECISIONS.md → "PWA-1".
 
 5. **Agent rule:** an agent may _propose_ a version bump (e.g. at the end of a batch) but **must
    never create/push a tag or pick the number** — that is the owner's call, like every push.

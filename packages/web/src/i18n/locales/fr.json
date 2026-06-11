@@ -596,6 +596,7 @@
       "title": "Analyse par IA",
       "intro": "Ajoute une photo, une description, ou les deux.",
       "addImages": "Ajouter des photos",
+      "takePhoto": "Prendre une photo",
       "imagesHint": "Jusqu'à 4 photos (JPEG, PNG, WebP).",
       "note": "Description",
       "notePlaceholder": "ex. 3 tranches de saucisson, 2 tranches de pain…",
@@ -992,6 +993,20 @@
       "parseError": "Fichier illisible : ce n'est pas un extrait Macronome valide.",
       "importError": "L'import a échoué : extrait invalide ou incompatible.",
       "wipeError": "La suppression a échoué. Réessaye."
+    },
+    "update": {
+      "title": "Mise à jour",
+      "version": "Version {{version}}",
+      "refresh": {
+        "label": "Forcer la mise à jour",
+        "desc": "Les nouvelles versions s'appliquent au prochain lancement ; ce bouton l'applique tout de suite.",
+        "button": "Mettre à jour"
+      },
+      "install": {
+        "label": "Installer l'app",
+        "desc": "Ajoute Macronome à ton écran d'accueil pour l'ouvrir comme une appli.",
+        "button": "Installer"
+      }
     }
   },
   "containers": {

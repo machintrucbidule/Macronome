@@ -3,6 +3,7 @@ import { AppShell } from '../../app/AppShell';
 import { AppearanceCard } from './components/AppearanceCard';
 import { MealTemplateCard } from './components/MealTemplateCard';
 import { DataCard } from './components/DataCard';
+import { UpdateCard } from './components/UpdateCard';
 import styles from './settings.module.css';
 
 // Paramètres screen (specifications/screens/settings.md): appearance & language, the default
@@ -19,6 +20,7 @@ export function SettingsPage() {
         <AppearanceCard />
         <MealTemplateCard />
         <DataCard />
+        <UpdateCard />
       </div>
     </AppShell>
   );

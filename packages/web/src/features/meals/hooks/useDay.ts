@@ -13,6 +13,7 @@ import { daysApi } from '../../../api/days';
 import { mealsApi } from '../../../api/meals';
 import { entriesApi } from '../../../api/entries';
 import { leftoverApi } from '../../../api/leftover';
+import { tap } from '../../../lib/haptics';
 
 // Data layer for the Repas screen: the day aggregate query + every mutation, each
 // invalidating the day (so the server-recomputed totals/verdict/proration refetch) and
@@ -33,6 +34,43 @@ function useLeftoverMutations(onSuccess: () => void) {
   });
   const removeLeftover = useMutation({ mutationFn: leftoverApi.remove, onSuccess });
   return { createLeftover, updateLeftover, removeLeftover };
+}
+
+/** Entry-level mutations. Split out to keep useDay within the per-function line cap; each
+ *  invalidates the day + journal via onSuccess, and a confirmed add fires a light haptic
+ *  (PWA-1/B-144, no-op on desktop/iOS). */
+function useEntryMutations(onSuccess: () => void) {
+  const createEntry = useMutation({
+    mutationFn: (v: { mealId: string; body: CreateMealEntryRequest }) =>
+      entriesApi.create(v.mealId, v.body),
+    onSuccess: () => {
+      tap();
+      onSuccess();
+    },
+  });
+  const updateEntry = useMutation({
+    mutationFn: (v: { mealId: string; id: string; body: UpdateMealEntryRequest }) =>
+      entriesApi.update(v.mealId, v.id, v.body),
+    onSuccess,
+  });
+  const reorderEntries = useMutation({
+    mutationFn: (v: { mealId: string; body: ReorderEntriesRequest }) =>
+      entriesApi.reorder(v.mealId, v.body),
+    onSuccess,
+  });
+  const removeEntry = useMutation({
+    mutationFn: (v: { mealId: string; id: string }) => entriesApi.remove(v.mealId, v.id),
+    onSuccess,
+  });
+  const pinEntry = useMutation({
+    mutationFn: (v: { mealId: string; id: string }) => entriesApi.pin(v.mealId, v.id),
+    onSuccess,
+  });
+  const unpinEntry = useMutation({
+    mutationFn: (v: { mealId: string; id: string }) => entriesApi.unpin(v.mealId, v.id),
+    onSuccess,
+  });
+  return { createEntry, updateEntry, reorderEntries, removeEntry, pinEntry, unpinEntry };
 }
 
 /** Day-level whole-day mutations (clear + kind conversions). Split out to keep useDay within
@@ -89,33 +127,8 @@ export function useDay(date: string) {
     onSuccess,
   });
 
-  const createEntry = useMutation({
-    mutationFn: (v: { mealId: string; body: CreateMealEntryRequest }) =>
-      entriesApi.create(v.mealId, v.body),
-    onSuccess,
-  });
-  const updateEntry = useMutation({
-    mutationFn: (v: { mealId: string; id: string; body: UpdateMealEntryRequest }) =>
-      entriesApi.update(v.mealId, v.id, v.body),
-    onSuccess,
-  });
-  const reorderEntries = useMutation({
-    mutationFn: (v: { mealId: string; body: ReorderEntriesRequest }) =>
-      entriesApi.reorder(v.mealId, v.body),
-    onSuccess,
-  });
-  const removeEntry = useMutation({
-    mutationFn: (v: { mealId: string; id: string }) => entriesApi.remove(v.mealId, v.id),
-    onSuccess,
-  });
-  const pinEntry = useMutation({
-    mutationFn: (v: { mealId: string; id: string }) => entriesApi.pin(v.mealId, v.id),
-    onSuccess,
-  });
-  const unpinEntry = useMutation({
-    mutationFn: (v: { mealId: string; id: string }) => entriesApi.unpin(v.mealId, v.id),
-    onSuccess,
-  });
+  const { createEntry, updateEntry, reorderEntries, removeEntry, pinEntry, unpinEntry } =
+    useEntryMutations(onSuccess);
 
   const { createLeftover, updateLeftover, removeLeftover } = useLeftoverMutations(onSuccess);
 

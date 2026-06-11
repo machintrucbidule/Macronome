@@ -5,6 +5,7 @@ import { daysApi } from '../../../api/days';
 import { entriesApi } from '../../../api/entries';
 import { ApiError } from '../../../api/client';
 import { proposalToEntryBody } from '../logic/applyProposal';
+import { tap } from '../../../lib/haptics';
 
 // Apply a chosen AI proposal (B-123 / Slice 12, spec §2.5). Self-contained (no useMeals coupling,
 // so the dialog stays unit-testable in isolation): materialize the day if it is still a scaffold,
@@ -50,7 +51,11 @@ export function useApplyProposal(date: string) {
         await createEntry.mutateAsync({ mealId: byId.get(item.meal_id) ?? item.meal_id, item });
       }
     },
-    onSuccess: () => setDone(true),
+    // Light haptic on a confirmed proposal apply (PWA-1/B-144); no-op on desktop/iOS.
+    onSuccess: () => {
+      tap();
+      setDone(true);
+    },
     onError: (e) => setError(e instanceof ApiError ? e.code : 'request_failed'),
   });
 

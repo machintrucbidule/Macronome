@@ -5,6 +5,7 @@ import { Modal, modalStyles } from '../../../components/Modal/Modal';
 import { Button } from '../../../components/Button/Button';
 import { Banner } from '../../../components/Banner/Banner';
 import { ApiError } from '../../../api/client';
+import { useIsMobile } from '../../../lib/useIsMobile';
 import { useDishPhotoMacros } from '../hooks/useAi';
 import styles from './modals.module.css';
 
@@ -31,7 +32,35 @@ function readAsDataUrl(file: File): Promise<string> {
   });
 }
 
-/** Image picker: file input + thumbnails with remove (×). Reports the selected data URLs up. */
+/** Selected-image thumbnails with a remove (×) each. */
+function Thumbnails({
+  images,
+  disabled,
+  onRemove,
+}: {
+  images: { url: string; name: string }[];
+  disabled: boolean;
+  onRemove: (index: number) => void;
+}) {
+  const { t } = useTranslation();
+  if (images.length === 0) return null;
+  return (
+    <div className={styles.aiThumbs}>
+      {images.map((im, i) => (
+        <div key={`${im.name}-${i}`} className={styles.aiThumb}>
+          <img src={im.url} alt={im.name} />
+          {!disabled && (
+            <button type="button" aria-label={t('common.remove')} onClick={() => onRemove(i)}>
+              ×
+            </button>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Image picker: gallery + (mobile) camera buttons + thumbnails. Reports selected data URLs up. */
 function AiImagePicker({
   disabled,
   onChange,
@@ -40,8 +69,10 @@ function AiImagePicker({
   onChange: (urls: string[]) => void;
 }) {
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
   const [images, setImages] = useState<{ url: string; name: string }[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => onChange(images.map((im) => im.url)), [images, onChange]);
 
@@ -59,14 +90,28 @@ function AiImagePicker({
 
   return (
     <>
-      <button
-        type="button"
-        className={styles.aiDrop}
-        disabled={disabled}
-        onClick={() => inputRef.current?.click()}
-      >
-        {t('meals.aiAnalysis.addImages')}
-      </button>
+      <div className={styles.aiPick}>
+        <button
+          type="button"
+          className={styles.aiDrop}
+          disabled={disabled}
+          onClick={() => inputRef.current?.click()}
+        >
+          {t('meals.aiAnalysis.addImages')}
+        </button>
+        {/* Mobile-only: shoot a photo with the device camera (B-143). Single-shot capture,
+            same picker/base64 path; desktop keeps only the gallery button. */}
+        {isMobile && (
+          <button
+            type="button"
+            className={styles.aiDrop}
+            disabled={disabled}
+            onClick={() => cameraRef.current?.click()}
+          >
+            {t('meals.aiAnalysis.takePhoto')}
+          </button>
+        )}
+      </div>
       <input
         ref={inputRef}
         type="file"
@@ -75,25 +120,22 @@ function AiImagePicker({
         hidden
         onChange={(e) => void onInput(e)}
       />
-      <div className={styles.aiHint}>{t('meals.aiAnalysis.imagesHint')}</div>
-      {images.length > 0 && (
-        <div className={styles.aiThumbs}>
-          {images.map((im, i) => (
-            <div key={`${im.name}-${i}`} className={styles.aiThumb}>
-              <img src={im.url} alt={im.name} />
-              {!disabled && (
-                <button
-                  type="button"
-                  aria-label={t('common.remove')}
-                  onClick={() => setImages((c) => c.filter((_, idx) => idx !== i))}
-                >
-                  ×
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
+      {isMobile && (
+        <input
+          ref={cameraRef}
+          type="file"
+          accept={ACCEPT}
+          capture="environment"
+          hidden
+          onChange={(e) => void onInput(e)}
+        />
       )}
+      <div className={styles.aiHint}>{t('meals.aiAnalysis.imagesHint')}</div>
+      <Thumbnails
+        images={images}
+        disabled={disabled}
+        onRemove={(i) => setImages((c) => c.filter((_, idx) => idx !== i))}
+      />
     </>
   );
 }
