@@ -11,8 +11,10 @@ See `00-conventions.md`. All scoped to the authenticated user.
   OPEN_GAPS #10), `dir`, `limit`, `cursor`. **`usage`** (FU-1) orders by the food's
   **meal-log count over the last 90 days** (most-used first for `dir=desc`), ties broken by
   most-recent use then name; usage is derived from `meal_entry` at query time (no stored
-  column). A `usage`-sorted response additionally carries a `usage` integer on each Food
-  (the 90-day count); it is absent on the other sorts.
+  column). Only **consumed** entries count — those with `served_quantity > 0`; quantity-0
+  lines (unfilled pinned placeholders, B-045) are not usage and do not count (B-157). **Every**
+  `GET /foods` list response carries a `usage` integer on each Food (the 90-day consumed
+  count), regardless of `sort` (B-156).
   → 200 `{data:[Food], next_cursor}`.
 - `GET /foods/:id` → 200 Food | 404.
 - `POST /foods` — create. Body: `{name, kcal_per_100g, fat_per_100g,
@@ -107,8 +109,9 @@ figures from `GET /recipes/:id` after save (cf. `screens/recipe.md` live recompu
 - `GET /search/loggable?q=` — diacritic-insensitive autocomplete over foods AND
   recipe-derived foods (what the Daily log / cook mode / recipe ingredient picker
   use). Excludes archived. **Ordered most-used-first** (FU-1): by the item's 90-day
-  meal-log count, ties broken by most-recent use then name (recipes rank by their own
-  logged usage, via their derived food). → 200 `{data:[{id,name,kind:'food'|'recipe',
+  meal-log count of **consumed** entries (`served_quantity > 0`; quantity-0 placeholder
+  lines do not count, B-157), ties broken by most-recent use then name (recipes rank by
+  their own logged usage, via their derived food). → 200 `{data:[{id,name,kind:'food'|'recipe',
 named_portions:[...]}]}`.
 
 ## Containers

@@ -23,8 +23,10 @@ function windowStart(): Date {
   return new Date(`${isoDate(d)}T00:00:00.000Z`);
 }
 
-/** foodId → { count, lastUsed } over the user's logged days within the 90-day window. Foods with
- *  no logged entry in the window are simply absent from the map (treated as count 0 by callers). */
+/** foodId → { count, lastUsed } over the user's logged days within the 90-day window. Only
+ *  CONSUMED entries count — `servedQuantity > 0` (B-157); quantity-0 pinned placeholder lines
+ *  (B-045) are not usage. Foods with no consumed entry in the window are simply absent from the
+ *  map (treated as count 0 by callers). */
 export async function foodUsageMap(
   userId: string,
   foodIds: string[],
@@ -42,7 +44,11 @@ export async function foodUsageMap(
   });
   if (meals.length === 0) return out;
   const entries = await prisma.mealEntry.findMany({
-    where: { mealId: { in: meals.map((m) => m.id) }, foodId: { in: foodIds } },
+    where: {
+      mealId: { in: meals.map((m) => m.id) },
+      foodId: { in: foodIds },
+      servedQuantity: { gt: 0 }, // consumed only — qty-0 placeholder lines aren't usage (B-157)
+    },
     select: { mealId: true, foodId: true },
   });
   const dateByDay = new Map(days.map((d) => [d.id, isoDate(d.date)]));

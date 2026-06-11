@@ -8,7 +8,8 @@ import { foodUsageMap, rankByUsage } from './food-usage.js';
 // the controller. No business logic here — the service computes normalized_name,
 // warnings, and DTO shape. Portions are read/written explicitly (no Prisma relation).
 
-// `usage` is attached only on a `sort=usage` list (FU-1/B-151) — the 90-day meal-log count.
+// `usage` is the food's 90-day consumed-meal-log count (FU-1/B-151). It is attached on every
+// `GET /foods` list response, on all sorts (B-156); single-food reads keep it absent.
 export type FoodWithPortions = FoodModel & { portions: FoodPortionModel[]; usage?: number };
 
 export interface FoodWriteData {
@@ -137,7 +138,17 @@ export const foodRepo = {
     const hasMore = foods.length > query.limit;
     const page = hasMore ? foods.slice(0, query.limit) : foods;
     const nextCursor = hasMore ? (page.at(-1)?.id ?? null) : null;
-    return { rows: await withPortions(page), nextCursor };
+    // Always attach the 90-day consumed-usage count (B-156). Computed for the page's ids only —
+    // the page is already paginated, so this is a bounded lookup, not a full-catalog scan.
+    const usage = await foodUsageMap(
+      userId,
+      page.map((f) => f.id),
+    );
+    const rows = await withPortions(page);
+    return {
+      rows: rows.map((r) => ({ ...r, usage: usage.get(r.id)?.count ?? 0 })),
+      nextCursor,
+    };
   },
 
   async findById(userId: string, id: string): Promise<FoodWithPortions | null> {

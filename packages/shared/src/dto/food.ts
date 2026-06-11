@@ -60,7 +60,8 @@ export const FoodSchema = z.object({
   recipe_id: z.string().uuid().nullable(),
   named_portions: z.array(NamedPortionSchema),
   archived_at: z.string().datetime().nullable(),
-  /** 90-day meal-log count (FU-1/B-151) — present only on a usage-sorted list response. */
+  /** 90-day consumed-meal-log count (FU-1/B-151; consumed = served_quantity > 0, B-157).
+   *  Present on every Foods list response, all sorts (B-156); absent on single-food reads. */
   usage: z.number().int().optional(),
 });
 export type Food = z.infer<typeof FoodSchema>;

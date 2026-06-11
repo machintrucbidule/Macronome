@@ -2941,6 +2941,42 @@ gains `usage`; `FoodSchema.usage?`), `shared/constants/tuning.ts` (`FOOD_USAGE_W
 (fr + en). Tests: `food-usage.test.ts` (ranking) + integration (`/search/loggable` + `/foods?sort=usage`
 90-day window; default `/foods` stays A→Z). **No DB/schema change.**
 
+## FU-2 / B-157, B-156 — food-usage fixes: consumed-only count + always-present column — RESOLVED (user, 2026-06-11)
+
+**Problem.** Two defects in the shipped FU-1/B-151 usage feature. **(B-157)** The 90-day usage
+count included `meal_entry` lines with **quantity 0** — the unfilled pinned placeholder lines
+(B-045) — so a food pinned on many days but never actually eaten (e.g. "Framboises" always at 0 g)
+outranked genuinely-consumed foods in the pickers and the Aliments column. **(B-156)** The
+"Utilisation (90 j)" column was blank on the default A→Z Foods view and only filled when sorting
+by usage, because the count was computed only on the `sort=usage` path.
+
+**Decision (behaviour).**
+
+- **B-157 — usage counts only consumed entries.** A meal line counts toward usage only when
+  `served_quantity > 0`; quantity-0 placeholder lines do not count. This refines the FU-1
+  definition ("count of meal logs") to "count of **consumed** meal logs". Applies uniformly to
+  both callers (the Aliments column / `sort=usage`, and the `/search/loggable` + pantry pickers),
+  since both derive from the same `foodUsageMap`.
+- **B-156 — the count is always shown.** Every `GET /foods` list response carries the `usage`
+  integer on each Food, regardless of `sort`, so the column shows the 90-day count on the default
+  A→Z view without first sorting by usage. (The single `GET /foods/:id`, create, and update
+  responses still omit `usage` — the change is about the list.)
+
+**Decision (where it is computed).** Still derived at query time, no stored column / no migration.
+**B-157:** add `servedQuantity > 0` to the `meal_entry` filter in
+`api/src/data/repositories/food-usage.ts` `foodUsageMap` (the same `servedQuantity` filter already
+used by `entry.repo.ts` B-045 unpin cascade). **B-156:** on the non-usage sort path in
+`food.repo.ts` `list`, after slicing the page, compute `foodUsageMap` for the page's food ids only
+(the page is already paginated — no full-catalog scan) and attach the count to each row; the
+`sort=usage` path already attached it. `services/foods.ts` `toDto` already emits `usage` whenever
+the row carries it — no change.
+
+**Spec impact:** `spec/api/foods-recipes.md` (`GET /foods` `usage` semantics: consumed-only +
+present on every list response; `/search/loggable` consumed-only note). `shared/dto/food.ts`
+(`usage` JSDoc updated). **Code:** api `food-usage.ts`, `food.repo.ts`. Tests:
+integration `food-usage.test.ts` (qty-0 lines score 0 and never outrank a consumed food; default
+`/foods` now carries the count). **No DB/schema change.**
+
 ## MS-1 / B-146, B-147, B-148, B-149 — Mobile overlays collapse to a single bottom-sheet variant — RESOLVED (user, 2026-06-11)
 
 **Problem.** The mobile (≤560px) overlay taxonomy had **three** presentations selected by a
