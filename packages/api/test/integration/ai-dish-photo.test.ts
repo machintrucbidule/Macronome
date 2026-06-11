@@ -108,6 +108,8 @@ describe('POST /ai/dish-photo-macros — provider outcomes (B-118)', () => {
     });
     expect(res.status).toBe(200);
     expect(res.body.data).toEqual({
+      // detected absent from the provider body → defaults to true (DS-1/B-160, back-compat).
+      detected: true,
       dish_name: 'Pasta',
       kcal: 620,
       weight_g: 350,
