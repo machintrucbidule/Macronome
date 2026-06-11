@@ -115,16 +115,19 @@
   box-shadow: inset 3px 0 0 var(--nok);
 }
 
-/* Verdict cell = the OK/NOK badge + the signed kcal écart vs the frozen band (B-138). The
-   écart is pushed to the right edge (margin-left:auto) so the numbers line up vertically down
-   the column; tabular figures keep the digits aligned. Under cal_min → green, over → red. */
+/* Verdict cell = the OK/NOK badge + the signed kcal écart vs the upper target (B-138). The badge
+   sits in a fixed-width slot so the écart lands just to its right with only a light margin and the
+   numbers still line up down the column (tabular figures). At/under cal_max → green, over → red. */
 .verdictCell {
   display: flex;
   align-items: center;
-  gap: var(--sp-2);
+}
+.badgeSlot {
+  display: inline-flex;
+  min-width: 7rem;
 }
 .gap {
-  margin-left: auto;
+  margin-left: var(--sp-3);
   font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
   font-size: var(--fs-12);

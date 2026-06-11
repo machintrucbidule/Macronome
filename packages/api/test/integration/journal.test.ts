@@ -89,18 +89,18 @@ describe('GET /journal — full calendar trame (day-model)', () => {
   });
 });
 
-describe('GET /journal — kcal écart vs the frozen band (B-138)', () => {
-  it('exposes a signed kcal_gap for logged days, null inside the band and on red days', async () => {
+describe('GET /journal — kcal écart vs the upper target (B-138)', () => {
+  it('exposes the signed kcal_gap (vs cal_max) on every logged day, null on red days', async () => {
     const { agent, userId } = await authedAgent(app, 'dave');
-    await seedDay(userId, '2024-06-01', 1500); // under cal_min (1900) → -400
-    await seedDay(userId, '2024-06-02', 2000); // inside band → null
-    await seedDay(userId, '2024-06-04', 2400); // over cal_max (2100) → +300
+    await seedDay(userId, '2024-06-01', 1500); // under the band → 1500 − 2100 = -600
+    await seedDay(userId, '2024-06-02', 2000); // in-band OK day → 2000 − 2100 = -100 (still shown)
+    await seedDay(userId, '2024-06-04', 2400); // over cal_max → 2400 − 2100 = +300
 
     const res = await agent.get('/api/v1/journal?year=2024');
     expect(res.status).toBe(200);
     const byDate = rowMap(res.body.data as Row[]);
-    expect(byDate.get('2024-06-01')!.kcal_gap).toBe(-400);
-    expect(byDate.get('2024-06-02')!.kcal_gap).toBeNull();
+    expect(byDate.get('2024-06-01')!.kcal_gap).toBe(-600);
+    expect(byDate.get('2024-06-02')!.kcal_gap).toBe(-100);
     expect(byDate.get('2024-06-04')!.kcal_gap).toBe(300);
     // a red, empty trame day carries no écart (no real total).
     expect(byDate.get('2024-06-03')!.kcal_gap).toBeNull();

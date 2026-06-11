@@ -89,11 +89,13 @@ nature as the status word it already computes) — not an authoritative figure.
   `.c-bot`). **Always red.** OK (in band) → **nothing**; below → `value − cal_min` (negative);
   above → `value − cal_max` (positive). Red even on the `.kcal.under` (blue) card — the écart
   colour is independent of the card state.
-- **Macro cards** — rendered **below** the status word, **right-aligned** (`.c-status` and
-  `.ecart` stacked in a right-aligned column, `margin-left:auto`). **Always shown** when a
-  threshold exists (hidden when the threshold is null or the card is muted). Value = `value −
-threshold`; **colour = green iff on target (`ok`), else red** — which is exactly: **floor**
-  (protein, fat) below → red, at/above → green; **ceiling** (carbs) below → green, above → red.
+- **Macro cards** — **to the right** of the status word on **desktop** (like the calories card),
+  and **stacked below** it, right-aligned, on **mobile** (≤560px): `.c-status` + `.ecart` form a
+  `margin-left:auto` cluster that is a `row` (baseline) by default and flips to a `column`
+  (`align-items:flex-end`) under the phone breakpoint. **Always shown** when a threshold exists
+  (hidden when the threshold is null or the card is muted). Value = `value − threshold`;
+  **colour = green iff on target (`ok`), else red** — which is exactly: **floor** (protein, fat)
+  below → red, at/above → green; **ceiling** (carbs) below → green, above → red.
 
 > Sign convention is retained verbatim (a deficit reads negative, a surplus positive); the
 > Repas under-kcal is **red** (building the day) — the opposite of the Journal écart where

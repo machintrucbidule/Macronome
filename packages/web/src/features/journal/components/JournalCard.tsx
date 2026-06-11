@@ -63,11 +63,11 @@ export function JournalCard({ row, onOpen }: JournalCardProps) {
           <span className={styles.dow}>{formatDow(row.date, i18n.language)}</span>
         </div>
         <span className={styles.verdictWrap}>
-          {/* Signed kcal écart vs the frozen band (B-138), to the left of the badge (mobile,
-              alignment not required): under cal_min green, over cal_max red, nothing inside. */}
+          {/* Signed kcal écart vs the upper target (cal_max), to the left of the badge (mobile,
+              alignment not required): over cal_max red, at/under it (incl. in-band OK) green. */}
           {row.kcal_gap !== null && (
             <span
-              className={`${styles.gap} ${row.kcal_gap < 0 ? styles.gapUnder : styles.gapOver}`}
+              className={`${styles.gap} ${row.kcal_gap > 0 ? styles.gapOver : styles.gapUnder}`}
             >
               {signedInt(row.kcal_gap)}
             </span>

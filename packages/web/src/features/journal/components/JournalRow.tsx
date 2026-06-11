@@ -77,19 +77,22 @@ export function JournalRow({ row, onPatch }: JournalRowProps) {
       </td>
       <td>
         <div className={styles.verdictCell}>
-          <VerdictBadge
-            effective={row.effective_verdict}
-            auto={row.verdict_auto}
-            override={row.verdict_override}
-            labels={verdictLabels}
-            onSet={(v) => onPatch(row.date, { verdict_override: v })}
-          />
-          {/* Signed kcal écart vs the frozen band (B-138): under cal_min green, over cal_max
-              red, nothing inside the band. Server-provided (row.kcal_gap); right-aligned so the
-              écarts line up vertically down the column. */}
+          {/* Fixed-width slot so the écarts line up just to the right of the badge regardless of
+              its auto/forcé sub-label width. */}
+          <span className={styles.badgeSlot}>
+            <VerdictBadge
+              effective={row.effective_verdict}
+              auto={row.verdict_auto}
+              override={row.verdict_override}
+              labels={verdictLabels}
+              onSet={(v) => onPatch(row.date, { verdict_override: v })}
+            />
+          </span>
+          {/* Signed kcal écart vs the upper target (cal_max), server-provided (B-138): shown on
+              every logged day — over cal_max red, at/under it (incl. in-band OK) green. */}
           {row.kcal_gap !== null && (
             <span
-              className={`${styles.gap} ${row.kcal_gap < 0 ? styles.gapUnder : styles.gapOver}`}
+              className={`${styles.gap} ${row.kcal_gap > 0 ? styles.gapOver : styles.gapUnder}`}
             >
               {signedInt(row.kcal_gap)}
             </span>

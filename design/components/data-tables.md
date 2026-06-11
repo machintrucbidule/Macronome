@@ -55,13 +55,15 @@ each a small square swatch in the matching state colour. `--font-num; --fs-11; -
 
 ## Verdict-cell kcal écart (Journal, B-138)
 
-The Verdict cell holds the OK/NOK badge **plus** a signed kcal écart vs the day's frozen band
-(server-provided `kcal_gap`). The cell is a `flex` row; the écart is pushed to the right edge
-(`margin-left:auto`, `--font-num; tabular-nums; --fs-12`) so the figures **line up vertically
-down the column**. Colour: under `cal_min` → **green** `--ok` (negative écart); over `cal_max` →
-**red** `--nok` (positive); **inside the band → nothing rendered**. Only logged (green/yellow)
-days carry it. On **mobile** cards the écart sits to the **left** of the static verdict pill
-(`--fs-11`, same green/red rule, no alignment requirement).
+The Verdict cell holds the OK/NOK badge **plus** a signed kcal écart **vs the upper target**
+(`kcal − cal_max`, server-provided `kcal_gap`). The cell is a `flex` row; the badge sits in a
+**fixed-width slot** (`.badgeSlot`, `min-width:7rem`) so the écart lands **just to its right** with
+only a light `--sp-3` margin while the figures still **line up down the column** (`--font-num;
+tabular-nums; --fs-12`) — it is **not** pushed to the far column edge. Colour: at/under `cal_max`
+→ **green** `--ok` (negative écart, incl. an in-band OK day); over `cal_max` → **red** `--nok`
+(positive). It is **always shown** on a logged (green/yellow) day; rendered only when `kcal_gap`
+is non-null (red/empty days omit it). On **mobile** cards the écart sits to the **left** of the
+static verdict pill (`--fs-11`, same green/red rule, no alignment requirement).
 
 ## Target history table (Cibles, TH-1 / B-091)
 

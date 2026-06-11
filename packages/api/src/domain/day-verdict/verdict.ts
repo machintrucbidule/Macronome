@@ -24,12 +24,11 @@ export function autoVerdict(kcal: number, calMin: number, calMax: number): Verdi
   return calorieStatus(kcal, calMin, calMax) === 'OK' ? 'OK' : 'NOK';
 }
 
-/** Signed kcal écart vs the frozen band (B-138): below cal_min → kcal − cal_min (negative),
- *  above cal_max → kcal − cal_max (positive), inside the band → null (nothing to show). */
-export function kcalBandGap(kcal: number, calMin: number, calMax: number): number | null {
-  if (kcal < calMin) return kcal - calMin;
-  if (kcal > calMax) return kcal - calMax;
-  return null;
+/** Signed kcal écart vs the **upper target** (B-138): `kcal − cal_max`, always relative to the
+ *  ceiling — negative at/under it (incl. inside the band, a headroom), positive when over it.
+ *  Caller decides when to surface it (logged days only); it is shown even on an in-band OK day. */
+export function kcalUpperGap(kcal: number, calMax: number): number {
+  return kcal - calMax;
 }
 
 /** Effective verdict = manual override if set, else the auto value (00-conventions.md). */

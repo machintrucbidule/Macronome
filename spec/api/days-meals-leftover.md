@@ -160,9 +160,10 @@ effective_verdict,kcal_gap,activity_level,comment,kind,state,editable_kcal}], da
   `kind` is `null` for an empty row; `state` is the calorie-driven colour
   (`none|green|yellow|red`, `logic/day-snapshot-verdict.md §8`); `editable_kcal` is true on any
   non-`green` day (the Calories cell creates/updates a summary day). `kcal_gap` is the **signed
-  kcal écart vs the day's frozen band** (B-138), server-computed so the web never derives it
-  (CLAUDE.md rule 2): `kcal − cal_min` when below (negative), `kcal − cal_max` when above
-  (positive), and `null` inside the band (OK) or on a non-logged (`red`/empty/`none`) day. Macros are null for summary
+  kcal écart vs the upper target** (`kcal − cal_max`, B-138), server-computed so the web never
+  derives it (CLAUDE.md rule 2): it is **always relative to `cal_max`** — negative at/under the
+  ceiling (including an in-band OK day, a headroom), positive when over — and is exposed on **every
+  logged (`green`/`yellow`) day**; it is `null` only on a non-logged (`red`/empty/`none`) day. Macros are null for summary
   and empty days. `day_count` is the number of **logged** days (calorie-bearing, date ≤ today) —
   distinct from the rendered row count. `min_year`/`max_year` are the global span of the user's
   day rows (across all years, independent of `year`; both `null` when none) — they bound the year

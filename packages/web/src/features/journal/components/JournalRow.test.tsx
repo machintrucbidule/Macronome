@@ -67,10 +67,10 @@ describe('JournalRow state band (JR-1 / B-077)', () => {
 });
 
 describe('JournalRow kcal écart (B-138)', () => {
-  it('shows a green negative écart when under cal_min', () => {
-    const { container } = renderRow('green', -400);
+  it('shows a green negative écart at/under cal_max, including an in-band OK day', () => {
+    const { container } = renderRow('green', -100); // 2000 − 2100 on an OK day
     const gap = container.querySelector(`.${styles.gap}`) as HTMLElement;
-    expect(gap.textContent).toBe('−400');
+    expect(gap.textContent).toBe('−100');
     expect(gap.className).toContain(styles.gapUnder);
   });
 
@@ -81,8 +81,8 @@ describe('JournalRow kcal écart (B-138)', () => {
     expect(gap.className).toContain(styles.gapOver);
   });
 
-  it('shows no écart inside the band (kcal_gap null)', () => {
-    const { container } = renderRow('green', null);
+  it('shows no écart when the server omits it (red/empty day, kcal_gap null)', () => {
+    const { container } = renderRow('red', null);
     expect(container.querySelector(`.${styles.gap}`)).toBeNull();
   });
 });
