@@ -89,9 +89,9 @@ Reuses existing tokens — **no new token**.
 - **Activity pill** (activité moyenne): the `avg_activity` PAL multiplier is bucketed to
   the nearest of the five levels and shown in an inline `.actTint` pill — soft background
   `color-mix(--act-color 16%, transparent)` + inset border `color-mix(--act-color 45%,
-transparent)`, where `--act-color` is set per level by the **same B-085/B-101 palette**
-  as `ActivitySelect` (Sédentaire `--nok` → Léger `--accent` → `color-mix(--ok 45%,
---accent)` → `color-mix(--ok 75%, --accent)` → Très intense `--ok`). null → plain em
+transparent)`, where `--act-color` is set per level by the **same B-085/B-101 palette
+  (revised B-152)** as `ActivitySelect` (Sédentaire `--nok` → Léger `--accent` → Modéré
+  `--ok` → Intense `--blue` → Très intense `--violet`). null → plain em
   dash, untinted.
 - **Régime badge** (régime): a pill with **two distinct neutral tints** (no good/bad
   sense) — `.flagDiet` (En régime) = accent soft bg + accent border; `.flagMaint`
@@ -203,8 +203,9 @@ renders the **exact existing** table component, untouched. The card components a
   desktop state legend is omitted on mobile** (owner decision, 2026-06-10): **calories** are
   tinted by the day **verdict** (same OK `--ok` / NOK `--nok` rule as the badge; default
   colour when no verdict), and the **activity** value is tinted by its **level** (the
-  B-085/B-101 palette — sedentary `--nok` → lightly `--accent` → gradient to extremely
-  `--ok` — shared with `ActivitySelect` and the Poids period pill). **No new token.**
+  B-085/B-101 palette, revised B-152 — sedentary `--nok` → lightly `--accent` → moderate
+  `--ok` → intense `--blue` → extreme `--violet` — shared with `ActivitySelect` and the
+  Poids period pill).
 - **Tap → editor.** Tapping a card opens a **bottom-sheet editor** (`Modal mobile="sheet"`,
   overlay taxonomy §0.2) exposing the same fields the desktop row edits inline (Journal:
   kcal on summary days, verdict override, activity, comment), **reusing the same

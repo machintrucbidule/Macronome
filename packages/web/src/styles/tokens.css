@@ -116,6 +116,10 @@
   --nok: #e5644e;
   --nok-soft: #341812; /* CONFIRMED: app value (not login #2b1512) */
 
+  /* Activity ramp tops (B-152): Intense = blue, Très intense = violet */
+  --blue: #4a93e6;
+  --violet: #9a7bf2;
+
   /* Calorie target band + deltas (semantic aliases) */
   --under: #5b9bd8; /* below the calorie band */
   --over: var(--nok); /* above the band */
@@ -172,6 +176,10 @@
   --ok-soft: #dcefe3; /* CONFIRMED: app value (not login #e2f1e8) */
   --nok: #c23d27;
   --nok-soft: #f5ddd6; /* CONFIRMED: app value (not login #f7e3de) */
+
+  /* Activity ramp tops (B-152): Intense = blue, Très intense = violet */
+  --blue: #2f6fb0;
+  --violet: #6a4fcf;
 
   --under: #2f6fb0;
   --over: var(--nok);

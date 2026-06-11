@@ -167,9 +167,9 @@
 .metaKey {
   color: var(--text-faint);
 }
-/* Activity value tinted by level, reusing the B-085/B-101 palette (sedentary red → lightly
-   accent → gradient up to extremely green) shared with ActivitySelect + the Poids period
-   pill. No new token. */
+/* Activity value tinted by level, reusing the B-085/B-101 palette (revised B-152): sedentary red →
+   lightly accent → moderate green → intense blue → extreme violet. Shared with ActivitySelect +
+   the Poids period pill. */
 .actSedentary {
   color: var(--nok);
 }
@@ -177,13 +177,13 @@
   color: var(--accent);
 }
 .actModerate {
-  color: color-mix(in srgb, var(--ok) 45%, var(--accent));
+  color: var(--ok);
 }
 .actVery {
-  color: color-mix(in srgb, var(--ok) 75%, var(--accent));
+  color: var(--blue);
 }
 .actExtreme {
-  color: var(--ok);
+  color: var(--violet);
 }
 .comment {
   margin-top: var(--sp-2);

@@ -153,7 +153,8 @@
   margin-right: 3px;
 }
 
-/* Activity pill — tinted by the nearest level using the B-085/B-101 palette. */
+/* Activity pill — tinted by the nearest level using the B-085/B-101 palette (revised B-152:
+   sedentary red → lightly accent → moderate green → intense blue → extreme violet). */
 .actTint {
   display: inline-block;
   padding: 1px 6px;
@@ -169,13 +170,13 @@
   --act-color: var(--accent);
 }
 .moderate {
-  --act-color: color-mix(in srgb, var(--ok) 45%, var(--accent));
+  --act-color: var(--ok);
 }
 .veryActive {
-  --act-color: color-mix(in srgb, var(--ok) 75%, var(--accent));
+  --act-color: var(--blue);
 }
 .extreme {
-  --act-color: var(--ok);
+  --act-color: var(--violet);
 }
 
 /* Régime badge — two distinct neutral tints (no good/bad sense). */

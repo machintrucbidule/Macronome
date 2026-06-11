@@ -1143,7 +1143,8 @@ time: B-085 becomes a **custom clickable menu** (not a styled native select), an
   leading dot: Sédentaire `--nok` (red) → a jump to Léger `--accent` (yellow) → Modéré
   `color-mix(--ok 45%, --accent)` → Intense `color-mix(--ok 75%, --accent)` → Très intense
   `--ok` (green). Implemented as a generic `components/SelectMenu` + an `components/ActivitySelect`
-  wrapper (the colour map) reused by both call sites.
+  wrapper (the colour map) reused by both call sites. **[Colour values superseded by AC-2/B-152 —
+  the menu/dot mechanism and the four-call-site map stand; only the five hues changed.]**
 - **B-086 — Partiel day macro cards show "—".** On a Partiel (summary) day only the calorie
   total is meaningful (DK-1/B-079), so each macro card keeps its label + target but renders the
   value as `—`, hides the bar, and omits the status word (neutral card). New optional `muted`
@@ -1355,7 +1356,8 @@ trigger badge and every dropdown option — instead of the dot.
 
 **Decision (improvement, web-only; no new token).** The level **tints the whole control**, reusing
 the **same non-linear B-085 palette** (Sédentaire `--nok` → Léger `--accent` → `color-mix(--ok 45%,
---accent)` → `color-mix(--ok 75%, --accent)` → Très intense `--ok`): the **trigger badge** gets a soft
+--accent)` → `color-mix(--ok 75%, --accent)` → Très intense `--ok`) **[colour values superseded by
+AC-2/B-152; the whole-control tint mechanism described here is unchanged]**: the **trigger badge** gets a soft
 background (`color-mix(level 16%, transparent)`) + a level border (`color-mix(level 45%, transparent)`,
 like the verdict badge), and **each menu option** gets the same soft background + a 3px **left band**
 in the level colour (inset shadow — mirroring the Journal day-state band, JR-1/B-077; no layout shift).
@@ -2970,3 +2972,37 @@ presentation; collapsed the overlay-taxonomy table to one row; deleted the accou
 exception block) and `design/components/mobile.md` (single bottom-sheet row; dropped the stale
 `cibles`/`Repas food picker` full-screen entries). **No DB/schema/API/DTO/token change.** Cosmetic/
 layout change — visual acceptance ≤560px; no dedicated domain test. typecheck + lint + web suite green.
+
+## AC-2 / B-152 — Activity-level palette recolour (five distinct hues) — RESOLVED (user, 2026-06-11)
+
+**Problem.** The five activity levels shared a single red→yellow→green ramp whose upper three levels
+were near-identical greens — Modéré `color-mix(--ok 45%, --accent)` (a pale, washed-out green that
+failed to convey a decent activity level), Intense `color-mix(--ok 75%, --accent)`, Très intense
+`--ok`. In the 16 %-opacity soft tints used on the controls these barely differed.
+
+**Decision (improvement, web + design only; supersedes B-085/B-101/WV-1 colour _values_).** Replace
+the ramp with **five distinct, correctly-ordered hues**: Sédentaire `--nok` (red, unchanged) → Léger
+`--accent` (yellow, unchanged) → **Modéré `--ok`** (solid green) → **Intense `--blue`** (new token,
+blue) → **Très intense `--violet`** (new token, violet). The owner picked the blue→violet top
+(option C) over a teal→indigo variant because green→teal read as near-identical in the 16 % soft tint;
+blue→violet maximises the separation across the three upper levels. The tint
+**mechanism** (B-101 whole-control tint: 16 % soft bg + 45 % border + `--act-color` band) is unchanged
+— only the per-level source colour changes. No DB / API / DTO / domain-logic change; `shared`
+unchanged (`constants/activity.ts` carries no colour).
+
+**Contract delta.** Two theme-aware tokens added to `design/tokens.css` **and** its byte-identical
+copy `packages/web/src/styles/tokens.css` (both themes): `--blue` (dark `#4a93e6` / light `#2f6fb0`),
+`--violet` (dark `#9a7bf2` / light `#6a4fcf`). Docs updated: `design/components/metric-cards.md`
+(verdict-cluster activity select) + `design/components/data-tables.md` (period pill + mobile card
+summary). `design/tokens.md` not touched (it documents only non-colour scales; `tokens.css` is the
+colour authority). B-085 + B-101 entries above annotated as colour-values-superseded (mechanism kept).
+
+**Code (web, CSS-only).** The five level classes recoloured in the three palette-consuming modules —
+`components/ActivitySelect/ActivitySelect.module.css`, `features/journal/journal-mobile.module.css`,
+`features/weight/weight.module.css` — only the Modéré/Intense/Très intense values change; header
+comments updated. No `.tsx` change (classes applied by name). Surfaces: ActivitySelect (Repas +
+Journal desktop/mobile sheet), JournalCard (mobile read-only), Poids `PeriodRow`/`PeriodDetailSheet`.
+
+**Acceptance.** Visual check at every surface in light + dark (five distinct, correctly-ordered
+tints); lint + typecheck + full suite green. Cosmetic — no dedicated domain test (palette carries no
+logic).

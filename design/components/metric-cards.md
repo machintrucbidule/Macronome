@@ -109,14 +109,15 @@ nature as the status word it already computes) — not an authoritative figure.
   styled like the OK/NOK/Auto verdict menu (B-085) — a clickable badge trigger
   (`--font-num; --fs-11; bg-elev-2; border; r-sm` + caret) opening a dropdown (`bg-elev-2;
 border-strong; r-md; shadow`; closes on outside-click / Escape), **not** a native `<select>`.
-  The five levels are colour-coded on a **non-linear scale**: **Sédentaire → `--nok`** (red), a
-  jump to **Léger → `--accent`** (yellow), then a gradient through **Modéré**
-  (`color-mix(--ok 45%, --accent)`) and **Intense** (`color-mix(--ok 75%, --accent)`) up to
-  **Très intense → `--ok`** (green). The level **tints the whole control** (B-101), not a leading
+  The five levels are colour-coded on a **non-linear scale of five distinct hues** (B-152):
+  **Sédentaire → `--nok`** (red), a jump to **Léger → `--accent`** (yellow), then **Modéré → `--ok`**
+  (solid green), **Intense → `--blue`** (blue) and **Très intense → `--violet`** (violet).
+  The level **tints the whole control** (B-101), not a leading
   dot: the trigger badge gets a soft background (`color-mix(level 16%, transparent)`) + a level
   border (`color-mix(level 45%, transparent)`, like the verdict badge), and each menu option gets
   the same soft background + a 3px **left band** in the level colour (inset shadow, no layout
-  shift — mirroring the Journal day-state band, JR-1/B-077). **No new token.** The current level is
+  shift — mirroring the Journal day-state band, JR-1/B-077). The palette uses the `--blue` + `--violet`
+  tokens for the top two levels (B-152); the tint mechanism is otherwise unchanged. The current level is
   highlighted in the menu.
   The same control + colour map renders the Journal activity cell (`history.md`). A **"?" help button**
   beside it opens a legend popover (B-026) listing the five levels, each with a real
