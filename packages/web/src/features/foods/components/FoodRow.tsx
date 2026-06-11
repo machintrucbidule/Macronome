@@ -41,7 +41,7 @@ export function FoodRow({ food, onOpen, onArchive, onRestore }: FoodRowProps) {
           {t(`foods.visibility.${food.visibility}`)}
         </span>
       </td>
-      <td className={tableStyles.num}>{food.usage ?? ''}</td>
+      <td className={tableStyles.numc}>{food.usage ?? ''}</td>
       <td>
         <button
           type="button"

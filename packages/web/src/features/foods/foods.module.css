@@ -96,6 +96,9 @@
   font-size: var(--fs-12);
   color: var(--text-dim);
 }
+.vis {
+  text-align: center;
+}
 .vistag {
   font-family: var(--font-num);
   font-size: var(--fs-9);

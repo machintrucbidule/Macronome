@@ -60,7 +60,7 @@ export function FoodTable({
             <th>{t('foods.col.portion')}</th>
             {th('rating', 'center')}
             {th('visibility', 'center')}
-            {th('usage', 'right')}
+            {th('usage', 'center')}
             <th aria-label="actions" />
           </tr>
         </thead>
