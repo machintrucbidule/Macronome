@@ -15,7 +15,7 @@ interface Props {
 export function DeleteConfirm({ container, onCancel, onConfirm }: Props) {
   const { t } = useTranslation();
   return (
-    <Modal title={t('containers.confirm.title')} size="confirm" mobile="sheet" onClose={onCancel}>
+    <Modal title={t('containers.confirm.title')} size="confirm" onClose={onCancel}>
       <div className={styles.modalBody}>
         <p>
           <Trans

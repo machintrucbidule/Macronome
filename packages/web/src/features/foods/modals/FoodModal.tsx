@@ -17,12 +17,9 @@ interface FoodModalProps {
   isDuplicate: (name: string) => boolean;
   onClose: () => void;
   onArchive: (food: Food) => void;
-  // Mobile-only Modal variant (S7): the food sheet opens full-screen ≤560px. Inert on desktop —
-  // Modal applies the variant only when its own useIsMobile() is true (desktop sizing unchanged).
-  mobile?: 'fullscreen' | 'sheet';
 }
 
-export function FoodModal({ food, isDuplicate, onClose, onArchive, mobile }: FoodModalProps) {
+export function FoodModal({ food, isDuplicate, onClose, onArchive }: FoodModalProps) {
   const { t } = useTranslation();
   const [draft, setDraft] = useState<Draft>(() => initialDraft(food));
   const [showParse, setShowParse] = useState(false);
@@ -56,11 +53,7 @@ export function FoodModal({ food, isDuplicate, onClose, onArchive, mobile }: Foo
   };
 
   return (
-    <Modal
-      title={t(isEdit ? 'foods.modal.editTitle' : 'foods.modal.addTitle')}
-      {...(mobile ? { mobile } : {})}
-      onClose={onClose}
-    >
+    <Modal title={t(isEdit ? 'foods.modal.editTitle' : 'foods.modal.addTitle')} onClose={onClose}>
       <div className={modalStyles.sub}>{t('foods.modal.sub')}</div>
       <div className={modalStyles.body}>
         <FoodModalFields

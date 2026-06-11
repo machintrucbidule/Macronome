@@ -14,7 +14,7 @@ import { useContainerMutations, useContainers } from './useContainers';
 // locked. Add/edit via modal; free delete with a confirm. It renders; it never computes.
 // Mobile-responsive follow-up: a useIsMobile() render-switch picks the desktop tree
 // (ContainersDesktop — byte-identical to before) or the mobile tree (ContainersMobile — search
-// toolbar + card list + FAB, like Aliments/Recettes); the modals are shared (full-screen ≤560px).
+// toolbar + card list + FAB, like Aliments/Recettes); the modals are shared (bottom sheets ≤560px).
 type ModalState = { mode: 'add' } | { mode: 'edit'; container: Container } | null;
 
 const norm = (s: string): string => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
@@ -82,7 +82,6 @@ export function ContainersPage() {
         <ContainerModal
           container={modal.mode === 'edit' ? modal.container : null}
           onClose={() => setModal(null)}
-          {...(isMobile ? { mobile: 'sheet' as const } : {})}
           onDelete={(c) => {
             setModal(null);
             setDeleteTarget(c);

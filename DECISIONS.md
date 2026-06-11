@@ -2938,3 +2938,35 @@ gains `usage`; `FoodSchema.usage?`), `shared/constants/tuning.ts` (`FOOD_USAGE_W
 `foods/components/FoodTable.tsx`/`FoodRow.tsx`/`FoodsMobile.tsx`/`FoodCard.tsx`; i18n `foods.col.usage`
 (fr + en). Tests: `food-usage.test.ts` (ranking) + integration (`/search/loggable` + `/foods?sort=usage`
 90-day window; default `/foods` stays A→Z). **No DB/schema change.**
+
+## MS-1 / B-146, B-147, B-148, B-149 — Mobile overlays collapse to a single bottom-sheet variant — RESOLVED (user, 2026-06-11)
+
+**Problem.** The mobile (≤560px) overlay taxonomy had **three** presentations selected by a
+`Modal` `mobile?` prop: `fullscreen` (big forms), `sheet` (short editors/menus), and a
+_centered-on-mobile_ dialog (confirmations, no prop). This was inconsistent — the same
+confirmation was centered on a primary screen but a sheet on an account-menu page (the 2026-06-11
+exception), and big forms hid the bottom nav.
+
+**Decision (owner).** Collapse to **one mobile overlay language: every modal is a bottom sheet on
+mobile.** Owner-directed choices this session: **(1) scope = every modal** — the sheet is the
+_default_ mobile rendering of `Modal`, applied app-wide (including the unlisted weigh-in
+date-conflict confirmation `ConflictConfirm` and any modal added later); the `fullscreen` and
+centered-on-mobile variants are **retired**. **(2) uniform height** — big forms reuse the standard
+sheet height (`max-height: calc(90dvh - 56px)`, body scrolls); no dedicated tall-sheet treatment.
+
+**Mechanism.** `Modal` now selects the sheet unconditionally on mobile (`variant = isMobile ?
+'sheet' : undefined`) — the `mobile?` prop is **removed** entirely. The `.fullscreen`/`.scrimFull`
+CSS is deleted; `.sheet`/`.scrimSheet`/`sheet-up` and the footer-tightening rules are kept.
+Desktop ≥561px is **byte-identical** (`variant` is `undefined` → no extra class/markup). Items
+B-146 (ParseLabelDialog), B-147 (AiProposalsDialog) and B-148 (the six primary-screen
+confirmations: clear-day, meal-delete, copy-yesterday, convert-to-summary, food-archive,
+recipe-archive) become sheets **with no callsite change**; B-149 (food/recipe/weigh-in big forms)
+drop their `mobile="fullscreen"`. The now-redundant `mobile="sheet"` props and the wrapper
+plumbing (`FoodModal`/`RecipeBuilderModal`/`WeighInModal`/`ContainerModal` + their pages) were
+stripped.
+
+**Contract impact:** `design/components/modals.md` (rewrote "Mobile variants" → single bottom-sheet
+presentation; collapsed the overlay-taxonomy table to one row; deleted the account-menu-pages
+exception block) and `design/components/mobile.md` (single bottom-sheet row; dropped the stale
+`cibles`/`Repas food picker` full-screen entries). **No DB/schema/API/DTO/token change.** Cosmetic/
+layout change — visual acceptance ≤560px; no dedicated domain test. typecheck + lint + web suite green.

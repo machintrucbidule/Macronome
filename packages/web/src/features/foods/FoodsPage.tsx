@@ -108,7 +108,6 @@ export function FoodsPage() {
         <FoodModal
           food={modal.mode === 'edit' ? modal.food : null}
           isDuplicate={isDuplicate}
-          mobile="fullscreen"
           onClose={() => setModal(null)}
           onArchive={(food) => {
             setModal(null);

@@ -141,7 +141,7 @@ export function LineEditorSheet({ target }: { target: LineSheetTarget }) {
   );
 
   return (
-    <Modal title={t('meals.lineSheet.title')} mobile="sheet" size="confirm" onClose={close}>
+    <Modal title={t('meals.lineSheet.title')} size="confirm" onClose={close}>
       <div className={styles.sheet}>
         <button type="button" className={styles.foodRow} onClick={onFood}>
           <span className={styles.foodName}>{name}</span>

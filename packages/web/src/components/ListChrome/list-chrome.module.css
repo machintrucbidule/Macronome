@@ -64,7 +64,7 @@
   line-height: 1;
 }
 
-/* Bottom-sheet body shared by the Trier + "⋯" sheets (Modal mobile="sheet"). */
+/* Bottom-sheet body shared by the Trier + "⋯" sheets (bottom-sheet Modal). */
 .sheetBody {
   display: flex;
   flex-direction: column;

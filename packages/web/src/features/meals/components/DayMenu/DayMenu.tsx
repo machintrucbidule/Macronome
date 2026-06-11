@@ -90,7 +90,7 @@ function DayMenuSheet({
   };
 
   return (
-    <Modal title={t('meals.dayMenu.title')} mobile="sheet" size="confirm" onClose={onClose}>
+    <Modal title={t('meals.dayMenu.title')} size="confirm" onClose={onClose}>
       <div className={styles.menu}>
         {/* Proposition IA first in the list (owner request 2026-06-11). */}
         <button type="button" className={styles.item} disabled={!aiReady} onClick={onProposals}>

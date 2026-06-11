@@ -11,8 +11,8 @@ import styles from '../weight-mobile.module.css';
 // phone replacement for the desktop row's 15 columns, grouped Poids / Énergie / Contexte (none
 // dropped). Every figure is server-derived; this only formats + picks a tone/level class
 // (reusing format.ts + period-style.ts + the weight.module.css tint classes). "Modifier la
-// pesée" opens the full-screen weigh-in (resolved by the parent to this period's ending
-// weigh-in). Rendered as a bottom sheet (Modal mobile="sheet").
+// pesée" opens the weigh-in modal (resolved by the parent to this period's ending
+// weigh-in). Rendered as a bottom sheet on mobile.
 
 // avg_activity PAL multiplier → nearest level → palette class (mirrors PeriodRow).
 const LEVEL_CLASS: Record<ActivityLevel, string | undefined> = {
@@ -60,7 +60,7 @@ export function PeriodDetailSheet({ period, onClose, onEdit }: PeriodDetailSheet
   const p = period;
   const title = `${p.start_date} → ${p.end_date}`;
   return (
-    <Modal mobile="sheet" title={title} onClose={onClose}>
+    <Modal title={title} onClose={onClose}>
       <div className={styles.sheet}>
         <div className={styles.grid}>
           <div className={styles.sect}>{t('weight.detail.sectWeight')}</div>

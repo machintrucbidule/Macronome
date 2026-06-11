@@ -35,13 +35,17 @@ contract with slice S3, when the phone breakpoint first drives real shell behavi
 
 ## Overlay taxonomy (one interaction language across screens)
 
-| Overlay               | Used for                                                                                             | Basis                         |
-| --------------------- | ---------------------------------------------------------------------------------------------------- | ----------------------------- |
-| **Full-screen sheet** | Big forms: recipe builder, food sheet, weigh-in, cibles, Repas food picker                           | `Modal mobile="fullscreen"`   |
-| **Bottom sheet**      | Short editors / menus: Journal day, food-line, Poids period detail, **account menu**, Trier, Filtres | `Modal mobile="sheet"`        |
-| **Centered dialog**   | Confirmations (delete meal, clear day, archive, typed-confirm)                                       | `Modal` (centered, unchanged) |
+On mobile (≤560px) **every modal is a bottom sheet** — a single overlay language (MS-1). The
+sheet is the default mobile rendering of `Modal`; there is no per-modal choice. Cibles is a
+**page** (not a popup), so it is not in this table.
 
-See `modals.md` for the variant CSS and `bottom-nav.md` for the shell pieces.
+| Overlay          | Used for                                                                                                                                                                                                                                            | Basis                                 |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| **Bottom sheet** | **Every modal**: big forms (recipe builder, food, weigh-in), short editors / menus (Journal day, food-line, Repas picker, Poids period detail, account menu, Trier, Filtres) **and** confirmations (delete meal, clear day, archive, typed-confirm) | `Modal` (default mobile presentation) |
+
+Desktop (≥561px) keeps every modal's centered `size` dialog unchanged. The `fullscreen` and
+centered-on-mobile variants were retired in MS-1. See `modals.md` for the sheet CSS and
+`bottom-nav.md` for the shell pieces.
 
 ## Mobile horizontal-overflow safety net (S3)
 

@@ -78,7 +78,7 @@ export function RecipesPage() {
   return (
     <AppShell>
       {isMobile ? (
-        // Mobile (≤560px): card list + shared list chrome + FAB → full-screen builder (S6).
+        // Mobile (≤560px): card list + shared list chrome + FAB → bottom-sheet builder (S6).
         <RecipesMobile {...common} />
       ) : (
         // Desktop (≥561px): the untouched toolbar + dense table — byte-identical to before.
@@ -92,7 +92,6 @@ export function RecipesPage() {
       {modal && (
         <RecipeBuilderModal
           recipeId={modal.mode === 'edit' ? modal.id : null}
-          mobile="fullscreen"
           onClose={() => setModal(null)}
           onArchive={(recipe) => {
             setModal(null);

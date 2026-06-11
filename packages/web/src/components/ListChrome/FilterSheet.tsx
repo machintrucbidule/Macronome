@@ -4,7 +4,7 @@ import { Modal } from '../Modal/Modal';
 import styles from './list-chrome.module.css';
 
 // Shared mobile "Filtrer" control (mobile-responsive S5, overlay taxonomy spec §0.2: a filter
-// is a bottom sheet). An icon-only toolbar button (funnel) opening a Modal mobile="sheet" that
+// is a bottom sheet). An icon-only toolbar button (funnel) opening a bottom-sheet Modal that
 // lists single-select options; the first option is the "all / no filter" reset. Selecting an
 // option calls onSelect and closes. The button reads as **active** (accent) when a non-default
 // option is applied. Generic single-select; first consumer is the Journal month filter, reused
@@ -58,7 +58,7 @@ export function FilterSheet({ options, value, onSelect, label }: FilterSheetProp
         </svg>
       </button>
       {open && (
-        <Modal mobile="sheet" title={title} onClose={() => setOpen(false)}>
+        <Modal title={title} onClose={() => setOpen(false)}>
           <div className={styles.sheetBody} role="menu">
             {options.map((o) => {
               const selected = o.key === value;

@@ -5,7 +5,7 @@ import { gramsDisplay, gramsInt, kcalDisplay } from '../format';
 import styles from '../recipes-mobile.module.css';
 
 // One recipe card in the Recettes mobile list (mobile-responsive S6, mockups/03-recipes.html).
-// The whole card is a button: tapping opens the full-screen builder (edit). Archive / restore is
+// The whole card is a button: tapping opens the bottom-sheet builder (edit). Archive / restore is
 // reached inside the builder footer (owner decision 2026-06-10) — no per-card control, so the
 // card stays a single tap target. Derived per-100 g macros + weight/portion come from the
 // server, never recomputed (CLAUDE.md rule 2).

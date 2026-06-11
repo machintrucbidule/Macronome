@@ -32,7 +32,7 @@ export function ConfirmTyped({
   const matches = value.trim() === word;
 
   return (
-    <Modal title={title} size="confirm" mobile="sheet" onClose={onCancel}>
+    <Modal title={title} size="confirm" onClose={onCancel}>
       <div className={modalStyles.body}>
         <div className={modalStyles.text}>{children}</div>
         <label htmlFor={inputId} className={styles.prompt}>

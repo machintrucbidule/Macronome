@@ -203,7 +203,7 @@
   }
 }
 
-/* Account bottom sheet (≤560px, rendered by AccountMenu via Modal mobile="sheet"). These
+/* Account bottom sheet (≤560px, rendered by AccountMenu via a bottom-sheet Modal). These
    classes are only applied on the mobile render path, so they have no desktop effect. */
 .sheetBody {
   display: flex;

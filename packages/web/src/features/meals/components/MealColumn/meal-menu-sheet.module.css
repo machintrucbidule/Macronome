@@ -1,4 +1,4 @@
-/* Mobile-only meal "⋯" bottom-sheet body (inside Modal mobile="sheet"). Mounted only when
+/* Mobile-only meal "⋯" bottom-sheet body (inside a bottom-sheet Modal). Mounted only when
    useIsMobile(); desktop keeps its dropdown (meal-column.module.css .popmenu). */
 .menu {
   display: flex;

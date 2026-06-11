@@ -35,7 +35,7 @@ export function MealMenuSheet({
   };
 
   return (
-    <Modal title={name} mobile="sheet" size="confirm" onClose={onClose}>
+    <Modal title={name} size="confirm" onClose={onClose}>
       <div className={styles.menu}>
         <button type="button" className={styles.item} onClick={act(onRename)}>
           {t('meals.meal.rename')}

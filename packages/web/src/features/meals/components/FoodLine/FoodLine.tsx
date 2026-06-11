@@ -233,7 +233,7 @@ export function FoodLine({ mealId, mealIndex, row, entry, editing, dnd, touch }:
   const referencedId = entry?.kind === 'referenced' ? entry.food_id : null;
   const food = useFood(referencedId);
 
-  // Editing on mobile shows the full-screen FoodPickerSheet (rendered by MealsOverlays) instead
+  // Editing on mobile shows the bottom-sheet FoodPickerSheet (rendered by MealsOverlays) instead
   // of the inline autocomplete — so the inline path is desktop-only. ≤560px the line keeps its
   // normal entry/empty rendering while the picker overlays it.
   if (editing && !isMobile) {

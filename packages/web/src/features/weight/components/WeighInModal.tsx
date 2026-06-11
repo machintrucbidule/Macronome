@@ -16,10 +16,6 @@ interface WeighInModalProps {
   target: Exclude<WeighInModalTarget, null>;
   defaultFlag: DietFlag;
   onClose: () => void;
-  // Mobile-only Modal variant (S8): the weigh-in form opens full-screen ≤560px. Inert on
-  // desktop — Modal applies the variant only when its own useIsMobile() is true. The one-per-day
-  // ConflictConfirm stays a centered dialog regardless.
-  mobile?: 'fullscreen' | 'sheet';
 }
 
 // One-per-day confirmation: posting onto an occupied date returns 409 + existing_id; we then
@@ -50,7 +46,7 @@ function ConflictConfirm(props: {
   );
 }
 
-export function WeighInModal({ target, defaultFlag, onClose, mobile }: WeighInModalProps) {
+export function WeighInModal({ target, defaultFlag, onClose }: WeighInModalProps) {
   const { t } = useTranslation();
   const initial = target.kind === 'edit' ? target.weighIn : null;
   const { create, patch, remove } = useWeightMutations();
@@ -112,7 +108,7 @@ export function WeighInModal({ target, defaultFlag, onClose, mobile }: WeighInMo
   }
 
   return (
-    <Modal title={title} {...(mobile ? { mobile } : {})} onClose={onClose}>
+    <Modal title={title} onClose={onClose}>
       <WeighInFields draft={draft} set={set} error={error} />
       <div className={styles.modalActions}>
         {initial ? (

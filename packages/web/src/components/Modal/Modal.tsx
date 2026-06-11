@@ -9,18 +9,17 @@ import { useIsMobile } from '../../lib/useIsMobile';
 // Escape close non-destructive modals. Feature modals (food add/edit, archive
 // confirm) compose this shell with their own body + actions.
 //
-// `mobile` declares a ≤560px presentation (overlay taxonomy, spec §0.2) that overrides the
-// centered `size` width on phones only: `fullscreen` (100vw×100dvh takeover) or `sheet`
-// (bottom-anchored). It is selected by `useIsMobile()` and inert ≥561px, so desktop is
-// unchanged. `size` still controls the desktop width regardless of `mobile`.
+// On the phone breakpoint (≤560px, overlay taxonomy MS-1) every modal renders as a **bottom
+// sheet** — a single mobile overlay language (the `fullscreen` and centered-on-mobile variants
+// were retired). The sheet styling is selected by `useIsMobile()` and inert ≥561px, so desktop
+// is unchanged. `size` still controls the desktop width.
 interface ModalProps {
   title: ReactNode;
   size?: 'md' | 'confirm' | 'wide';
-  mobile?: 'fullscreen' | 'sheet';
   /**
    * Optional control rendered in the mobile top bar, between the title and the close "×"
-   * (e.g. the theme toggle in the account sheet). Only shown for a mobile variant; omitted
-   * → the header is exactly title + close as before. No effect on desktop.
+   * (e.g. the theme toggle in the account sheet). Only shown on mobile (the sheet's top bar);
+   * omitted → the bar is exactly title + close. No effect on desktop.
    */
   headerAction?: ReactNode;
   onClose: () => void;
@@ -31,17 +30,17 @@ interface ModalProps {
 // food modal) gets Escape, not the modal beneath it — without it both close at once.
 const modalStack: string[] = [];
 
-export function Modal({ title, size = 'md', mobile, headerAction, onClose, children }: ModalProps) {
+export function Modal({ title, size = 'md', headerAction, onClose, children }: ModalProps) {
   const { t } = useTranslation();
   const panelRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
   useFocusTrap(panelRef);
-  // Mobile presentation is only active on the phone breakpoint; ≥561px `variant` is
-  // undefined → no extra class, no close button → desktop markup unchanged.
+  // On mobile every modal is a bottom sheet (MS-1); ≥561px `variant` is undefined → no extra
+  // class, no close button → desktop markup unchanged.
   const isMobile = useIsMobile();
-  const variant = isMobile ? mobile : undefined;
+  const variant = isMobile ? 'sheet' : undefined;
 
   useEffect(() => {
     modalStack.push(titleId);
@@ -56,8 +55,7 @@ export function Modal({ title, size = 'md', mobile, headerAction, onClose, child
     };
   }, [titleId]);
 
-  const scrimVariant =
-    variant === 'fullscreen' ? styles.scrimFull : variant === 'sheet' ? styles.scrimSheet : '';
+  const scrimVariant = variant === 'sheet' ? styles.scrimSheet : '';
   // Portal to <body> so the scrim escapes any ancestor stacking context (e.g. the sticky day bar's
   // z-index, which otherwise traps a sheet *under* the Repas meal-tabs bar). The scrim's own
   // z-index then wins against page chrome, so sheets render over the meal selector.

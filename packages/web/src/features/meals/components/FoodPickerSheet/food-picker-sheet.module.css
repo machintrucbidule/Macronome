@@ -1,4 +1,4 @@
-/* Mobile-only full-screen food picker body (rendered inside Modal mobile="fullscreen"). All rules
+/* Mobile-only food picker body (rendered inside a bottom-sheet Modal). All rules
    only ever apply on the phone breakpoint (the component mounts only when useIsMobile()). */
 .picker {
   display: flex;

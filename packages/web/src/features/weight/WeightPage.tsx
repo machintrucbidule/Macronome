@@ -16,7 +16,7 @@ import styles from './weight.module.css';
 // figure is server-derived (rule 2); the screen renders, toggles the range/waist/mode, and edits
 // weigh-ins through the modal. Mobile-responsive S8: a useIsMobile() render-switch picks the
 // desktop tree (WeightDesktop — byte-identical to before) or the mobile tree (WeightMobile —
-// controls row + list → detail sheet + FAB); the weigh-in modal is shared (full-screen ≤560px).
+// controls row + list → detail sheet + FAB); the weigh-in modal is shared (bottom sheet ≤560px).
 // The current mode is ephemeral in M4 (persistence → M7).
 export function WeightPage() {
   const { t } = useTranslation();
@@ -54,12 +54,7 @@ export function WeightPage() {
       )}
       {isMobile ? <WeightMobile {...common} /> : <WeightDesktop {...common} />}
       {ctl.modal && (
-        <WeighInModal
-          target={ctl.modal}
-          defaultFlag={mode ?? 'in_diet'}
-          onClose={ctl.closeModal}
-          {...(isMobile ? { mobile: 'fullscreen' as const } : {})}
-        />
+        <WeighInModal target={ctl.modal} defaultFlag={mode ?? 'in_diet'} onClose={ctl.closeModal} />
       )}
     </AppShell>
   );

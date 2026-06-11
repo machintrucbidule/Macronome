@@ -19,7 +19,7 @@ interface Props {
   onCloseCopy: () => void;
 }
 
-// Mobile-only overlays: the full-screen food picker (replaces the inline autocomplete) and the
+// Mobile-only overlays: the bottom-sheet food picker (replaces the inline autocomplete) and the
 // bottom-sheet line editor (spec §5.3). Kept apart so they never mount on desktop (≥561px).
 function MobileSheets({ ctl }: { ctl: MealsController }) {
   const isMobile = useIsMobile();

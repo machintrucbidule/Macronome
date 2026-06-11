@@ -6,7 +6,7 @@ import styles from './list-chrome.module.css';
 // Shared mobile "⋯" overflow control (mobile-responsive S5, overlay taxonomy spec §0.2:
 // a small menu is a bottom sheet). Holds a screen's secondary, full-width actions (e.g.
 // Export CSV) that don't earn a permanent toolbar slot on a phone. A "⋯" button opens a
-// Modal mobile="sheet" of action rows; running an action closes the sheet. Generic.
+// bottom-sheet Modal of action rows; running an action closes the sheet. Generic.
 
 export interface OverflowAction {
   label: string;
@@ -42,7 +42,7 @@ export function OverflowMenu({ actions, label }: OverflowMenuProps) {
         ⋯
       </button>
       {open && (
-        <Modal mobile="sheet" title={aria} onClose={() => setOpen(false)}>
+        <Modal title={aria} onClose={() => setOpen(false)}>
           <div className={styles.sheetBody} role="menu">
             {actions.map((a) => (
               <button

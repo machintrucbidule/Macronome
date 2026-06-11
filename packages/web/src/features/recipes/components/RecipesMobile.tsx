@@ -23,7 +23,7 @@ import type { MinRating } from './FiltersPopover';
 // the card list, a FAB to add, and the same infinite-scroll footer as the desktop list.
 // Filtering and sorting are server-side (the page owns q/minRating/showArchived/sort/dir and
 // feeds the query), so this component drives that same state and never re-filters client-side.
-// Tapping a card or the FAB opens the full-screen builder. Desktop is untouched (never mounts
+// Tapping a card or the FAB opens the bottom-sheet builder. Desktop is untouched (never mounts
 // ≥561px; the page renders the dense RecipesTable instead).
 interface RecipesMobileProps {
   recipes: RecipeSummary[];

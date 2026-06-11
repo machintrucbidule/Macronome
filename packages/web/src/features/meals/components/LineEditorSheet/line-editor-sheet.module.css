@@ -1,4 +1,4 @@
-/* Mobile-only bottom-sheet line editor body (inside Modal mobile="sheet"). Mounted only when
+/* Mobile-only bottom-sheet line editor body (inside a bottom-sheet Modal). Mounted only when
    useIsMobile(), so these rules never affect desktop. */
 .sheet {
   display: flex;

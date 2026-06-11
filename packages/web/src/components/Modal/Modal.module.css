@@ -81,16 +81,11 @@
   margin-left: auto;
 }
 
-/* Mobile overlay variants (mobile-responsive S2, spec §3). Selected ≤560px by the
-   `mobile` prop via useIsMobile(); scoped in the media query so they are doubly inert
-   on desktop (the JS class is only applied on the phone breakpoint, and these rules
-   never match ≥561px). Desktop modal sizing/markup is unchanged. */
+/* Mobile overlay: on the phone breakpoint every modal is a bottom sheet (MS-1). Selected
+   ≤560px via useIsMobile(); scoped in the media query so it is doubly inert on desktop (the
+   JS class is only applied on the phone breakpoint, and these rules never match ≥561px).
+   Desktop modal sizing/markup is unchanged. */
 @media (max-width: 560px) {
-  /* fullscreen: edge-to-edge takeover, scrim does not clip or center the panel. */
-  .scrim.scrimFull {
-    padding: 0;
-    align-items: stretch;
-  }
   /* sheet: pin the panel just above the bottom tab bar; the area above it is the closable
      scrim. The scrim stops at the bottom nav (S3: 56px + safe area) so the primary nav stays
      visible and tappable while any bottom sheet is open (owner decision, 2026-06-10). */
@@ -98,17 +93,6 @@
     padding: 0;
     align-items: flex-end;
     bottom: calc(56px + env(safe-area-inset-bottom));
-  }
-
-  .fullscreen {
-    width: 100vw;
-    max-width: 100vw;
-    height: 100dvh;
-    max-height: 100dvh;
-    margin: 0;
-    border: none;
-    border-radius: 0;
-    padding-bottom: env(safe-area-inset-bottom);
   }
 
   .sheet {
@@ -128,7 +112,7 @@
   }
 
   /* Keep the three-button builder footer on ONE row without clipping (owner decision,
-     2026-06-10). Archiver/Restaurer + Annuler + Enregistrer overflow a 360px full-screen modal
+     2026-06-10). Archiver/Restaurer + Annuler + Enregistrer overflow a 360px sheet
      at the desktop paddings, clipping "Enregistrer". Tightening the footer + button padding and
      gaps fits all three on one line (Space Mono is monospace, so the worst case — "Restaurer" +
      "Annuler" + "Enregistrer" — leaves ~18px spare at 360px) while keeping the left/right

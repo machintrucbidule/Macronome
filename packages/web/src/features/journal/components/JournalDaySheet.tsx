@@ -46,7 +46,7 @@ export function JournalDaySheet({ row, onClose, onPatch }: JournalDaySheetProps)
   );
 
   return (
-    <Modal mobile="sheet" title={title} onClose={onClose}>
+    <Modal title={title} onClose={onClose}>
       <div className={styles.sheet}>
         {row.editable_kcal && (
           <KcalField

@@ -42,7 +42,7 @@ export function FoodPickerSheet({ target }: { target: EditTarget }) {
     );
 
   return (
-    <Modal title={title} mobile="sheet" onClose={actions.closeEdit}>
+    <Modal title={title} onClose={actions.closeEdit}>
       <div className={styles.picker}>
         <input
           className={styles.search}

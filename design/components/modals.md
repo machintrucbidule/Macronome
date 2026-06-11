@@ -33,44 +33,45 @@ padding:14px 20px 20px`; right-aligned ghost + primary; a left-slotted danger
 - **cook** full-screen takeover — see below.
 - **confirm** `width:min(420px,92vw)` — archive confirmation.
 
-## Mobile variants (≤560px) — mobile-responsive S2
+## Mobile presentation (≤560px) — every modal is a bottom sheet (MS-1)
 
-On the phone breakpoint (≤560px), a modal may declare a **mobile presentation** that
-overrides its centered desktop sizing. This is a **separate `mobile?` prop**, not a `size`
-value: `size` still controls the desktop width (unchanged ≥561px), while `mobile` picks the
-≤560px shape. The presentation is selected by the `useIsMobile()` hook
-(`matchMedia('(max-width: 560px)')`) and is **inert ≥561px** (CSS also scoped inside
-`@media (max-width: 560px)`), so **desktop rendering is byte-identical**.
+On the phone breakpoint (≤560px) **every modal renders as a bottom sheet** — one mobile overlay
+language across the whole app. There is **no per-modal choice**: the sheet is the **default**
+mobile rendering of `Modal`, selected by the `useIsMobile()` hook
+(`matchMedia('(max-width: 560px)')`) and **inert ≥561px** (the CSS is also scoped inside
+`@media (max-width: 560px)`), so **desktop rendering is byte-identical**. `size` still controls
+the desktop width (unchanged ≥561px); it has no effect on the mobile sheet (which is full width).
 
-- **`fullscreen`** — `100vw × 100dvh`, `margin:0`, no border/radius; a top bar holding the
-  title + a Close (`×`) button (mandatory — the scrim has no reachable outside area);
-  scrollable body; `padding-bottom: env(safe-area-inset-bottom)`. For big forms: recipe
-  builder, food sheet, weigh-in, cibles. (The Repas food picker / custom / AI sheets use
-  `sheet`, not `fullscreen` — owner refinement 2026-06-11.)
+> **History (MS-1).** Earlier revisions (S2) offered three mobile presentations via a `mobile?`
+> prop — `fullscreen` (big forms), `sheet` (short editors/menus), and a _centered-on-mobile_
+> dialog (confirmations). MS-1 **retired the `fullscreen` and centered-on-mobile variants and the
+> `mobile` prop**: a single bottom sheet for everything, **uniform height** (big forms reuse the
+> standard sheet height and scroll internally — no dedicated tall-sheet treatment).
+
+- **The sheet** — bottom-anchored **above the bottom tab bar** (the scrim's bottom is offset by
+  the nav height, `calc(56px + env(safe-area-inset-bottom))`, so the primary nav **stays
+  visible and tappable** while a sheet is open — owner decision, 2026-06-10), full width,
+  rounded **top** corners only (`--r-lg --r-lg 0 0`), slides up (`@keyframes sheet-up`,
+  `translateY(100%)→0`), `max-height: calc(90dvh - 56px)`, scroll body; the sheet rests on the
+  nav (which already clears the safe-area inset) so it needs no extra bottom inset of its own; a
+  top bar holds the title + a Close (`×`) button and a tap on the scrim above the sheet closes it.
+  The **same uniform height** applies to big forms (food add/edit, recipe builder, weigh-in) —
+  they scroll within the sheet.
 
 > **Footer actions stay on one tightened row on a phone (owner decision, 2026-06-10).** A
 > three-button footer (the recipe builder's Archiver/Restaurer + Annuler + Enregistrer) overflows
-> a 360px full-screen modal at the desktop paddings and clips "Enregistrer". ≤560px the `.actions`
+> a 360px sheet at the desktop paddings and clips "Enregistrer". ≤560px the `.actions`
 > footer + its buttons get **tighter padding and gaps** (`.actions` padding `14px 8px 16px`,
 > `gap: --sp-3`; `.actions button` padding `9px 8px`, `white-space: nowrap`) so all three fit
 > **one line** while keeping the left/right grouping (Archiver left, Annuler/Enregistrer right) —
 > Space Mono is monospace, so the worst case leaves ~18px spare at 360px. Mobile-only; desktop
 > footers are unchanged.
 
-- **`sheet`** — bottom-anchored **above the bottom tab bar** (the scrim's bottom is offset by
-  the nav height, `calc(56px + env(safe-area-inset-bottom))`, so the primary nav **stays
-  visible and tappable** while a sheet is open — owner decision, 2026-06-10), full width,
-  rounded **top** corners only (`--r-lg --r-lg 0 0`), slides up (`@keyframes sheet-up`,
-  `translateY(100%)→0`), `max-height: calc(90dvh - 56px)`, scroll body; the sheet rests on the
-  nav (which already clears the safe-area inset) so it needs no extra bottom inset of its own;
-  same title+Close top bar; a tap on the scrim above the sheet closes it. For short editors /
-  menus: Journal day editor, Repas food-line editor, Poids period detail, account menu, Trier,
-  Filtres, small menus.
-- **`headerAction` (optional top-bar slot).** Either mobile variant may render one control in the
-  top bar, **between the title and the Close `×`** (the title takes the remaining width and
-  truncates). Omitted → the bar is exactly title + `×` as before; desktop is unaffected (the bar
-  only exists for a mobile variant). First consumer: the **account sheet's theme toggle** (moved
-  onto the sheet's top row — owner decision, 2026-06-10).
+- **`headerAction` (optional top-bar slot).** The sheet's top bar may render one control
+  **between the title and the Close `×`** (the title takes the remaining width and truncates).
+  Omitted → the bar is exactly title + `×`; desktop is unaffected (the bar only exists on the
+  mobile sheet). First consumer: the **account sheet's theme toggle** (moved onto the sheet's top
+  row — owner decision, 2026-06-10).
 
 > **Focus an animated overlay with `preventScroll` (applies to every animated overlay).** The
 > focus trap moves focus into the panel on open. A bare `.focus()` makes the browser scroll the
@@ -84,19 +85,13 @@ value: `size` still controls the desktop width (unchanged ≥561px), while `mobi
 
 ### Overlay taxonomy (one interaction language across screens)
 
-| Overlay               | Used for                                                                                                                           | Basis                                                         |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| **Full-screen sheet** | Big forms (recipe builder, food sheet, weigh-in, cibles)                                                                           | `Modal` `mobile="fullscreen"`                                 |
-| **Bottom sheet**      | Short editors / menus (Journal day, Repas food-line/picker/custom/AI/day+meal menus, Poids period detail, account, Trier, Filtres) | `Modal` `mobile="sheet"`                                      |
-| **Centered dialog**   | Confirmations (delete meal, clear day, archive, typed-confirm)                                                                     | `Modal` (current centered behaviour, unchanged on mobile too) |
+| Overlay          | Used for                                                                                                                                                                                                                                                                          | Basis                                 |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| **Bottom sheet** | **Every modal on mobile** — big forms (recipe builder, food, weigh-in), short editors / menus (Journal day, Repas food-line/picker/custom/AI/day+meal menus, Poids period detail, account, Trier, Filtres) **and** confirmations (delete meal, clear day, archive, typed-confirm) | `Modal` (default mobile presentation) |
 
-> **Account-menu pages exception (owner decision, 2026-06-11).** On the account-menu pages
-> (`/account`, `/cibles`, `/containers`, `/assistant-ia`, `/parametres`, `/about`), **every** popup —
-> including confirmations (`DeleteConfirm`, `ConfirmTyped` "tout effacer"/import, the Cibles confirms,
-> `MealTemplateDeleteConfirm`) and the container add/edit form — opens as a **bottom sheet**
-> (`mobile="sheet"`) on mobile, above the primary nav. This is an intentional exception to the
-> "confirmations = centered dialog" row above, which **still holds for the primary screens** (delete
-> meal, clear day, archive). Desktop is unchanged (every one keeps its centered `size="confirm"`).
+> On desktop (≥561px) every modal keeps its centered `size` dialog unchanged. The bottom sheet is
+> the **only** ≤560px presentation — there is no centered-on-mobile or full-screen variant (MS-1).
+> The cook-mode modal (below) is a separate full-screen touch takeover, not a `Modal`.
 
 ## Leftover-proration modal (Repas)
 

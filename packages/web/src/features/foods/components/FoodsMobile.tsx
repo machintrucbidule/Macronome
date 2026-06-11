@@ -20,7 +20,7 @@ import type { MinRating, VisibilityFilter } from './FiltersPopover';
 
 // Mobile Aliments view (mobile-responsive S7, spec §4.3 — same pattern as Recettes S6).
 // Sticky list chrome (search + Trier + Filtres) over a card list, with a FAB that opens the
-// full-screen add sheet. Consumes the shared ListChrome read-only; no shared file is edited.
+// bottom-sheet add form. Consumes the shared ListChrome read-only; no shared file is edited.
 interface FoodsMobileProps {
   foods: Food[];
   loading: boolean;

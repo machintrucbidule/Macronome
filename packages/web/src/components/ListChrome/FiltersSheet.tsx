@@ -8,7 +8,7 @@ import styles from './filters-sheet.module.css';
 // Shared mobile "Filtres" control — the multi-control member of the list-chrome filter family
 // (mobile-responsive S6, spec §4.1, overlay taxonomy §0.2: a filter is a bottom sheet). Where
 // the sibling FilterSheet (S5) is a single-select sheet (e.g. Journal month), FiltersSheet
-// stacks several filter sections in one Modal mobile="sheet": a single-select chip group
+// stacks several filter sections in one bottom-sheet Modal: a single-select chip group
 // ('chips') and/or a boolean 'toggle'. Created with its first consumer (Recettes min-rating +
 // show-archived), consumed read-only by Aliments (S7). An icon-only funnel button (reusing the
 // chrome toolBtn styling) opens the sheet; the button reads as active (accent) when `active` is
@@ -66,7 +66,7 @@ export function FiltersSheet({ sections, active, label, fabSafe }: FiltersSheetP
         </svg>
       </button>
       {open && (
-        <Modal mobile="sheet" title={title} onClose={() => setOpen(false)}>
+        <Modal title={title} onClose={() => setOpen(false)}>
           <div className={`${styles.body} ${fabSafe ? styles.fabSafe : ''}`}>
             {sections.map((section) =>
               section.kind === 'chips' ? (

@@ -3,7 +3,7 @@
    sheet stacks several filter sections (a chip group + a toggle), so it gets its own spacing.
    The funnel button itself reuses the shared toolBtn/toolBtnActive classes from
    list-chrome.module.css (consumed, not edited). Mobile-only by construction — these rules only
-   apply inside a Modal mobile="sheet". Semantic tokens only (CLAUDE.md rule 6). */
+   apply inside a bottom-sheet Modal. Semantic tokens only (CLAUDE.md rule 6). */
 
 .body {
   display: flex;

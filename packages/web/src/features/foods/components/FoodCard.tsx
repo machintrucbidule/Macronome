@@ -6,7 +6,7 @@ import styles from '../foods-mobile.module.css';
 
 // One food card in the Aliments mobile list (mobile-responsive S7, spec §4.3). Spec-strict
 // content (owner): name + rating, kcal/100g + L·G·P macros, portion. The whole card is a tap
-// target opening the full-screen food sheet (edit). It renders display values; it never computes.
+// target opening the bottom-sheet food editor (edit). It renders display values; it never computes.
 interface FoodCardProps {
   food: Food;
   onOpen: (food: Food) => void;

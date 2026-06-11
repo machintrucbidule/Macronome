@@ -11,8 +11,8 @@ import styles from './AppShell.module.css';
 // Account menu (specifications/screens/settings.md): the top-right avatar holding the
 // non-primary screens (Compte, Cibles, Contenants, Assistant IA, Paramètres) + À propos +
 // logout. Desktop (≥561px) keeps the native <details> dropdown (B-131 outside-click close).
-// Mobile (≤560px, mobile-responsive S3, spec §2.4) renders a bottom sheet (Modal mobile="sheet",
-// the S2 sheet variant's first consumer) that also carries the theme toggle moved out of the
+// Mobile (≤560px, mobile-responsive S3, spec §2.4) renders a bottom sheet (the default mobile
+// Modal presentation) that also carries the theme toggle moved out of the
 // appbar. The two paths are selected by useIsMobile() — desktop dropdown stays byte-identical.
 
 const LINKS = [
@@ -96,7 +96,6 @@ function AccountSheet() {
       </button>
       {open && (
         <Modal
-          mobile="sheet"
           title={session.data?.user.username ?? t('menu.account')}
           headerAction={<ThemeToggle />}
           onClose={close}
