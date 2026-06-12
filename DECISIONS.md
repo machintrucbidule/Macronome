@@ -2834,6 +2834,22 @@ pattern already established in its own code, which is also the rule-2-faithful c
 `BandCard.module.css` (macro écart row→column at ≤560px). Tests: `kcalUpperGap` oracle + journal
 integration `kcal_gap`; RTL écart tests for `JournalRow`, `CalorieCard`, `MacroCard`. No DB/schema change.
 
+## MF-1 / B-162 — hide the "Total" label on mobile meal footers — RESOLVED (author, 2026-06-12)
+
+**Problem.** The Repas meal-column footer shows a "Total" label (`meals.total`) next to the ⊟ Restes
+button. On a phone it is redundant clutter — the weight/kcal/macro totals are self-evident under
+their columns.
+
+**Decision.** Hide the "Total" label on **mobile only** (≤560px); keep the ⊟ Restes button and all
+numeric totals; desktop unchanged. CSS-only: `.tlabel { display: none }` added to the existing
+`@media (max-width: 560px)` block in
+`features/meals/components/MealColumn/meal-column.module.css`. The `meals.total` i18n key stays (used
+on desktop); no markup/DTO/API/i18n change.
+
+**Spec impact:** `specifications/screens/meals.md` (responsive rules — "Total" label hidden ≤560px).
+**Tests:** none — cosmetic, mobile-only, no markup change (jsdom has no media-query/layout engine);
+full suite stays green; owner-verified visually.
+
 ## EW-1 / B-165 — uniform OK/NOK + activity selector widths (desktop) — RESOLVED (author, 2026-06-12)
 
 **Problem.** The OK/NOK verdict selector and the activity-level selector are both content-driven

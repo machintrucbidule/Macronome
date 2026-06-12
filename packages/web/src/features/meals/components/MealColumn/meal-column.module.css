@@ -232,4 +232,9 @@
   .cookBtn {
     display: none;
   }
+  /* Drop the redundant "Total" label on the phone footer (B-162); the ⊟ Restes button and the
+     weight/kcal/macro totals stay, self-evident under their columns. Desktop keeps the label. */
+  .tlabel {
+    display: none;
+  }
 }
