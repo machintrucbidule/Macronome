@@ -17,7 +17,8 @@ color-mix(... nok 45% ...)`.
   `auto` or `forcé`.
 - Caret `.caret`: `--fs-10; opacity .6` (▾) signalling the menu.
 - **Uniform width (B-165):** on **desktop** (`min-width:561px`) the badge has a **fixed width**
-  (`6.5rem`, sized to the natural `NOK · Auto · ▾` content, content centred) so every OK/NOK selector is
+  (`99.12px` — the measured natural `NOK · Auto · ▾` border-box width; px because the type scale is
+  px-fixed; content centred) so every OK/NOK selector is
   the same width and the columns line up across **Journal + Repas**. On **mobile** (≤560px) the badge
   keeps **no fixed width**, so the Repas reduced rule (smaller padding/font, `A`/`F` sub-label) stands.
 
