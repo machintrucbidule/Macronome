@@ -1,0 +1,54 @@
+/* Hover tooltip primitive (design/components/tooltip.md). The wrapper anchors the bubble; the
+   bubble is a styled card above the trigger with a small down-caret, revealed on hover/focus. */
+.wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.bubble {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-popover);
+  max-width: 220px;
+  width: max-content;
+  padding: 6px 9px;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  font-size: var(--fs-11);
+  line-height: 1.35;
+  text-align: center;
+  white-space: normal;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 100ms ease-out;
+}
+/* Down-caret: outline (::before) + fill (::after, 1px inset), matching the chart tooltip look. */
+.bubble::before,
+.bubble::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border: 6px solid transparent;
+  margin-left: -6px;
+  border-top-color: var(--border-strong);
+}
+.bubble::after {
+  border-width: 5px;
+  margin-left: -5px;
+  border-top-color: var(--bg-elev-2);
+}
+
+.wrap:hover .bubble,
+.wrap:focus-within .bubble {
+  opacity: 1;
+  visibility: visible;
+}

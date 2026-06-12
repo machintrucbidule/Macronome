@@ -2834,6 +2834,37 @@ pattern already established in its own code, which is also the rule-2-faithful c
 `BandCard.module.css` (macro écart row→column at ≤560px). Tests: `kcalUpperGap` oracle + journal
 integration `kcal_gap`; RTL écart tests for `JournalRow`, `CalorieCard`, `MacroCard`. No DB/schema change.
 
+## JT-1 / B-164 — HTML hover tooltips on the two Journal écarts (desktop) — RESOLVED (author, 2026-06-12)
+
+**Problem.** The two Journal écarts (target `kcal_gap` B-138, expenditure `burn_gap` B-163) render as
+a bare coloured number — they don't say _what_ the figure measures. The user wants a pretty hover
+tooltip on each, on desktop.
+
+**Decision (behaviour).** On **desktop**, hovering either écart shows a **styled HTML tooltip** (not
+the native `title`) with a plain-French sentence: target écart → "{{n}} calories en dessous de la
+cible" / "… au-dessus de la cible"; expenditure écart → "{{n}} calories en dessous de la dépense
+estimée" / "… au-dessus de la dépense estimée" ({{n}} = absolute value via `formatInt(Math.abs)`;
+"en dessous" when the écart is ≤ 0 / green, "au-dessus" when > 0 / red). **No tooltip on mobile.**
+This is **desktop-only by construction**: `JournalRow`/`JournalGap` only render in the desktop table
+(`JournalPage` swaps to mobile `JournalCard`s ≤560px, and the cards render their écart as a plain
+span, not via `JournalGap`).
+
+**Decision (mechanism) — web-only, pure presentation (CLAUDE.md rule 2).** New small **shared hover
+Tooltip primitive** (`components/Tooltip`): a CSS-only styled bubble (`role="tooltip"`) revealed on
+`:hover`/`:focus-within` — no JS state, no native `title`. Plain absolute positioning (no portal):
+the Journal table has **no** clipping scroll ancestor (`DataTable .wrap`, not `.tblscroll`), so the
+bubble is not clipped. The B-163 `JournalGap` gains a `kind: 'target' | 'burn'` prop, builds the
+sentence from the sign + `journal.gap.*` i18n keys, and wraps its existing coloured span in
+`<Tooltip>`. The `.gap` span/classes are unchanged (alignment + existing tests intact).
+
+**Spec impact:** `specifications/screens/history.md` (Écart tooltips, desktop only), new
+`design/components/tooltip.md` (hover Tooltip primitive) + cross-ref in
+`design/components/data-tables.md`, i18n `journal.gap.{targetUnder,targetOver,burnUnder,burnOver}`
+(fr + en). **Code:** web new `components/Tooltip/Tooltip.tsx` + CSS; `JournalGap.tsx` (kind prop +
+Tooltip wrap), `JournalRow.tsx` (pass kind). **Tests:** RTL on `JournalRow` asserting the four
+tooltip sentences (`[role="tooltip"]` text) + existing null/colour assertions unchanged. **No**
+DTO/API/DB change. **Depended on** JX-1/B-163 (the expenditure écart must exist).
+
 ## JX-1 / B-163 — second Journal écart: kcal vs estimated expenditure — RESOLVED (author, 2026-06-12)
 
 **Problem.** The Journal row showed distance from the **target band** (`kcal_gap`, B-138) but not

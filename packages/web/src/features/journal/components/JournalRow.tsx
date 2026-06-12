@@ -89,7 +89,7 @@ export function JournalRow({ row, onPatch }: JournalRowProps) {
             />
           </span>
           {/* Écart vs the upper target (cal_max), server-provided (B-138). */}
-          <JournalGap value={row.kcal_gap} />
+          <JournalGap value={row.kcal_gap} kind="target" />
         </div>
       </td>
       <td>
@@ -103,7 +103,7 @@ export function JournalRow({ row, onPatch }: JournalRowProps) {
             />
           </span>
           {/* Second écart vs the day's estimated expenditure (kcal − burn), server-provided (B-163). */}
-          <JournalGap value={row.burn_gap} />
+          <JournalGap value={row.burn_gap} kind="burn" />
         </div>
       </td>
       <td className={styles.commentCell}>

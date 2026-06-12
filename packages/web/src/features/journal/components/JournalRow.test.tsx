@@ -3,6 +3,7 @@ import { cleanup, render } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import type { DayState, JournalRow as Row } from '@macronome/shared';
 import i18n from '../../../i18n/config';
+import { formatInt } from '../../../lib/format/number';
 import { JournalRow } from './JournalRow';
 import { JournalLegend } from './JournalLegend';
 import styles from '../journal.module.css';
@@ -109,6 +110,44 @@ describe('JournalRow burn écart vs estimated expenditure (B-163)', () => {
   it('shows no burn écart when the server omits it (no weigh-in, burn_gap null)', () => {
     const { container } = renderRow('green', null, null);
     expect(burnGapEl(container)).toBeNull();
+  });
+});
+
+describe('JournalRow écart hover tooltips (JT-1 / B-164)', () => {
+  const tip = (container: HTMLElement, scope = ''): HTMLElement | null =>
+    container.querySelector(`${scope}[role="tooltip"]`);
+
+  it('explains the target écart: above the target when positive', () => {
+    const { container } = renderRow('green', 300);
+    expect(tip(container)!.textContent).toBe(
+      i18n.t('journal.gap.targetOver', { n: formatInt(300) }),
+    );
+  });
+
+  it('explains the target écart: below the target when negative', () => {
+    const { container } = renderRow('green', -100);
+    expect(tip(container)!.textContent).toBe(
+      i18n.t('journal.gap.targetUnder', { n: formatInt(100) }),
+    );
+  });
+
+  it('explains the expenditure écart: above the estimated burn when positive', () => {
+    const { container } = renderRow('green', null, 312);
+    expect(tip(container, `.${styles.activityCell} `)!.textContent).toBe(
+      i18n.t('journal.gap.burnOver', { n: formatInt(312) }),
+    );
+  });
+
+  it('explains the expenditure écart: below the estimated burn when negative', () => {
+    const { container } = renderRow('green', null, -288);
+    expect(tip(container, `.${styles.activityCell} `)!.textContent).toBe(
+      i18n.t('journal.gap.burnUnder', { n: formatInt(288) }),
+    );
+  });
+
+  it('renders no tooltip when both écarts are null', () => {
+    const { container } = renderRow('red', null, null);
+    expect(tip(container)).toBeNull();
   });
 });
 

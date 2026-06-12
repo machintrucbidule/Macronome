@@ -678,6 +678,12 @@
       "autoCalcWith": "Calcul auto ({{v}})",
       "auto": "auto",
       "forced": "forcé"
+    },
+    "gap": {
+      "targetUnder": "{{n}} calories en dessous de la cible",
+      "targetOver": "{{n}} calories au-dessus de la cible",
+      "burnUnder": "{{n}} calories en dessous de la dépense estimée",
+      "burnOver": "{{n}} calories au-dessus de la dépense estimée"
     }
   },
   "weight": {

@@ -78,6 +78,11 @@ tabular-nums; --fs-12`). Colour: intake **under** the burn (negative écart, a d
 écart is **right-aligned on the activity line** (`--fs-11`, same green/red rule). The slot only
 aligns the écart — it does **not** force a uniform selector width (that is B-165's separate change).
 
+On **desktop**, both écarts (verdict-cell target écart and activity-cell expenditure écart) carry a
+**hover tooltip** (B-164) spelling out the figure — "{{n}} calories en dessous/au-dessus de la cible"
+and "… de la dépense estimée". It uses the shared hover **Tooltip** primitive (`tooltip.md`), not the
+native `title`; **no tooltip on mobile** cards.
+
 ## Target history table (Cibles, TH-1 / B-091)
 
 The "Historique des cibles" panel reuses the **shared table conventions** above (no
