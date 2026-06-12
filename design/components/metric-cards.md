@@ -119,7 +119,11 @@ border-strong; r-md; shadow`; closes on outside-click / Escape), **not** a nativ
   shift — mirroring the Journal day-state band, JR-1/B-077). The palette uses the `--blue` + `--violet`
   tokens for the top two levels (B-152); the tint mechanism is otherwise unchanged. The current level is
   highlighted in the menu.
-  The same control + colour map renders the Journal activity cell (`history.md`). A **"?" help button**
+  The same control + colour map renders the Journal activity cell (`history.md`). **Uniform width
+  (B-165):** on **desktop** (`min-width:561px`) the trigger has a **fixed width** (`7rem`, sized to
+  the longest "Très intense · ▾", caret pushed to the right edge), scoped to the `.act` class so it
+  lines up across Journal + Repas without touching other `SelectMenu` users (e.g. RatingSelect);
+  **mobile** keeps the content width. A **"?" help button**
   beside it opens a legend popover (B-026) listing the five levels, each with a real
   **daily-activity** example (step counts where relevant) and the per-level **calories from
   activity alone** (kcal/day above the BMR, from `constat.per_level_activity_burn`); the kcal

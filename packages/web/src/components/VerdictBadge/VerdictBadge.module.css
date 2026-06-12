@@ -21,6 +21,15 @@
 .badge:hover {
   filter: brightness(1.08);
 }
+/* Uniform fixed width on desktop so all OK/NOK selectors line up across Journal + Repas (B-165);
+   content centred. Mobile keeps no width, so the Repas ≤560px reduced rule (meals.module.css) wins. */
+@media (min-width: 561px) {
+  .badge {
+    width: 7.5rem;
+    box-sizing: border-box;
+    justify-content: center;
+  }
+}
 .muted {
   cursor: default;
   color: var(--text-faint);

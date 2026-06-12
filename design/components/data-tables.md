@@ -75,8 +75,10 @@ right** with a light `--sp-3` margin and the figures **line up down the column**
 tabular-nums; --fs-12`). Colour: intake **under** the burn (negative écart, a deficit) → **green**
 `--ok`; over → **red** `--nok` — reuses the `.gap`/`.gapUnder`/`.gapOver` rules. Rendered only when
 `burn_gap` is non-null (a logged day with a weigh-in; otherwise omitted). On **mobile** cards the
-écart is **right-aligned on the activity line** (`--fs-11`, same green/red rule). The slot only
-aligns the écart — it does **not** force a uniform selector width (that is B-165's separate change).
+écart is **right-aligned on the activity line** (`--fs-11`, same green/red rule). On **desktop**
+(B-165) the selector itself carries a **uniform fixed width** (`.act`, `7rem`) and the verdict badge
+likewise (`.badge`, `7.5rem`; the `.badgeSlot` matches it) — so the controls line up down each column
+and the écarts align perfectly; mobile keeps the content widths.
 
 On **desktop**, both écarts (verdict-cell target écart and activity-cell expenditure écart) carry a
 **hover tooltip** (B-164) spelling out the figure — "{{n}} calories en dessous/au-dessus de la cible"

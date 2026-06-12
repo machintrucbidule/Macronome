@@ -16,6 +16,10 @@ color-mix(... nok 45% ...)`.
 - Sub-label `.auto`: `--font-num; --fs-9; uppercase; ls .08em; opacity .7` — reads
   `auto` or `forcé`.
 - Caret `.caret`: `--fs-10; opacity .6` (▾) signalling the menu.
+- **Uniform width (B-165):** on **desktop** (`min-width:561px`) the badge has a **fixed width**
+  (`7.5rem`, sized to the longest `NOK · FORCÉ · ▾`, content centred) so every OK/NOK selector is
+  the same width and the columns line up across **Journal + Repas**. On **mobile** (≤560px) the badge
+  keeps **no fixed width**, so the Repas reduced rule (smaller padding/font, `A`/`F` sub-label) stands.
 
 ## B. Journal verdict chip `.verdict` (pill form)
 

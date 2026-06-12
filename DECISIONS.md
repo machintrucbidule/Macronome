@@ -2834,6 +2834,37 @@ pattern already established in its own code, which is also the rule-2-faithful c
 `BandCard.module.css` (macro écart row→column at ≤560px). Tests: `kcalUpperGap` oracle + journal
 integration `kcal_gap`; RTL écart tests for `JournalRow`, `CalorieCard`, `MacroCard`. No DB/schema change.
 
+## EW-1 / B-165 — uniform OK/NOK + activity selector widths (desktop) — RESOLVED (author, 2026-06-12)
+
+**Problem.** The OK/NOK verdict selector and the activity-level selector are both content-driven
+widths, so they vary row-to-row in the Journal and don't line up between Journal and Repas. The user
+wants each selector type to share **one fixed width** so the columns line up — on desktop. The Repas
+**mobile** reduced OK/NOK badge ("A" not "Auto", smaller padding/font) must stay as-is.
+
+**Decision (behaviour).** On **desktop** (`min-width:561px`) the OK/NOK badge gets a **uniform fixed
+width** (`7.5rem`, sized to the longest "NOK · FORCÉ · ▾", content centred) and the activity selector
+gets a **uniform fixed width** (`7rem`, sized to "Très intense · ▾", caret pushed to the right edge).
+Each type is uniform within itself (verdict and activity are sized to their own content, not forced
+equal to each other). Applies to **Journal + Repas** (both render the shared `VerdictBadge` /
+`ActivitySelect`). On **mobile** (≤560px) neither width applies, so the existing Repas reduced-badge
+rule (`meals.module.css`) and the mobile layouts are **untouched**.
+
+**Decision (mechanism) — web-only CSS, desktop-gated.** The fixed widths live on the **shared
+controls**, gated to desktop so mobile needs no edit: `VerdictBadge.module.css .badge` and
+`ActivitySelect.module.css .act` (the activity width is scoped to `.act`, only ever on the
+ActivitySelect trigger, so other `SelectMenu` users — e.g. `RatingSelect` — are unaffected). The
+Journal `.badgeSlot` min-width is bumped `7rem → 7.5rem` to match the verdict width so the B-138 écart
+still aligns (`.activitySlot` already equals the `7rem` activity width). No markup/DTO/API/i18n
+change. Refines B-138 (`.badgeSlot`) and B-163 (`.activitySlot`), which deferred this to B-165.
+
+**Spec impact:** `design/components/badges-verdict.md` §A (verdict uniform width),
+`design/components/metric-cards.md` (activity uniform width, scoped to `.act`),
+`design/components/data-tables.md` (replaces the "B-165's separate change" forward-ref),
+`specifications/screens/history.md` + `meals.md` (uniform widths; Repas mobile reduced kept).
+**Code:** `VerdictBadge.module.css`, `ActivitySelect.module.css`, `features/journal/journal.module.css`.
+**Tests:** none — purely cosmetic widths (no markup change; jsdom has no layout engine); the full
+suite stays green and the values are owner-verified visually (one-line tunable).
+
 ## JT-1 / B-164 — HTML hover tooltips on the two Journal écarts (desktop) — RESOLVED (author, 2026-06-12)
 
 **Problem.** The two Journal écarts (target `kcal_gap` B-138, expenditure `burn_gap` B-163) render as
