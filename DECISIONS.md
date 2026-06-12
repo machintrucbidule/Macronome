@@ -2842,7 +2842,8 @@ wants each selector type to share **one fixed width** so the columns line up —
 **mobile** reduced OK/NOK badge ("A" not "Auto", smaller padding/font) must stay as-is.
 
 **Decision (behaviour).** On **desktop** (`min-width:561px`) the OK/NOK badge gets a **uniform fixed
-width** (`7.5rem`, sized to the longest "NOK · FORCÉ · ▾", content centred) and the activity selector
+width** (`6.9rem`, sized to the longest natural content "NOK · FORCÉ · ▾", content centred — not larger
+than the badge's intrinsic widest content) and the activity selector
 gets a **uniform fixed width** (`7rem`, sized to "Très intense · ▾", caret pushed to the right edge).
 Each type is uniform within itself (verdict and activity are sized to their own content, not forced
 equal to each other). Applies to **Journal + Repas** (both render the shared `VerdictBadge` /
@@ -2853,7 +2854,7 @@ rule (`meals.module.css`) and the mobile layouts are **untouched**.
 controls**, gated to desktop so mobile needs no edit: `VerdictBadge.module.css .badge` and
 `ActivitySelect.module.css .act` (the activity width is scoped to `.act`, only ever on the
 ActivitySelect trigger, so other `SelectMenu` users — e.g. `RatingSelect` — are unaffected). The
-Journal `.badgeSlot` min-width is bumped `7rem → 7.5rem` to match the verdict width so the B-138 écart
+Journal `.badgeSlot` min-width is bumped `7rem → 6.9rem` to match the verdict width so the B-138 écart
 still aligns (`.activitySlot` already equals the `7rem` activity width). No markup/DTO/API/i18n
 change. Refines B-138 (`.badgeSlot`) and B-163 (`.activitySlot`), which deferred this to B-165.
 

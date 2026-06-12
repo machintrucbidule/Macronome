@@ -25,7 +25,7 @@
    content centred. Mobile keeps no width, so the Repas ≤560px reduced rule (meals.module.css) wins. */
 @media (min-width: 561px) {
   .badge {
-    width: 7.5rem;
+    width: 6.9rem;
     box-sizing: border-box;
     justify-content: center;
   }

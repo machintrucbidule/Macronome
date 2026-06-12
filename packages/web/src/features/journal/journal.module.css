@@ -124,7 +124,7 @@
 }
 .badgeSlot {
   display: inline-flex;
-  min-width: 7.5rem;
+  min-width: 6.9rem;
 }
 .gap {
   margin-left: var(--sp-3);
