@@ -140,6 +140,19 @@
   color: var(--nok);
 }
 
+/* Activity cell = the level selector + the signed kcal écart vs the day's estimated expenditure
+   (B-163, twin of the verdict-cell écart). The selector sits in a fixed-width slot so the écart
+   lands just to its right with the same light margin and the figures line up down the column. The
+   slot only aligns the écart — it does not impose a uniform selector width (that is B-165). */
+.activityCell {
+  display: flex;
+  align-items: center;
+}
+.activitySlot {
+  display: inline-flex;
+  min-width: 8.5rem;
+}
+
 /* Day-state legend (next to the year selector): a small swatch + label per state. */
 .legend {
   display: flex;

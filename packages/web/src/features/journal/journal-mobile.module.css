@@ -167,6 +167,10 @@
 .metaKey {
   color: var(--text-faint);
 }
+/* Burn écart (B-163) pushed to the right of the activity line, mirroring the desktop placement. */
+.metaGap {
+  margin-left: auto;
+}
 /* Activity value tinted by level, reusing the B-085/B-101 palette (revised B-152): sedentary red →
    lightly accent → moderate green → intense blue → extreme violet. Shared with ActivitySelect +
    the Poids period pill. */

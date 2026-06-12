@@ -1,7 +1,7 @@
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { createApp } from '../../src/app.js';
 import { prisma } from '../../src/data/prisma.js';
-import { authedAgent } from './helpers.js';
+import { authedAgent, seedWeight } from './helpers.js';
 
 // Integration checks for GET /journal (spec/api/days-meals-leftover.md §Journal). The
 // response carries the global min/max logged-day year that bounds the year selector
@@ -16,13 +16,19 @@ const SNAPSHOT = {
   carb_ceiling_g: null,
 };
 
-function seedDay(userId: string, date: string, summaryKcal: number): Promise<unknown> {
+function seedDay(
+  userId: string,
+  date: string,
+  summaryKcal: number,
+  activityLevel = 'sedentary',
+): Promise<unknown> {
   return prisma.dayLog.create({
     data: {
       userId,
       date: new Date(`${date}T00:00:00.000Z`),
       kind: 'summary',
       summaryKcal,
+      activityLevel,
       targetSnapshot: SNAPSHOT,
     },
   });
@@ -43,6 +49,7 @@ interface Row {
   kind: string | null;
   kcal: number;
   kcal_gap: number | null;
+  burn_gap: number | null;
   editable_kcal: boolean;
 }
 const rowMap = (data: Row[]): Map<string, Row> => new Map(data.map((r) => [r.date, r]));
@@ -104,6 +111,28 @@ describe('GET /journal — kcal écart vs the upper target (B-138)', () => {
     expect(byDate.get('2024-06-04')!.kcal_gap).toBe(300);
     // a red, empty trame day carries no écart (no real total).
     expect(byDate.get('2024-06-03')!.kcal_gap).toBeNull();
+  });
+});
+
+describe('GET /journal — kcal écart vs the estimated expenditure (B-163)', () => {
+  it('exposes the signed burn_gap (kcal − estimated_burn) on logged days with a weigh-in, null otherwise', async () => {
+    const { agent, userId } = await authedAgent(app, 'erin');
+    // Profile (from authedAgent): male, birthdate 1986-01-01, height 180 cm → age 38 in 2024.
+    // Weigh-in 80 kg on 2024-06-01 → BMR = 10·80 + 6.25·180 − 5·38 + 5 = 1740; sedentary ×1.2 → 2088.
+    await seedWeight(userId, '2024-06-01', 80);
+    await seedDay(userId, '2024-05-20', 2000); // logged, but BEFORE the first weigh-in → no burn
+    await seedDay(userId, '2024-06-15', 2400); // 2400 − 2088 = +312 (surplus, red)
+    await seedDay(userId, '2024-06-16', 1800); // 1800 − 2088 = −288 (deficit, green)
+
+    const res = await agent.get('/api/v1/journal?year=2024');
+    expect(res.status).toBe(200);
+    const byDate = rowMap(res.body.data as Row[]);
+    expect(byDate.get('2024-06-15')!.burn_gap).toBe(312);
+    expect(byDate.get('2024-06-16')!.burn_gap).toBe(-288);
+    // logged day before any weigh-in → no expenditure → null.
+    expect(byDate.get('2024-05-20')!.burn_gap).toBeNull();
+    // a red, empty trame day carries no écart.
+    expect(byDate.get('2024-06-20')!.burn_gap).toBeNull();
   });
 });
 

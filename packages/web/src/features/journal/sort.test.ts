@@ -6,18 +6,19 @@ import { sortRows } from './sort';
 // directions; the default the page applies is date-descending; verdict nulls sort last.
 function row(p: Partial<JournalRow> & { date: string }): JournalRow {
   return {
-    date: p.date,
-    kcal: p.kcal ?? 0,
-    macros: p.macros ?? null,
-    verdict_auto: p.verdict_auto ?? null,
-    verdict_override: p.verdict_override ?? null,
-    effective_verdict: p.effective_verdict ?? null,
-    kcal_gap: p.kcal_gap ?? null,
-    activity_level: p.activity_level ?? 'sedentary',
-    comment: p.comment ?? null,
-    kind: p.kind ?? 'detailed',
-    state: p.state ?? 'green',
-    editable_kcal: p.editable_kcal ?? false,
+    kcal: 0,
+    macros: null,
+    verdict_auto: null,
+    verdict_override: null,
+    effective_verdict: null,
+    kcal_gap: null,
+    burn_gap: null,
+    activity_level: 'sedentary',
+    comment: null,
+    kind: 'detailed',
+    state: 'green',
+    editable_kcal: false,
+    ...p,
   };
 }
 

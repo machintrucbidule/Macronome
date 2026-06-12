@@ -2834,6 +2834,43 @@ pattern already established in its own code, which is also the rule-2-faithful c
 `BandCard.module.css` (macro écart row→column at ≤560px). Tests: `kcalUpperGap` oracle + journal
 integration `kcal_gap`; RTL écart tests for `JournalRow`, `CalorieCard`, `MacroCard`. No DB/schema change.
 
+## JX-1 / B-163 — second Journal écart: kcal vs estimated expenditure — RESOLVED (author, 2026-06-12)
+
+**Problem.** The Journal row showed distance from the **target band** (`kcal_gap`, B-138) but not
+distance from the day's **estimated expenditure** — the retrospective deficit/surplus. The user
+wants a second, distinct écart `kcal − estimated_burn` beside the Activité selector (the same
+"Dépense estimée" figure used on Repas).
+
+**Decision (behaviour).** Add a **second** signed kcal écart on each Journal row:
+`burn_gap = day_kcal − estimated_burn`, where `estimated_burn = BMR(weight on the day) ×
+activity_multiplier(day's activity_level)` — i.e. **the day's existing per-day deficit**
+(`metabolic-engine.md §5`, `day-snapshot-verdict.md §7`), **no new formula**. Negative (intake under
+burn, a deficit) → **green**; positive (surplus) → **red** — same `signedInt` + `.gap`/`.gapUnder`/
+`.gapOver` as B-138. **Visibility:** only on a logged (green/yellow) day **that has a weigh-in
+on/before its date** (no weight → no expenditure → nothing); `null` otherwise. **Desktop:** just to
+the **right of the Activité selector** (selector in a fixed-width slot, light margin, figures line up
+down the column — mirrors the verdict-cell écart). **Mobile:** **right-aligned on the activity line**
+of the card. It is the twin of the B-138 verdict-column écart; a row can now show both (vs band + vs
+expenditure).
+
+**Decision (where the figure is computed) — server-computed (CLAUDE.md rule 2).** Like B-138, the
+écart is **one additive field** `burn_gap: number | null` on `JournalRow`; the web only renders it.
+The Journal service did not previously load per-day weight/profile (the band is frozen on the
+snapshot, but the burn needs body weight), so the service now **batch-loads once** the profile +
+the full weigh-in series (`profileRepo.get` + `weightRepo.findAll`) and resolves the latest weight
+as-of each day — no N+1. New small module `services/journal-burn.ts` (`loadBurnContext` +
+`burnGapFor`) reusing the metabolic domain (`mifflinStJeor`, `estimatedBurn`, `deficitPerDay`,
+`ageYears`) and `shared` `ACTIVITY_MULTIPLIERS`. No DB/schema change.
+
+**Spec impact:** `spec/api/days-meals-leftover.md §Journal` (`burn_gap`), `shared/dto/day.ts`
+(`JournalRow.burn_gap`), `spec/logic/metabolic-engine.md §5` + `day-snapshot-verdict.md §7` (Journal
+exposes the per-day deficit), `specifications/screens/history.md` ("Écart vs dépense"),
+`design/components/data-tables.md` (activity-cell écart). **Code:** api `services/journal-burn.ts` +
+`services/journal.ts` (`toRow`/`emptyRow`); web `JournalRow.tsx`/`JournalCard.tsx` (activity slot +
+module CSS). **Tests:** journal integration `burn_gap` (profile+weigh-in oracle: BMR 1730 ×1.2 = burn
+2076 → 2400 → +324 / 1800 → −276; null on no-weigh-in + red days); RTL écart test on `JournalRow`.
+**Out of scope (later batches):** JT-1/B-164 (delta tooltips), EW-1/B-165 (uniform selector widths).
+
 ## CT-1 / B-140 — multi-line styled chart tooltip + in-viewport flip/clamp — RESOLVED (author, 2026-06-11)
 
 **Problem.** The styled HTML chart tooltip (`ChartTooltip`, B-056/SC-1) rendered a single

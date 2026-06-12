@@ -99,6 +99,16 @@ export function JournalCard({ row, onOpen }: JournalCardProps) {
       <div className={styles.meta}>
         <span className={styles.metaKey}>{t('journal.col.activity')}</span>
         <b className={ACT_CLASS[activity]}>{t(ACTIVITY_LABEL_KEYS[activity].label)}</b>
+        {/* Second écart: signed kcal vs the day's estimated expenditure (kcal − burn),
+            server-provided (B-163), right-aligned on the activity line; shown only when the day
+            has a weigh-in (burn_gap non-null). */}
+        {row.burn_gap !== null && (
+          <span
+            className={`${styles.gap} ${styles.metaGap} ${row.burn_gap > 0 ? styles.gapOver : styles.gapUnder}`}
+          >
+            {signedInt(row.burn_gap)}
+          </span>
+        )}
       </div>
 
       {row.comment && <div className={styles.comment}>« {row.comment} »</div>}

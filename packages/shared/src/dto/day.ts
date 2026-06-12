@@ -256,6 +256,12 @@ export interface JournalRow {
    *  kcal − cal_min (negative, rendered green); above cal_max → kcal − cal_max (positive, red);
    *  null when inside the band (OK) or on a non-logged (red/empty) day — the web only renders it. */
   kcal_gap: number | null;
+  /** Signed kcal écart vs the day's estimated expenditure, server-computed (B-163):
+   *  `kcal − estimated_burn` (estimated_burn = BMR(weight on the day) × activity_multiplier).
+   *  Negative when intake is under the burn (a deficit, rendered green), positive when over it
+   *  (a surplus, red). Null on a non-logged (red/empty) day, and when expenditure is null (no
+   *  weigh-in on/before that date) — the web only renders it. Same value as the day's deficit. */
+  burn_gap: number | null;
   activity_level: string;
   comment: string | null;
   /** The day's kind, or null for an empty (never-touched) trame row (day-model). */

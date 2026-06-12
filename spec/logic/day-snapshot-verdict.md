@@ -97,6 +97,9 @@ verdict_auto = OK   if cal_min ≤ day_kcal ≤ cal_max
 burn` (see `metabolic-engine.md`). Shown as a burn/deficit readout **next to** the
   verdict, never as a verdict. Not stored (derived). Computable on every day that has
   a body weight; the readout is shown with a placeholder only when no weigh-in exists yet.
+- The **Journal** exposes this same `deficit` (`day_kcal − burn`) per row as `burn_gap`
+  (B-163), the écart vs the day's estimated expenditure, beside the activity selector — `null`
+  on a non-logged day and when the day has no weigh-in (see `api/days-meals-leftover.md §Journal`).
 
 ## 8. Day states (day-model)
 

@@ -11,7 +11,7 @@ import { ActivitySelect } from '../../../components/ActivitySelect/ActivitySelec
 import { tableStyles } from '../../../components/DataTable/SortableTh';
 import { CommentCell } from './CommentCell';
 import { CaloriesCell } from './CaloriesCell';
-import { signedInt } from '../../../lib/format/number';
+import { JournalGap } from './JournalGap';
 import { formatDow, formatJournalDate, r0 } from '../format';
 import styles from '../journal.module.css';
 
@@ -88,23 +88,23 @@ export function JournalRow({ row, onPatch }: JournalRowProps) {
               onSet={(v) => onPatch(row.date, { verdict_override: v })}
             />
           </span>
-          {/* Signed kcal écart vs the upper target (cal_max), server-provided (B-138): shown on
-              every logged day — over cal_max red, at/under it (incl. in-band OK) green. */}
-          {row.kcal_gap !== null && (
-            <span
-              className={`${styles.gap} ${row.kcal_gap > 0 ? styles.gapOver : styles.gapUnder}`}
-            >
-              {signedInt(row.kcal_gap)}
-            </span>
-          )}
+          {/* Écart vs the upper target (cal_max), server-provided (B-138). */}
+          <JournalGap value={row.kcal_gap} />
         </div>
       </td>
       <td>
-        <ActivitySelect
-          value={row.activity_level as ActivityLevel}
-          onChange={(lvl) => onPatch(row.date, { activity_level: lvl })}
-          ariaLabel={t('journal.col.activity')}
-        />
+        <div className={styles.activityCell}>
+          {/* Fixed-width slot so the burn écarts line up just to the right of the selector. */}
+          <span className={styles.activitySlot}>
+            <ActivitySelect
+              value={row.activity_level as ActivityLevel}
+              onChange={(lvl) => onPatch(row.date, { activity_level: lvl })}
+              ariaLabel={t('journal.col.activity')}
+            />
+          </span>
+          {/* Second écart vs the day's estimated expenditure (kcal − burn), server-provided (B-163). */}
+          <JournalGap value={row.burn_gap} />
+        </div>
       </td>
       <td className={styles.commentCell}>
         <CommentCell

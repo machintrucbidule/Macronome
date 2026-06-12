@@ -156,14 +156,20 @@ leftover_net_grams,entry_ids:[...]}`.
   (> today, ≤ Dec 31) that already has a row (listed inline — author decision). Future days are
   never generated as empties.
   → 200 `{data:[{date,kcal,macros:{L,G,P}|null,verdict_auto,verdict_override,
-effective_verdict,kcal_gap,activity_level,comment,kind,state,editable_kcal}], day_count, min_year, max_year}`.
+effective_verdict,kcal_gap,burn_gap,activity_level,comment,kind,state,editable_kcal}], day_count, min_year, max_year}`.
   `kind` is `null` for an empty row; `state` is the calorie-driven colour
   (`none|green|yellow|red`, `logic/day-snapshot-verdict.md §8`); `editable_kcal` is true on any
   non-`green` day (the Calories cell creates/updates a summary day). `kcal_gap` is the **signed
   kcal écart vs the upper target** (`kcal − cal_max`, B-138), server-computed so the web never
   derives it (CLAUDE.md rule 2): it is **always relative to `cal_max`** — negative at/under the
   ceiling (including an in-band OK day, a headroom), positive when over — and is exposed on **every
-  logged (`green`/`yellow`) day**; it is `null` only on a non-logged (`red`/empty/`none`) day. Macros are null for summary
+  logged (`green`/`yellow`) day**; it is `null` only on a non-logged (`red`/empty/`none`) day. `burn_gap`
+  is a **second, distinct** signed kcal écart — **vs the day's estimated expenditure** (`kcal −
+  estimated_burn`, B-163), also server-computed (CLAUDE.md rule 2): `estimated_burn = BMR(weight on the
+  day) × activity_multiplier` (the per-day deficit of `logic/day-snapshot-verdict.md §7`). Negative when
+  intake is under the burn (rendered green), positive when over (red); exposed on every logged day **that
+  has a weigh-in on/before its date**, and `null` otherwise (non-logged day, or no weight → no expenditure).
+  Macros are null for summary
   and empty days. `day_count` is the number of **logged** days (calorie-bearing, date ≤ today) —
   distinct from the rendered row count. `min_year`/`max_year` are the global span of the user's
   day rows (across all years, independent of `year`; both `null` when none) — they bound the year

@@ -15,7 +15,7 @@ afterEach(async () => {
   vi.restoreAllMocks();
 });
 
-function row(state: DayState, gap: number | null = null): Row {
+function row(state: DayState, gap: number | null = null, burnGap: number | null = null): Row {
   return {
     date: '2026-01-01',
     kcal: 0,
@@ -24,6 +24,7 @@ function row(state: DayState, gap: number | null = null): Row {
     verdict_override: null,
     effective_verdict: null,
     kcal_gap: gap,
+    burn_gap: burnGap,
     activity_level: 'sedentary',
     comment: null,
     kind: state === 'green' ? 'detailed' : state === 'yellow' ? 'summary' : null,
@@ -32,12 +33,12 @@ function row(state: DayState, gap: number | null = null): Row {
   };
 }
 
-function renderRow(state: DayState, gap: number | null = null) {
+function renderRow(state: DayState, gap: number | null = null, burnGap: number | null = null) {
   return render(
     <MemoryRouter>
       <table>
         <tbody>
-          <JournalRow row={row(state, gap)} onPatch={vi.fn()} />
+          <JournalRow row={row(state, gap, burnGap)} onPatch={vi.fn()} />
         </tbody>
       </table>
     </MemoryRouter>,
@@ -84,6 +85,30 @@ describe('JournalRow kcal écart (B-138)', () => {
   it('shows no écart when the server omits it (red/empty day, kcal_gap null)', () => {
     const { container } = renderRow('red', null);
     expect(container.querySelector(`.${styles.gap}`)).toBeNull();
+  });
+});
+
+describe('JournalRow burn écart vs estimated expenditure (B-163)', () => {
+  const burnGapEl = (container: HTMLElement): HTMLElement | null =>
+    container.querySelector(`.${styles.activityCell} .${styles.gap}`);
+
+  it('shows a green negative écart when intake is under the estimated burn', () => {
+    const { container } = renderRow('green', null, -288);
+    const gap = burnGapEl(container) as HTMLElement;
+    expect(gap.textContent).toBe('−288');
+    expect(gap.className).toContain(styles.gapUnder);
+  });
+
+  it('shows a red positive écart when intake is over the estimated burn', () => {
+    const { container } = renderRow('green', null, 312);
+    const gap = burnGapEl(container) as HTMLElement;
+    expect(gap.textContent).toBe('+312');
+    expect(gap.className).toContain(styles.gapOver);
+  });
+
+  it('shows no burn écart when the server omits it (no weigh-in, burn_gap null)', () => {
+    const { container } = renderRow('green', null, null);
+    expect(burnGapEl(container)).toBeNull();
   });
 });
 

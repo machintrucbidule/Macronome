@@ -68,6 +68,11 @@ days) = −lost×7700/days`, i.e. just the weight-change energy; the informative
   `avg_intake=2000, estimated_burn_per_day=1730×1.2=2076`
   `→ deficit = 2000 − 2076 = −76 kcal/day  (×7 = −532)`
   `→ kg/week = −76/7700×7 = −0.069 ≈ −0.07 kg/week`.
+- The **Journal** surfaces this same per-day figure (`day_kcal − estimated_burn`) as the row's
+  `burn_gap` écart vs the day's estimated expenditure (B-163; see
+  `day-snapshot-verdict.md §7` and `api/days-meals-leftover.md §Journal`). No new formula — it
+  reuses `deficit_per_day` with the day's own weight and activity level; `null` when the day has
+  no weigh-in (no expenditure).
 
 ## 6. Cibles "deficit at target" (constat) — OPEN_GAPS #5
 

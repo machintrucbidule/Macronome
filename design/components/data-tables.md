@@ -65,6 +65,19 @@ tabular-nums; --fs-12`) — it is **not** pushed to the far column edge. Colour:
 is non-null (red/empty days omit it). On **mobile** cards the écart sits to the **left** of the
 static verdict pill (`--fs-11`, same green/red rule, no alignment requirement).
 
+## Activity-cell expenditure écart (Journal, B-163)
+
+A **twin** of the verdict-cell écart, in the **Activité** column: the cell holds the activity
+selector **plus** a signed kcal écart **vs the day's estimated expenditure** (`kcal −
+estimated_burn`, server-provided `burn_gap`). Same construction as B-138: the cell is a `flex`
+row, the selector sits in a **fixed-width slot** (`.activitySlot`) so the écart lands **just to its
+right** with a light `--sp-3` margin and the figures **line up down the column** (`--font-num;
+tabular-nums; --fs-12`). Colour: intake **under** the burn (negative écart, a deficit) → **green**
+`--ok`; over → **red** `--nok` — reuses the `.gap`/`.gapUnder`/`.gapOver` rules. Rendered only when
+`burn_gap` is non-null (a logged day with a weigh-in; otherwise omitted). On **mobile** cards the
+écart is **right-aligned on the activity line** (`--fs-11`, same green/red rule). The slot only
+aligns the écart — it does **not** force a uniform selector width (that is B-165's separate change).
+
 ## Target history table (Cibles, TH-1 / B-091)
 
 The "Historique des cibles" panel reuses the **shared table conventions** above (no

@@ -11,6 +11,7 @@ import {
 } from '../domain/day-verdict/index.js';
 import { computeDayTotals } from './day-assembler.js';
 import { isFuture, todayString } from './day-context.js';
+import { burnGapFor, loadBurnContext, type BurnContext } from './journal-burn.js';
 
 // Journal service (spec/api/days-meals-leftover.md §Journal). The history view returns the
 // full calendar TRAME (day-model): one row per calendar day from max(first record, Jan 1) to
@@ -23,7 +24,7 @@ const num = (d: { toString(): string }): number => Number(d.toString());
 const isoOf = (aggregate: DayAggregate): string => aggregate.dayLog.date.toISOString().slice(0, 10);
 
 /** Map a stored day to its Journal row (state + editable_kcal derived server-side, §8). */
-function toRow(aggregate: DayAggregate): JournalRow {
+function toRow(aggregate: DayAggregate, ctx: BurnContext): JournalRow {
   const { dayLog } = aggregate;
   const snapshot = dayLog.targetSnapshot as unknown as ResolvedSnapshot;
   const isSummary = dayLog.kind === 'summary';
@@ -46,6 +47,9 @@ function toRow(aggregate: DayAggregate): JournalRow {
     verdict_override: override,
     effective_verdict: effectiveVerdict(override, auto),
     kcal_gap: isLoggedState ? kcalUpperGap(kcal, snapshot.cal_max) : null,
+    // Second écart: vs the day's estimated expenditure (kcal − burn), null when no weigh-in on/before
+    // the date (no expenditure) or on a non-logged day. Server-computed per rule 2. B-163.
+    burn_gap: isLoggedState ? burnGapFor(ctx, date, dayLog.activityLevel, kcal) : null,
     activity_level: dayLog.activityLevel,
     comment: dayLog.comment,
     kind,
@@ -66,6 +70,7 @@ function emptyRow(date: string): JournalRow {
     verdict_override: null,
     effective_verdict: null,
     kcal_gap: null,
+    burn_gap: null,
     activity_level: DEFAULT_ACTIVITY_LEVEL,
     comment: null,
     kind: null,
@@ -91,9 +96,10 @@ const isLogged = (r: JournalRow, today: string): boolean =>
 
 /** GET /journal?year=YYYY — the full calendar trame for the year, newest first (day-model). */
 export async function listByYear(userId: string, year: number): Promise<JournalResponse> {
-  const [aggregates, range] = await Promise.all([
+  const [aggregates, range, burnCtx] = await Promise.all([
     dayReadRepo.readYear(userId, year),
     dayReadRepo.yearRange(userId),
+    loadBurnContext(userId),
   ]);
   const byDate = new Map(aggregates.map((a) => [isoOf(a), a]));
   const today = todayString();
@@ -109,14 +115,14 @@ export async function listByYear(userId: string, year: number): Promise<JournalR
   if (range.minDate !== null && start <= end) {
     for (const date of eachDate(start, end)) {
       const agg = byDate.get(date);
-      rows.push(agg ? toRow(agg) : emptyRow(date));
+      rows.push(agg ? toRow(agg, burnCtx) : emptyRow(date));
     }
   }
   // Future days (> today, within the year) that already carry data — listed inline, never
   // generated as empties (author decision; they stay excluded from stats until their date).
   for (const agg of aggregates) {
     const date = isoOf(agg);
-    if (date > today && date <= dec31) rows.push(toRow(agg));
+    if (date > today && date <= dec31) rows.push(toRow(agg, burnCtx));
   }
   rows.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0)); // newest first
 
@@ -128,6 +134,9 @@ export async function listByYear(userId: string, year: number): Promise<JournalR
  *  B-132). Reuses `toRow` so the export can never drift from the screen; no calendar trame here
  *  (only real day_log rows), so each row is an actually-logged day. */
 export async function listAllLogged(userId: string): Promise<JournalRow[]> {
-  const aggregates = await dayReadRepo.readAll(userId);
-  return aggregates.map(toRow);
+  const [aggregates, burnCtx] = await Promise.all([
+    dayReadRepo.readAll(userId),
+    loadBurnContext(userId),
+  ]);
+  return aggregates.map((a) => toRow(a, burnCtx));
 }
