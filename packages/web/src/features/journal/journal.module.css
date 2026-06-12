@@ -148,9 +148,12 @@
   display: flex;
   align-items: center;
 }
+/* Same slot width as the verdict `.badgeSlot` (7rem) so the burn écart sits just to the right of
+   the selector with the same light margin as the target écart in the verdict column — the figures
+   stay aligned down the column and the spacing matches between the two écart columns. */
 .activitySlot {
   display: inline-flex;
-  min-width: 8.5rem;
+  min-width: 7rem;
 }
 
 /* Day-state legend (next to the year selector): a small swatch + label per state. */
