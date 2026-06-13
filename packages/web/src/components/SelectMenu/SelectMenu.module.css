@@ -3,6 +3,10 @@
 .wrap {
   position: relative;
   display: inline-flex;
+  /* Hug the trigger so the menu anchors under the button even when the wrap is a stretch flex
+     item (e.g. the Journal day-editor sheet's `.field` column, B-168). A definite width disables
+     the cross-axis stretch; in a row context it is already content-width, so this is inert there. */
+  width: fit-content;
 }
 
 .trigger {
@@ -45,6 +49,12 @@
   border: 1px solid var(--border-strong);
   border-radius: var(--r-md);
   box-shadow: var(--shadow);
+}
+/* Flip above the trigger when there is no room below (B-168): set by useMenuPlacement so the
+   list stays on-screen (e.g. the activity select near the bottom of the Journal editor sheet). */
+.menu.up {
+  top: auto;
+  bottom: calc(100% + 4px);
 }
 .menu button {
   display: block;

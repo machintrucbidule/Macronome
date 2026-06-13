@@ -1,6 +1,10 @@
 /* OK/NOK verdict badge + override menu (design/components/badges-verdict.md §A, §C). */
 .wrap {
   position: relative;
+  /* Hug the badge so the `right:0` menu anchors under it even when the wrap is a stretch flex
+     item (e.g. the Journal day-editor sheet's `.field` column, B-168). Inert in a row context
+     (already content-width), so Repas + desktop are unchanged. */
+  width: fit-content;
 }
 
 .badge {

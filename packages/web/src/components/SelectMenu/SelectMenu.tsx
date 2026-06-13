@@ -1,11 +1,5 @@
-import {
-  type ReactNode,
-  type RefObject,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
+import { useMenuPlacement } from '../../lib/useMenuPlacement';
 import styles from './SelectMenu.module.css';
 
 // Generic clickable-badge + dropdown menu, styled like the OK/NOK/Auto verdict menu
@@ -34,58 +28,6 @@ interface SelectMenuProps<T extends string> {
   menuClassName?: string | undefined;
 }
 
-// Find the nearest ancestor that clips (overflow auto/scroll/hidden) — e.g. the modal panel
-// (`.modal { overflow:auto }`). The menu must stay inside its box or it gets cut off (B-121).
-function clipBox(el: HTMLElement | null): { left: number; right: number } {
-  for (let n = el?.parentElement ?? null; n; n = n.parentElement) {
-    const o = getComputedStyle(n);
-    if (/(auto|scroll|hidden)/.test(o.overflowX + o.overflowY)) {
-      const r = n.getBoundingClientRect();
-      return { left: r.left, right: r.right };
-    }
-  }
-  return { left: 0, right: window.innerWidth };
-}
-
-// Right-align the menu under the trigger by default; flip to left-align and clamp when that
-// would spill past the clipping ancestor's edge, so the list is never hidden (B-121). Returns
-// the horizontal offset (px, relative to the trigger) to apply as the menu's `left`.
-function useMenuOffset(
-  open: boolean,
-  wrapRef: RefObject<HTMLDivElement | null>,
-  menuRef: RefObject<HTMLDivElement | null>,
-  count: number,
-): number | null {
-  const [offset, setOffset] = useState<number | null>(null);
-  useLayoutEffect(() => {
-    if (!open) {
-      setOffset(null);
-      return;
-    }
-    const place = (): void => {
-      const trigger = wrapRef.current;
-      const menu = menuRef.current;
-      if (!trigger || !menu) return;
-      const tr = trigger.getBoundingClientRect();
-      const mw = menu.offsetWidth;
-      const box = clipBox(trigger);
-      const margin = 8;
-      let left = tr.right - mw; // right-aligned
-      if (left < box.left + margin) left = tr.left; // flip to left-aligned
-      left = Math.max(box.left + margin, Math.min(left, box.right - mw - margin));
-      setOffset(left - tr.left);
-    };
-    place();
-    window.addEventListener('scroll', place, true);
-    window.addEventListener('resize', place);
-    return () => {
-      window.removeEventListener('scroll', place, true);
-      window.removeEventListener('resize', place);
-    };
-  }, [open, count, wrapRef, menuRef]);
-  return offset;
-}
-
 export function SelectMenu<T extends string>({
   value,
   options,
@@ -96,7 +38,7 @@ export function SelectMenu<T extends string>({
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-  const offset = useMenuOffset(open, wrapRef, menuRef, options.length);
+  const placement = useMenuPlacement(open, wrapRef, menuRef, options.length);
 
   useEffect(() => {
     if (!open) return;
@@ -135,10 +77,10 @@ export function SelectMenu<T extends string>({
       </button>
       {open && (
         <div
-          className={`${styles.menu} ${menuClassName ?? ''}`}
+          className={`${styles.menu} ${placement.dropUp ? styles.up : ''} ${menuClassName ?? ''}`}
           role="listbox"
           ref={menuRef}
-          style={offset == null ? undefined : { left: offset, right: 'auto' }}
+          style={placement.left == null ? undefined : { left: placement.left, right: 'auto' }}
         >
           {options.map((o) => (
             <button

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Verdict } from '@macronome/shared';
+import { useMenuPlacement } from '../../lib/useMenuPlacement';
 import styles from './VerdictBadge.module.css';
 
 // Day calorie verdict (design/components/badges-verdict.md §A + §C). Clickable badge showing
@@ -41,6 +42,11 @@ export function VerdictBadge({
 }: VerdictBadgeProps) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  // Keep the menu inside the clipping ancestor's horizontal edges so it is never cut off at a
+  // screen/modal edge (B-168 — the Journal day-editor sheet). Vertical flip is not enabled here
+  // (the 3-item verdict menu keeps dropping down; owner decision — only the activity select flips).
+  const placement = useMenuPlacement(open, wrapRef, menuRef, 3);
 
   useEffect(() => {
     if (!open) return;
@@ -88,7 +94,12 @@ export function VerdictBadge({
         <span className={styles.caret}>▾</span>
       </button>
       {open && (
-        <div className={styles.menu} role="menu">
+        <div
+          className={styles.menu}
+          role="menu"
+          ref={menuRef}
+          style={placement.left == null ? undefined : { left: placement.left, right: 'auto' }}
+        >
           {options.map((o) => (
             <button
               key={o.label}
