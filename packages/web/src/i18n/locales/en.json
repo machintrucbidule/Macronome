@@ -802,9 +802,9 @@
       "none": "not logged"
     },
     "monthly": {
-      "tooltipOk": "{{ok}} OK days",
-      "tooltipNokUnder": "{{nok}} NOK days (deficit)",
-      "tooltipNokOver": "{{nok}} NOK days (surplus)"
+      "tooltipOk": "{{ok}} ({{pct}}) OK days",
+      "tooltipNokUnder": "{{nok}} ({{pct}}) NOK days (deficit)",
+      "tooltipNokOver": "{{nok}} ({{pct}}) NOK days (surplus)"
     },
     "calorie": {
       "tooltipOk": "Avg OK days: {{v}} kcal",

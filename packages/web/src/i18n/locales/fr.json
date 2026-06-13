@@ -802,9 +802,9 @@
       "none": "non saisi"
     },
     "monthly": {
-      "tooltipOk": "{{ok}} jours OK",
-      "tooltipNokUnder": "{{nok}} jours NOK (déficit)",
-      "tooltipNokOver": "{{nok}} jours NOK (surplus)"
+      "tooltipOk": "{{ok}} ({{pct}}) jours OK",
+      "tooltipNokUnder": "{{nok}} ({{pct}}) jours NOK (déficit)",
+      "tooltipNokOver": "{{nok}} ({{pct}}) jours NOK (surplus)"
     },
     "calorie": {
       "tooltipOk": "Moyenne des jours OK : {{v}} kcal",

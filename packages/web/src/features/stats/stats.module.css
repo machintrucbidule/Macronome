@@ -131,6 +131,15 @@
   font-size: var(--fs-9);
   text-anchor: middle;
 }
+/* OK% drawn INSIDE the green segment (B-169): page-bg ink reads on the --ok fill in both themes
+   (dark bg on the lighter dark-theme green, light bg on the darker light-theme green). */
+.barLabelIn {
+  fill: var(--bg);
+  font-family: var(--font-num);
+  font-size: var(--fs-9);
+  font-weight: var(--fw-bold);
+  text-anchor: middle;
+}
 .axis {
   fill: var(--text-faint);
   font-family: var(--font-num);

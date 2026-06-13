@@ -3449,3 +3449,29 @@ untouched (owner scope).
 weigh-in so a NOK day reads `NOK_under` (and one with no weigh-in reads `NOK_over`); web suite for the
 3-class heatmap + 3-segment bars + legend. Full suite + integration + typecheck + lint + check:i18n
 green; orange already owner-tuned (B-166). Visual check of the heatmap + bars deferred to the owner.
+
+## B-169 — Monthly OK/NOK bars: OK% inside the green segment + 3-share tooltip — RESOLVED (user, 2026-06-13)
+
+Small Stats UX refinement on the monthly OK/NOK stacked bars (`MonthlyBars`). **Improvement** (touches
+the `charts.md` label-placement rule) — directed and specified by the owner.
+
+**Decision.** The **OK% label** moves from above the bar to **inside the top of the green (OK)
+segment** — it is the OK-days share, so it belongs in the OK days. When the green segment is too short
+to hold the label, it falls back to **above the bar** as before. The two NOK shares are **still not
+labelled on the bar** (only OK%). The per-month **tooltip** now lists **all three shares with count +
+percentage** (over the month's logged days), e.g. `16 (52%) jours OK` / `3 (10%) jours NOK (déficit)` /
+`12 (39%) jours NOK (surplus)`.
+
+**Code (web only).** `MonthlyBars.tsx`: the OK% `<text>` is drawn inside the green segment
+(`base − okH + 11`, class `.barLabelIn`) when `okH ≥ 14` px, else above (`.barTop`, unchanged); the
+tooltip rows pass `pct(share)` for OK/NOK-under/NOK-over. New `.barLabelIn` in `stats.module.css`
+uses `fill: var(--bg)` so the ink contrasts on the `--ok` fill in both themes (dark bg on the lighter
+dark-theme green, light bg on the darker light-theme green). i18n `stats.monthly.tooltip*` gain a
+`{{pct}}` slot. **No** DTO/API/domain change (counts/rate already on the wire).
+
+**Contract delta.** `design/components/charts.md` — the monthly-bars label rule (OK% inside the green
+segment, fallback above; NOK shares unlabelled) + the tooltip example (three count+percentage rows).
+
+**Acceptance.** Web test: the OK% uses `.barLabelIn` when the green segment is tall, `.barTop` when
+short (deterministic — depends on counts, not layout). Full suite + typecheck + lint + check:i18n
+green; bar/tooltip visual check deferred to the owner.

@@ -19,7 +19,9 @@ tokens** (never baked hex) — critical for the trend line (see theming.md).
   - **Content** — title = a **full, readable date**: a weigh-in day reads `10 juin 2026`
     (`formatDate`), a month column reads `Février 2026` (capitalized `month YYYY`), a heatmap
     cell reads its full date. Rows are **self-describing**: weight `78.5 kg` / waist `85 cm`;
-    OK/NOK bars `21 jours OK` / `10 jours NOK`; avg-kcal bars `Moyenne des jours OK : 1800
+    OK/NOK bars list all three shares with their count + percentage (B-169) — `16 (52%) jours OK`
+    / `3 (10%) jours NOK (déficit)` / `12 (39%) jours NOK (surplus)` (percentages over the month's
+    logged days); avg-kcal bars `Moyenne des jours OK : 1800
 kcal` / `… NOK : 1950 kcal` / `Moyenne globale : 1875 kcal` (OK/NOK lines omitted when the
     month has no such day); heatmap `1600 kcal` (when logged) + status (`OK`/`NOK`/`non saisi`).
   - **Caret** — a small triangle on the card edge pointing at the hovered point, matching
@@ -84,8 +86,11 @@ Key figures `.keyfigs`: inline `.kf` blocks (label `--fs-10` + value
 
 - **Monthly OK/NOK stacked bars** (`viewBox 740×200`): a **3-segment** stack (B-167) —
   OK segment `var(--ok)` (bottom), NOK-déficit `var(--warn)` (middle), NOK-surplus `var(--nok)`
-  (top), `rx:1`; % label above; month label below. The two NOK segments come from
-  `nok_under_count` / `nok_over_count`; `ok_count` segment unchanged.
+  (top), `rx:1`; month label below. The two NOK segments come from `nok_under_count` /
+  `nok_over_count`; `ok_count` segment unchanged. **Only the OK% is labelled** (it is the OK-days
+  share): drawn **inside the top of the green segment** (`fill:var(--bg)` ink for contrast) when that
+  segment is tall enough, otherwise **above the bar** as before (B-169). The NOK shares are not
+  labelled on the bar (only in the tooltip).
 - **Avg kcal/month grouped bars** (`viewBox 740×230`): OK bar `var(--ok)`, NOK
   bar `var(--nok)`; a **target zone** band `fill: color-mix(in srgb, var(--accent)
 16%, transparent)` drawn **per month** (one rect spanning each month's column, from that

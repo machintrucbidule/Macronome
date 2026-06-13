@@ -40,4 +40,26 @@ describe('MonthlyBars 3-segment stack (B-167)', () => {
     expect(container.textContent).toContain(i18n.t('stats.legend.nokUnder'));
     expect(container.textContent).toContain(i18n.t('stats.legend.nokOver'));
   });
+
+  it('draws the OK% inside the green segment when it is tall enough, else above (B-169)', () => {
+    // Many OK days → a tall green segment → label inside (.barLabelIn).
+    const tall = render(
+      <MonthlyBars
+        monthly={[month({ ok_count: 16, nok_count: 15, nok_under_count: 3, nok_over_count: 12 })]}
+        year={2026}
+      />,
+    );
+    expect(tall.container.querySelector(`.${styles.barLabelIn}`)).not.toBeNull();
+    expect(tall.container.querySelector(`.${styles.barTop}`)).toBeNull();
+    cleanup();
+    // Few OK days → a short green segment → label falls back above the bar (.barTop).
+    const short = render(
+      <MonthlyBars
+        monthly={[month({ ok_count: 1, nok_count: 30, nok_under_count: 0, nok_over_count: 30 })]}
+        year={2026}
+      />,
+    );
+    expect(short.container.querySelector(`.${styles.barTop}`)).not.toBeNull();
+    expect(short.container.querySelector(`.${styles.barLabelIn}`)).toBeNull();
+  });
 });
