@@ -43,6 +43,9 @@ test-results/
 /BACKLOG.md
 /BACKLOG_ARCHIVE.md
 
+# --- local-only prod deploy helper (contains the Watchtower API token) ---
+/macronome_deploy_prod.bat
+
 # --- misc ---
 .DS_Store
 *.log
