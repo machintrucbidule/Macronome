@@ -24,6 +24,12 @@ const DAY = {
   verdict_override: null,
   effective_verdict: 'OK',
   totals: { kcal: 0, fat: 0, carb: 0, protein: 0, weight_g: 0 },
+  constat: {
+    estimated_burn: null,
+    deficit: null,
+    kg_per_week: null,
+    per_level_activity_burn: null,
+  },
 } as unknown as DayDetail;
 
 function renderHeader() {

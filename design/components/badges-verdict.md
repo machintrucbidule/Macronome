@@ -13,6 +13,14 @@ Hover: `filter:brightness(1.08)`.
 color-mix(in srgb, var(--ok) 45%, transparent)`.
 - **nok**: `background:var(--nok-soft); color:var(--nok); border:1px solid
 color-mix(... nok 45% ...)`.
+- **nok sub-tone — deficit (B-166):** a **NOK** badge is rendered **orange** instead of red when the
+  day is still in a real calorie deficit (`intake ≤ estimated_burn`, i.e. the server `deficit`/
+  `burn_gap ≤ 0`): `background:var(--warn-soft); color:var(--warn); border:1px solid
+color-mix(in srgb, var(--warn) 45%, transparent)`. It stays **red** on a surplus (`> 0`) **or when
+  the burn is unknown** (no weigh-in / incomplete profile → `null`). **OK is unchanged (green).** The
+  binary OK/NOK verdict itself does not change — only the NOK presentation splits (see
+  `spec/logic/day-snapshot-verdict.md §7`; the `estimated_burn` uses the **day's own** BMR ×
+  `activity_level`).
 - Sub-label `.auto`: `--font-num; --fs-9; uppercase; ls .08em; opacity .7` — reads
   `auto` or `forcé`.
 - Caret `.caret`: `--fs-10; opacity .6` (▾) signalling the menu.
@@ -29,6 +37,10 @@ border-radius:var(--r-pill); cursor:pointer; border:1px solid transparent`.
 
 - **ok**: `color:var(--ok); background: color-mix(in srgb, var(--ok) 14%, transparent)`.
 - **nok**: `color:var(--nok); background: color-mix(... nok 14% ...)`.
+- **nok sub-tone — deficit (B-166):** same split as §A — a NOK chip is **orange** in a deficit
+  (`burn_gap ≤ 0`): `color:var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent)`;
+  red on a surplus or unknown burn; OK unchanged. (Mobile static pills use the `--warn` border tone,
+  twin of the `--nok` pill.)
 - `.ovr` sub-tag (`--fs-9; opacity .8`) shows `forcé` when overridden.
 
 ## C. Override menu (context menu)

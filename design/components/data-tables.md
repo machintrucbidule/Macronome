@@ -65,6 +65,11 @@ tabular-nums; --fs-12`) — it is **not** pushed to the far column edge. Colour:
 is non-null (red/empty days omit it). On **mobile** cards the écart sits to the **left** of the
 static verdict pill (`--fs-11`, same green/red rule, no alignment requirement).
 
+The **badge/pill itself** follows the NOK deficit sub-tone (B-166, `badges-verdict.md`): a NOK
+verdict is **orange** (`--warn`) when the day is in a deficit (`burn_gap ≤ 0`), **red** otherwise or
+when the burn is unknown; OK stays green. This is independent of the kcal écart above, which keeps
+its own green/red sign rule.
+
 ## Activity-cell expenditure écart (Journal, B-163)
 
 A **twin** of the verdict-cell écart, in the **Activité** column: the cell holds the activity

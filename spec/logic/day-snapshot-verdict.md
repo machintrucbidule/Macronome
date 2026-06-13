@@ -100,6 +100,15 @@ burn` (see `metabolic-engine.md`). Shown as a burn/deficit readout **next to** t
 - The **Journal** exposes this same `deficit` (`day_kcal − burn`) per row as `burn_gap`
   (B-163), the écart vs the day's estimated expenditure, beside the activity selector — `null`
   on a non-logged day and when the day has no weigh-in (see `api/days-meals-leftover.md §Journal`).
+- **NOK presentation split (B-166).** The binary OK/NOK verdict (§5–§6) is **unchanged**; only the
+  **display of a NOK day** splits on this same `deficit`: a NOK day is shown **orange** when it is
+  still in a real deficit (`intake ≤ burn`, i.e. `deficit`/`burn_gap ≤ 0`) and **red** on a surplus
+  (`> 0`) **or when the burn cannot be computed** (no weigh-in on/before the date, or an incomplete
+  profile → `null`). The comparison always uses the **day's own** `estimated_burn` (BMR of the weight
+  in effect on that date × that day's `activity_level`), never a global/current value. It does **not**
+  read `cal_min`/`cal_max`, so a `SOUS` (under-the-floor) NOK day is orange like any other deficit.
+  OK is unchanged (green). Nothing is stored; this is presentation only (the figure is already
+  derived). Surfaces: the verdict badge on Repas and the Journal (desktop row, mobile card + sheet).
 
 ## 8. Day states (day-model)
 

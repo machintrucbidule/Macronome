@@ -22,9 +22,23 @@ interface VerdictBadgeProps {
   override: Verdict | null;
   labels: VerdictLabels;
   onSet: (override: Verdict | null) => void;
+  /**
+   * Whether the day is still in a real deficit (`intake ≤ estimated_burn`), derived by the caller
+   * from the server figure (`burn_gap`/`constat.deficit ≤ 0`). When the verdict is NOK, `true`
+   * tints the badge orange instead of red; `false`/`null` (surplus or unknown burn) stays red.
+   * OK is unaffected (B-166). Never computed here — CLAUDE.md rule 2.
+   */
+  belowBurn?: boolean | null | undefined;
 }
 
-export function VerdictBadge({ effective, auto, override, labels, onSet }: VerdictBadgeProps) {
+export function VerdictBadge({
+  effective,
+  auto,
+  override,
+  labels,
+  onSet,
+  belowBurn,
+}: VerdictBadgeProps) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
 
@@ -58,11 +72,15 @@ export function VerdictBadge({ effective, auto, override, labels, onSet }: Verdi
     { value: null, label: labels.autoCalc(auto) },
   ];
 
+  // Colour tone: OK → green; NOK → orange only when the day is in a deficit (belowBurn === true),
+  // otherwise red (surplus or unknown burn) (B-166).
+  const tone = effective === 'OK' ? styles.ok : belowBurn ? styles.warn : styles.nok;
+
   return (
     <div className={styles.wrap} ref={wrapRef}>
       <button
         type="button"
-        className={`${styles.badge} ${effective === 'OK' ? styles.ok : styles.nok}`}
+        className={`${styles.badge} ${tone}`}
         onClick={() => setOpen((o) => !o)}
       >
         <span>{effective}</span>

@@ -3364,3 +3364,39 @@ behaviour change; CSS only.
 **Acceptance.** Cosmetic — **no dedicated test**. Full suite + typecheck + lint green; the exact
 height (≈30/≈28px) is matched to the verdict badge and visually verified by the owner (desktop +
 mobile).
+
+## B-166 — Orange verdict badge for NOK days still in a deficit — RESOLVED (user, 2026-06-13)
+
+First of run #39's two-batch NOK tri-colouring. **Improvement batch** (contract amended
+first). Introduces the shared orange token + the NOK sub-tone rule that B-167 (Stats) reuses.
+
+**Decision.** The binary OK/NOK verdict (`day-snapshot-verdict.md` §5–§6) is **unchanged**; only the
+**presentation of a NOK day** splits. A NOK verdict badge is rendered **orange** when the day is still
+in a real calorie deficit (`intake <= the day's estimated burn`, i.e. the server `deficit`/`burn_gap
+<= 0`) and **red** on a surplus (`> 0`) **or when the burn cannot be computed** (no weigh-in on/before
+the date, or an incomplete profile -> `null`). **OK is unchanged (green).** The comparison always uses
+the **day's own** `estimated_burn` (BMR of the weight in effect on that date x that day's
+`activity_level`), never a global/current value, and does **not** read `cal_min`/`cal_max` (a `SOUS`
+under-the-floor NOK day is orange like any other deficit — owner-decided).
+
+**Rationale.** On already-NOK days, orange vs red distinguishes "over the target but still losing"
+from "in surplus / unknown", which the single red tone hid. The figure is already on the wire
+(`JournalRow.burn_gap`, `DayDetail.constat.deficit`), so the web only picks the colour class from its
+**sign** — no web-side verdict compute (CLAUDE.md rule 2; precedents WV-1/B-115, JX-1/B-163).
+
+**Contract delta.** New theme-aware token pair **`--warn` / `--warn-soft`** added to `design/tokens.css`
+**and** its byte-identical copy `packages/web/src/styles/tokens.css` (dark `#e0913f`/`#3a2410`, light
+`#c9702a`/`#f6e6d4`; orange, distinct from `--accent` amber and `--nok` red — hue owner-tunable, AC-2
+precedent). Docs: `design/components/badges-verdict.md` §A + §B (NOK deficit sub-tone),
+`design/components/data-tables.md` (verdict cell), `spec/logic/day-snapshot-verdict.md` §7 (NOK
+presentation split, per-day burn basis restated), `specifications/screens/meals.md` + `history.md`. **No**
+API/DB/DTO/domain/i18n change.
+
+**Code (web).** `VerdictBadge` gains a `belowBurn?: boolean | null` prop (orange `.warn` only when
+`true`; `false`/`null` -> red); callers derive it from the existing figure — `JournalRow`,
+`JournalDaySheet` from `burn_gap`, `DayHeader`->`DayVerdictBadge` from `constat.deficit`. The mobile
+`JournalCard` static pill gains a tri-tone `.badgeWarn` class (it does not use `VerdictBadge`).
+
+**Acceptance.** Behavioural -> dedicated RTL tests: `VerdictBadge` (orange when NOK & `belowBurn`,
+red when NOK & not / null, green when OK) + `JournalRow`/`JournalCard` colour cases. Full suite +
+typecheck + lint + check:i18n green; orange hue visually verified by the owner (both themes).

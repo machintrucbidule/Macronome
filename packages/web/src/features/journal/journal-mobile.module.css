@@ -81,6 +81,11 @@
   color: var(--nok);
   border-color: color-mix(in srgb, var(--nok) 45%, transparent);
 }
+/* NOK day still in a deficit (B-166): orange, twin of .badgeNok. */
+.badgeWarn {
+  color: var(--warn);
+  border-color: color-mix(in srgb, var(--warn) 45%, transparent);
+}
 .badgeMuted {
   color: var(--text-faint);
 }

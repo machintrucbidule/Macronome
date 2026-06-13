@@ -7,6 +7,7 @@ import { formatInt } from '../../../lib/format/number';
 import { JournalRow } from './JournalRow';
 import { JournalLegend } from './JournalLegend';
 import styles from '../journal.module.css';
+import badgeStyles from '../../../components/VerdictBadge/VerdictBadge.module.css';
 
 // JR-1 / B-077: every Journal row carries a left state band — green Complet, yellow Partiel,
 // red Rien; none (future empty) shows no band. Plus a 3-item state legend by the year selector.
@@ -148,6 +149,50 @@ describe('JournalRow écart hover tooltips (JT-1 / B-164)', () => {
   it('renders no tooltip when both écarts are null', () => {
     const { container } = renderRow('red', null, null);
     expect(tip(container)).toBeNull();
+  });
+});
+
+describe('JournalRow verdict badge deficit sub-tone (B-166)', () => {
+  function renderVerdict(verdict: 'OK' | 'NOK', burnGap: number | null) {
+    const r: Row = {
+      ...row('green', null, burnGap),
+      effective_verdict: verdict,
+      verdict_auto: verdict,
+    };
+    return render(
+      <MemoryRouter>
+        <table>
+          <tbody>
+            <JournalRow row={r} onPatch={vi.fn()} />
+          </tbody>
+        </table>
+      </MemoryRouter>,
+    );
+  }
+  const badge = (c: HTMLElement): HTMLElement =>
+    c.querySelector(`.${styles.badgeSlot} button`) as HTMLElement;
+
+  it('is orange when NOK and intake is at/under the burn (burn_gap ≤ 0)', () => {
+    const { container } = renderVerdict('NOK', -288);
+    expect(badge(container).className).toContain(badgeStyles.warn);
+  });
+
+  it('is red when NOK and intake is over the burn (burn_gap > 0)', () => {
+    const { container } = renderVerdict('NOK', 312);
+    expect(badge(container).className).toContain(badgeStyles.nok);
+    expect(badge(container).className).not.toContain(badgeStyles.warn);
+  });
+
+  it('is red when NOK and the burn is unknown (burn_gap null)', () => {
+    const { container } = renderVerdict('NOK', null);
+    expect(badge(container).className).toContain(badgeStyles.nok);
+    expect(badge(container).className).not.toContain(badgeStyles.warn);
+  });
+
+  it('stays green when OK regardless of the deficit', () => {
+    const { container } = renderVerdict('OK', -288);
+    expect(badge(container).className).toContain(badgeStyles.ok);
+    expect(badge(container).className).not.toContain(badgeStyles.warn);
   });
 });
 

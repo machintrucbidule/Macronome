@@ -11,9 +11,11 @@ interface Props {
   effective: Verdict | null;
   auto: Verdict | null;
   override: Verdict | null;
+  /** Day in a real deficit (`constat.deficit ≤ 0`); tints a NOK badge orange instead of red (B-166). */
+  belowBurn?: boolean | null | undefined;
 }
 
-export function DayVerdictBadge({ effective, auto, override }: Props) {
+export function DayVerdictBadge({ effective, auto, override, belowBurn }: Props) {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   const { actions } = useMeals();
@@ -38,6 +40,7 @@ export function DayVerdictBadge({ effective, auto, override }: Props) {
       override={override}
       labels={labels}
       onSet={(v) => void actions.setVerdict(v)}
+      belowBurn={belowBurn}
     />
   );
 }

@@ -51,6 +51,12 @@
   color: var(--nok);
   border-color: color-mix(in srgb, var(--nok) 45%, transparent);
 }
+/* NOK day still in a real deficit (B-166): orange instead of red. Twin of .nok. */
+.warn {
+  background: var(--warn-soft);
+  color: var(--warn);
+  border-color: color-mix(in srgb, var(--warn) 45%, transparent);
+}
 
 .sub {
   font-family: var(--font-num);

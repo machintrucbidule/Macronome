@@ -115,6 +115,8 @@
   --ok-soft: #15301f; /* CONFIRMED: app value (not login #12281d) */
   --nok: #e5644e;
   --nok-soft: #341812; /* CONFIRMED: app value (not login #2b1512) */
+  --warn: #e0913f; /* NOK day still in a deficit (B-166) — orange, distinct from --accent amber */
+  --warn-soft: #3a2410;
 
   /* Activity ramp tops (B-152): Intense = blue, Très intense = violet */
   --blue: #4a93e6;
@@ -176,6 +178,8 @@
   --ok-soft: #dcefe3; /* CONFIRMED: app value (not login #e2f1e8) */
   --nok: #c23d27;
   --nok-soft: #f5ddd6; /* CONFIRMED: app value (not login #f7e3de) */
+  --warn: #c9702a; /* NOK day still in a deficit (B-166) — orange, distinct from --accent amber */
+  --warn-soft: #f6e6d4;
 
   /* Activity ramp tops (B-152): Intense = blue, Très intense = violet */
   --blue: #2f6fb0;

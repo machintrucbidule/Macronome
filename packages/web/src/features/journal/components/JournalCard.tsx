@@ -18,10 +18,17 @@ const STATE_CLASS: Record<Row['state'], string | undefined> = {
   none: undefined,
 };
 
-const VERDICT_CLASS = {
-  OK: styles.badgeOk,
-  NOK: styles.badgeNok,
-} as const;
+// Verdict pill tone (B-166, same rule as the shared VerdictBadge): OK → green; NOK → orange when
+// the day is still in a deficit (burn_gap ≤ 0), else red (surplus or unknown burn); none → muted.
+// Reads the sign of the server figure only — never computes a verdict (CLAUDE.md rule 2).
+function verdictClass(
+  verdict: Row['effective_verdict'],
+  burnGap: number | null,
+): string | undefined {
+  if (verdict === null) return styles.badgeMuted;
+  if (verdict === 'OK') return styles.badgeOk;
+  return burnGap !== null && burnGap <= 0 ? styles.badgeWarn : styles.badgeNok;
+}
 
 // Calories follow the verdict colour (same OK/NOK rule as the badge): green when in/under
 // target, red when over; default colour when the day has no verdict.
@@ -72,9 +79,7 @@ export function JournalCard({ row, onOpen }: JournalCardProps) {
               {signedInt(row.kcal_gap)}
             </span>
           )}
-          <span
-            className={`${styles.badge} ${verdict ? VERDICT_CLASS[verdict] : styles.badgeMuted}`}
-          >
+          <span className={`${styles.badge} ${verdictClass(verdict, row.burn_gap)}`}>
             {verdict ?? DASH}
           </span>
         </span>
