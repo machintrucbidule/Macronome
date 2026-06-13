@@ -86,10 +86,16 @@ target_weight_kg,rate_kg_per_week,effective_from,until}]}`. `until` = the day be
   band — so long windows are not falsely alarmist when the target changed (B-100; field shape
   unchanged). `null` when no logged day in the window carried a band.
 - `GET /stats/adherence?year=YYYY` — → 200
-  `{heatmap:[{date,status:'OK'|'NOK'|'none',kcal:number|null}],
-monthly:[{month,ok_count,nok_count,ok_rate,avg_kcal_ok,avg_kcal_nok,avg_kcal_global,target_zone:{cal_min,cal_max}|null}],
+  `{heatmap:[{date,status:'OK'|'NOK_under'|'NOK_over'|'none',kcal:number|null}],
+monthly:[{month,ok_count,nok_count,nok_under_count,nok_over_count,ok_rate,avg_kcal_ok,avg_kcal_nok,avg_kcal_global,target_zone:{cal_min,cal_max}|null}],
 key:{year_ok_rate,overall_ok_rate,current_ok_streak,best_month},
 target_zone:{cal_min,cal_max}, signals:[{code,value,text}]}`.
+  Heatmap `status` splits NOK by the day's expenditure (B-167): `NOK_under` = a real deficit
+  (`day_kcal ≤ estimated_burn`, orange), `NOK_over` = surplus **or** unknown burn (red); the
+  binary verdict is unchanged. Monthly `nok_under_count` + `nok_over_count` split `nok_count`
+  the same way (`nok_under_count + nok_over_count = nok_count`; `ok_count` unchanged). The
+  `estimated_burn` is the day's own BMR(weight in effect) × activity_multiplier (per-day basis,
+  `spec/logic/stats-adherence.md §3–4`).
   Best month: highest ok_rate among months with ≥ 5 logged days (OPEN_GAPS #12).
   Monthly `avg_kcal_global` = mean kcal over all logged days of the month (OK + NOK),
   never null — feeds the avg-kcal chart's global-average polyline

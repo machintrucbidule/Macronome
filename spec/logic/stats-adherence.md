@@ -45,10 +45,21 @@ Once its date is ≤ today the same `DayLog` counts normally.
 ## 3. Calendar heatmap
 
 One cell per calendar date in the selected year: green = effective OK,
-red = effective NOK, **grey = not logged** (RECONCILIATION_LOG §E4). Summary
-days carry a verdict and colour normally. A **future date (> today) is grey**
-(not logged) even if a plan exists for it — it only takes its OK/NOK colour once
-its date has arrived (§1, B-016).
+**grey = not logged** (RECONCILIATION_LOG §E4). Summary days carry a verdict and
+colour normally. A **future date (> today) is grey** (not logged) even if a plan
+exists for it — it only takes its colour once its date has arrived (§1, B-016).
+
+**NOK sub-tone (B-167).** A NOK cell splits by the day's expenditure, mirroring the
+Repas/Journal badge (B-166): **orange** when the day is still in a real deficit
+(`day_kcal ≤ estimated_burn`) and **red** when in a surplus (`day_kcal > estimated_burn`)
+**or when the burn cannot be computed** (no weigh-in on/before the date, or an incomplete
+profile). The `estimated_burn` is the **day's own** figure — `BMR(weight in effect on the
+date) × activity_multiplier(that day's activity_level)` (see `metabolic-engine.md`;
+`deficit = day_kcal − estimated_burn`, the same per-day basis as `day-snapshot-verdict.md
+§7` and the Journal `burn_gap`). The binary OK/NOK verdict (§calorie-only) is unchanged —
+only the NOK presentation splits. It does **not** read `cal_min`/`cal_max`, so a `SOUS`
+(under-the-floor) NOK day is orange like any other deficit. The cell status is one of
+`OK` / `NOK_under` (deficit, orange) / `NOK_over` (surplus or unknown burn, red) / `none`.
 
 ## 4. Monthly OK/NOK pivot
 
@@ -56,7 +67,12 @@ Per month (in the selected year):
 
 - `ok_count`, `nok_count` over **logged** days; `ok_rate = ok_count /
 (ok_count + nok_count)`.
-- Rendered as stacked bars with the OK% label.
+- **NOK split (B-167):** `nok_count` further splits into `nok_under_count` (NOK days in a
+  deficit, `day_kcal ≤ estimated_burn`) and `nok_over_count` (surplus, or unknown burn) —
+  same per-day basis as §3; `nok_under_count + nok_over_count = nok_count`. `ok_count` is
+  unchanged.
+- Rendered as **3-segment** stacked bars (OK green bottom → NOK-deficit orange middle →
+  NOK-surplus red top) with the OK% label.
 
 ## 5. Average calories per month, split OK/NOK
 

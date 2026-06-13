@@ -795,8 +795,17 @@
       "bestMonthNote": "{{rate}} OK"
     },
     "heatmap": { "label": "Calendrier d'adhérence" },
-    "status": { "OK": "OK", "NOK": "NOK", "none": "non saisi" },
-    "monthly": { "tooltipOk": "{{ok}} jours OK", "tooltipNok": "{{nok}} jours NOK" },
+    "status": {
+      "OK": "OK",
+      "NOK_under": "NOK (déficit)",
+      "NOK_over": "NOK (surplus)",
+      "none": "non saisi"
+    },
+    "monthly": {
+      "tooltipOk": "{{ok}} jours OK",
+      "tooltipNokUnder": "{{nok}} jours NOK (déficit)",
+      "tooltipNokOver": "{{nok}} jours NOK (surplus)"
+    },
     "calorie": {
       "tooltipOk": "Moyenne des jours OK : {{v}} kcal",
       "tooltipNok": "Moyenne des jours NOK : {{v}} kcal",
@@ -804,7 +813,8 @@
     },
     "legend": {
       "ok": "Jours OK",
-      "nok": "Jours NOK",
+      "nokUnder": "NOK déficit",
+      "nokOver": "NOK surplus",
       "avgOk": "Moy. jours OK",
       "avgNok": "Moy. jours NOK",
       "avgGlobal": "Moyenne globale",

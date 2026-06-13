@@ -2,7 +2,7 @@ import request from 'supertest';
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { createApp } from '../../src/app.js';
 import { prisma } from '../../src/data/prisma.js';
-import { authedAgent, seedTarget } from './helpers.js';
+import { authedAgent, seedTarget, seedWeight } from './helpers.js';
 
 // Integration contract checks for the read-only stats resource (spec/api/weight-targets-
 // stats-settings.md §Stats, M6 acceptance): rolling + adherence shapes, summary-day colour,
@@ -94,14 +94,38 @@ describe('stats — adherence', () => {
     const cell = (date: string) => heatmap.find((c) => c.date === date)!;
     expect(cell('2026-05-28').status).toBe('OK');
     expect(cell('2026-05-28').kcal).toBe(1600); // logged cell carries its kcal (tooltip)
-    expect(cell('2026-05-29').status).toBe('NOK');
+    // No weigh-in is seeded here → the per-day burn is unknown → NOK days fall in the over/red
+    // bucket (B-167), never orange.
+    expect(cell('2026-05-29').status).toBe('NOK_over');
     expect(cell('2026-05-27').status).toBe('none'); // unlogged
     expect(cell('2026-05-27').kcal).toBeNull(); // not-logged → null kcal
 
     const may = res.body.monthly.find((m: { month: number }) => m.month === 5);
-    expect(may).toMatchObject({ ok_count: 1, nok_count: 2 });
+    expect(may).toMatchObject({ ok_count: 1, nok_count: 2, nok_under_count: 0, nok_over_count: 2 });
     expect(res.body.key.overall_ok_rate).toBe(0.6);
     expect(res.body.key.current_ok_streak).toBe(2); // 06-02 OK, 06-01 OK, then 05-30 NOK breaks
+  });
+});
+
+describe('stats — heatmap NOK deficit/surplus split (B-167)', () => {
+  it('a NOK day under its estimated burn reads NOK_under, over it reads NOK_over', async () => {
+    const { agent, userId } = await authedAgent(app, 'alice');
+    // Profile comes from authedAgent (male, 180 cm, born 1986) → age 40 in 2026; default activity
+    // is sedentary (×1.2). Weigh-in 80 kg → BMR 1730, estimated_burn 2076 kcal/day.
+    await seedTarget(userId, '2026-01-01', SNAPSHOT.cal_min, SNAPSHOT.cal_max);
+    await seedWeight(userId, '2026-05-01', 80);
+    await seedSummaryDay(userId, '2026-05-10', 1700); // NOK (above band) but ≤ 2076 → deficit
+    await seedSummaryDay(userId, '2026-05-11', 2200); // NOK and > 2076 → surplus
+
+    const res = await agent.get('/api/v1/stats/adherence?year=2026');
+    expect(res.status).toBe(200);
+    const heatmap = res.body.heatmap as { date: string; status: string }[];
+    const cell = (date: string) => heatmap.find((c) => c.date === date)!;
+    expect(cell('2026-05-10').status).toBe('NOK_under'); // deficit → orange
+    expect(cell('2026-05-11').status).toBe('NOK_over'); // surplus → red
+
+    const may = res.body.monthly.find((m: { month: number }) => m.month === 5);
+    expect(may).toMatchObject({ nok_count: 2, nok_under_count: 1, nok_over_count: 1 });
   });
 });
 

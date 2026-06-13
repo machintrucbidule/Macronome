@@ -70,17 +70,22 @@ var(--text-faint)`.
 
 Calendar heatmap (`viewBox 0 0 740 130`). Cells `.hm-cell`: `12px` squares,
 `rx:2`, `2px` gap, `stroke:var(--bg-elev)` (the inter-cell gutter — theme-correct).
-Fill: `var(--ok)` (jour OK), `var(--nok)` (jour NOK), `var(--none)` (non saisi).
-Weekday labels (every other) + month labels in `.axislbl`. Hovering a cell surfaces the
-shared styled tooltip (§Shared primitives — full date + kcal + status), not a native `<title>`.
-Legend: OK / NOK / Non saisi swatches (11px, `rx:2`).
+Fill: `var(--ok)` (jour OK), `var(--warn)` (jour NOK en déficit), `var(--nok)` (jour NOK en
+surplus / dépense inconnue), `var(--none)` (non saisi). The NOK cell splits orange/red by the
+day's expenditure (B-167, same rule as the verdict badge B-166; `status` = `NOK_under` →
+`--warn`, `NOK_over` → `--nok`). Weekday labels (every other) + month labels in `.axislbl`.
+Hovering a cell surfaces the shared styled tooltip (§Shared primitives — full date + kcal +
+status), not a native `<title>`. Legend: OK / NOK déficit / NOK surplus / Non saisi swatches
+(11px, `rx:2`).
 Key figures `.keyfigs`: inline `.kf` blocks (label `--fs-10` + value
 `--font-num; --fw-bold; --fs-18`).
 
 ## Stats bars
 
-- **Monthly OK/NOK stacked bars** (`viewBox 740×200`): OK segment `var(--ok)`,
-  NOK `var(--nok)`, `rx:1`; % label above; month label below.
+- **Monthly OK/NOK stacked bars** (`viewBox 740×200`): a **3-segment** stack (B-167) —
+  OK segment `var(--ok)` (bottom), NOK-déficit `var(--warn)` (middle), NOK-surplus `var(--nok)`
+  (top), `rx:1`; % label above; month label below. The two NOK segments come from
+  `nok_under_count` / `nok_over_count`; `ok_count` segment unchanged.
 - **Avg kcal/month grouped bars** (`viewBox 740×230`): OK bar `var(--ok)`, NOK
   bar `var(--nok)`; a **target zone** band `fill: color-mix(in srgb, var(--accent)
 16%, transparent)` drawn **per month** (one rect spanning each month's column, from that
@@ -90,8 +95,9 @@ Key figures `.keyfigs`: inline `.kf` blocks (label `--fs-10` + value
 - **Axes (SC-1/B-112):** both Stats bar charts draw a **left value axis** (`.axislbl` —
   day count for the OK/NOK chart, kcal for the avg-kcal chart) with **horizontal
   gridlines** (`.gridline`), plus the existing month labels along the bottom.
-- **Legend (SC-1/B-112):** a `.legend` below each chart — OK/NOK chart: OK · NOK; avg-kcal
-  chart: OK · NOK · Moyenne globale (line, `--text`) · Zone cible (`--accent`).
+- **Legend (SC-1/B-112):** a `.legend` below each chart — OK/NOK chart: OK · NOK déficit
+  (`--warn`) · NOK surplus (`--nok`) (B-167); avg-kcal chart: OK · NOK · Moyenne globale (line,
+  `--text`) · Zone cible (`--accent`) (unchanged — out of B-167 scope).
 - **Signals** `.signals`: responsive grid of `.sig` cards (`--bg-elev-2`,
   `--r-md`); a status dot — `.ok→--ok`, `.warn→--nok`, `.info→--under` — + text
   `--fs-12.5`.

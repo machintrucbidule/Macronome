@@ -71,7 +71,13 @@ export function Heatmap({ cells }: { cells: HeatmapCell[] }) {
   const ticks = useMemo(() => monthTicks(placed, i18n.language), [placed, i18n.language]);
   const width = LEFT + Math.max(cols, 1) * STEP;
   const height = TOP + 7 * STEP;
-  const cls = { OK: styles.ok, NOK: styles.nok, none: styles.none } as const;
+  // OK green, NOK-déficit orange (--warn), NOK-surplus/unknown red, not-logged grey (B-167).
+  const cls = {
+    OK: styles.ok,
+    NOK_under: styles.warn,
+    NOK_over: styles.nok,
+    none: styles.none,
+  } as const;
 
   return (
     <>

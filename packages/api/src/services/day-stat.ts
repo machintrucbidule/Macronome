@@ -2,6 +2,7 @@ import { autoVerdict, effectiveVerdict } from '../domain/day-verdict/index.js';
 import type { Verdict } from '../domain/day-verdict/index.js';
 import { netLeftover, prorateConsumed, scaleMacros } from '../domain/leftover/index.js';
 import type { DayStat } from '../domain/stats/index.js';
+import { burnGapFor, type BurnContext } from './journal-burn.js';
 import type { LightDay, LightEntry, LightGroup } from '../data/repositories/day-stat.repo.js';
 
 // Maps the lightweight stats read (day-stat.repo.ts) to the DayStat the stats domain consumes,
@@ -40,8 +41,10 @@ function consumedKcal(entries: LightEntry[], groups: LightGroup[]): number {
   return total;
 }
 
-/** DayStat for a logged day, or null when the day carries no calorie value (§8). */
-export function dayStat(day: LightDay): DayStat | null {
+/** DayStat for a logged day, or null when the day carries no calorie value (§8). When a burn
+ * context is supplied, the day's `burnGap` (`day_kcal − estimated_burn`, per-day weight ×
+ * activity_level) is resolved for the heatmap/monthly NOK split (B-167); null otherwise. */
+export function dayStat(day: LightDay, burnCtx?: BurnContext): DayStat | null {
   const isSummary = day.kind === 'summary';
   const kcal = isSummary ? (day.summaryKcal ?? 0) : consumedKcal(day.entries, day.groups);
   // Logged = carries a calorie value: a summary day's total, or a detailed day with Σ > 0.
@@ -52,10 +55,18 @@ export function dayStat(day: LightDay): DayStat | null {
   // Carry the day's frozen band (or null when it had no real target) so rolling vs_target is
   // judged against the bands that actually applied (B-100).
   const band = day.snapshot.cal_max > 0 ? day.snapshot : null;
-  return { date: day.date, kcal, verdict: effectiveVerdict(override, auto) as Verdict, band };
+  const burnGap = burnCtx ? burnGapFor(burnCtx, day.date, day.activityLevel, kcal) : null;
+  return {
+    date: day.date,
+    kcal,
+    verdict: effectiveVerdict(override, auto) as Verdict,
+    band,
+    burnGap,
+  };
 }
 
-/** Map a list of light day records to DayStat, dropping not-logged days. */
-export function toDayStats(days: LightDay[]): DayStat[] {
-  return days.map(dayStat).filter((s): s is DayStat => s !== null);
+/** Map a list of light day records to DayStat, dropping not-logged days. Pass a burn context
+ * (adherence path) to populate each day's `burnGap`; omit it (rolling path) to skip the burn. */
+export function toDayStats(days: LightDay[], burnCtx?: BurnContext): DayStat[] {
+  return days.map((d) => dayStat(d, burnCtx)).filter((s): s is DayStat => s !== null);
 }

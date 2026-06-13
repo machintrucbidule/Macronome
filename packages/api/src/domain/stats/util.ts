@@ -15,6 +15,21 @@ export interface DayStat {
   /** The day's FROZEN calorie band (target_snapshot), or null when it had no real target.
    * Used to judge a rolling average against the bands that actually applied (B-100). */
   band: { cal_min: number; cal_max: number } | null;
+  /** The day's `day_kcal − estimated_burn` (per-day BMR × activity_level), or null when the burn
+   * can't be computed (no weigh-in/profile). Splits a NOK day into deficit/surplus for the heatmap
+   * + monthly bars (B-167). Set only on the adherence path; null (unused) on the rolling path. */
+  burnGap: number | null;
+}
+
+/** A NOK day's sub-tone (B-167): orange `NOK_under` when still in a real deficit
+ * (`burnGap ≤ 0`), else red `NOK_over` (surplus, or burn unknown → null). */
+export function nokSubStatus(s: DayStat): 'NOK_under' | 'NOK_over' {
+  return s.burnGap !== null && s.burnGap <= 0 ? 'NOK_under' : 'NOK_over';
+}
+
+/** Heatmap cell status of a logged day (B-167): OK green, else the NOK deficit/surplus split. */
+export function heatStatus(s: DayStat): 'OK' | 'NOK_under' | 'NOK_over' {
+  return s.verdict === 'OK' ? 'OK' : nokSubStatus(s);
 }
 
 /** Arithmetic mean, or null for an empty set. */

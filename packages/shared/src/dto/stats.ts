@@ -36,11 +36,17 @@ export interface RollingResponse {
 
 // --- Adherence (GET /stats/adherence?year=YYYY) ----------------------------
 
+/** Heatmap cell status. A NOK day splits by the day's expenditure (B-167, same rule as the
+ * verdict badge B-166): `NOK_under` = still in a real deficit (`day_kcal ≤ estimated_burn`, orange),
+ * `NOK_over` = surplus or unknown burn (red). `none` = not logged (grey). The binary verdict is
+ * unchanged — only the NOK presentation splits. */
+export type HeatmapStatus = 'OK' | 'NOK_under' | 'NOK_over' | 'none';
+
 /** One calendar cell of the selected year. `none` = not logged (grey, never NOK).
  * `kcal` = that day's calorie value for logged cells, `null` when `status:'none'`. */
 export interface HeatmapCell {
   date: string;
-  status: 'OK' | 'NOK' | 'none';
+  status: HeatmapStatus;
   kcal: number | null;
 }
 
@@ -50,6 +56,11 @@ export interface MonthlyStat {
   month: number; // 1–12
   ok_count: number;
   nok_count: number;
+  /** `nok_count` split by the day's expenditure (B-167): NOK days in a deficit
+   * (`day_kcal ≤ estimated_burn`) vs in a surplus / unknown burn. The two sum to `nok_count`;
+   * `ok_count` is unchanged. Feed the 3-segment OK/NOK-déficit/NOK-surplus stacked bars. */
+  nok_under_count: number;
+  nok_over_count: number;
   ok_rate: number;
   avg_kcal_ok: number | null;
   avg_kcal_nok: number | null;

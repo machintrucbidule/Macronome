@@ -795,8 +795,17 @@
       "bestMonthNote": "{{rate}} OK"
     },
     "heatmap": { "label": "Adherence calendar" },
-    "status": { "OK": "OK", "NOK": "NOK", "none": "not logged" },
-    "monthly": { "tooltipOk": "{{ok}} OK days", "tooltipNok": "{{nok}} NOK days" },
+    "status": {
+      "OK": "OK",
+      "NOK_under": "NOK (deficit)",
+      "NOK_over": "NOK (surplus)",
+      "none": "not logged"
+    },
+    "monthly": {
+      "tooltipOk": "{{ok}} OK days",
+      "tooltipNokUnder": "{{nok}} NOK days (deficit)",
+      "tooltipNokOver": "{{nok}} NOK days (surplus)"
+    },
     "calorie": {
       "tooltipOk": "Avg OK days: {{v}} kcal",
       "tooltipNok": "Avg NOK days: {{v}} kcal",
@@ -804,7 +813,8 @@
     },
     "legend": {
       "ok": "OK days",
-      "nok": "NOK days",
+      "nokUnder": "NOK deficit",
+      "nokOver": "NOK surplus",
       "avgOk": "Avg OK days",
       "avgNok": "Avg NOK days",
       "avgGlobal": "Global average",

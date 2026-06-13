@@ -1,5 +1,5 @@
 import type { MonthlyStat } from '@macronome/shared';
-import { mean, type DayStat } from './util.js';
+import { mean, nokSubStatus, type DayStat } from './util.js';
 import { monthEndDate, zoneAsOf, type TargetBand } from './monthly-zones.js';
 
 // Monthly pivot (spec/logic/stats-adherence.md §4–5): per month of the selected year,
@@ -28,10 +28,15 @@ export function monthlyPivot(
     .map(([month, days]) => {
       const ok = days.filter((d) => d.verdict === 'OK');
       const nok = days.filter((d) => d.verdict === 'NOK');
+      // Split the NOK days by the day's expenditure (B-167): deficit (orange) vs surplus/unknown
+      // (red). The two sub-counts always sum back to nok_count (ok_count is untouched).
+      const nokUnder = nok.filter((d) => nokSubStatus(d) === 'NOK_under').length;
       return {
         month,
         ok_count: ok.length,
         nok_count: nok.length,
+        nok_under_count: nokUnder,
+        nok_over_count: nok.length - nokUnder,
         ok_rate: ok.length / days.length,
         avg_kcal_ok: mean(ok.map((d) => d.kcal)),
         avg_kcal_nok: mean(nok.map((d) => d.kcal)),

@@ -118,6 +118,10 @@
 .barOk {
   fill: var(--ok);
 }
+/* NOK-déficit segment (B-167): orange, between the OK green and NOK-surplus red segments. */
+.barWarn {
+  fill: var(--warn);
+}
 .barNok {
   fill: var(--nok);
 }

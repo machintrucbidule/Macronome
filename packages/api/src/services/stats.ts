@@ -21,6 +21,7 @@ import {
   type TargetBand,
 } from '../domain/stats/index.js';
 import { toDayStats } from './day-stat.js';
+import { loadBurnContext } from './journal-burn.js';
 import { todayString } from './day-context.js';
 import { toDate } from '../data/repositories/day-read.repo.js';
 
@@ -77,15 +78,18 @@ export async function getRolling(userId: string): Promise<RollingResponse> {
 /** GET /stats/adherence?year=YYYY — heatmap + monthly pivots + key figures + signals.
  * Needs full history (overall ok-rate, best month), read lightweight (M9d perf). */
 export async function getAdherence(userId: string, year: number): Promise<AdherenceResponse> {
-  const [days, zone, bands] = await Promise.all([
+  const [days, zone, bands, burnCtx] = await Promise.all([
     dayStatRepo.readLightweight(userId),
     currentZone(userId),
     targetBands(userId),
+    // The per-day burn (profile + weigh-in series) splits each NOK day into deficit/surplus on
+    // the heatmap + monthly bars (B-167); reuses the Journal machinery verbatim (no recompute).
+    loadBurnContext(userId),
   ]);
   // Future planned days (date > today) are excluded from every aggregate until they
   // arrive (stats-adherence.md §1) — filtering here covers ok-rate, streak, best month,
   // heatmap, pivots and signals, which all derive from this array.
-  const logged = toDayStats(days).filter((s) => s.date <= todayString());
+  const logged = toDayStats(days, burnCtx).filter((s) => s.date <= todayString());
   const inYear = (s: DayStat): boolean => s.date.startsWith(`${year}-`);
   const yearLogged = logged.filter(inYear);
   return {

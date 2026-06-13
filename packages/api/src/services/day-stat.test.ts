@@ -15,6 +15,7 @@ function detailed(entries: { snapKcal: number }[]): LightDay {
     kind: 'detailed',
     summaryKcal: null,
     verdictOverride: null,
+    activityLevel: 'sedentary',
     snapshot,
     entries: entries.map((e, i) => ({ id: `e${i}`, snapKcal: e.snapKcal, servedGrams: 100 })),
     groups: [],

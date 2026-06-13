@@ -3400,3 +3400,52 @@ API/DB/DTO/domain/i18n change.
 **Acceptance.** Behavioural -> dedicated RTL tests: `VerdictBadge` (orange when NOK & `belowBurn`,
 red when NOK & not / null, green when OK) + `JournalRow`/`JournalCard` colour cases. Full suite +
 typecheck + lint + check:i18n green; orange hue visually verified by the owner (both themes).
+
+## B-167 — Third orange tone for NOK-in-deficit on the Stats heatmap + monthly bars — RESOLVED (user, 2026-06-13)
+
+Second batch of run #39 (extends B-166's `--warn` token + NOK tri-tone rule to the Stats screen).
+**Improvement batch** (contract amended first).
+
+**Decision.** The Stats **heatmap** and **monthly OK/NOK bars** split a NOK day by the day's
+expenditure, exactly like the verdict badge (B-166): **orange** when still in a real deficit
+(`day_kcal <= estimated_burn`) and **red** when in a surplus (`> estimated_burn`) **or when the burn
+cannot be computed** (no weigh-in on/before the date, or an incomplete profile). **OK stays green.**
+The `estimated_burn` is the **day's own** figure — `BMR(weight in effect on the date) x
+activity_multiplier(that day's activity_level)`, the same per-day basis as the Journal `burn_gap`
+(`spec/logic/day-snapshot-verdict.md §7`) — never a global/current value; it does **not** read
+`cal_min`/`cal_max` (a `SOUS` NOK day is orange like any other deficit). The binary OK/NOK verdict is
+unchanged; only its NOK presentation splits.
+
+**Why.** Parity with B-166 on the at-a-glance Stats surfaces: on already-NOK days, orange vs red
+distinguishes "over the target but still losing" from "in surplus / unknown", which the single red
+tone hid.
+
+**Data — the heavy part (no recompute).** The per-day burn was not in the Stats DTO. The Stats read
+path now reuses the Journal machinery **verbatim**: `loadBurnContext`/`burnGapFor`
+(`services/journal-burn.ts`) over the metabolic engine (`domain/metabolic/*`) + the weigh-in series,
+each day with its own weight + `activity_level`. `getAdherence` loads the burn context once and passes
+it to `toDayStats`; `DayStat` gains `burnGap: number | null`; `LightDay` gains `activityLevel` (the
+column already exists — **no schema/migration**, computed on read). `getRolling` does not need it
+(burn unused there).
+
+**Contract delta (additive DTOs).** `HeatmapCell.status` enum `'OK' | 'NOK_under' | 'NOK_over' |
+'none'` (the `'NOK'` value splits — only consumer is the web, updated in lockstep). `MonthlyStat`
+gains `nok_under_count` + `nok_over_count` (`nok_count` **kept** = their sum, so `MonthCalorieBars` and
+the existing tooltips are untouched). Docs: `spec/logic/stats-adherence.md §3-4`,
+`spec/api/weight-targets-stats-settings.md §Stats`, `design/components/charts.md` (heatmap + monthly
+bars + legends), `specifications/screens/stats.md`. Reuses B-166's `--warn` token (no new token). **No**
+DB/schema change.
+
+**Code.** Domain: `domain/stats/util.ts` (`DayStat.burnGap` + `heatStatus`/`nokSubStatus` helpers),
+`heatmap.ts` (sub-status), `monthly.ts` (under/over split). Service: `day-stat.ts`
+(`dayStat`/`toDayStats` take an optional burn context), `stats.ts` (`getAdherence` loads it),
+`day-stat.repo.ts` (`activityLevel` in the light read). Web: `Heatmap` (3-class fill + `.warn`),
+`MonthlyBars` (3rd orange segment + legend swatch), i18n (`stats.status.NOK_under/NOK_over`,
+`stats.legend.nokUnder/nokOver`, `stats.monthly.tooltipNokUnder/tooltipNokOver`). `MonthCalorieBars`
+untouched (owner scope).
+
+**Acceptance.** Neutral domain oracles in `domain/stats/stats.test.ts` for the heatmap sub-status
+(incl. an unknown-burn -> red case) and the monthly under/over split; an integration test seeding a
+weigh-in so a NOK day reads `NOK_under` (and one with no weigh-in reads `NOK_over`); web suite for the
+3-class heatmap + 3-segment bars + legend. Full suite + integration + typecheck + lint + check:i18n
+green; orange already owner-tuned (B-166). Visual check of the heatmap + bars deferred to the owner.

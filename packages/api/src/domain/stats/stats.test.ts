@@ -23,7 +23,8 @@ const d = (
   kcal: number,
   verdict: 'OK' | 'NOK',
   band: DayStat['band'] = BAND,
-): DayStat => ({ date, kcal, verdict, band });
+  burnGap: number | null = null,
+): DayStat => ({ date, kcal, verdict, band, burnGap });
 
 // §2 worked example: window 7, dates 27 May–2 Jun; 27 & 31 unlogged (absent).
 const WINDOW7: DayStat[] = [
@@ -124,6 +125,27 @@ test('monthly pivot splits counts + avg kcal over OK / NOK days (§4–5)', () =
   expect(m!.target_zone).toBeNull();
 });
 
+test('monthly pivot splits the NOK count into deficit / surplus buckets (§4, B-167)', () => {
+  // One OK day + three NOK days: one in deficit (burnGap ≤ 0), one in surplus, one with no
+  // weigh-in (unknown burn → surplus/over bucket). ok_count is untouched; the two NOK sub-counts
+  // sum back to nok_count.
+  const may: DayStat[] = [
+    d('2026-05-01', 1600, 'OK', BAND, -300),
+    d('2026-05-02', 1500, 'NOK', BAND, -100), // deficit → under
+    d('2026-05-03', 1800, 'NOK', BAND, 150), // surplus → over
+    d('2026-05-04', 1900, 'NOK', BAND, null), // unknown burn → over
+  ];
+  const [m] = monthlyPivot(may, [], 2026);
+  expect(m).toMatchObject({
+    month: 5,
+    ok_count: 1,
+    nok_count: 3,
+    nok_under_count: 1,
+    nok_over_count: 2,
+  });
+  expect(m!.nok_under_count + m!.nok_over_count).toBe(m!.nok_count);
+});
+
 test('monthly target band steps per month across a 2-target history (§5, CZ-1/B-141)', () => {
   // Target A [1500,1600] then target B [1400,1500] from 2026-04-01. Months are shaded by
   // the band of the target effective on the month's END date (B-099 pattern): March (before
@@ -159,9 +181,29 @@ test('heatmap fills every calendar date of the year, none/null where not logged 
   expect(cells).toHaveLength(365);
   // Not-logged cell: grey status + null kcal.
   expect(cells[0]).toEqual({ date: '2025-01-01', status: 'none', kcal: null });
-  // Logged cells carry the day's verdict + its calorie value (feeds the tooltip).
+  // Logged cells carry the day's status + its calorie value (feeds the tooltip).
   expect(cells[1]).toEqual({ date: '2025-01-02', status: 'OK', kcal: 1600 });
-  expect(cells[364]).toEqual({ date: '2025-12-31', status: 'NOK', kcal: 1700 });
+  // A NOK day with no burn figure (burnGap null) → surplus/unknown bucket → NOK_over (B-167).
+  expect(cells[364]).toEqual({ date: '2025-12-31', status: 'NOK_over', kcal: 1700 });
+});
+
+test('heatmap NOK sub-tone: deficit → NOK_under, surplus/unknown → NOK_over (§3, B-167)', () => {
+  // Four logged Jan days: OK; NOK in deficit (burnGap ≤ 0); NOK in surplus (> 0); NOK unknown burn.
+  const cells = heatmap(
+    [
+      d('2026-01-01', 1600, 'OK', BAND, -200),
+      d('2026-01-02', 1500, 'NOK', BAND, -120), // SOUS but still under burn → orange
+      d('2026-01-03', 1800, 'NOK', BAND, 150), // over burn → red
+      d('2026-01-04', 1900, 'NOK', BAND, null), // no weigh-in → unknown → red
+    ],
+    2026,
+  );
+  const byDate = Object.fromEntries(cells.map((c) => [c.date, c.status]));
+  expect(byDate['2026-01-01']).toBe('OK');
+  expect(byDate['2026-01-02']).toBe('NOK_under');
+  expect(byDate['2026-01-03']).toBe('NOK_over');
+  expect(byDate['2026-01-04']).toBe('NOK_over'); // unknown burn → red, never orange
+  expect(byDate['2026-01-05']).toBe('none'); // not logged
 });
 
 test('signals: 30-day avg above band, NOK run ≥ alert, 14-day OK rate (§7)', () => {
