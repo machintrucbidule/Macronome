@@ -2,10 +2,10 @@ import { expect, test } from '@playwright/test';
 import { PrismaClient } from '@prisma/client';
 
 // e2e for M8 (First-run): a fresh install with no account → AppGate forces the setup
-// wizard → the two-step wizard creates the single owner, opens the session, lands on the
-// home screen, and the user can add their first food. Runs in the isolated `first-run`
-// Playwright project (before the other DB-backed specs) so the zero-user precondition
-// holds — see playwright.config.ts.
+// wizard → the three-step wizard (credentials · profile · targets, B-059) creates the single
+// owner, opens the session, lands on the home screen, and the user can add their first food.
+// Runs in the isolated `first-run` Playwright project (before the other DB-backed specs) so the
+// zero-user precondition holds — see playwright.config.ts.
 process.loadEnvFile('packages/api/.env');
 const prisma = new PrismaClient();
 
@@ -30,15 +30,20 @@ test('fresh install → wizard creates the owner → land logged-in → add firs
   await page.goto('/');
   await expect(page).toHaveURL(/\/setup$/);
 
-  // Step 1 — credentials.
+  // Step 1 — credentials (password + confirmation; the exact label avoids matching "Confirmer le
+  // mot de passe").
   await page.getByLabel('Identifiant').fill(USER);
-  await page.getByLabel('Mot de passe').fill(PASSWORD);
+  await page.getByLabel('Mot de passe', { exact: true }).fill(PASSWORD);
+  await page.getByLabel('Confirmer le mot de passe').fill(PASSWORD);
   await page.getByRole('button', { name: 'Continuer' }).click();
 
   // Step 2 — metabolic profile.
   await page.getByLabel('Sexe').selectOption('male');
   await page.getByLabel('Date de naissance').fill('1990-01-01');
   await page.getByLabel('Taille').fill('180');
+  await page.getByRole('button', { name: 'Continuer' }).click();
+
+  // Step 3 — initial targets (pre-filled with sensible defaults, B-059) → create the account.
   await page.getByRole('button', { name: 'Créer le compte' }).click();
 
   // Lands logged-in on the home (Repas) screen, no longer on /setup.
