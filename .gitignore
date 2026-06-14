@@ -46,6 +46,9 @@ test-results/
 # --- local-only prod deploy helper (contains the Watchtower API token) ---
 /macronome_deploy_prod.bat
 
+# --- local-only perf report (references personal data) ---
+/PERF_REPORT.md
+
 # --- misc ---
 .DS_Store
 *.log
