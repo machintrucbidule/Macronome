@@ -17,7 +17,6 @@ import {
   okRate,
   rolling,
   signals,
-  type DayStat,
   type TargetBand,
 } from '../domain/stats/index.js';
 import { toDayStats } from './day-stat.js';
@@ -86,12 +85,18 @@ export async function getAdherence(userId: string, year: number): Promise<Adhere
     // the heatmap + monthly bars (B-167); reuses the Journal machinery verbatim (no recompute).
     loadBurnContext(userId),
   ]);
+  const today = todayString();
   // Future planned days (date > today) are excluded from every aggregate until they
   // arrive (stats-adherence.md §1) — filtering here covers ok-rate, streak, best month,
-  // heatmap, pivots and signals, which all derive from this array.
-  const logged = toDayStats(days, burnCtx).filter((s) => s.date <= todayString());
-  const inYear = (s: DayStat): boolean => s.date.startsWith(`${year}-`);
-  const yearLogged = logged.filter(inYear);
+  // heatmap, pivots and signals, which all derive from these arrays.
+  const logged = toDayStats(days).filter((s) => s.date <= today);
+  // burnGap drives only the heatmap/monthly NOK split (B-167), so compute it for the SELECTED
+  // YEAR only — not the whole history (perf B-171). The other figures (rate/streak/best-month/
+  // signals) ignore burnGap, so `logged` skips the burn entirely.
+  const yearLogged = toDayStats(
+    days.filter((d) => d.date.startsWith(`${year}-`)),
+    burnCtx,
+  ).filter((s) => s.date <= today);
   return {
     heatmap: heatmap(yearLogged, year),
     monthly: monthlyPivot(yearLogged, bands, year),

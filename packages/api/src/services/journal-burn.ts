@@ -34,12 +34,23 @@ export async function loadBurnContext(userId: string): Promise<BurnContext> {
 }
 
 /** The most recent weigh-in dated ≤ `date` (kg), or null when none precedes it. The series is
- *  oldest-first, so we scan from the end and take the first one on/before the date. */
-function weightAsOf(weights: WeightEntryModel[], date: Date): number | null {
-  for (let i = weights.length - 1; i >= 0; i -= 1) {
-    if (weights[i]!.date <= date) return num(weights[i]!.weightKg);
+ *  date-ascending (weightRepo.findAll, one weigh-in per day), so a binary search finds the latest
+ *  weigh-in on/before the date in O(log n) — far cheaper than the old per-day linear scan over a
+ *  long history (perf B-170; same result). Exported for the unit test. */
+export function weightAsOf(weights: WeightEntryModel[], date: Date): number | null {
+  let lo = 0;
+  let hi = weights.length - 1;
+  let found = -1;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (weights[mid]!.date <= date) {
+      found = mid; // candidate; look right for an even later one still ≤ date
+      lo = mid + 1;
+    } else {
+      hi = mid - 1;
+    }
   }
-  return null;
+  return found === -1 ? null : num(weights[found]!.weightKg);
 }
 
 /** Signed kcal écart vs the day's estimated expenditure (`kcal − estimated_burn`), or null when
