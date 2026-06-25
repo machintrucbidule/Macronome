@@ -283,3 +283,15 @@
   background: var(--accent);
   color: var(--accent-ink);
 }
+
+/* Per-row L/G/P macro values colour-coded (B-175), matching the meal tables + Journal cells.
+   kcal stays neutral; archived rows keep their row-level dimming. */
+.mFat {
+  color: var(--c-fat);
+}
+.mCarb {
+  color: var(--c-carb);
+}
+.mProt {
+  color: var(--c-prot);
+}

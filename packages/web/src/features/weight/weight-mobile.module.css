@@ -30,6 +30,11 @@
 .row:hover {
   border-color: var(--border-strong);
 }
+/* Emphasise the most-recent (first) row — a real latest period or the B-176 open interval, which
+   already leads the list (B-178). Same neutral --bg-elev-2 emphasis as the desktop table. */
+.row:first-child {
+  background: var(--bg-elev-2);
+}
 .head {
   display: flex;
   align-items: center;

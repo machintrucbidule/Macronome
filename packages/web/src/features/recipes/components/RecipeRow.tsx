@@ -29,9 +29,13 @@ export function RecipeRow({ recipe, onOpen, onArchive, onRestore }: RecipeRowPro
         </span>
       </td>
       <td className={tableStyles.num}>{kcalDisplay(recipe.kcal_per_100g)}</td>
-      <td className={tableStyles.numc}>{gramsDisplay(recipe.fat_per_100g)}</td>
-      <td className={tableStyles.numc}>{gramsDisplay(recipe.carb_per_100g)}</td>
-      <td className={tableStyles.numc}>{gramsDisplay(recipe.protein_per_100g)}</td>
+      <td className={`${tableStyles.numc} ${styles.mFat}`}>{gramsDisplay(recipe.fat_per_100g)}</td>
+      <td className={`${tableStyles.numc} ${styles.mCarb}`}>
+        {gramsDisplay(recipe.carb_per_100g)}
+      </td>
+      <td className={`${tableStyles.numc} ${styles.mProt}`}>
+        {gramsDisplay(recipe.protein_per_100g)}
+      </td>
       <td className={tableStyles.numc}>{gramsDisplay(recipe.total_batch_grams)}</td>
       <td className={tableStyles.numc}>{recipe.servings}</td>
       <td className={tableStyles.numc}>{gramsDisplay(recipe.weight_per_portion_g)}</td>

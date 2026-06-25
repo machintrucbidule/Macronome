@@ -404,3 +404,15 @@
   font-size: var(--fs-13);
   padding: 9px 11px;
 }
+
+/* Per-row L/G/P macro values colour-coded (B-175), matching the meal tables + Journal cells +
+   the Recettes mobile card. kcal stays neutral. */
+.mFat {
+  color: var(--c-fat);
+}
+.mCarb {
+  color: var(--c-carb);
+}
+.mProt {
+  color: var(--c-prot);
+}

@@ -29,9 +29,11 @@ export function FoodRow({ food, onOpen, onArchive, onRestore }: FoodRowProps) {
         {food.comment && <div className={styles.comment}>{food.comment}</div>}
       </td>
       <td className={tableStyles.num}>{kcalDisplay(food.kcal_per_100g)}</td>
-      <td className={tableStyles.numc}>{gramsDisplay(food.fat_per_100g)}</td>
-      <td className={tableStyles.numc}>{gramsDisplay(food.carb_per_100g)}</td>
-      <td className={tableStyles.numc}>{gramsDisplay(food.protein_per_100g)}</td>
+      <td className={`${tableStyles.numc} ${styles.mFat}`}>{gramsDisplay(food.fat_per_100g)}</td>
+      <td className={`${tableStyles.numc} ${styles.mCarb}`}>{gramsDisplay(food.carb_per_100g)}</td>
+      <td className={`${tableStyles.numc} ${styles.mProt}`}>
+        {gramsDisplay(food.protein_per_100g)}
+      </td>
       <td className={styles.portion}>{portionSummary(food.named_portions)}</td>
       <td className={tableStyles.numc}>
         <Stars rating={food.rating} />

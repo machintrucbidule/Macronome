@@ -129,6 +129,11 @@
   cursor: pointer;
   border-bottom: var(--bw) solid var(--border);
 }
+/* Emphasise the most-recent (first) row — a real latest period or the B-176 open interval, which
+   already leads the tbody (B-178). Neutral --bg-elev-2 emphasis; hover still overrides (below). */
+.periodRow:first-child {
+  background: var(--bg-elev-2);
+}
 .periodRow:hover {
   background: var(--bg-elev);
 }

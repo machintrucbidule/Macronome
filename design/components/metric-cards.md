@@ -18,6 +18,12 @@ B-089 — was `9px 12px`/`gap:7px`).
 - **c-top**: label (`--font-num; --fs-11; uppercase; ls .05em; color:var(--text)`)
   - threshold text (`.c-thr`, `--fs-10; color:var(--text-faint)`,
     e.g. `cible 1550–1650`, `min. 50 g`, `max. 150 g`).
+  - **Macro-card label colour (B-174).** On the three **macro** cards the label is
+    **colour-coded by macro** — Lipides `--c-fat`, Glucides `--c-carb`, Protéines `--c-prot`
+    (the same macro tokens as the meal-line L/G/P and the Journal macro cells) — set via a
+    macro accent on the card (`mode` floor/ceiling alone can't tell fat from protein). Only the
+    **label** colour changes; the value, bar, and status (`--ok`/`--nok`) are unchanged. The
+    **Calories** card keeps its neutral label (no accent). No new token.
 - **c-bar**: the target indicator (below).
 - **c-bot**: value (`.c-val`, `--font-num; --fw-bold; --fs-16`) + status
   (`.c-status`, `--font-num; --fs-10; --fw-bold; uppercase; ls .06em;

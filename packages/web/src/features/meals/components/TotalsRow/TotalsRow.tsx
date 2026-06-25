@@ -55,6 +55,7 @@ export function TotalsRow({ day }: TotalsRowProps) {
         status={macroStatus}
         unit="g"
         muted={partiel}
+        accent="fat"
       />
       <MacroCard
         label={macroLabel('carb')}
@@ -67,6 +68,7 @@ export function TotalsRow({ day }: TotalsRowProps) {
         status={{ ok: t('meals.status.ok'), bad: t('meals.status.depasse') }}
         unit="g"
         muted={partiel}
+        accent="carb"
       />
       <MacroCard
         label={macroLabel('protein')}
@@ -81,6 +83,7 @@ export function TotalsRow({ day }: TotalsRowProps) {
         status={macroStatus}
         unit="g"
         muted={partiel}
+        accent="prot"
       />
       <VerdictCluster activityLevel={day.activity_level} constat={day.constat} />
     </div>

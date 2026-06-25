@@ -26,6 +26,17 @@
   text-transform: uppercase;
   color: var(--text);
 }
+/* Macro-card label tint by macro (B-174): only the title colour changes; CalorieCard passes no
+   accent, so its label stays neutral. Same tokens as the meal-line L/G/P + Journal macro cells. */
+.fat {
+  color: var(--c-fat);
+}
+.carb {
+  color: var(--c-carb);
+}
+.prot {
+  color: var(--c-prot);
+}
 .thr {
   font-family: var(--font-num);
   font-size: var(--fs-10);

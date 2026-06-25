@@ -15,11 +15,19 @@ interface MacroCardProps {
   unit: string;
   /** Partiel (summary) day: only kcal is meaningful, so show "—" and no bar/status (B-086). */
   muted?: boolean;
+  /** Macro accent: tints the label by macro (B-174). `mode` alone can't tell fat from protein. */
+  accent?: 'fat' | 'carb' | 'prot';
 }
 
 /** Écart colour class (B-139): green when on target (ok), else red. */
 function ecartClass(ok: boolean): string {
   return (ok ? styles.ecartGood : styles.ecartBad) ?? '';
+}
+
+/** Label class with an optional per-macro tint (B-174); CalorieCard passes no accent. */
+function labelClass(accent?: 'fat' | 'carb' | 'prot'): string {
+  const base = styles.label ?? '';
+  return accent ? `${base} ${styles[accent] ?? ''}` : base;
 }
 
 // The directional zone/fill bar, extracted so MacroCard itself stays simple. The notch (B-044)
@@ -64,6 +72,7 @@ export function MacroCard({
   status,
   unit,
   muted = false,
+  accent,
 }: MacroCardProps) {
   const ceiling = mode === 'ceiling';
   const ok = threshold === null || (ceiling ? value <= threshold : value >= threshold);
@@ -72,7 +81,7 @@ export function MacroCard({
   return (
     <div className={[styles.card, stateClass].filter(Boolean).join(' ')}>
       <div className={styles.top}>
-        <span className={styles.label}>{label}</span>
+        <span className={labelClass(accent)}>{label}</span>
         <span className={styles.thr}>{thresholdText}</span>
       </div>
       {threshold !== null && !muted && (

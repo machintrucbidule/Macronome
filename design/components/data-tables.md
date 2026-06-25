@@ -39,6 +39,11 @@ var(--text-faint)` em-dash when a day has no macro detail. The three L·G·P val
 **fixed-width, right-aligned, tabular-nums slots** inside the single Macros cell so they
 **column-align across rows** (B-135), keeping the L·G·P order and per-macro colours.
 
+**Macro values colour-coded — Aliments & Recettes too (B-175).** The same per-macro tinting
+(`--c-fat`/`--c-carb`/`--c-prot`) applies to the per-row **L/G/P value cells** of the **Aliments**
+and **Recettes** desktop tables (kcal stays neutral), matching the meal tables + Journal cells.
+The Recettes mobile card already tints; this extends it to the desktop tables. No new token.
+
 ## Day-state band + legend (Journal, JR-1 / B-077)
 
 Each Journal row carries a **left colour band** keyed to its calorie-driven state
@@ -137,8 +142,17 @@ newest closed period), marking the span from the last weigh-in to today:
 - **End-weight-dependent cells dash** (em dash, the existing `orDash`/`DASH` treatment): Poids,
   Tendance, Δ, Écart traj., IMC, Taille, Dépense empirique.
 - **No new token, no new colour.** Distinct emphasis of the lead row itself is handled by the
-  `:first-child` background rule (B-178, separate batch); on its own the open row is a normal
-  period row with dashed end-weight cells.
+  `:first-child` background rule (B-178); on its own the open row is a normal period row with
+  dashed end-weight cells.
+
+### First-row emphasis (Poids, B-178)
+
+The **first** (most recent) row of the period table — whether a real most-recent period or the
+B-176 open-interval lead row — carries a **distinct background** (`--bg-elev-2`, the same neutral
+emphasis as the Maintien badge), marking it as the most recent / most important. Implemented as a
+pure-CSS `:first-child` background on both the desktop `.periodRow` and the mobile list `.row`, so
+it is **order-independent of B-176** (it auto-covers the open row once that leads the table). The
+desktop row hover (`--bg-elev`) still takes over on hover per the existing cascade. No new token.
 
 ## Line-list grid (Repas meal column) — instance A
 

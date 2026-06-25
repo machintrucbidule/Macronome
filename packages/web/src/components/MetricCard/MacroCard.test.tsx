@@ -112,3 +112,40 @@ describe('MacroCard écart (B-139)', () => {
     expect(ecart(card({ value: 40, threshold: 60, muted: true }).container)).toBeNull();
   });
 });
+
+// B-174: the macro card label is colour-coded by macro (the value/bar/status are unchanged).
+describe('MacroCard label accent (B-174)', () => {
+  it('tints the label with the per-macro class when an accent is given', () => {
+    const { container } = render(
+      <MacroCard
+        label="Lipides"
+        value={10}
+        threshold={50}
+        mode="floor"
+        thresholdText="min. 50 g"
+        status={{ ok: 'OK', bad: 'NOK' }}
+        unit="g"
+        accent="fat"
+      />,
+    );
+    const label = container.querySelector(`.${styles.label}`) as HTMLElement;
+    expect(label.className).toContain(styles.fat);
+  });
+
+  it('leaves the label neutral when no accent is given (e.g. the Calories card)', () => {
+    const { container } = render(
+      <MacroCard
+        label="Protéines"
+        value={10}
+        threshold={50}
+        mode="floor"
+        thresholdText="min. 50 g"
+        status={{ ok: 'OK', bad: 'NOK' }}
+        unit="g"
+      />,
+    );
+    const label = container.querySelector(`.${styles.label}`) as HTMLElement;
+    expect(label.className).not.toContain(styles.fat);
+    expect(label.className).not.toContain(styles.prot);
+  });
+});
