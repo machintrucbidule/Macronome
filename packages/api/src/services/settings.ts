@@ -17,6 +17,7 @@ const STORED_DEFAULTS: StoredSettings = {
   theme: 'dark',
   ai: null,
   current_mode: null,
+  open_period_note: null,
 };
 
 /** Coerce the stored JSON blob into the full StoredSettings shape (defaults for missing keys). */
@@ -27,6 +28,7 @@ function toStored(stored: unknown): StoredSettings {
     theme: s.theme ?? STORED_DEFAULTS.theme,
     ai: s.ai ?? STORED_DEFAULTS.ai,
     current_mode: s.current_mode ?? STORED_DEFAULTS.current_mode,
+    open_period_note: s.open_period_note ?? STORED_DEFAULTS.open_period_note,
   };
 }
 
@@ -48,6 +50,7 @@ export async function patch(userId: string, body: PatchSettingsRequest): Promise
   if (body.theme !== undefined) merged.theme = body.theme;
   if (body.ai !== undefined) merged.ai = body.ai === null ? null : mergeAi(merged.ai, body.ai);
   if (body.current_mode !== undefined) merged.current_mode = body.current_mode;
+  if (body.open_period_note !== undefined) merged.open_period_note = body.open_period_note;
   await userRepo.updateSettings(userId, merged);
   return toDto(merged);
 }
@@ -56,6 +59,17 @@ export async function patch(userId: string, body: PatchSettingsRequest): Promise
 export async function currentMode(userId: string): Promise<DietFlag | null> {
   const settings = await get(userId);
   return settings?.current_mode ?? null;
+}
+
+/** Weight read-model state stored on settings: the persisted mode + the open-period note. */
+export async function weightState(
+  userId: string,
+): Promise<{ currentMode: DietFlag | null; openPeriodNote: string | null }> {
+  const settings = await get(userId);
+  return {
+    currentMode: settings?.current_mode ?? null,
+    openPeriodNote: settings?.open_period_note ?? null,
+  };
 }
 
 /** The raw (secret-bearing) AI config, or null — used by the models proxy. Never serialised. */

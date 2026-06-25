@@ -66,14 +66,16 @@ export interface WeightPoint {
 }
 
 /** One period = span between two consecutive weigh-ins. All figures per-day where
- * applicable; nullable when the source data (logged days, activity) is missing. */
+ * applicable; nullable when the source data (logged days, activity) is missing.
+ * `open` marks the synthetic open interval (last weigh-in → today, B-176): it has no
+ * closing weight, so `weight_end`/`ema`/`delta` (and the other end-weight figures) are null. */
 export interface Period {
   start_date: string;
   end_date: string;
   days: number;
-  weight_end: number;
-  ema: number;
-  delta: number;
+  weight_end: number | null;
+  ema: number | null;
+  delta: number | null;
   ecart_trajectoire: number | null;
   bmi: number | null;
   waist: number | null;
@@ -84,6 +86,8 @@ export interface Period {
   avg_activity: number | null;
   diet_flag: DietFlag;
   note: string | null;
+  /** True only for the synthetic open interval (last weigh-in → today). */
+  open: boolean;
 }
 
 /** Projection of the goal date from the recent EMA (only if a goal weight is set and
@@ -114,7 +118,9 @@ export interface GetWeightResponse {
   ema: WeightPoint[];
   trajectory: WeightPoint[];
   periods: Period[];
+  /** Synthetic open interval (last weigh-in → today), present only when triggered (B-176). */
+  open_period: Period | null;
   cartouche: Cartouche;
-  /** Defaults to the latest period's diet flag; the screen toggles it locally (M4). */
+  /** Persisted Régime/Maintien mode; defaults to the latest period's diet flag (M7). */
   current_mode: DietFlag | null;
 }

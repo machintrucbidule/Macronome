@@ -24,18 +24,22 @@ const num = (d: { toString(): string }): number => Number(d.toString());
 
 /** Read + assemble the full Weight view for the user (used by GET and after each write). */
 async function readView(userId: string, range: WeightRange): Promise<GetWeightResponse> {
-  const [entries, profile, target, targets, currentMode] = await Promise.all([
+  const [entries, profile, target, targets, weightState] = await Promise.all([
     weightRepo.findAll(userId),
     profileRepo.get(userId),
     targetRepo.currentAsOf(userId, new Date()),
     targetRepo.list(userId),
-    settingsService.currentMode(userId),
+    settingsService.weightState(userId),
   ]);
   if (!profile) throw new Error('profile_missing'); // an authed user always has one
+  const today = new Date().toISOString().slice(0, 10);
+  // Logged days for the per-period stats AND the open interval (last weigh-in → today): fetch
+  // through today so days logged after the last weigh-in are counted (B-176).
   let loggedDays: LoggedDay[] = [];
-  if (entries.length >= 2) {
+  if (entries.length >= 1) {
     const from = entries[0]!.date.toISOString().slice(0, 10);
-    const to = entries[entries.length - 1]!.date.toISOString().slice(0, 10);
+    const lastDate = entries[entries.length - 1]!.date.toISOString().slice(0, 10);
+    const to = lastDate > today ? lastDate : today;
     loggedDays = (await dayReadRepo.readRange(userId, from, to))
       .map(loggedDay)
       .filter((d): d is LoggedDay => d !== null);
@@ -50,7 +54,9 @@ async function readView(userId: string, range: WeightRange): Promise<GetWeightRe
     goalWeight: target?.targetWeightKg != null ? num(target.targetWeightKg) : null,
     loggedDays,
     range,
-    currentMode,
+    currentMode: weightState.currentMode,
+    today,
+    openPeriodNote: weightState.openPeriodNote,
   });
 }
 

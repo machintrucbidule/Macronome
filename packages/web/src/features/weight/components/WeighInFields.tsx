@@ -17,35 +17,42 @@ interface WeighInFieldsProps {
   draft: WeighInDraft;
   set: (patch: Partial<WeighInDraft>) => void;
   error: string | null;
+  /** Open-interval mode (B-176): only régime + note are editable (date/weight/waist hidden). */
+  openMode?: boolean;
 }
 
 // Presentational form body for the weigh-in modal (date, weight, optional waist, the diet
-// flag for the period ending here, note). State lives in WeighInModal.
-export function WeighInFields({ draft, set, error }: WeighInFieldsProps) {
+// flag for the period ending here, note). State lives in WeighInModal. In `openMode` only the
+// régime toggle + note show (the open interval has no measurement — B-176).
+export function WeighInFields({ draft, set, error, openMode }: WeighInFieldsProps) {
   const { t } = useTranslation();
   return (
     <div className={styles.modalBody}>
-      <label className={styles.field}>
-        <span className={styles.fieldLabel}>{t('weight.field.date')}</span>
-        <input
-          type="date"
-          className={styles.dateInput}
-          value={draft.date}
-          onChange={(e) => set({ date: e.target.value })}
-        />
-      </label>
-      <NumberInput
-        label={t('weight.field.weight')}
-        suffix="kg"
-        value={draft.weight}
-        onChange={(e) => set({ weight: e.target.value })}
-      />
-      <NumberInput
-        label={`${t('weight.field.waist')} ${t('common.optional')}`}
-        suffix="cm"
-        value={draft.waist}
-        onChange={(e) => set({ waist: e.target.value })}
-      />
+      {!openMode && (
+        <>
+          <label className={styles.field}>
+            <span className={styles.fieldLabel}>{t('weight.field.date')}</span>
+            <input
+              type="date"
+              className={styles.dateInput}
+              value={draft.date}
+              onChange={(e) => set({ date: e.target.value })}
+            />
+          </label>
+          <NumberInput
+            label={t('weight.field.weight')}
+            suffix="kg"
+            value={draft.weight}
+            onChange={(e) => set({ weight: e.target.value })}
+          />
+          <NumberInput
+            label={`${t('weight.field.waist')} ${t('common.optional')}`}
+            suffix="cm"
+            value={draft.waist}
+            onChange={(e) => set({ waist: e.target.value })}
+          />
+        </>
+      )}
       <label className={styles.field}>
         <span className={styles.fieldLabel}>{t('weight.field.flag')}</span>
         <FlagToggle value={draft.flag} onChange={(flag) => set({ flag })} />

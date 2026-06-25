@@ -50,7 +50,12 @@ export function WeightPage() {
       )}
       {isMobile ? <WeightMobile {...common} /> : <WeightDesktop {...common} />}
       {ctl.modal && (
-        <WeighInModal target={ctl.modal} defaultFlag={mode ?? 'in_diet'} onClose={ctl.closeModal} />
+        <WeighInModal
+          target={ctl.modal}
+          defaultFlag={mode ?? 'in_diet'}
+          openNote={query.data?.open_period?.note ?? null}
+          onClose={ctl.closeModal}
+        />
       )}
     </AppShell>
   );

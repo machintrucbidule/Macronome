@@ -694,6 +694,7 @@
     "empty": "Aucune pesée. Ajoute ta première pesée.",
     "single": "Une seule pesée : pas encore de période.",
     "rangeEmpty": "Aucune pesée sur cette plage.",
+    "today": "Aujourd'hui",
     "waistToggle": "Tour de taille",
     "mode": { "label": "Mode" },
     "range": { "3m": "3 mois", "6m": "6 mois", "1y": "1 an", "all": "Tout" },
@@ -760,6 +761,7 @@
     "modal": {
       "addTitle": "Ajouter une pesée",
       "editTitle": "Modifier la pesée",
+      "openTitle": "Intervalle ouvert (note + régime)",
       "occupied": "Une pesée existe déjà au {{date}}. La remplacer ?",
       "replace": "Remplacer",
       "error": "Échec de l'opération ({{code}})."

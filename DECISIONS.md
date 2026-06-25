@@ -3475,3 +3475,43 @@ segment, fallback above; NOK shares unlabelled) + the tooltip example (three cou
 **Acceptance.** Web test: the OK% uses `.barLabelIn` when the green segment is tall, `.barTop` when
 short (deterministic — depends on counts, not layout). Full suite + typecheck + lint + check:i18n
 green; bar/tooltip visual check deferred to the owner.
+
+## B-176 — Poids: open-interval row (last weigh-in → today) + reduced modal — RESOLVED (user, 2026-06-25)
+
+The Poids table only derived periods **between two weigh-ins**, so the days logged **since the
+last weigh-in** were invisible. **Improvement** (owner-directed; amends weight logic + schema +
+api + design + screen contracts). Builds on the now-persisted `current_mode` (B-177).
+
+**Decision.** Derive a **synthetic open interval** (last weigh-in → today) on read and show it as
+a **lead row**.
+
+- **Trigger:** `last_weigh_in.date ≤ today − 1 day` **and** ≥ 1 logged day in
+  `(last_weigh_in, today]` (works even with a single weigh-in). Otherwise no open row.
+- **Figures** over the open span (reusing the §2 metabolics): durée, apport moyen, déficit/j,
+  and **dépense estimée = BMR(last weigh-in's weight) × span activity** (no closing weight → BMR
+  on the last weight, age at today). **Dashed** (N/A without an end weight): poids, tendance
+  (ema), Δ, écart trajectoire, IMC, taille, dépense empirique.
+- **Régime = the screen Mode** (`current_mode`, single source of truth — no separate field).
+  **Note** = a new persisted **open-period note** on `app_user.settings`
+  (`open_period_note`, string|null, same JSON column as `current_mode`, **no migration**).
+- **Reduced modal:** clicking the open row opens `WeighInModal` in an **open mode** — only note
+  - régime editable; date/weight/waist hidden; no Delete; Save = one
+    `PATCH /settings {current_mode, open_period_note}` (writes no weigh-in).
+- **"+ Pesée" pre-fill:** the add modal pre-fills note from `open_period_note` + flag from
+  `current_mode`; creating the closing weigh-in carries the note onto it and **clears**
+  `open_period_note`.
+
+**Transport (internal).** `GET /weight` gains `open_period: Period | null`; `Period.weight_end /
+ema / delta` become nullable and `Period.open: boolean` is added (closed periods `open:false`).
+`/settings` carries `open_period_note?: string | null`.
+
+**Contract deltas.** `spec/logic/weight-periods-trajectory.md` (§2.1 open interval + neutral
+oracle), `spec/schema/tables-weight-targets.md` (open-period note on settings),
+`spec/api/weight-targets-stats-settings.md` (open_period + open_period_note),
+`packages/shared/dto/{weight,settings}.ts`, `design/components/{data-tables,modals}.md`,
+`specifications/screens/weight.md`.
+
+**Acceptance.** Domain unit wired from the §2.1 neutral oracle (BMR 1730 × 1.2 = 2076 estimated
+burn; avg_intake 2100; deficit +24; days 3). Integration: `GET /weight` emits `open_period` only
+when triggered; the note persists (`PATCH /settings` → `GET /weight`), pre-fills the add form, and
+is cleared after the closing weigh-in. Full suite + typecheck + lint green.

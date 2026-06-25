@@ -34,6 +34,7 @@ describe('settings — round-trip + partial merge', () => {
       theme: 'dark',
       ai: null,
       current_mode: null,
+      open_period_note: null,
     });
 
     const patched = await csrfPatch(agent, csrf, '/api/v1/settings', {

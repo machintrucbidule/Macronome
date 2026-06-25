@@ -2,6 +2,8 @@ import {
   ACTIVITY_MULTIPLIERS,
   type ActivityLevel,
   DEFAULT_ACTIVITY_LEVEL,
+  type DietFlag,
+  type Period,
   type Sex,
 } from '@macronome/shared';
 import type { DayAggregate } from '../data/repositories/day-read.repo.js';
@@ -13,7 +15,7 @@ import {
   estimatedBurn,
   mifflinStJeor,
 } from '../domain/metabolic/index.js';
-import type { RawPeriod } from '../domain/weight/index.js';
+import { spanDays, type RawPeriod } from '../domain/weight/index.js';
 import { computeDayTotals } from './day-assembler.js';
 
 // Per-period intake/burn/deficit (spec/logic/weight-periods-trajectory.md §2). These are
@@ -95,5 +97,58 @@ export function periodMetabolics(
             days: period.days,
           }),
     deficit_per_day: avgIntake === null ? null : deficitPerDay(avgIntake, burn),
+  };
+}
+
+export interface OpenIntervalInput {
+  lastWeighIn: { date: string; weightKg: number };
+  today: string;
+  loggedDays: LoggedDay[];
+  profile: ProfileRow;
+  /** The screen's current mode (persisted), used as the open interval's régime. */
+  dietFlag: DietFlag;
+  /** The persisted open-period note. */
+  note: string | null;
+}
+
+/** The synthetic open interval (last weigh-in → today, spec §2.1 / B-176). Returns null unless
+ * the span is ≥ 1 day AND has ≥ 1 logged day in it. Reuses periodMetabolics over a synthetic
+ * same-weight period — the BMR uses the **last weigh-in's weight** (there is no closing weight),
+ * and every figure that needs an end weight (weight_end, ema, delta, écart, bmi, waist,
+ * empirical_burn) is dashed (null). Régime = the current mode; note = the open-period note. */
+export function buildOpenInterval(input: OpenIntervalInput): Period | null {
+  const { lastWeighIn, today, loggedDays, profile, dietFlag, note } = input;
+  const days = spanDays(lastWeighIn.date, today);
+  if (days < 1) return null; // weighed today (or a future-dated last weigh-in): no open interval
+  const synthetic: RawPeriod = {
+    startDate: lastWeighIn.date,
+    endDate: today,
+    days,
+    weightStart: lastWeighIn.weightKg,
+    weightEnd: lastWeighIn.weightKg, // no closing weight → BMR on the last weigh-in's weight
+    waist: null,
+    dietFlag,
+    note,
+  };
+  const metab = periodMetabolics(synthetic, loggedDays, profile);
+  if (metab.avg_intake === null) return null; // no logged day in (last, today] → no open row
+  return {
+    start_date: lastWeighIn.date,
+    end_date: today,
+    days,
+    weight_end: null,
+    ema: null,
+    delta: null,
+    ecart_trajectoire: null,
+    bmi: null,
+    waist: null,
+    avg_intake: metab.avg_intake,
+    estimated_burn: metab.estimated_burn,
+    empirical_burn: null,
+    deficit_per_day: metab.deficit_per_day,
+    avg_activity: metab.avg_activity,
+    diet_flag: dietFlag,
+    note,
+    open: true,
   };
 }

@@ -92,6 +92,8 @@ export interface Settings {
   theme: Theme;
   ai: AiConnectionRead | null;
   current_mode: z.infer<typeof DietFlagSchema> | null;
+  /** Weight open-interval note (B-176); persisted on app_user.settings, cleared on close. */
+  open_period_note: string | null;
 }
 
 /** PATCH /settings — partial; merged onto the stored settings (other keys preserved). */
@@ -101,6 +103,7 @@ export const PatchSettingsSchema = z
     theme: ThemeSchema,
     ai: AiConnectionPatchSchema.nullable(),
     current_mode: DietFlagSchema.nullable(),
+    open_period_note: z.string().max(2000).nullable(),
   })
   .partial()
   .refine((b) => Object.keys(b).length > 0, { message: 'empty_patch' });

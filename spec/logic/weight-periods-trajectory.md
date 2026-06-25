@@ -29,6 +29,37 @@ See `00-conventions.md`, `metabolic-engine.md`.
 - `Δ = weight_end − weight_start` (kg).
 - All per-day (RECONCILIATION_LOG §B2). See `metabolic-engine.md` for oracles.
 
+## 2.1 Open interval (last weigh-in → today)
+
+A **synthetic, non-stored period** from the **last weigh-in to today**, so the days logged
+since the last weigh-in are not invisible. It is **not** a `weight_entry` pair; it is derived
+on read alongside the closed periods (B-176).
+
+- **Trigger.** Emit the open interval **only** when `last_weigh_in.date ≤ today − 1 day`
+  **and** there is **≥ 1 logged day** in `(last_weigh_in.date, today]`. Otherwise no open
+  interval (the table is unchanged). It can exist even with a **single** weigh-in.
+- **Span** `(last_weigh_in.date, today]`; `start_date = last_weigh_in.date`,
+  `end_date = today`, `days = today − last_weigh_in.date` (≥ 1).
+- **Computable figures** (same definitions as §2, over the open span): `avg_intake`,
+  `period_activity_multiplier` (mean over the span's logged days), `deficit_per_day`, and
+  `estimated_burn_per_day = BMR(**last_weigh_in.weight**) × period_activity_multiplier` — there
+  is no closing weight, so the BMR uses the **last weigh-in's weight** (age taken **at today**).
+- **N/A without an end weight** (shown dashed): `weight_end`, `ema` (trend), `Δ`,
+  `écart_à_la_trajectoire`, `bmi`, `waist`, `empirical_burn_per_day`.
+- **Régime** = the screen's **current mode** (§7, persisted `current_mode`), not a weigh-in
+  flag. **Note** = the persisted **open-period note** (`app_user.settings`, see
+  `spec/schema/tables-weight-targets.md`). Editing the open interval sets `current_mode` +
+  the open-period note; creating the closing weigh-in carries the note onto it and then
+  **clears** the open-period note.
+- **Worked example** (oracle, neutral): last weigh-in `weight=80 kg`, `height=180 cm`,
+  `age=40`, male; today = last weigh-in + 3 days; the 3 logged days have `kcal =
+[2000, 2200, 2100]`, all `sedentary` (multiplier 1.2).
+  `days=3`; `avg_intake = (2000+2200+2100)/3 = 2100`;
+  `BMR = 10×80 + 6.25×180 − 5×40 + 5 = 1730`;
+  `estimated_burn = 1730 × 1.2 = 2076`;
+  `deficit_per_day = 2100 − 2076 = +24` (a slight surplus). `avg_activity = 1.2`.
+  `weight_end / ema / Δ / écart / bmi / waist / empirical_burn` are dashed.
+
 ## 3. EMA trend (OPEN_GAPS #9)
 
 Over the **ordered weigh-in series** (each weigh-in is one point; no daily

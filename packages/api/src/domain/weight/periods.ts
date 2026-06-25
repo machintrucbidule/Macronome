@@ -31,7 +31,7 @@ export interface RawPeriod {
 }
 
 /** Whole-day span between two ISO dates (end − start). */
-function spanDays(start: string, end: string): number {
+export function spanDays(start: string, end: string): number {
   return Math.round((Date.parse(end) - Date.parse(start)) / MS_PER_DAY);
 }
 

@@ -14,11 +14,13 @@ const toneClass = (tone: Tone): string =>
 
 export function PeriodListRow({ period, onOpen }: { period: Period; onOpen: () => void }) {
   const { t } = useTranslation();
+  // The open interval (B-176) ends at "today" and dashes the end-weight figures (Poids, Δ).
+  const end = period.open ? t('weight.today') : period.end_date;
   return (
     <button type="button" className={styles.row} data-period={period.end_date} onClick={onOpen}>
       <div className={styles.head}>
         <span className={styles.period}>
-          <span className={styles.periodRange}>{`${period.start_date} → ${period.end_date}`}</span>
+          <span className={styles.periodRange}>{`${period.start_date} → ${end}`}</span>
           <span className={styles.periodSub}>
             {t('weight.detail.daysShort', { count: period.days })}
           </span>
@@ -30,11 +32,13 @@ export function PeriodListRow({ period, onOpen }: { period: Period; onOpen: () =
       <div className={styles.metrics}>
         <span className={styles.v}>
           <span className={styles.k}>{t('weight.col.weight')}</span>
-          {kg1(period.weight_end)}
+          {orDash(period.weight_end, kg1)}
         </span>
-        <span className={`${styles.v} ${toneClass(signTone(period.delta))}`}>
+        <span
+          className={`${styles.v} ${period.delta === null ? '' : toneClass(signTone(period.delta))}`}
+        >
           <span className={styles.k}>{t('weight.col.delta')}</span>
-          {signed1(period.delta)}
+          {orDash(period.delta, signed1)}
         </span>
         <span
           className={`${styles.v} ${period.deficit_per_day === null ? '' : toneClass(signTone(period.deficit_per_day))}`}

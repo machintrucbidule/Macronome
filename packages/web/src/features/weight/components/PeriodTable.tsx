@@ -43,10 +43,14 @@ const NUM_COLS = new Set([
 
 interface PeriodTableProps {
   periods: Period[];
+  /** The synthetic open interval (last weigh-in → today, B-176); rendered as a lead row. */
+  openPeriod?: Period | null;
   onRowClick: (endDate: string) => void;
+  /** Click on the open lead row → opens the reduced "open period" modal. */
+  onOpenClick?: () => void;
 }
 
-export function PeriodTable({ periods, onRowClick }: PeriodTableProps) {
+export function PeriodTable({ periods, openPeriod, onRowClick, onOpenClick }: PeriodTableProps) {
   const { t } = useTranslation();
   return (
     <div className={styles.tableWrap}>
@@ -64,6 +68,7 @@ export function PeriodTable({ periods, onRowClick }: PeriodTableProps) {
           </tr>
         </thead>
         <tbody>
+          {openPeriod && onOpenClick && <PeriodRow period={openPeriod} onClick={onOpenClick} />}
           {periods.map((p) => (
             <PeriodRow key={p.end_date} period={p} onClick={() => onRowClick(p.end_date)} />
           ))}

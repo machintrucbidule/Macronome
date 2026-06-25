@@ -7,10 +7,15 @@ See `00-conventions.md`. Scoped to the authenticated user.
 - `GET /weight?range=3m|6m|1y|all` — → 200
   `{weigh_ins:[{id,date,weight_kg,waist_cm,diet_flag,note}],
 ema:[{date,value}], trajectory:[{date,value}],
-periods:[Period], cartouche:{current,delta_prev,bmi,bmi_category,waist,
+periods:[Period], open_period:Period|null, cartouche:{current,delta_prev,bmi,bmi_category,waist,
 waist_delta,gap_to_goal,projection}, current_mode}`.
   EMA/trajectory computed on full history, clipped to range
   (`logic/weight-periods-trajectory.md`).
+  `open_period` is the synthetic **open interval** (last weigh-in → today), present **only**
+  when triggered (`logic/weight-periods-trajectory.md §2.1`): a `Period` with `open:true`,
+  end-weight-dependent figures `null` (weight_end, ema, delta, ecart_trajectoire, bmi, waist,
+  empirical_burn), `diet_flag = current_mode`, `note = open_period_note`. Closed `periods`
+  carry `open:false`.
 - `POST /weight` — `{date, weight_kg, waist_cm?, diet_flag, note?}`.
   One per day: posting onto an occupied date → 409 `weigh_in_date_occupied`
   with `{existing_id}`; client confirms then `PATCH` to replace. → 201.
@@ -19,9 +24,11 @@ waist_delta,gap_to_goal,projection}, current_mode}`.
 
 **Period** payload: `{start_date,end_date,days,weight_end,ema,delta,
 ecart_trajectoire,bmi,waist,avg_intake,estimated_burn,empirical_burn,
-deficit_per_day,avg_activity,diet_flag,note}` — all per-day where applicable.
-Single weigh-in → no periods (empty). Projection only if target_weight set and
-not in Maintien mode.
+deficit_per_day,avg_activity,diet_flag,note,open}` — all per-day where applicable.
+`weight_end`, `ema`, `delta` are nullable (the open interval dashes them; closed periods
+always set them). `open` flags the synthetic open interval. Single weigh-in → no closed
+periods (empty), but an `open_period` may still be present. Projection only if target_weight
+set and not in Maintien mode.
 
 ## Targets & metabolic engine (Cibles)
 
@@ -111,7 +118,10 @@ target_zone:{cal_min,cal_max}, signals:[{code,value,text}]}`.
 
 ## Settings, template, pantry (Paramètres)
 
-- `GET/PATCH /settings` — `{locale, theme, current_mode?, ai?}`.
+- `GET/PATCH /settings` — `{locale, theme, current_mode?, open_period_note?, ai?}`.
+  - **`open_period_note`** (string | null) — the Weight open-interval note
+    (`logic/weight-periods-trajectory.md §2.1`, `schema/tables-weight-targets.md`); persisted
+    on `app_user.settings`, patchable, nullable (cleared on the closing weigh-in).
   - **`ai`** is the AI-assistant connection (or `null`); see `spec/logic/ai-connection.md`
     and `spec/schema/tables-catalog.md`. On **read**, `ai` is **redacted**: the
     `api_key` is **never** returned; instead the object carries `api_key_set: boolean`.

@@ -142,6 +142,21 @@ it fills the modal's macro fields and **closes**; on a structured error
 **stays open**, writing nothing. Click-outside / Annuler closes without applying.
 States: open (empty) · pending (button disabled) · error (inline, stays open) · applied (closes).
 
+## Open-period modal (Poids, B-176)
+
+sm-size — a **reduced mode of the weigh-in modal** for the synthetic open interval
+(`logic/weight-periods-trajectory.md §2.1`), opened by clicking the open-interval lead row.
+It has **no closing weigh-in**, so only the period-level fields are editable:
+
+- **Shown**: the **régime** toggle (En régime / Maintien = `current_mode`) and the **note**.
+- **Hidden**: date, weight, waist (no measurement), and the **Delete** action.
+- **Save** persists in **one `PATCH /settings`** `{current_mode, open_period_note}` (the régime
+  reuses the screen's `current_mode`; the note is the open-period note) — it writes **no**
+  `weight_entry`. Title reads as the open period ("… → Aujourd'hui").
+- The standard **"+ Pesée"** (add) modal is unchanged in shape but **pre-fills** its note from
+  `open_period_note` and its diet flag from `current_mode`; creating that closing weigh-in
+  transfers the note and clears `open_period_note`.
+
 ## Cook-mode modal (Repas) — full-screen touch takeover
 
 Distinct from standard modals. `.cook-scrim` (`rgba(0,0,0,.66)`, no blur,

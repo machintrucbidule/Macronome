@@ -44,8 +44,13 @@ export function WeightMobile(props: WeightMobileProps) {
     return (
       <div className={wstyles.layout}>
         <WeightOverview data={data} ctl={ctl} />
-        {data.periods.length > 0 ? (
-          <PeriodList periods={data.periods} onOpen={(p) => setDetailDate(p.end_date)} />
+        {data.periods.length > 0 || data.open_period ? (
+          <PeriodList
+            periods={data.periods}
+            openPeriod={data.open_period}
+            onOpen={(p) => setDetailDate(p.end_date)}
+            onOpenInterval={ctl.openOpenPeriod}
+          />
         ) : (
           <EmptyState>{t('weight.single')}</EmptyState>
         )}

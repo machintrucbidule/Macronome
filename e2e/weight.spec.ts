@@ -119,3 +119,63 @@ test('the Régime/Maintien mode persists across a reload (B-177)', async ({ page
     'true',
   );
 });
+
+/** ISO date n days before today (UTC) — the server's open-interval "today" is UTC. */
+function isoDaysAgoUtc(n: number): string {
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() - n);
+  return d.toISOString().slice(0, 10);
+}
+
+test('the open interval leads the table and its reduced modal persists a note (B-176)', async ({
+  page,
+  playwright,
+}) => {
+  // Reset this user's weight + logs + settings, then seed a weigh-in 3 days old and a logged day
+  // since → the open interval (last weigh-in → today) is triggered.
+  const user = await prisma.appUser.findUniqueOrThrow({ where: { username: USER } });
+  await prisma.dayLog.deleteMany({ where: { userId: user.id } });
+  await prisma.weightEntry.deleteMany({ where: { userId: user.id } });
+  await prisma.appUser.update({ where: { id: user.id }, data: { settings: {} } });
+  await prisma.weightEntry.create({
+    data: { userId: user.id, date: new Date(isoDaysAgoUtc(3)), weightKg: 80, dietFlag: 'in_diet' },
+  });
+  await prisma.dayLog.create({
+    data: {
+      userId: user.id,
+      date: new Date(isoDaysAgoUtc(1)),
+      kind: 'summary',
+      summaryKcal: 2000,
+      activityLevel: 'sedentary',
+      targetSnapshot: {},
+    },
+  });
+
+  await login(page, playwright);
+  await page.goto('/weight');
+
+  // The open interval row leads the table (end = today), shows the average intake, and dashes the
+  // end-weight figures (no closing weight yet).
+  const openRow = page.locator(`tr[data-period="${isoDaysAgoUtc(0)}"]`);
+  await expect(openRow).toBeVisible();
+  await expect(openRow).toContainText('Aujourd');
+  await expect(openRow).toContainText('2000'); // avg intake
+
+  // Clicking it opens the reduced "open period" modal: note + régime only (no date/weight input).
+  await openRow.click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toContainText('Intervalle ouvert');
+  await expect(dialog).toContainText('Régime de la période'); // régime is editable
+  await expect(dialog.locator('input[type="date"]')).toHaveCount(0); // no measurement fields
+
+  // Save a note → it persists onto the open interval (survives a reload).
+  await dialog.getByLabel('Note').fill('felt strong');
+  await Promise.all([
+    page.waitForResponse(
+      (r) => r.url().includes('/api/v1/settings') && r.request().method() === 'PATCH',
+    ),
+    dialog.getByRole('button', { name: 'Enregistrer' }).click(),
+  ]);
+  await page.reload();
+  await expect(page.locator(`tr[data-period="${isoDaysAgoUtc(0)}"]`)).toContainText('felt strong');
+});

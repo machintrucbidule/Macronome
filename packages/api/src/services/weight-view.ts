@@ -18,12 +18,13 @@ import {
   deriveTrajectory,
   ecart,
   projectGoalDate,
-  rateAsOf,
   type ProjectionPoint,
+  type RawPeriod,
+  rateAsOf,
   type TargetRate,
   type WeighInInput,
 } from '../domain/weight/index.js';
-import { periodMetabolics, type LoggedDay } from './weight-periods.js';
+import { buildOpenInterval, periodMetabolics, type LoggedDay } from './weight-periods.js';
 
 // Read-model assembly for GET /weight (spec/api §Weight). Pure shaping over the user's
 // weigh-ins + profile + target + logged days: EMA and trajectory on the full history,
@@ -54,6 +55,10 @@ export interface WeightViewInput {
   range: WeightRange;
   /** Persisted Régime/Maintien mode (app_user.settings); null = use the latest period flag. */
   currentMode: DietFlag | null;
+  /** Today (ISO) — the end of the open interval (last weigh-in → today, B-176). */
+  today: string;
+  /** Persisted open-period note (app_user.settings); the open interval's note. */
+  openPeriodNote: string | null;
 }
 
 /** Project the goal date from the recent EMA window (last ≤4 points, ≥2 required). The
@@ -113,6 +118,64 @@ function rangeCutoff(range: WeightRange, inputs: WeighInInput[]): string | null 
   return addDays(inputs[inputs.length - 1]!.date, -RANGE_WINDOW_DAYS[range]);
 }
 
+/** The closed periods (between consecutive weigh-ins), newest first. Each figure is server-
+ * derived; `open:false` distinguishes them from the synthetic open interval (B-176). */
+function buildPeriods(
+  rawPeriods: RawPeriod[],
+  emaValues: number[],
+  trajValues: number[],
+  heightCm: number,
+  loggedDays: LoggedDay[],
+  profile: ProfileRow,
+): Period[] {
+  return rawPeriods
+    .map((rp, idx): Period => {
+      const metab = periodMetabolics(rp, loggedDays, profile);
+      return {
+        start_date: rp.startDate,
+        end_date: rp.endDate,
+        days: rp.days,
+        weight_end: rp.weightEnd,
+        ema: emaValues[idx + 1]!,
+        delta: rp.weightEnd - rp.weightStart,
+        ecart_trajectoire: ecart(rp.weightEnd, trajValues[idx + 1]!),
+        bmi: bmi(rp.weightEnd, heightCm),
+        waist: rp.waist,
+        avg_intake: metab.avg_intake,
+        estimated_burn: metab.estimated_burn,
+        empirical_burn: metab.empirical_burn,
+        deficit_per_day: metab.deficit_per_day,
+        avg_activity: metab.avg_activity,
+        diet_flag: rp.dietFlag,
+        note: rp.note,
+        open: false,
+      };
+    })
+    .reverse(); // newest first (table order)
+}
+
+/** The open interval (last weigh-in → today): régime = the effective mode, note = the persisted
+ * open-period note. Null unless triggered (≥ 1 day old + ≥ 1 logged day since; spec §2.1). */
+function buildOpenPeriod(
+  inputs: WeighInInput[],
+  effectiveMode: DietFlag | null,
+  today: string,
+  loggedDays: LoggedDay[],
+  profile: ProfileRow,
+  note: string | null,
+): Period | null {
+  const last = inputs.at(-1) ?? null;
+  if (!last || !effectiveMode) return null;
+  return buildOpenInterval({
+    lastWeighIn: { date: last.date, weightKg: last.weightKg },
+    today,
+    loggedDays,
+    profile,
+    dietFlag: effectiveMode,
+    note,
+  });
+}
+
 /** Assemble the full GET /weight response from the stored rows. */
 export function buildWeightView({
   entries,
@@ -122,6 +185,8 @@ export function buildWeightView({
   loggedDays,
   range,
   currentMode,
+  today,
+  openPeriodNote,
 }: WeightViewInput): GetWeightResponse {
   const sorted = [...entries].sort((a, b) => a.date.getTime() - b.date.getTime());
   const inputs: WeighInInput[] = sorted.map((e) => ({
@@ -160,29 +225,7 @@ export function buildWeightView({
   }));
 
   const heightCm = num(profile.heightCm);
-  const periods: Period[] = rawPeriods
-    .map((rp, idx): Period => {
-      const metab = periodMetabolics(rp, loggedDays, profile);
-      return {
-        start_date: rp.startDate,
-        end_date: rp.endDate,
-        days: rp.days,
-        weight_end: rp.weightEnd,
-        ema: emaValues[idx + 1]!,
-        delta: rp.weightEnd - rp.weightStart,
-        ecart_trajectoire: ecart(rp.weightEnd, trajValues[idx + 1]!),
-        bmi: bmi(rp.weightEnd, heightCm),
-        waist: rp.waist,
-        avg_intake: metab.avg_intake,
-        estimated_burn: metab.estimated_burn,
-        empirical_burn: metab.empirical_burn,
-        deficit_per_day: metab.deficit_per_day,
-        avg_activity: metab.avg_activity,
-        diet_flag: rp.dietFlag,
-        note: rp.note,
-      };
-    })
-    .reverse(); // newest first (table order)
+  const periods = buildPeriods(rawPeriods, emaValues, trajValues, heightCm, loggedDays, profile);
 
   const cutoff = rangeCutoff(range, inputs);
   const clip = <T extends { date: string }>(arr: T[]): T[] =>
@@ -194,11 +237,21 @@ export function buildWeightView({
   const effectiveMode = currentMode ?? latestFlag;
   const maintien = effectiveMode === 'not_in_diet';
 
+  const openPeriod = buildOpenPeriod(
+    inputs,
+    effectiveMode,
+    today,
+    loggedDays,
+    profile,
+    openPeriodNote,
+  );
+
   return {
     weigh_ins: clip(weighIns),
     ema: clip(emaFull),
     trajectory: clip(trajFull),
     periods,
+    open_period: openPeriod,
     cartouche: buildCartouche(inputs, emaFull, heightCm, goalWeight, maintien),
     current_mode: effectiveMode,
   };

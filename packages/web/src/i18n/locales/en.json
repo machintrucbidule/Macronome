@@ -694,6 +694,7 @@
     "empty": "No weigh-ins yet. Add your first weigh-in.",
     "single": "Only one weigh-in: no period yet.",
     "rangeEmpty": "No weigh-ins in this range.",
+    "today": "Today",
     "waistToggle": "Waist",
     "mode": { "label": "Mode" },
     "range": { "3m": "3 months", "6m": "6 months", "1y": "1 year", "all": "All" },
@@ -760,6 +761,7 @@
     "modal": {
       "addTitle": "Add a weigh-in",
       "editTitle": "Edit weigh-in",
+      "openTitle": "Open interval (note + mode)",
       "occupied": "A weigh-in already exists on {{date}}. Replace it?",
       "replace": "Replace",
       "error": "Operation failed ({{code}})."

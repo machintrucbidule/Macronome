@@ -36,13 +36,15 @@ export function WeightDesktop(props: WeightDesktopProps) {
       ) : (
         <div className={styles.layout}>
           <WeightOverview data={data} ctl={ctl} />
-          {data.periods.length > 0 ? (
+          {data.periods.length > 0 || data.open_period ? (
             <PeriodTable
               periods={data.periods}
+              openPeriod={data.open_period}
               onRowClick={(d) => {
                 const w = byDate?.get(d);
                 if (w) ctl.openEdit(w);
               }}
+              onOpenClick={ctl.openOpenPeriod}
             />
           ) : (
             <EmptyState>{t('weight.single')}</EmptyState>

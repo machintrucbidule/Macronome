@@ -50,6 +50,7 @@ function settings(aiConfigured: boolean): Settings {
     locale: 'fr',
     theme: 'dark',
     current_mode: null,
+    open_period_note: null,
     ai: aiConfigured
       ? {
           provider: 'openai_compatible',

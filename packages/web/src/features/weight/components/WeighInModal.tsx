@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { CreateWeighInRequest, DietFlag } from '@macronome/shared';
-import { ApiError } from '../../../api/client';
+import type { DietFlag } from '@macronome/shared';
 import { Button } from '../../../components/Button/Button';
 import { Modal } from '../../../components/Modal/Modal';
 import { WeighInFields, type WeighInDraft } from './WeighInFields';
+import { useWeighInActions } from './useWeighInActions';
 import type { WeighInModalTarget } from '../useWeightController';
-import { useWeightMutations } from '../useWeight';
 import styles from '../weight.module.css';
 
 const todayIso = (): string => new Date().toISOString().slice(0, 10);
@@ -15,6 +14,8 @@ const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 interface WeighInModalProps {
   target: Exclude<WeighInModalTarget, null>;
   defaultFlag: DietFlag;
+  /** The persisted open-period note (B-176): the open mode's note + the add-modal note prefill. */
+  openNote?: string | null;
   onClose: () => void;
 }
 
@@ -46,62 +47,39 @@ function ConflictConfirm(props: {
   );
 }
 
-export function WeighInModal({ target, defaultFlag, onClose }: WeighInModalProps) {
+export function WeighInModal({ target, defaultFlag, openNote, onClose }: WeighInModalProps) {
   const { t } = useTranslation();
   const initial = target.kind === 'edit' ? target.weighIn : null;
-  const { create, patch, remove } = useWeightMutations();
   const [draft, setDraft] = useState<WeighInDraft>(() => ({
     date: initial?.date ?? todayIso(),
     weight: initial ? String(initial.weight_kg) : '',
     waist: initial?.waist_cm != null ? String(initial.waist_cm) : '',
     flag: initial?.diet_flag ?? defaultFlag,
-    note: initial?.note ?? '',
+    // add + open pre-fill the note from the persisted open-period note; edit keeps its own.
+    note: initial ? (initial.note ?? '') : (openNote ?? ''),
   }));
-  const [conflictId, setConflictId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const set = (patchDraft: Partial<WeighInDraft>): void =>
     setDraft((d) => ({ ...d, ...patchDraft }));
+  const a = useWeighInActions(target, draft, openNote, onClose);
 
-  const pending = create.isPending || patch.isPending || remove.isPending;
-  const canSave = draft.weight !== '' && Number(draft.weight) > 0 && DATE_RE.test(draft.date);
-  const values = (): Omit<CreateWeighInRequest, 'date'> => ({
-    weight_kg: Number(draft.weight),
-    waist_cm: draft.waist === '' ? null : Number(draft.waist),
-    diet_flag: draft.flag,
-    note: draft.note === '' ? null : draft.note,
-  });
-
-  const save = async (): Promise<void> => {
-    setError(null);
-    try {
-      if (initial)
-        await patch.mutateAsync({ id: initial.id, body: { date: draft.date, ...values() } });
-      else await create.mutateAsync({ date: draft.date, ...values() });
-      onClose();
-    } catch (e) {
-      if (e instanceof ApiError && e.code === 'weigh_in_date_occupied')
-        setConflictId(e.details?.existing_id ?? null);
-      else setError(e instanceof ApiError ? e.code : 'error');
-    }
-  };
-  const replace = async (): Promise<void> => {
-    if (conflictId) await patch.mutateAsync({ id: conflictId, body: values() });
-    onClose();
-  };
-  const del = async (): Promise<void> => {
-    if (initial) await remove.mutateAsync(initial.id);
-    onClose();
-  };
-
-  const title = t(initial ? 'weight.modal.editTitle' : 'weight.modal.addTitle');
-  if (conflictId) {
+  // Open mode always saves (note optional); add/edit need a positive weight + a valid date.
+  const canSave =
+    a.isOpen || (draft.weight !== '' && Number(draft.weight) > 0 && DATE_RE.test(draft.date));
+  const title = t(
+    a.isOpen
+      ? 'weight.modal.openTitle'
+      : a.initial
+        ? 'weight.modal.editTitle'
+        : 'weight.modal.addTitle',
+  );
+  if (a.conflictId) {
     return (
       <ConflictConfirm
         title={title}
         date={draft.date}
-        pending={pending}
-        onCancel={() => setConflictId(null)}
-        onReplace={() => void replace()}
+        pending={a.pending}
+        onCancel={a.clearConflict}
+        onReplace={() => void a.replace()}
         onClose={onClose}
       />
     );
@@ -109,10 +87,10 @@ export function WeighInModal({ target, defaultFlag, onClose }: WeighInModalProps
 
   return (
     <Modal title={title} onClose={onClose}>
-      <WeighInFields draft={draft} set={set} error={error} />
+      <WeighInFields draft={draft} set={set} error={a.error} openMode={a.isOpen} />
       <div className={styles.modalActions}>
-        {initial ? (
-          <Button variant="danger" disabled={pending} onClick={() => void del()}>
+        {a.initial ? (
+          <Button variant="danger" disabled={a.pending} onClick={() => void a.del()}>
             {t('common.remove')}
           </Button>
         ) : (
@@ -122,7 +100,11 @@ export function WeighInModal({ target, defaultFlag, onClose }: WeighInModalProps
           <Button variant="ghost" onClick={onClose}>
             {t('common.cancel')}
           </Button>
-          <Button variant="primary" disabled={!canSave || pending} onClick={() => void save()}>
+          <Button
+            variant="primary"
+            disabled={!canSave || a.pending}
+            onClick={() => void (a.isOpen ? a.saveOpen() : a.save())}
+          >
             {t('common.save')}
           </Button>
         </div>

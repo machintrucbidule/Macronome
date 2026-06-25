@@ -122,6 +122,24 @@ transparent)`, where `--act-color` is set per level by the **same B-085/B-101 pa
   sense) — `.flagDiet` (En régime) = accent soft bg + accent border; `.flagMaint`
   (Maintien) = `--bg-elev-2` bg + `--text-dim` text + `--border`.
 
+### Open-interval lead row (Poids, B-176)
+
+When the server emits `open_period` (`logic/weight-periods-trajectory.md §2.1`), the Period
+table (desktop) and the mobile period list render it as a **lead row at the top** (before the
+newest closed period), marking the span from the last weigh-in to today:
+
+- **Période** cell reads `<last weigh-in date> → Aujourd'hui` (the end is the live word, not a
+  date). The row is **clickable** like any period row, but opens the **reduced "open period"
+  modal** (`modals.md`), not a weigh-in.
+- **Computable cells** render normally: durée, apport moyen, dépense estimée, déficit/j
+  (same trend tone as closed rows), activité moyenne (same pill), régime badge
+  (= `current_mode`), note.
+- **End-weight-dependent cells dash** (em dash, the existing `orDash`/`DASH` treatment): Poids,
+  Tendance, Δ, Écart traj., IMC, Taille, Dépense empirique.
+- **No new token, no new colour.** Distinct emphasis of the lead row itself is handled by the
+  `:first-child` background rule (B-178, separate batch); on its own the open row is a normal
+  period row with dashed end-weight cells.
+
 ## Line-list grid (Repas meal column) — instance A
 
 A meal `.meal` is a flex column on `--bg-elev`, `min-height:200px`, first column

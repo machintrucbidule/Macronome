@@ -17,4 +17,4 @@ export {
   type ProjectionResult,
   type ProjectionStatus,
 } from './projection.js';
-export { derivePeriods, type RawPeriod, type WeighInInput } from './periods.js';
+export { derivePeriods, spanDays, type RawPeriod, type WeighInInput } from './periods.js';

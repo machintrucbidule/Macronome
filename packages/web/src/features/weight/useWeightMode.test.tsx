@@ -9,7 +9,13 @@ import { settingsApi } from '../../api/settings';
 // B-177: the Poids Régime/Maintien mode must persist. useWeightMode seeds the screen-local mode
 // from the server's current_mode and, on change, persists it via PATCH /settings (so it survives
 // a refresh) while keeping the optimistic local update.
-const SETTINGS: Settings = { locale: 'fr', theme: 'dark', ai: null, current_mode: 'not_in_diet' };
+const SETTINGS: Settings = {
+  locale: 'fr',
+  theme: 'dark',
+  ai: null,
+  current_mode: 'not_in_diet',
+  open_period_note: null,
+};
 
 function wrapper({ children }: { children: ReactNode }) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });

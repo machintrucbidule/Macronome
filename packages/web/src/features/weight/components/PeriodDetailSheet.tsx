@@ -66,8 +66,8 @@ export function PeriodDetailSheet({ period, onClose, onEdit }: PeriodDetailSheet
           <div className={styles.sect}>{t('weight.detail.sectWeight')}</div>
           <Cell label={t('weight.col.weight')}>{withUnit(p.weight_end, kg1, 'kg')}</Cell>
           <Cell label={t('weight.col.trend')}>{withUnit(p.ema, kg1, 'kg')}</Cell>
-          <Cell label={t('weight.col.delta')} tone={signTone(p.delta)}>
-            {`${signed1(p.delta)} kg`}
+          <Cell label={t('weight.col.delta')} tone={p.delta === null ? null : signTone(p.delta)}>
+            {withUnit(p.delta, signed1, 'kg')}
           </Cell>
           <Cell
             label={t('weight.col.ecart')}

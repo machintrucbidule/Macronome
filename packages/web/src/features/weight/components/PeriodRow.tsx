@@ -22,16 +22,20 @@ const toneClass = (tone: Tone): string =>
 
 export function PeriodRow({ period, onClick }: { period: Period; onClick: () => void }) {
   const { t } = useTranslation();
-  const arrow = deltaArrow(period.delta);
+  // The open interval (B-176) dashes the end-weight figures and ends at "today".
+  const arrow = period.delta === null ? null : deltaArrow(period.delta);
+  const end = period.open ? t('weight.today') : period.end_date;
   return (
     <tr className={styles.periodRow} data-period={period.end_date} onClick={onClick}>
-      <td>{`${period.start_date} → ${period.end_date}`}</td>
+      <td>{`${period.start_date} → ${end}`}</td>
       <td className={styles.num}>{period.days}</td>
-      <td className={styles.num}>{kg1(period.weight_end)}</td>
-      <td className={styles.num}>{kg1(period.ema)}</td>
-      <td className={`${styles.num} ${toneClass(signTone(period.delta))}`}>
+      <td className={styles.num}>{orDash(period.weight_end, kg1)}</td>
+      <td className={styles.num}>{orDash(period.ema, kg1)}</td>
+      <td
+        className={`${styles.num} ${period.delta === null ? '' : toneClass(signTone(period.delta))}`}
+      >
         {arrow && <span className={styles.arrow}>{arrow}</span>}
-        {signed1(period.delta)}
+        {orDash(period.delta, signed1)}
       </td>
       <td
         className={`${styles.num} ${period.ecart_trajectoire === null ? '' : toneClass(signTone(period.ecart_trajectoire))}`}
