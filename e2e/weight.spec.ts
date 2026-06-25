@@ -81,3 +81,41 @@ test('weigh-ins draw the trend/trajectory + a period; editing a date re-derives 
   await expect(rederived).toBeVisible();
   await expect(rederived.locator('td').nth(1)).toHaveText('14');
 });
+
+test('the Régime/Maintien mode persists across a reload (B-177)', async ({ page, playwright }) => {
+  // Seed a weigh-in (so current_mode is non-null → the header mode toggle shows) and reset
+  // settings (deterministic start = régime) directly, avoiding the weigh-in modal which has
+  // its own flag toggle. The toggle under test is the header one.
+  const user = await prisma.appUser.findUniqueOrThrow({ where: { username: USER } });
+  await prisma.weightEntry.upsert({
+    where: { userId_date: { userId: user.id, date: new Date('2026-03-10') } },
+    update: { weightKg: 80, dietFlag: 'in_diet' },
+    create: { userId: user.id, date: new Date('2026-03-10'), weightKg: 80, dietFlag: 'in_diet' },
+  });
+  await prisma.appUser.update({ where: { id: user.id }, data: { settings: {} } });
+
+  await login(page, playwright);
+  await page.goto('/weight');
+
+  const maintien = page.getByRole('button', { name: 'Maintien' });
+  // Seeded from the weigh-in's flag: régime is selected by default.
+  await expect(page.getByRole('button', { name: 'En régime' })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  // Switch to Maintien and wait for the persist PATCH /settings to land.
+  await Promise.all([
+    page.waitForResponse(
+      (r) => r.url().includes('/api/v1/settings') && r.request().method() === 'PATCH',
+    ),
+    maintien.click(),
+  ]);
+  await expect(maintien).toHaveAttribute('aria-pressed', 'true');
+
+  // Reload: the mode survives (persisted), instead of reverting to "En régime".
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'Maintien' })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+});

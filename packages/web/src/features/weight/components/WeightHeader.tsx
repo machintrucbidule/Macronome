@@ -4,9 +4,9 @@ import { Button } from '../../../components/Button/Button';
 import { FlagToggle } from './FlagToggle';
 import styles from '../weight.module.css';
 
-// Poids header: title, the screen-local current-mode toggle (Régime/Maintien — ephemeral in
-// M4), and the "+ Pesée" entry button. The mode pre-selects a new weigh-in's flag and gates
-// the projection display; it is local to this screen (screens/weight.md §Mode).
+// Poids header: title, the current-mode toggle (Régime/Maintien — persisted on app_user.settings
+// in M7, see useWeightMode), and the "+ Pesée" entry button. The mode pre-selects a new weigh-in's
+// flag and gates the projection display (screens/weight.md §Mode).
 interface WeightHeaderProps {
   mode: DietFlag | null;
   onMode: (m: DietFlag) => void;

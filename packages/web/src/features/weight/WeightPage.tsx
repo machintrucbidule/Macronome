@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AppShell } from '../../app/AppShell';
 import { dataApi } from '../../api/data';
@@ -10,6 +9,7 @@ import { WeightDesktop } from './components/WeightDesktop';
 import { WeightMobile } from './components/WeightMobile';
 import { useWeight } from './useWeight';
 import { useWeightController } from './useWeightController';
+import { useWeightMode } from './useWeightMode';
 import styles from './weight.module.css';
 
 // Poids screen (specifications/screens/weight.md): cartouche + chart + period table. Every
@@ -17,20 +17,16 @@ import styles from './weight.module.css';
 // weigh-ins through the modal. Mobile-responsive S8: a useIsMobile() render-switch picks the
 // desktop tree (WeightDesktop — byte-identical to before) or the mobile tree (WeightMobile —
 // controls row + list → detail sheet + FAB); the weigh-in modal is shared (bottom sheet ≤560px).
-// The current mode is ephemeral in M4 (persistence → M7).
+// The current mode is seeded from the server's persisted `current_mode` and persisted on change
+// (M7), via useWeightMode.
 export function WeightPage() {
   const { t } = useTranslation();
   const ctl = useWeightController();
   const query = useWeight(ctl.range);
-  const { mode, setMode } = ctl;
   const serverMode = query.data?.current_mode ?? null;
+  const { mode, setMode } = useWeightMode(serverMode);
   const csv = useCsvExport(dataApi.exportWeightCsv);
   const isMobile = useIsMobile();
-
-  // Seed the screen-local mode from the server default once (latest period's flag).
-  useEffect(() => {
-    if (mode === null && serverMode) setMode(serverMode);
-  }, [mode, setMode, serverMode]);
 
   const empty = !!(query.data && query.data.cartouche.current === null);
   const common = {
