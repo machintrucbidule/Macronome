@@ -53,7 +53,7 @@ function CalorieValue({ value, unit, editable, onSave, placeholder }: CalorieVal
 
   if (!editable) {
     return (
-      <span className={styles.val}>
+      <span className={styles.val} data-testid="day-total-kcal">
         {Math.round(value)} {unit}
       </span>
     );
@@ -63,7 +63,7 @@ function CalorieValue({ value, unit, editable, onSave, placeholder }: CalorieVal
     if (onSave && Number.isFinite(n) && n > 0 && n !== value) onSave(n);
   };
   return (
-    <span className={styles.val}>
+    <span className={styles.val} data-testid="day-total-kcal">
       <input
         className={styles.valInput}
         value={draft}

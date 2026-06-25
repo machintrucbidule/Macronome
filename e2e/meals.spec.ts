@@ -98,14 +98,14 @@ test('logging a referenced line updates the day totals', async ({ page, playwrig
   await login(page, playwright);
   await logFood(page, daysAgoIso(10), '200');
   // 200 kcal/100g × 200 g = 400 kcal, computed by the server and rendered on the calorie card.
-  await expect(page.getByText('400 kcal')).toBeVisible();
+  await expect(page.getByTestId('day-total-kcal')).toContainText('400 kcal');
 });
 
 test('leftover deduction scales the consumed values', async ({ page, playwright }) => {
   await login(page, playwright);
   const date = daysAgoIso(11);
   await logFood(page, date, '200');
-  await expect(page.getByText('400 kcal')).toBeVisible();
+  await expect(page.getByTestId('day-total-kcal')).toContainText('400 kcal');
 
   await page
     .getByRole('button', { name: /Restes/ })
@@ -116,14 +116,14 @@ test('leftover deduction scales the consumed values', async ({ page, playwright 
   await page.getByRole('button', { name: 'Appliquer' }).click();
 
   // consumed = 200 − 50 = 150 g → 400 × 150/200 = 300 kcal.
-  await expect(page.getByText('300 kcal')).toBeVisible();
+  await expect(page.getByTestId('day-total-kcal')).toContainText('300 kcal');
 });
 
 test('leftover block warns and writes nothing', async ({ page, playwright }) => {
   await login(page, playwright);
   const date = daysAgoIso(12);
   await logFood(page, date, '200');
-  await expect(page.getByText('400 kcal')).toBeVisible();
+  await expect(page.getByTestId('day-total-kcal')).toContainText('400 kcal');
 
   await page
     .getByRole('button', { name: /Restes/ })
@@ -135,16 +135,17 @@ test('leftover block warns and writes nothing', async ({ page, playwright }) => 
   await expect(page.getByText(/dépasse le poids servi/)).toBeVisible();
   await expect(page.getByRole('button', { name: 'Appliquer' })).toBeDisabled();
 
-  // Nothing written: closing leaves the day's totals unchanged.
-  await page.getByRole('button', { name: 'Annuler' }).click();
-  await expect(page.getByText('400 kcal')).toBeVisible();
+  // Nothing written: closing leaves the day's totals unchanged. Exact name → the modal's
+  // "Annuler" button, not the undo control ("Annuler (Ctrl+Z)").
+  await page.getByRole('button', { name: 'Annuler', exact: true }).click();
+  await expect(page.getByTestId('day-total-kcal')).toContainText('400 kcal');
 });
 
 test('cook mode adjusts a quantity and writes it back', async ({ page, playwright }) => {
   await login(page, playwright);
   const date = daysAgoIso(13);
   await logFood(page, date, '200');
-  await expect(page.getByText('400 kcal')).toBeVisible();
+  await expect(page.getByTestId('day-total-kcal')).toContainText('400 kcal');
 
   // Open the near-fullscreen cook modal on the first meal.
   await page.getByRole('button', { name: 'Mode cuisine' }).first().click();
@@ -159,5 +160,5 @@ test('cook mode adjusts a quantity and writes it back', async ({ page, playwrigh
   await dialog.getByRole('button', { name: 'Valider' }).click();
 
   // 200 kcal/100g × 100 g = 200 kcal, recomputed by the server after the write-back.
-  await expect(page.getByText('200 kcal')).toBeVisible();
+  await expect(page.getByTestId('day-total-kcal')).toContainText('200 kcal');
 });

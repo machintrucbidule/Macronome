@@ -68,6 +68,8 @@ test('set an inconsistent target and see the negative carb-ceiling warning', asy
   await page.getByRole('button', { name: 'Enregistrer' }).click();
 
   // The engine returns the real negative value (not clamped) + the inconsistency banner.
-  await expect(page.getByText('-40,0')).toBeVisible();
+  // Scope to the carb-ceiling tile: the value is echoed in the carb derived-field too.
+  // Macro grams render as integers (format.ts macroG → formatInt), so it is "-40", not "-40,0".
+  await expect(page.getByTestId('carb-ceiling-tile')).toContainText('-40');
   await expect(page.getByText(/Cibles incohérentes/)).toBeVisible();
 });

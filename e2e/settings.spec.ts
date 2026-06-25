@@ -77,9 +77,9 @@ test('pin a food in settings → it pre-fills a new day; unpin → future-only',
   await expect(page.getByText(FOOD_NAME)).toBeVisible();
 
   // Unpin from settings → future days no longer pre-fill it. Target the chip's own remove
-  // button (the meal rows also have a × delete, so scope to the chip holding the food name).
+  // button via its test id (the chip also has a unit button, and meal rows a × delete).
   await page.goto('/parametres');
-  await page.getByText(FOOD_NAME).getByRole('button').click();
+  await page.getByTestId('pantry-remove').click();
   await expect(page.getByText(FOOD_NAME)).toHaveCount(0);
 
   await page.goto('/day/2026-12-16');

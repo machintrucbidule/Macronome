@@ -23,6 +23,8 @@ interface MetricCardProps {
    * (Stats rolling strip, Poids cartouche).
    */
   size?: 'md' | 'stat';
+  /** Optional e2e hook (data-testid) on the card root; presentation is unchanged. */
+  testId?: string;
 }
 
 const toneClass: Record<NonNullable<MetricCardProps['tone']>, string | undefined> = {
@@ -40,13 +42,14 @@ export function MetricCard({
   tone = 'default',
   accent,
   size,
+  testId,
 }: MetricCardProps) {
   const cardClass = [styles.card, size ? styles[size] : '', accent ? styles[accent] : '']
     .filter(Boolean)
     .join(' ');
   const valueTone = toneClass[tone];
   return (
-    <div className={cardClass}>
+    <div className={cardClass} data-testid={testId}>
       <div className={styles.label}>{label}</div>
       <div className={`${styles.value} ${valueTone ? styles[valueTone] : ''}`}>
         {value}

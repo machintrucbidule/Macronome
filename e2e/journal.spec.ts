@@ -92,7 +92,10 @@ async function logFood(page: Page, date: string, grams: string): Promise<void> {
   const qty = page.locator('input[data-meal-qty]').first();
   await qty.fill(grams);
   await qty.press('Enter');
-  await expect(page.getByText(`${Math.round((200 * Number(grams)) / 100)} kcal`)).toBeVisible();
+  // Scope to the day-total card: the per-meal MealTabs render the same "NNN kcal" string.
+  await expect(page.getByTestId('day-total-kcal')).toContainText(
+    `${Math.round((200 * Number(grams)) / 100)} kcal`,
+  );
 }
 
 /** Open the Journal scoped to the year of `date` (default year is the current year). */

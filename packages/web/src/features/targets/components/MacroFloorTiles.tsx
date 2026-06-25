@@ -40,6 +40,7 @@ export function MacroFloorTiles({ engine, carbWarn }: MacroFloorTilesProps) {
         unit="g"
         tone={carbWarn ? 'warn' : 'default'}
         accent="carb"
+        testId="carb-ceiling-tile"
       />
     </div>
   );

@@ -113,5 +113,6 @@ test('build a recipe, save it, then log one portion on a day', async ({ page, pl
   await page.getByRole('button', { name: /portion \(/ }).click();
 
   // 1 portion = 100 g × 200 kcal/100 g = 200 kcal, computed server-side.
-  await expect(page.getByText('200 kcal')).toBeVisible();
+  // Scope to the day-total card: the per-meal MealTabs render the same "200 kcal" string.
+  await expect(page.getByTestId('day-total-kcal')).toContainText('200 kcal');
 });

@@ -52,7 +52,12 @@ export function PantryFoodChip({ item, onRemove, onSetUnit }: Props) {
           />
         )}
       </span>
-      <button type="button" title={t('common.remove')} onClick={onRemove}>
+      <button
+        type="button"
+        title={t('common.remove')}
+        onClick={onRemove}
+        data-testid="pantry-remove"
+      >
         ×
       </button>
     </span>
