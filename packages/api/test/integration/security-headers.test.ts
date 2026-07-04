@@ -16,11 +16,12 @@ describe('CSP security headers', () => {
     expect(csp).not.toContain('upgrade-insecure-requests');
   });
 
-  it('keeps the intended self-only directives', async () => {
+  it('keeps the intended self-only directives (+ the Chronodrive CDN img allowance)', async () => {
     const res = await request(app).get('/api/v1/health');
     const csp = res.headers['content-security-policy'] as string;
     expect(csp).toContain("default-src 'self'");
     expect(csp).toContain("connect-src 'self'");
-    expect(csp).toContain("img-src 'self' data:");
+    // B-182 prod follow-up: product thumbnails are the sole third-party resource.
+    expect(csp).toContain("img-src 'self' data: https://*.chronodrive.com");
   });
 });

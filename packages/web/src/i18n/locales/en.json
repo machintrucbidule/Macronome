@@ -888,7 +888,7 @@
     "disconnect": "Disconnect",
     "ha": {
       "title": "Home Assistant",
-      "baseUrlPlaceholder": "http://homeassistant.local:8123",
+      "baseUrlPlaceholder": "http://192.168.1.10:8123",
       "token": "Long-lived access token",
       "tokenPlaceholder": "Paste your token",
       "entityId": "Weight sensor entity id",
@@ -898,7 +898,8 @@
       "helpTitle": "Where to find the token and entity id?",
       "help1": "In HA: profile (bottom-left) → Security → Long-lived access tokens → create a token and paste it here.",
       "help2": "The weight sensor's entity id is listed under Developer tools → States.",
-      "help3": "The Test button saves the card, then reads the scale's latest measurement."
+      "help3": "The Test button saves the card, then reads the scale's latest measurement.",
+      "help4": "If Macronome runs in Docker, use HA's LAN IP: .local (mDNS) names do not resolve from inside a container. The public HTTPS URL works too."
     },
     "gateway": {
       "title": "BarclaudeGateway",

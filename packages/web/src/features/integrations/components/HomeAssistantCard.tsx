@@ -66,6 +66,7 @@ export function HomeAssistantCard() {
             <li>{t('integrations.ha.help1')}</li>
             <li>{t('integrations.ha.help2')}</li>
             <li>{t('integrations.ha.help3')}</li>
+            <li>{t('integrations.ha.help4')}</li>
           </ol>
         </details>
 

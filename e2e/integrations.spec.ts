@@ -51,7 +51,7 @@ test('configure Home Assistant → persists across reload with the token masked'
   await expect(page).toHaveURL(/\/integrations$/);
 
   // Fill + save the HA card.
-  await page.getByPlaceholder('http://homeassistant.local:8123').fill('http://192.168.1.10:8123');
+  await page.getByPlaceholder('http://192.168.1.10:8123').fill('http://192.168.1.20:8123');
   await page.getByPlaceholder('Colle ton jeton').fill('e2e-secret-token');
   await page.getByPlaceholder('sensor.scale_weight').fill('sensor.test_scale_weight');
   await page.getByRole('button', { name: 'Enregistrer' }).first().click();
@@ -60,7 +60,7 @@ test('configure Home Assistant → persists across reload with the token masked'
 
   // Reload → persisted + still masked, secret never in the DOM.
   await page.reload();
-  await expect(page.locator('input[value="http://192.168.1.10:8123"]')).toBeVisible();
+  await expect(page.locator('input[value="http://192.168.1.20:8123"]')).toBeVisible();
   await expect(page.locator('input[value="sensor.test_scale_weight"]')).toBeVisible();
   await expect(page.getByPlaceholder('•••• définie')).toBeVisible();
   expect(await page.content()).not.toContain('e2e-secret-token');

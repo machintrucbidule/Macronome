@@ -3568,6 +3568,13 @@ account-menu page (B-181).
   network/5xx only (never 401/404), timeouts ≤ 10 s HA / ≤ 8 s gateway.
 - **Export/import (IMP-1)**: the settings blob round-trips verbatim, so the two secrets
   travel in the export exactly like `ai.api_key` — accepted (same stance).
+- **Prod follow-up (2026-07-04)**: the HA card's placeholder suggested
+  `http://homeassistant.local:8123` — an mDNS name that does **not** resolve from inside
+  a Docker container (the standard deployment), which cost the owner a failed first
+  configuration. Placeholder changed to the LAN-IP form (`http://192.168.1.10:8123`) and
+  a fourth help line added (use the LAN IP under Docker; the public HTTPS URL works
+  too). No behaviour change — the proxy was always server-side; the container simply
+  must be able to resolve whatever URL is configured.
 
 **Transport.** New `spec/api/integrations.md` endpoints:
 `GET /integrations/home-assistant/weight` → `{weight_kg, measured_at, unit, entity_id}`;
@@ -3638,3 +3645,11 @@ transform overlay — no layout shift); and an **icon-only external link** per r
 Chronodrive product page — no URL in the payload, but `chronodrive.com/p-P{id}`
 301-redirects to the canonical page (verified live), so the summary gains a
 server-built `product_url` (§8.1, `spec/api/integrations.md`, DTO).
+
+**Prod follow-up (2026-07-04).** In production the app's own CSP (`img-src 'self'
+data:`) blocked the product thumbnails — dev (Vite) emits no CSP, so it only showed
+after deploying. Owner decision (asked, vs a server-side image proxy): **allow the CDN
+in the CSP** — `img-src` gains `https://*.chronodrive.com`, the app's sole third-party
+allowance (public images, nothing secret; `securityHeaders.ts`, asserted in
+`security-headers.test.ts`, noted in `docs/architecture/security.md`). The image-proxy
+option stays deferred.

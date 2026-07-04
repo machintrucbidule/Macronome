@@ -888,7 +888,7 @@
     "disconnect": "Déconnecter",
     "ha": {
       "title": "Home Assistant",
-      "baseUrlPlaceholder": "http://homeassistant.local:8123",
+      "baseUrlPlaceholder": "http://192.168.1.10:8123",
       "token": "Jeton d'accès longue durée",
       "tokenPlaceholder": "Colle ton jeton",
       "entityId": "Entity id du capteur de poids",
@@ -898,7 +898,8 @@
       "helpTitle": "Où trouver le jeton et l'entity id ?",
       "help1": "Dans HA : profil (en bas à gauche) → Sécurité → Jetons d'accès longue durée → crée un jeton et colle-le ici.",
       "help2": "L'entity id du capteur de poids se trouve dans Outils de développement → États.",
-      "help3": "Le bouton Tester enregistre la carte puis lit la dernière mesure de la balance."
+      "help3": "Le bouton Tester enregistre la carte puis lit la dernière mesure de la balance.",
+      "help4": "Si Macronome tourne en Docker, utilise l'IP LAN de HA : les noms en .local (mDNS) ne se résolvent pas depuis un conteneur. L'URL publique HTTPS fonctionne aussi."
     },
     "gateway": {
       "title": "BarclaudeGateway",

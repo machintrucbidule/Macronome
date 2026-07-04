@@ -100,5 +100,8 @@ Choices favour boring, proven mechanisms over novelty.
   CSP for the SPA) emitted by the **app** via `helmet`
   (`http/middleware/securityHeaders.ts`) — the app serves the SPA itself (ADR-0001),
   so headers are not delegated to a proxy. The operator's frontal only terminates TLS.
+  Sole third-party CSP allowance: `img-src` also permits `https://*.chronodrive.com`
+  (the food modal's product thumbnails, B-182 — public images loaded browser-side,
+  not proxied in v1; owner-approved).
 - The reserved `POST /advisor/query` returns **501** until explicitly built; it
   cannot leak data while inert.
