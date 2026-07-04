@@ -168,6 +168,7 @@
       "hint": "Type at least 3 characters.",
       "empty": "No product found.",
       "choose": "Choose",
+      "openPage": "Open the Chronodrive product page",
       "incomplete": "Incomplete macros (not declared by the manufacturer): fill the empty fields, otherwise they will be saved as 0.",
       "error": "Search failed."
     }

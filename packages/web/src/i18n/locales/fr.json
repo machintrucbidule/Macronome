@@ -168,6 +168,7 @@
       "hint": "Tape au moins 3 caractères.",
       "empty": "Aucun produit trouvé.",
       "choose": "Choisir",
+      "openPage": "Ouvrir la page produit Chronodrive",
       "incomplete": "Macros incomplètes (non déclarées par le fabricant) : complète les champs vides, sinon ils seront enregistrés à 0.",
       "error": "La recherche a échoué."
     }

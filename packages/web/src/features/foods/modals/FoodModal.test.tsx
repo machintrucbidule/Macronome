@@ -76,6 +76,7 @@ function chronoProduct(overrides: Partial<ChronoProductResponse['food_prefill']>
       image_url: null,
       unit_quantity_label: '500 g',
       price_eur: 1.15,
+      product_url: 'https://www.chronodrive.com/p-Pp1',
       food_prefill: {
         name: 'Panzani Spaghetti',
         kcal_per_100g: 361,

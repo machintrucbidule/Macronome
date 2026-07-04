@@ -239,6 +239,31 @@
 .chronoRow:last-child {
   border-bottom: 0;
 }
+.chronoSearchRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.chronoSearchRow > :first-child {
+  flex: 1;
+}
+/* Same look as the meals aiSpinner (modals.module.css) — feature-scoped copy. */
+.chronoSpinner {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, currentColor 30%, transparent);
+  border-top-color: currentColor;
+  animation: chronoSpin 0.7s linear infinite;
+  flex: none;
+  color: var(--text-dim);
+}
+@keyframes chronoSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 .chronoThumb {
   width: 36px;
   height: 36px;
@@ -246,6 +271,17 @@
   border-radius: var(--r-sm);
   background: var(--bg-field);
   flex-shrink: 0;
+  position: relative;
+  transition: transform 0.12s ease;
+  transform-origin: left center;
+}
+/* Hover zoom (B-182 follow-up): transform only — overlays the dialog, never shifts
+   the other elements. */
+.chronoThumb:hover {
+  transform: scale(4);
+  z-index: 5;
+  background: var(--bg-elev);
+  box-shadow: 0 2px 12px rgb(0 0 0 / 35%);
 }
 .chronoInfo {
   flex: 1;
@@ -274,6 +310,15 @@
 }
 .chronoChoose:hover {
   text-decoration: underline;
+}
+.chronoPageLink {
+  display: inline-flex;
+  align-items: center;
+  color: var(--text-faint);
+  flex-shrink: 0;
+}
+.chronoPageLink:hover {
+  color: var(--accent);
 }
 
 .portions {

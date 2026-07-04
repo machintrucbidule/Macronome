@@ -16,6 +16,8 @@ export interface ChronoProductSummary {
   unit_quantity_label: string | null;
   /** Display-only price in euros (upstream price.default). */
   price_eur: number | null;
+  /** Chronodrive product page, built server-side from the id (§8.1); null without id. */
+  product_url: string | null;
 }
 
 /** Server-side product → food pre-fill (§8.2) — null leaves the draft field empty. */

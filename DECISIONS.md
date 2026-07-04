@@ -3626,3 +3626,15 @@ integration tests (X-API-Key + `size=10` asserted on the outbound stub, q too sh
 unconfigured → 409); `FoodModal` unit tests (link gated on config, applyChrono fills the
 draft, missing macro → empty field + notice). No e2e (external dependency; the mocked
 integration layer covers the contract). Full suite + typecheck + lint + CI green.
+
+**Follow-up (same day, owner feedback after a live test).** A real product (milk) came
+back with **no macros filled** and a wrong "à compléter" notice: the live gateway emits
+`nutrition.base: "100ml"` (no space) while its contract examples read `"100 g"`, so the
+§8.2 base gate rejected it. **Fix (contract amended)**: the base comparison is now
+**normalised** (lowercased, spaces removed) → accepts `100g`/`100ml` in any spelling;
+new §8.3 oracles. Plus three owner-requested dialog polish items: a **spinner** while
+the search/pick request runs; **hovering the thumbnail enlarges it** (~×4, CSS
+transform overlay — no layout shift); and an **icon-only external link** per row to the
+Chronodrive product page — no URL in the payload, but `chronodrive.com/p-P{id}`
+301-redirects to the canonical page (verified live), so the summary gains a
+server-built `product_url` (§8.1, `spec/api/integrations.md`, DTO).

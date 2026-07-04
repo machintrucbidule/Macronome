@@ -107,6 +107,7 @@ describe('GET /integrations/barclaude-gateway/search (B-182)', () => {
         image_url: 'http://gw.local:8080/img/p1.jpg',
         unit_quantity_label: '500 g',
         price_eur: 1.15,
+        product_url: 'https://www.chronodrive.com/p-Pp1',
       },
       {
         id: 'p2',
@@ -115,6 +116,7 @@ describe('GET /integrations/barclaude-gateway/search (B-182)', () => {
         image_url: null,
         unit_quantity_label: null,
         price_eur: null,
+        product_url: 'https://www.chronodrive.com/p-Pp2',
       },
     ]);
   });

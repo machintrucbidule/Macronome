@@ -50,9 +50,10 @@ PATCH), then calls the proxy ("persist then test", same flow as `/settings/ai/mo
   `GET {bg.base_url}/api/v1/search?q=&size=10` (`integrations-connections.md §8.1`;
   the server always passes `size=10`). Zod: `q` trimmed, **min 3 chars** → else 422
   (`q: too_short`), no outbound call. → 200 `{data: ChronoProductSummary[]}` with
-  `ChronoProductSummary = {id, name, brand, image_url, unit_quantity_label, price_eur}`
-  (absent upstream fields → null; `price_eur ← price.default`; thumbnails are loaded
-  browser-side from the public `image_url`, not proxied in v1).
+  `ChronoProductSummary = {id, name, brand, image_url, unit_quantity_label, price_eur,
+product_url}` (absent upstream fields → null; `price_eur ← price.default`;
+  `product_url` built server-side from the id, `integrations-connections.md §8.1`;
+  thumbnails are loaded browser-side from the public `image_url`, not proxied in v1).
   Errors: same table as `/ping`.
 - `GET /integrations/barclaude-gateway/products/:id` — proxy of
   `GET {bg.base_url}/api/v1/products/{id}` (id or EAN). → 200

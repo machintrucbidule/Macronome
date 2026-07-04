@@ -68,6 +68,23 @@ test('§8.3.5 kJ only → kcal null (never derived from energyKj)', () => {
   expect(prefill.kcal_per_100g).toBeNull();
 });
 
+test('§8.3.6 spacing-tolerant base — the live "100ml" (no space) form maps', () => {
+  // Real payload observed on the gateway (product 387343, semi-skimmed milk).
+  const prefill = mapProduct({
+    ...panzani,
+    nutrition: { base: '100ml', energyKcal: 47, fat: 1.6, carbohydrate: 4.8, protein: 3.3 },
+  });
+  expect(prefill).toMatchObject({
+    kcal_per_100g: 47,
+    fat_per_100g: 1.6,
+    carb_per_100g: 4.8,
+    protein_per_100g: 3.3,
+  });
+  expect(
+    mapProduct({ ...panzani, nutrition: { ...panzani.nutrition, base: '100 G' } }).kcal_per_100g,
+  ).toBe(361);
+});
+
 test('no nutrition object at all → all macros null', () => {
   const prefill = mapProduct({ ...panzani, nutrition: undefined });
   expect(prefill.kcal_per_100g).toBeNull();
@@ -82,6 +99,7 @@ test('§8.1 summary shaping — snake_case, absent → null, price_eur ← price
     image_url: 'http://gw.local:8080/img/p1.jpg',
     unit_quantity_label: '500 g',
     price_eur: 1.15,
+    product_url: 'https://www.chronodrive.com/p-Pp1',
   });
   expect(mapSummary({ id: 'p2', name: 'X' })).toEqual({
     id: 'p2',
@@ -90,5 +108,13 @@ test('§8.1 summary shaping — snake_case, absent → null, price_eur ← price
     image_url: null,
     unit_quantity_label: null,
     price_eur: null,
+    product_url: 'https://www.chronodrive.com/p-Pp2',
   });
+});
+
+test('§8.3.7 product_url — built from the id; missing id → null', () => {
+  expect(mapSummary({ id: '387343', name: 'Lait' }).product_url).toBe(
+    'https://www.chronodrive.com/p-P387343',
+  );
+  expect(mapSummary({ name: 'X' }).product_url).toBeNull();
 });

@@ -53,6 +53,23 @@ function ChronoResultRow(props: { product: ChronoProductSummary; onChoose: () =>
         </div>
         {meta && <div className={styles.chronoMeta}>{meta}</div>}
       </div>
+      {product.product_url && (
+        <a
+          className={styles.chronoPageLink}
+          href={product.product_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={t('foods.chrono.openPage')}
+          title={t('foods.chrono.openPage')}
+        >
+          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3zM5 5h6v2H7v10h10v-4h2v6H5V5z"
+            />
+          </svg>
+        </a>
+      )}
       <button type="button" className={styles.chronoChoose} onClick={onChoose}>
         {t('foods.chrono.choose')}
       </button>
@@ -85,21 +102,25 @@ export function ChronoSearchDialog({ onClose, onApplied }: ChronoSearchDialogPro
 
   const tooShort = q.trim().length < 3;
   const results = search.data ?? [];
+  const busy = search.isFetching || pick.isPending;
   const failed = search.isError ? search.error : pick.isError ? pick.error : null;
 
   return (
     <Modal title={t('foods.chrono.title')} size="md" onClose={onClose}>
       <div className={modalStyles.sub}>{t('foods.chrono.sub')}</div>
       <div className={modalStyles.body}>
-        <SearchField
-          value={q}
-          autoFocus
-          placeholder={t('foods.chrono.placeholder')}
-          onChange={(e) => setQ(e.target.value)}
-        />
+        <div className={styles.chronoSearchRow}>
+          <SearchField
+            value={q}
+            autoFocus
+            placeholder={t('foods.chrono.placeholder')}
+            onChange={(e) => setQ(e.target.value)}
+          />
+          {busy && <span className={styles.chronoSpinner} aria-hidden="true" />}
+        </div>
         {tooShort && <div className="hint">{t('foods.chrono.hint')}</div>}
         {failed !== null && <div className={styles.parseerror}>⚠ {t(errorKey(failed))}</div>}
-        {!tooShort && search.isSuccess && results.length === 0 && (
+        {!tooShort && search.isSuccess && !busy && results.length === 0 && (
           <div className="hint">{t('foods.chrono.empty')}</div>
         )}
         <div className={styles.chronoList}>

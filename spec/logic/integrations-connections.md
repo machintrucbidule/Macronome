@@ -168,11 +168,14 @@ the stored gateway config and authenticate with `X-API-Key` (§6 doctrine).
 - Request: `GET {base_url}/api/v1/search?q={q}&size=10` (the server always passes
   `size=10` — the cap is server-side, not client-side).
 - Success: the upstream `{ products: ProductSummary[] }` is mapped to the compact
-  summary `{ id, name, brand, image_url, unit_quantity_label, price_eur }`:
+  summary `{ id, name, brand, image_url, unit_quantity_label, price_eur, product_url }`:
   - `brand`, `unitQuantityLabel` absent → `null`;
   - `image_url ← image` (absolute public URL; the browser loads thumbnails directly —
     images are not proxied in v1);
-  - `price_eur ← price.default` (euros, display-only), absent → `null`.
+  - `price_eur ← price.default` (euros, display-only), absent → `null`;
+  - `product_url` = `https://www.chronodrive.com/p-P{id}` (`null` when `id` is absent) —
+    the site 301-redirects this id-only form to the canonical product page (verified);
+    built server-side so the Chronodrive URL scheme stays in the domain mapping.
 - A `q` shorter than 3 characters after trim is rejected at the controller (422,
   `q: too_short` via Zod) — no outbound call.
 
@@ -181,9 +184,11 @@ the stored gateway config and authenticate with `X-API-Key` (§6 doctrine).
 `mapProduct(raw) → food_prefill` — pure function, applied by the API (rule 2: the web
 never computes a nutrition figure):
 
-- **Base gate**: macros are mapped **only when `nutrition.base` is `"100 g"` or
-  `"100 ml"`**; any other base (e.g. `"portion (30 g)"`) → **all four macros `null`**
-  (never silently rescaled).
+- **Base gate**: macros are mapped **only when `nutrition.base`, compared after
+  normalisation (lowercased, spaces removed), is `100g` or `100ml`** — the live gateway
+  emits variants like `"100ml"` (no space) while its contract examples read `"100 g"`,
+  so the gate is spelling-tolerant (`"100 g"`, `"100ml"`, `"100 ML"`, …). Any other base
+  (e.g. `"portion (30 g)"`) → **all four macros `null`** (never silently rescaled).
 - Field mapping (a field **absent** from the gateway payload — manufacturer did not
   declare it — maps to `null`; the others are kept):
   - `kcal_per_100g ← nutrition.energyKcal` — **never derived from `energyKj`**;
@@ -211,3 +216,8 @@ protein_per_100g:12, comment:"500 g"}`.
    space); `unitQuantityLabel` absent → `comment:null`.
 5. **kJ only.** `nutrition:{base:"100 g", energyKj:1530}` (no `energyKcal`) →
    `kcal_per_100g:null` (never derived from kJ).
+6. **Spacing-tolerant base.** `nutrition:{base:"100ml", energyKcal:47, fat:1.6,
+carbohydrate:4.8, protein:3.3}` (no space — the live gateway form) → all four macros
+   mapped (`kcal_per_100g:47`, …); same for `"100 G"`.
+7. **Product URL.** summary `{id:"387343", …}` →
+   `product_url:"https://www.chronodrive.com/p-P387343"`; missing id → `null`.
