@@ -1,13 +1,25 @@
 import type { ChronoFoodPrefill, ChronoProductSummary } from '@macronome/shared';
 
 // Pure product → food mapping for the Chronodrive search (B-182,
-// spec/logic/integrations-connections.md §8): macros are mapped ONLY for a
-// 100 g / 100 ml nutrition base — compared after normalisation (lowercase, spaces
-// stripped) because the live gateway emits "100ml" while its contract examples read
-// "100 g" (anything else → null, never rescaled); an absent field maps to null; kcal
-// comes from energyKcal only (never derived from kJ).
+// spec/logic/integrations-connections.md §8). The live gateway's `nutrition.base` is
+// free text or absent (§8.2), so the per-100 gate is a rule, not an equality:
+// absent base → per-100 by law (EU INCO mandatory declaration); present base → must
+// reference 100 g/ml in any spelling; anything else → all macros null (never silently
+// rescaled). An absent macro field maps to null; kcal comes from energyKcal only
+// (never derived from kJ).
 
 const CHRONODRIVE_PRODUCT_URL = 'https://www.chronodrive.com/p-P';
+
+// On the normalised base (lowercased, spaces stripped): `100`, optional `.0+`/`,0+`
+// decimals ("100.000gr"), then a mass/volume unit — not preceded by a digit ("1000g")
+// and not followed by a letter. Covers every live-observed per-100 spelling (§8.3.9).
+const PER_100_RE = /(?<!\d)100(?:[.,]0+)?(?:grammes?|gr|g|ml)(?![a-z])/;
+
+/** §8.2 base gate — absent/empty base counts as per-100 (INCO default). */
+function isPer100(base: string | null): boolean {
+  if (base === null) return true;
+  return PER_100_RE.test(base.toLowerCase().replace(/\s+/g, ''));
+}
 
 /** Raw gateway product shapes (v0.4.1) — only the fields this mapping reads. */
 export interface RawGatewayProduct {
@@ -46,11 +58,10 @@ export function mapSummary(raw: RawGatewayProduct): ChronoProductSummary {
   };
 }
 
-/** §8.2 — food pre-fill mapping (macros gated on the normalised 100 g / 100 ml base). */
+/** §8.2 — food pre-fill mapping (macros gated on the tolerant per-100 base rule). */
 export function mapProduct(raw: RawGatewayProduct): ChronoFoodPrefill {
   const nutrition = raw.nutrition;
-  const base = (str(nutrition?.base) ?? '').toLowerCase().replace(/\s+/g, '');
-  const mappable = base === '100g' || base === '100ml';
+  const mappable = isPer100(str(nutrition?.base));
   return {
     name: [str(raw.brand), str(raw.name)].filter(Boolean).join(' '),
     kcal_per_100g: mappable ? num(nutrition?.energyKcal) : null,

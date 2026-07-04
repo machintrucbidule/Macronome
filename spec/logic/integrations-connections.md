@@ -184,11 +184,21 @@ the stored gateway config and authenticate with `X-API-Key` (§6 doctrine).
 `mapProduct(raw) → food_prefill` — pure function, applied by the API (rule 2: the web
 never computes a nutrition figure):
 
-- **Base gate**: macros are mapped **only when `nutrition.base`, compared after
-  normalisation (lowercased, spaces removed), is `100g` or `100ml`** — the live gateway
-  emits variants like `"100ml"` (no space) while its contract examples read `"100 g"`,
-  so the gate is spelling-tolerant (`"100 g"`, `"100ml"`, `"100 ML"`, …). Any other base
-  (e.g. `"portion (30 g)"`) → **all four macros `null`** (never silently rescaled).
+- **Base gate (tolerant)**. `nutrition.base` on the live gateway is **free text or
+  absent** (observed on a 24-product sample: `100 g`, `100 G`, `100 mL`, `100 grammes`,
+  `100.000 GR`, `Pour 100g`, `par portion de 100g`,
+  `Valeurs nutritionnelles moyennes pour 100 ml`, and missing entirely), so the gate is
+  a rule, not an equality:
+  - **Base absent/empty → mapped.** The EU INCO regulation makes the per-100 g/100 ml
+    declaration mandatory — it is what Chronodrive publishes — so an unlabelled table
+    is per-100 by law.
+  - **Base present → mapped iff the text references 100 g/ml**: normalised (lowercased,
+    spaces removed), it must match `100` (optionally `.0+`/`,0+`) followed by
+    `g`/`gr`/`gramme(s)`/`ml`, not preceded by a digit and not followed by a letter —
+    this accepts every observed per-100 spelling, including `par portion de 100g`
+    (a portion that _is_ 100 g), and rejects `1000 g`-style false positives.
+  - **Anything else → all four macros `null`** (e.g. `portion (30 g)`, `55 g` — the
+    only case where mapping would silently store wrong per-100 macros).
 - Field mapping (a field **absent** from the gateway payload — manufacturer did not
   declare it — maps to `null`; the others are kept):
   - `kcal_per_100g ← nutrition.energyKcal` — **never derived from `energyKj`**;
@@ -221,3 +231,11 @@ carbohydrate:4.8, protein:3.3}` (no space — the live gateway form) → all fou
    mapped (`kcal_per_100g:47`, …); same for `"100 G"`.
 7. **Product URL.** summary `{id:"387343", …}` →
    `product_url:"https://www.chronodrive.com/p-P387343"`; missing id → `null`.
+8. **Absent base.** `nutrition:{energyKcal:389, fat:18, carbohydrate:33, protein:32}`
+   (no `base` key — observed live on a protein bar and on chicken fillets) → all four
+   macros mapped (INCO default).
+9. **Free-text per-100 bases** (all observed live) → mapped: `"Pour 100 g"`,
+   `"par portion de 100g"`, `"Valeurs nutritionnelles moyennes pour 100 ml"`,
+   `"100 grammes"`, `"100.000 GR"`.
+10. **Non-100 bases** → all four macros `null`: `"portion (30 g)"`, `"55 g"`,
+    `"1000 g"` (digit guard: `1000` must not read as `100`).

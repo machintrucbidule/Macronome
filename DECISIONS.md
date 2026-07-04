@@ -3653,3 +3653,16 @@ in the CSP** — `img-src` gains `https://*.chronodrive.com`, the app's sole thi
 allowance (public images, nothing secret; `securityHeaders.ts`, asserted in
 `security-headers.test.ts`, noted in `docs/architecture/security.md`). The image-proxy
 option stays deferred.
+
+**Follow-up 3 (2026-07-04) — tolerant per-100 base gate.** A second real product (a
+protein bar) mapped no macros: its payload has **no `nutrition.base` at all**. A
+24-product live sample showed `base` is **free text or absent** (`100 G`,
+`100.000 GR`, `100 grammes`, `Pour 100g`, `par portion de 100g`,
+`Valeurs nutritionnelles moyennes pour 100 ml`, missing…), so per-case spelling fixes
+would never end. Owner decision (asked, vs dropping the gate entirely): **tolerant
+rule** — absent base ⇒ per-100 by law (EU INCO makes the per-100 g/ml declaration
+mandatory; it is what Chronodrive publishes); present base ⇒ mapped iff the normalised
+text references `100 g/gr/gramme(s)/ml` (digit-guarded regex — accepts every observed
+spelling incl. "par portion de 100g", rejects `1000 g`); anything else (`portion
+(30 g)`, `55 g`) ⇒ macros null — the only case where mapping would silently store
+wrong per-100 values. Spec §8.2 rewritten + §8.3 oracles 8–10.

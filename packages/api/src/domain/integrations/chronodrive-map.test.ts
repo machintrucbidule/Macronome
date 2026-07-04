@@ -85,7 +85,45 @@ test('§8.3.6 spacing-tolerant base — the live "100ml" (no space) form maps', 
   ).toBe(361);
 });
 
-test('no nutrition object at all → all macros null', () => {
+test('§8.3.8 absent base → mapped (INCO per-100 default; live protein-bar case)', () => {
+  const prefill = mapProduct({
+    ...panzani,
+    nutrition: { energyKcal: 389, fat: 18, carbohydrate: 33, protein: 32 },
+  });
+  expect(prefill).toMatchObject({
+    kcal_per_100g: 389,
+    fat_per_100g: 18,
+    carb_per_100g: 33,
+    protein_per_100g: 32,
+  });
+});
+
+test('§8.3.9 free-text per-100 bases (all observed live) → mapped', () => {
+  const bases = [
+    'Pour 100 g',
+    'Pour 100g',
+    'par portion de 100g',
+    'Valeurs nutritionnelles moyennes pour 100 ml',
+    'Valeurs nutritionnelles moyennes pour 100g',
+    '100 grammes',
+    '100.000 GR',
+    '100 mL',
+  ];
+  for (const base of bases) {
+    const prefill = mapProduct({ ...panzani, nutrition: { ...panzani.nutrition, base } });
+    expect(prefill.kcal_per_100g, `base "${base}" should map`).toBe(361);
+  }
+});
+
+test('§8.3.10 non-100 bases → all macros null', () => {
+  for (const base of ['portion (30 g)', '55 g', '1000 g', 'par barre (55g)']) {
+    const prefill = mapProduct({ ...panzani, nutrition: { ...panzani.nutrition, base } });
+    expect(prefill.kcal_per_100g, `base "${base}" should NOT map`).toBeNull();
+    expect(prefill.protein_per_100g).toBeNull();
+  }
+});
+
+test('no nutrition object at all → all macros null (nothing to map)', () => {
   const prefill = mapProduct({ ...panzani, nutrition: undefined });
   expect(prefill.kcal_per_100g).toBeNull();
   expect(prefill.name).toBe('Panzani Spaghetti');
