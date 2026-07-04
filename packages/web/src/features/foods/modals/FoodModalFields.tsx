@@ -4,6 +4,7 @@ import { TextInput } from '../../../components/Form/TextInput';
 import { RatingSelect } from '../../../components/RatingStars/RatingSelect';
 import { NamedPortionsEditor } from './NamedPortionsEditor';
 import { MacroInputs } from './MacroInputs';
+import { ChronoSearchLink } from './ChronoSearchLink';
 import { Segmented } from './Segmented';
 import type { Draft } from './draft';
 import styles from '../foods.module.css';
@@ -17,6 +18,9 @@ interface FoodModalFieldsProps {
   set: (patch: Partial<Draft>) => void;
   parseWarnings: FoodParseWarning[];
   onParse: () => void;
+  /** Macro keys left empty by a Chronodrive pre-fill (B-182) — drives the notice. */
+  chronoMissing: string[];
+  onChrono: () => void;
 }
 
 export function FoodModalFields({
@@ -26,6 +30,8 @@ export function FoodModalFields({
   set,
   parseWarnings,
   onParse,
+  chronoMissing,
+  onChrono,
 }: FoodModalFieldsProps) {
   const { t } = useTranslation();
 
@@ -40,9 +46,13 @@ export function FoodModalFields({
           invalid={showDup}
         />
         {showDup && <div className={styles.dupwarn}>⚠ {t('foods.modal.duplicate')}</div>}
+        <ChronoSearchLink onOpen={onChrono} />
       </div>
 
       <MacroInputs draft={draft} set={set} parseWarnings={parseWarnings} onParse={onParse} />
+      {chronoMissing.length > 0 && (
+        <div className={styles.parsenote}>ⓘ {t('foods.chrono.incomplete')}</div>
+      )}
 
       <NamedPortionsEditor portions={draft.portions} onChange={(portions) => set({ portions })} />
 

@@ -46,3 +46,19 @@ PATCH), then calls the proxy ("persist then test", same flow as `/settings/ai/mo
   **connection proof** (`integrations-connections.md §6`).
   Errors: `gateway_not_configured` 409 · `gateway_unauthorized` 502 ·
   `gateway_unavailable` 503 · `gateway_unreachable` 504 · `gateway_bad_response` 502.
+- `GET /integrations/barclaude-gateway/search?q=` — proxy of
+  `GET {bg.base_url}/api/v1/search?q=&size=10` (`integrations-connections.md §8.1`;
+  the server always passes `size=10`). Zod: `q` trimmed, **min 3 chars** → else 422
+  (`q: too_short`), no outbound call. → 200 `{data: ChronoProductSummary[]}` with
+  `ChronoProductSummary = {id, name, brand, image_url, unit_quantity_label, price_eur}`
+  (absent upstream fields → null; `price_eur ← price.default`; thumbnails are loaded
+  browser-side from the public `image_url`, not proxied in v1).
+  Errors: same table as `/ping`.
+- `GET /integrations/barclaude-gateway/products/:id` — proxy of
+  `GET {bg.base_url}/api/v1/products/{id}` (id or EAN). → 200
+  `{data: ChronoProductSummary & {food_prefill}}` where `food_prefill` is the
+  **server-side** product → food mapping (`integrations-connections.md §8.2`:
+  macros only when `nutrition.base` is 100 g/100 ml, absent field → null, kcal never
+  derived from kJ, `name = "Brand Name"`, `comment = unitQuantityLabel`).
+  Errors: same table as `/ping` **plus** upstream 404/`not_found` → 404
+  `gateway_not_found`.

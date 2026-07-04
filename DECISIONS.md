@@ -3587,3 +3587,42 @@ rounding oracles; integration tests with stubbed outbound fetch (secrets never i
 response, one-connection patch isolation, `token:''` clears, error-code mapping table,
 unconfigured → 409); e2e account-menu → page → persist → masked reload. Full suite +
 typecheck + lint + CI green.
+
+## B-182 — Chronodrive product search in the food-creation modal — RESOLVED (user, 2026-07-04)
+
+Owner-directed improvement: create foods from real drive products. A **"Recherche
+chronodrive"** link in the food modal (visible only when the BarclaudeGateway
+integration, B-181, is configured) opens a search dialog; choosing a product pre-fills
+the food draft.
+
+**Decision.**
+
+- **Two new gateway proxies** (`spec/api/integrations.md`):
+  `GET /integrations/barclaude-gateway/search?q=` (Zod `q` trim min 3 → 422; the server
+  always passes `size=10` upstream — the 10-result cap is server-side) and
+  `GET /integrations/barclaude-gateway/products/:id` (id or EAN; upstream
+  404/`not_found` → new code `gateway_not_found` 404).
+- **Mapping is server-side** (rule 2 — the web never computes a nutrition figure):
+  `food_prefill` per `integrations-connections.md §8.2` — macros mapped **only when
+  `nutrition.base` is "100 g"/"100 ml"** (any other base → all four macros null, never
+  rescaled); an absent field (manufacturer didn't declare it) → null, others kept; kcal
+  from `energyKcal` only (never derived from kJ); `name = [brand, name].join(' ')`;
+  `comment = unitQuantityLabel`.
+- **Missing macros** (owner decision): fill what exists, leave the rest **empty**, show
+  a non-blocking "à compléter" notice whose wording states that an empty macro field is
+  **saved as 0** (existing `draftToBody` coercion — kept as-is, the notice is the guard).
+- **No auto named-portion** from the product weight (owner decision). Strictly name +
+  macros + comment.
+- **Thumbnails** load browser-side from the gateway's public image URLs (non-secret);
+  a failing image is dropped — images are not proxied in v1.
+
+**Contract deltas.** `spec/logic/integrations-connections.md` §8 (+ §7 `gateway_not_found`
+row) with worked oracles; `spec/api/integrations.md` (search/product endpoints);
+`packages/shared/{errors.ts, dto/chronodrive.ts}`; local `specifications/screens/food-db.md`.
+
+**Acceptance.** `chronodrive-map` domain tests wired from the §8.3 oracles first;
+integration tests (X-API-Key + `size=10` asserted on the outbound stub, q too short →
+422, `food_prefill` oracle, upstream `not_found` → 404, bad key → `gateway_unauthorized`,
+unconfigured → 409); `FoodModal` unit tests (link gated on config, applyChrono fills the
+draft, missing macro → empty field + notice). No e2e (external dependency; the mocked
+integration layer covers the contract). Full suite + typecheck + lint + CI green.

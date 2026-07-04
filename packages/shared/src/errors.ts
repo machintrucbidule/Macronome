@@ -59,6 +59,7 @@ export enum ErrorCode {
   GatewayUnavailable = 'gateway_unavailable',
   GatewayUnreachable = 'gateway_unreachable',
   GatewayBadResponse = 'gateway_bad_response',
+  GatewayNotFound = 'gateway_not_found',
 
   // reserved (inert in v1)
   NotImplemented = 'not_implemented',

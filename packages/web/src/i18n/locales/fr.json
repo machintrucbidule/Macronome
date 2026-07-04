@@ -159,6 +159,17 @@
         "scaled_from_ref": "valeurs ramenées à 100 g",
         "macro_missing": "certaines valeurs n'ont pas été trouvées (champ laissé inchangé)"
       }
+    },
+    "chrono": {
+      "link": "Recherche chronodrive",
+      "title": "Recherche chronodrive",
+      "sub": "Cherche un produit du drive ; le choisir remplit le nom, les macros pour 100 g et le commentaire (poids du produit).",
+      "placeholder": "Rechercher un produit…",
+      "hint": "Tape au moins 3 caractères.",
+      "empty": "Aucun produit trouvé.",
+      "choose": "Choisir",
+      "incomplete": "Macros incomplètes (non déclarées par le fabricant) : complète les champs vides, sinon ils seront enregistrés à 0.",
+      "error": "La recherche a échoué."
     }
   },
   "recipes": {
@@ -905,6 +916,7 @@
       "ha_unreachable": "Impossible de joindre Home Assistant (réseau ou délai dépassé).",
       "ha_bad_response": "Réponse inattendue de Home Assistant (état non numérique ou unité ≠ kg).",
       "gateway_not_configured": "Configure d'abord la connexion BarclaudeGateway.",
+      "gateway_not_found": "Produit introuvable sur le gateway.",
       "gateway_unauthorized": "Le gateway a refusé la clé API.",
       "gateway_unavailable": "Le gateway est indisponible (erreur serveur).",
       "gateway_unreachable": "Impossible de joindre le gateway (réseau ou délai dépassé).",

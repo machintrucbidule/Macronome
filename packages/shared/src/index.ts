@@ -46,6 +46,7 @@ export * from './dto/weight.js';
 export * from './dto/stats.js';
 export * from './dto/settings.js';
 export * from './dto/integrations.js';
+export * from './dto/chronodrive.js';
 export * from './dto/container.js';
 export * from './dto/meal-template.js';
 export * from './dto/pantry.js';

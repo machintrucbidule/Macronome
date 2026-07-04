@@ -159,6 +159,17 @@
         "scaled_from_ref": "values scaled to 100 g",
         "macro_missing": "some values weren't found (field left unchanged)"
       }
+    },
+    "chrono": {
+      "link": "Chronodrive search",
+      "title": "Chronodrive search",
+      "sub": "Search a drive product; choosing one fills the name, the per-100 g macros and the comment (product weight).",
+      "placeholder": "Search a product…",
+      "hint": "Type at least 3 characters.",
+      "empty": "No product found.",
+      "choose": "Choose",
+      "incomplete": "Incomplete macros (not declared by the manufacturer): fill the empty fields, otherwise they will be saved as 0.",
+      "error": "Search failed."
     }
   },
   "recipes": {
@@ -905,6 +916,7 @@
       "ha_unreachable": "Could not reach Home Assistant (network or timeout).",
       "ha_bad_response": "Unexpected response from Home Assistant (non-numeric state or unit ≠ kg).",
       "gateway_not_configured": "Set up the BarclaudeGateway connection first.",
+      "gateway_not_found": "Product not found on the gateway.",
       "gateway_unauthorized": "The gateway rejected the API key.",
       "gateway_unavailable": "The gateway is unavailable (server error).",
       "gateway_unreachable": "Could not reach the gateway (network or timeout).",

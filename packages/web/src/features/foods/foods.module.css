@@ -213,6 +213,69 @@
   line-height: var(--lh-snug);
 }
 
+/* Chronodrive search (B-182): link under the name field + compact result rows */
+.chronolink {
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 0;
+  margin-top: var(--sp-2);
+}
+.chronoList {
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--sp-3);
+}
+.chronoRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2) 0;
+  border-bottom: var(--bw) solid var(--border);
+}
+.chronoRow:last-child {
+  border-bottom: 0;
+}
+.chronoThumb {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  border-radius: var(--r-sm);
+  background: var(--bg-field);
+  flex-shrink: 0;
+}
+.chronoInfo {
+  flex: 1;
+  min-width: 0;
+}
+.chronoName {
+  font-size: var(--fs-13);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chronoMeta {
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  color: var(--text-faint);
+}
+.chronoChoose {
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+.chronoChoose:hover {
+  text-decoration: underline;
+}
+
 .portions {
   border: var(--bw) solid var(--border);
   border-radius: var(--r-md);

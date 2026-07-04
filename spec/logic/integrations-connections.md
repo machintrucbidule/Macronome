@@ -149,3 +149,65 @@ Outbound policy (both hosts): transient failures (network + 5xx) are retried bri
 (3 attempts total, short delay); **401/403/404 are never retried**. Request timeouts are
 short — **≤ 10 s** for HA, **≤ 8 s** for the gateway — so a modal button never hangs.
 Secrets are sent only in the auth header of the outbound request and are never logged.
+
+For the product proxies (§8) one row extends the gateway table:
+
+| Condition (BarclaudeGateway product proxy)     | Error code          | HTTP |
+| ---------------------------------------------- | ------------------- | ---- |
+| upstream 404 (`not_found` envelope) on product | `gateway_not_found` | 404  |
+
+## 8. Chronodrive product search & food mapping (B-182)
+
+Two server-side proxies back the food modal's _Recherche chronodrive_ dialog. Both read
+the stored gateway config and authenticate with `X-API-Key` (§6 doctrine).
+
+### 8.1 Search
+
+- UI contract: the query is **debounced** and only submitted at **≥ 3 characters**
+  (trimmed); the dialog shows at most **10 compact results**.
+- Request: `GET {base_url}/api/v1/search?q={q}&size=10` (the server always passes
+  `size=10` — the cap is server-side, not client-side).
+- Success: the upstream `{ products: ProductSummary[] }` is mapped to the compact
+  summary `{ id, name, brand, image_url, unit_quantity_label, price_eur }`:
+  - `brand`, `unitQuantityLabel` absent → `null`;
+  - `image_url ← image` (absolute public URL; the browser loads thumbnails directly —
+    images are not proxied in v1);
+  - `price_eur ← price.default` (euros, display-only), absent → `null`.
+- A `q` shorter than 3 characters after trim is rejected at the controller (422,
+  `q: too_short` via Zod) — no outbound call.
+
+### 8.2 Product → food pre-fill mapping (server-side)
+
+`mapProduct(raw) → food_prefill` — pure function, applied by the API (rule 2: the web
+never computes a nutrition figure):
+
+- **Base gate**: macros are mapped **only when `nutrition.base` is `"100 g"` or
+  `"100 ml"`**; any other base (e.g. `"portion (30 g)"`) → **all four macros `null`**
+  (never silently rescaled).
+- Field mapping (a field **absent** from the gateway payload — manufacturer did not
+  declare it — maps to `null`; the others are kept):
+  - `kcal_per_100g ← nutrition.energyKcal` — **never derived from `energyKj`**;
+  - `fat_per_100g ← nutrition.fat`;
+  - `carb_per_100g ← nutrition.carbohydrate`;
+  - `protein_per_100g ← nutrition.protein`.
+- `name = [brand, name].filter(Boolean).join(' ')` (space-separated, "Marque Nom").
+- `comment = unitQuantityLabel ?? null` (the product weight label, e.g. `"500 g"`).
+- **No named portion** is derived from the product weight (owner decision).
+- UI contract: a `null` macro leaves the field **empty** and the modal shows a
+  non-blocking "à compléter" notice — the notice wording must state that an empty
+  macro field is **saved as 0** (existing `draftToBody` behaviour).
+
+### 8.3 Worked examples (oracles)
+
+1. **Full mapping.** `{brand:"Panzani", name:"Spaghetti", unitQuantityLabel:"500 g",
+nutrition:{base:"100 g", energyKcal:361, fat:1.4, carbohydrate:72, protein:12}}` →
+   `{name:"Panzani Spaghetti", kcal_per_100g:361, fat_per_100g:1.4, carb_per_100g:72,
+protein_per_100g:12, comment:"500 g"}`.
+2. **Non-100 g base.** Same product with `nutrition.base:"portion (30 g)"` → all four
+   macros `null` (name/comment still mapped).
+3. **Absent field.** Same product without `nutrition.fat` → `fat_per_100g:null`, the
+   other three kept.
+4. **No brand.** `{brand:null, name:"Spaghetti", …}` → `name:"Spaghetti"` (no leading
+   space); `unitQuantityLabel` absent → `comment:null`.
+5. **kJ only.** `nutrition:{base:"100 g", energyKj:1530}` (no `energyKcal`) →
+   `kcal_per_100g:null` (never derived from kJ).

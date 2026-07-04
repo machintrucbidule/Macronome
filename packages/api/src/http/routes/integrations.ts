@@ -10,5 +10,7 @@ router.use(requireAuth);
 
 router.get('/home-assistant/weight', asyncHandler(integrations.haWeight));
 router.get('/barclaude-gateway/ping', asyncHandler(integrations.gatewayPing));
+router.get('/barclaude-gateway/search', asyncHandler(integrations.gatewaySearch));
+router.get('/barclaude-gateway/products/:id', asyncHandler(integrations.gatewayProduct));
 
 export default router;
