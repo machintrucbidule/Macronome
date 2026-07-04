@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import type { GetWeightResponse, WeighIn } from '@macronome/shared';
 import { AppShell } from '../../app/AppShell';
 import { dataApi } from '../../api/data';
 import { Banner } from '../../components/Banner/Banner';
@@ -19,6 +20,11 @@ import styles from './weight.module.css';
 // controls row + list → detail sheet + FAB); the weigh-in modal is shared (bottom sheet ≤560px).
 // The current mode is seeded from the server's persisted `current_mode` and persisted on change
 // (M7), via useWeightMode.
+
+// Most recent weigh-in (weigh_ins is ascending) — the add modal's weight/waist prefill (B-179).
+const lastWeighInOf = (data: GetWeightResponse | undefined): WeighIn | null =>
+  data?.weigh_ins.at(-1) ?? null;
+
 export function WeightPage() {
   const { t } = useTranslation();
   const ctl = useWeightController();
@@ -54,6 +60,7 @@ export function WeightPage() {
           target={ctl.modal}
           defaultFlag={mode ?? 'in_diet'}
           openNote={query.data?.open_period?.note ?? null}
+          lastWeighIn={lastWeighInOf(query.data)}
           onClose={ctl.closeModal}
         />
       )}

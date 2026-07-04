@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { DietFlag } from '@macronome/shared';
+import type { DietFlag, WeighIn } from '@macronome/shared';
 import { Button } from '../../../components/Button/Button';
 import { Modal } from '../../../components/Modal/Modal';
 import { WeighInFields, type WeighInDraft } from './WeighInFields';
@@ -16,6 +16,8 @@ interface WeighInModalProps {
   defaultFlag: DietFlag;
   /** The persisted open-period note (B-176): the open mode's note + the add-modal note prefill. */
   openNote?: string | null;
+  /** Most recent weigh-in (B-179): the add modal pre-fills weight/waist from it. */
+  lastWeighIn?: WeighIn | null;
   onClose: () => void;
 }
 
@@ -47,13 +49,21 @@ function ConflictConfirm(props: {
   );
 }
 
-export function WeighInModal({ target, defaultFlag, openNote, onClose }: WeighInModalProps) {
+export function WeighInModal({
+  target,
+  defaultFlag,
+  openNote,
+  lastWeighIn,
+  onClose,
+}: WeighInModalProps) {
   const { t } = useTranslation();
   const initial = target.kind === 'edit' ? target.weighIn : null;
+  // Add mode pre-fills weight/waist from the most recent weigh-in (B-179); edit keeps its own.
+  const seed = initial ?? lastWeighIn;
   const [draft, setDraft] = useState<WeighInDraft>(() => ({
     date: initial?.date ?? todayIso(),
-    weight: initial ? String(initial.weight_kg) : '',
-    waist: initial?.waist_cm != null ? String(initial.waist_cm) : '',
+    weight: seed ? String(seed.weight_kg) : '',
+    waist: seed?.waist_cm != null ? String(seed.waist_cm) : '',
     flag: initial?.diet_flag ?? defaultFlag,
     // add + open pre-fill the note from the persisted open-period note; edit keeps its own.
     note: initial ? (initial.note ?? '') : (openNote ?? ''),

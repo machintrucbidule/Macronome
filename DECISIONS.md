@@ -3515,3 +3515,22 @@ oracle), `spec/schema/tables-weight-targets.md` (open-period note on settings),
 burn; avg_intake 2100; deficit +24; days 3). Integration: `GET /weight` emits `open_period` only
 when triggered; the note persists (`PATCH /settings` → `GET /weight`), pre-fills the add form, and
 is cleared after the closing weigh-in. Full suite + typecheck + lint green.
+
+## B-179 — Poids: add modal pre-fills weight & waist from the last weigh-in — RESOLVED (user, 2026-07-04)
+
+The "+ Pesée" add modal opened with empty _Poids_ / _Tour de taille_ fields even though the
+previous weigh-in is the obvious starting point (near-daily measurements barely move).
+**Improvement** (owner-directed; amends the screen contract only — web-only change, no API/DB
+delta: the data is already in `GET /weight`'s `weigh_ins`).
+
+**Decision.** In **add mode only**, pre-fill _Poids_ from the most recent weigh-in's
+`weight_kg` and _Tour de taille_ from its `waist_cm` (empty when null, or when there is no
+weigh-in at all). **Edit mode** keeps the edited weigh-in's own values; the **open-interval
+reduced modal** (B-176) is unaffected (fields hidden). The note/flag pre-fill from B-176 is
+unchanged. Known soft edge: the source is the (range-clipped) `weigh_ins` series, so a last
+weigh-in older than the selected chart range falls back to empty fields — accepted.
+
+**Contract deltas.** `specifications/screens/weight.md` (Entry / edit).
+
+**Acceptance.** `WeighInModal` unit tests: add + last weigh-in → pre-filled (waist empty when
+null); add without data → empty; edit ignores the prop. Full suite + typecheck + lint green.
