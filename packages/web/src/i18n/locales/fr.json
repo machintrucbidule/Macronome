@@ -765,6 +765,13 @@
       "occupied": "Une pesée existe déjà au {{date}}. La remplacer ?",
       "replace": "Remplacer",
       "error": "Échec de l'opération ({{code}})."
+    },
+    "haImport": {
+      "button": "Importer depuis HA",
+      "importing": "Import en cours…",
+      "measuredAt": "Mesuré le {{date}}",
+      "dateMismatch": "La date de la mesure ne correspond pas à la date sélectionnée.",
+      "error": "L'import a échoué."
     }
   },
   "stats": {
@@ -857,6 +864,52 @@
     "account": "Compte",
     "about": "À propos",
     "logout": "Se déconnecter"
+  },
+  "integrations": {
+    "title": "Intégrations",
+    "intro": "Connecte des services de ton réseau local. Les secrets restent côté serveur : le navigateur ne parle jamais directement à ces services.",
+    "baseUrl": "URL de base",
+    "secretSet": "•••• définie",
+    "test": "Tester",
+    "testing": "Test en cours…",
+    "save": "Enregistrer",
+    "disconnect": "Déconnecter",
+    "ha": {
+      "title": "Home Assistant",
+      "baseUrlPlaceholder": "http://homeassistant.local:8123",
+      "token": "Jeton d'accès longue durée",
+      "tokenPlaceholder": "Colle ton jeton",
+      "entityId": "Entity id du capteur de poids",
+      "entityIdPlaceholder": "sensor.scale_weight",
+      "decimals": "Décimales d'arrondi du poids",
+      "testOk": "{{weight}} kg — mesuré le {{date}}",
+      "helpTitle": "Où trouver le jeton et l'entity id ?",
+      "help1": "Dans HA : profil (en bas à gauche) → Sécurité → Jetons d'accès longue durée → crée un jeton et colle-le ici.",
+      "help2": "L'entity id du capteur de poids se trouve dans Outils de développement → États.",
+      "help3": "Le bouton Tester enregistre la carte puis lit la dernière mesure de la balance."
+    },
+    "gateway": {
+      "title": "BarclaudeGateway",
+      "baseUrlPlaceholder": "http://192.168.1.20:8080",
+      "apiKey": "Clé API",
+      "apiKeyPlaceholder": "Colle la clé API",
+      "keyHint": "La clé est affichée une seule fois dans les logs du gateway à son premier démarrage.",
+      "testOk": "OK · v{{version}}"
+    },
+    "errors": {
+      "ha_not_configured": "Configure d'abord la connexion Home Assistant.",
+      "ha_unauthorized": "Home Assistant a refusé le jeton.",
+      "ha_entity_not_found": "Entity id introuvable dans Home Assistant.",
+      "ha_no_measurement": "Aucune mesure disponible pour ce capteur.",
+      "ha_unavailable": "Home Assistant est indisponible (erreur serveur).",
+      "ha_unreachable": "Impossible de joindre Home Assistant (réseau ou délai dépassé).",
+      "ha_bad_response": "Réponse inattendue de Home Assistant (état non numérique ou unité ≠ kg).",
+      "gateway_not_configured": "Configure d'abord la connexion BarclaudeGateway.",
+      "gateway_unauthorized": "Le gateway a refusé la clé API.",
+      "gateway_unavailable": "Le gateway est indisponible (erreur serveur).",
+      "gateway_unreachable": "Impossible de joindre le gateway (réseau ou délai dépassé).",
+      "gateway_bad_response": "Réponse inattendue du gateway."
+    }
   },
   "about": {
     "title": "À propos",

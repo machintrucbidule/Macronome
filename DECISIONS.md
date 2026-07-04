@@ -3534,3 +3534,56 @@ weigh-in older than the selected chart range falls back to empty fields — acce
 
 **Acceptance.** `WeighInModal` unit tests: add + last weigh-in → pre-filled (waist empty when
 null); add without data → empty; edit ignores the prop. Full suite + typecheck + lint green.
+
+## B-180 / B-181 — External integrations: Home Assistant weight import + Intégrations page — RESOLVED (user, 2026-07-04)
+
+Two owner-directed improvements: import the latest smart-scale measurement from **Home
+Assistant** into the weigh-in modal (B-180), configured — together with the
+**BarclaudeGateway** local drive-product API used by B-182 — on a new **Intégrations**
+account-menu page (B-181).
+
+**Decision.**
+
+- **Storage**: both connections live on the `app_user.settings` jsonb blob under a new
+  `integrations` key (`{home_assistant, barclaude_gateway}`, each nullable), following the
+  `settings.ai` pattern exactly — deep per-connection merge (secret absent = keep,
+  `""`/`null` = clear), redaction to `token_set`/`api_key_set` on read, no DB migration.
+- **Secrets are proxy-only**: the HA long-lived token and the gateway API key never reach
+  the browser; all remote calls are server-side proxies under `/api/v1/integrations`
+  (works from outside the LAN; the app server and the two hosts share the LAN). Plain
+  `http://` base URLs are allowed — same SSRF stance as `ai.base_url` (single-owner
+  self-hosted app; no URL allow-listing in v1).
+- **HA read** (nothing built HA-side): `GET {base}/api/states/{entity}` with the Bearer
+  token; the scale's `weight_entity_id` is **always user-supplied** (never defaulted in
+  code); the imported weight is **rounded server-side** to the configured
+  `weight_round_decimals` (int 0..3, default 1, round half up). Unit must be `kg`
+  (SI-only, no conversion); `unavailable`/`unknown` state → `ha_no_measurement`.
+- **Import button behaviour** (owner decision): fills the **weight field only**, shows
+  the measurement date/time, warns **non-blockingly** when the measurement date ≠ the
+  modal's date, and **never changes the modal's date**. Add mode only; visible only when
+  HA is configured.
+- **Connection proofs**: the HA card's "Tester" runs the weight read; the gateway card's
+  runs `GET /api/v1/ping` (X-API-Key) — same "the useful call is the proof" +
+  "persist then test" doctrine as `/settings/ai/models`. Outbound policy: 3 attempts on
+  network/5xx only (never 401/404), timeouts ≤ 10 s HA / ≤ 8 s gateway.
+- **Export/import (IMP-1)**: the settings blob round-trips verbatim, so the two secrets
+  travel in the export exactly like `ai.api_key` — accepted (same stance).
+
+**Transport.** New `spec/api/integrations.md` endpoints:
+`GET /integrations/home-assistant/weight` → `{weight_kg, measured_at, unit, entity_id}`;
+`GET /integrations/barclaude-gateway/ping` → `{status, version}`. New error codes
+`ha_not_configured|ha_unauthorized|ha_entity_not_found|ha_no_measurement|ha_unavailable|ha_unreachable|ha_bad_response`
+and
+`gateway_not_configured|gateway_unauthorized|gateway_unavailable|gateway_unreachable|gateway_bad_response`.
+
+**Contract deltas.** New `spec/logic/integrations-connections.md` (§1–§7 with worked
+oracles) and `spec/api/integrations.md`; `spec/schema/tables-catalog.md` (settings JSON
+`integrations` key, SECRET doctrine); `spec/api/weight-targets-stats-settings.md`
+§Settings; `packages/shared/{errors.ts, dto/integrations.ts, dto/settings.ts}`; local
+screen specs (new `integrations.md`, `weight.md` import button).
+
+**Acceptance.** Domain oracles §3/§4 (merge/redact, per-connection isolation) + §5
+rounding oracles; integration tests with stubbed outbound fetch (secrets never in any
+response, one-connection patch isolation, `token:''` clears, error-code mapping table,
+unconfigured → 409); e2e account-menu → page → persist → masked reload. Full suite +
+typecheck + lint + CI green.

@@ -11,6 +11,7 @@ import { StatsPage } from '../features/stats/StatsPage';
 import { WeightPage } from '../features/weight/WeightPage';
 import { SettingsPage } from '../features/settings/SettingsPage';
 import { AiAssistantPage } from '../features/settings/AiAssistantPage';
+import { IntegrationsPage } from '../features/integrations/IntegrationsPage';
 import { ContainersPage } from '../features/containers/ContainersPage';
 import { AccountPage } from '../features/account/AccountPage';
 import { AboutPage } from '../features/about/AboutPage';
@@ -36,6 +37,7 @@ const PROTECTED: ReadonlyArray<[string, ReactElement]> = [
   ['/cibles', <CiblesPage />],
   ['/containers', <ContainersPage />],
   ['/assistant-ia', <AiAssistantPage />],
+  ['/integrations', <IntegrationsPage />],
   ['/parametres', <SettingsPage />],
   ['/account', <AccountPage />],
   ['/about', <AboutPage />],

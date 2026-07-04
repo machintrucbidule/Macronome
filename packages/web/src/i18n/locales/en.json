@@ -765,6 +765,13 @@
       "occupied": "A weigh-in already exists on {{date}}. Replace it?",
       "replace": "Replace",
       "error": "Operation failed ({{code}})."
+    },
+    "haImport": {
+      "button": "Import from HA",
+      "importing": "Importing…",
+      "measuredAt": "Measured on {{date}}",
+      "dateMismatch": "The measurement date does not match the selected date.",
+      "error": "Import failed."
     }
   },
   "stats": {
@@ -857,6 +864,52 @@
     "account": "Account",
     "about": "About",
     "logout": "Log out"
+  },
+  "integrations": {
+    "title": "Integrations",
+    "intro": "Connect services from your local network. Secrets stay server-side: the browser never talks to these services directly.",
+    "baseUrl": "Base URL",
+    "secretSet": "•••• set",
+    "test": "Test",
+    "testing": "Testing…",
+    "save": "Save",
+    "disconnect": "Disconnect",
+    "ha": {
+      "title": "Home Assistant",
+      "baseUrlPlaceholder": "http://homeassistant.local:8123",
+      "token": "Long-lived access token",
+      "tokenPlaceholder": "Paste your token",
+      "entityId": "Weight sensor entity id",
+      "entityIdPlaceholder": "sensor.scale_weight",
+      "decimals": "Weight rounding decimals",
+      "testOk": "{{weight}} kg — measured on {{date}}",
+      "helpTitle": "Where to find the token and entity id?",
+      "help1": "In HA: profile (bottom-left) → Security → Long-lived access tokens → create a token and paste it here.",
+      "help2": "The weight sensor's entity id is listed under Developer tools → States.",
+      "help3": "The Test button saves the card, then reads the scale's latest measurement."
+    },
+    "gateway": {
+      "title": "BarclaudeGateway",
+      "baseUrlPlaceholder": "http://192.168.1.20:8080",
+      "apiKey": "API key",
+      "apiKeyPlaceholder": "Paste the API key",
+      "keyHint": "The key is printed once in the gateway's logs at first boot.",
+      "testOk": "OK · v{{version}}"
+    },
+    "errors": {
+      "ha_not_configured": "Set up the Home Assistant connection first.",
+      "ha_unauthorized": "Home Assistant rejected the token.",
+      "ha_entity_not_found": "Entity id not found in Home Assistant.",
+      "ha_no_measurement": "No measurement available for this sensor.",
+      "ha_unavailable": "Home Assistant is unavailable (server error).",
+      "ha_unreachable": "Could not reach Home Assistant (network or timeout).",
+      "ha_bad_response": "Unexpected response from Home Assistant (non-numeric state or unit ≠ kg).",
+      "gateway_not_configured": "Set up the BarclaudeGateway connection first.",
+      "gateway_unauthorized": "The gateway rejected the API key.",
+      "gateway_unavailable": "The gateway is unavailable (server error).",
+      "gateway_unreachable": "Could not reach the gateway (network or timeout).",
+      "gateway_bad_response": "Unexpected response from the gateway."
+    }
   },
   "about": {
     "title": "About",

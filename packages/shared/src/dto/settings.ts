@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { DietFlagSchema } from './weight.js';
+import { IntegrationsPatchSchema, type IntegrationsRead } from './integrations.js';
 
 // App-settings DTOs (spec/api/weight-targets-stats-settings.md §Settings). Stored on the
 // app_user.settings JSON column and edited on the Paramètres screen: locale, theme, the
@@ -91,6 +92,8 @@ export interface Settings {
   locale: Locale;
   theme: Theme;
   ai: AiConnectionRead | null;
+  /** External integrations (B-180/B-181); both keys present, redacted (dto/integrations). */
+  integrations: IntegrationsRead;
   current_mode: z.infer<typeof DietFlagSchema> | null;
   /** Weight open-interval note (B-176); persisted on app_user.settings, cleared on close. */
   open_period_note: string | null;
@@ -102,6 +105,7 @@ export const PatchSettingsSchema = z
     locale: LocaleSchema,
     theme: ThemeSchema,
     ai: AiConnectionPatchSchema.nullable(),
+    integrations: IntegrationsPatchSchema,
     current_mode: DietFlagSchema.nullable(),
     open_period_note: z.string().max(2000).nullable(),
   })

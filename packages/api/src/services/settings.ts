@@ -1,6 +1,12 @@
 import type { AiConnection, DietFlag, PatchSettingsRequest, Settings } from '@macronome/shared';
 import { userRepo } from '../data/repositories/user.repo.js';
 import { mergeAi, redact } from '../domain/ai-connection/index.js';
+import {
+  INTEGRATIONS_DEFAULTS,
+  mergeIntegrations,
+  redactIntegrations,
+  type StoredIntegrations,
+} from '../domain/integrations/index.js';
 
 // Settings service (spec/api §Settings). Reads/writes the app_user.settings JSON blob and
 // applies defaults on read. PATCH merges onto the stored blob so unrelated keys are never
@@ -9,13 +15,17 @@ import { mergeAi, redact } from '../domain/ai-connection/index.js';
 // Weight screen's Régime/Maintien choice (deviation recorded in the M7 plan; carried in from
 // M4) and the Weight read-model gates the projection on it server-side.
 
-/** The persisted blob — like Settings but `ai` carries the raw (secret-bearing) config. */
-type StoredSettings = Omit<Settings, 'ai'> & { ai: AiConnection | null };
+/** The persisted blob — like Settings but the connections carry their raw secrets. */
+type StoredSettings = Omit<Settings, 'ai' | 'integrations'> & {
+  ai: AiConnection | null;
+  integrations: StoredIntegrations;
+};
 
 const STORED_DEFAULTS: StoredSettings = {
   locale: 'fr',
   theme: 'dark',
   ai: null,
+  integrations: INTEGRATIONS_DEFAULTS,
   current_mode: null,
   open_period_note: null,
 };
@@ -27,14 +37,22 @@ function toStored(stored: unknown): StoredSettings {
     locale: s.locale ?? STORED_DEFAULTS.locale,
     theme: s.theme ?? STORED_DEFAULTS.theme,
     ai: s.ai ?? STORED_DEFAULTS.ai,
+    integrations: {
+      home_assistant: s.integrations?.home_assistant ?? null,
+      barclaude_gateway: s.integrations?.barclaude_gateway ?? null,
+    },
     current_mode: s.current_mode ?? STORED_DEFAULTS.current_mode,
     open_period_note: s.open_period_note ?? STORED_DEFAULTS.open_period_note,
   };
 }
 
-/** Redacted read DTO (api_key stripped → api_key_set). */
+/** Redacted read DTO (ai api_key → api_key_set; integration secrets → *_set). */
 function toDto(stored: StoredSettings): Settings {
-  return { ...stored, ai: redact(stored.ai) };
+  return {
+    ...stored,
+    ai: redact(stored.ai),
+    integrations: redactIntegrations(stored.integrations),
+  };
 }
 
 export async function get(userId: string): Promise<Settings | null> {
@@ -49,6 +67,9 @@ export async function patch(userId: string, body: PatchSettingsRequest): Promise
   if (body.locale !== undefined) merged.locale = body.locale;
   if (body.theme !== undefined) merged.theme = body.theme;
   if (body.ai !== undefined) merged.ai = body.ai === null ? null : mergeAi(merged.ai, body.ai);
+  if (body.integrations !== undefined) {
+    merged.integrations = mergeIntegrations(merged.integrations, body.integrations);
+  }
   if (body.current_mode !== undefined) merged.current_mode = body.current_mode;
   if (body.open_period_note !== undefined) merged.open_period_note = body.open_period_note;
   await userRepo.updateSettings(userId, merged);
@@ -76,4 +97,10 @@ export async function weightState(
 export async function rawAiConfig(userId: string): Promise<AiConnection | null> {
   const user = await userRepo.findById(userId);
   return user ? toStored(user.settings).ai : null;
+}
+
+/** Raw (secret-bearing) integrations config — used by the proxies only. Never serialised. */
+export async function rawIntegrations(userId: string): Promise<StoredIntegrations> {
+  const user = await userRepo.findById(userId);
+  return user ? toStored(user.settings).integrations : INTEGRATIONS_DEFAULTS;
 }

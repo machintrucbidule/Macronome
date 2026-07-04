@@ -97,7 +97,13 @@ export function WeighInModal({
 
   return (
     <Modal title={title} onClose={onClose}>
-      <WeighInFields draft={draft} set={set} error={a.error} openMode={a.isOpen} />
+      <WeighInFields
+        draft={draft}
+        set={set}
+        error={a.error}
+        openMode={a.isOpen}
+        addMode={target.kind === 'add'}
+      />
       <div className={styles.modalActions}>
         {a.initial ? (
           <Button variant="danger" disabled={a.pending} onClick={() => void a.del()}>

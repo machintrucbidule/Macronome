@@ -246,3 +246,38 @@
   color: var(--nok);
   margin: 0;
 }
+
+/* "Importer depuis HA" (B-180) — link-style action under the weight field + its hints */
+.haImport {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+.haImportBtn {
+  align-self: flex-start;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: var(--fs-11);
+  padding: 0;
+}
+.haImportBtn:hover {
+  text-decoration: underline;
+}
+.haImportBtn:disabled {
+  color: var(--text-faint);
+  cursor: default;
+  text-decoration: none;
+}
+.haImportNote {
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  color: var(--text-dim);
+  margin: 0;
+}
+.haImportWarn {
+  font-size: var(--fs-11);
+  color: var(--warn);
+  margin: 0;
+}

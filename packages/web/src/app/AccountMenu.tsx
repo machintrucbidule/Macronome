@@ -20,6 +20,7 @@ const LINKS = [
   { to: '/cibles', key: 'cibles.title' },
   { to: '/containers', key: 'containers.title' },
   { to: '/assistant-ia', key: 'settings.ai.title' },
+  { to: '/integrations', key: 'integrations.title' },
   { to: '/parametres', key: 'settings.title' },
   { to: '/about', key: 'menu.about' },
 ] as const;
@@ -56,7 +57,7 @@ function AccountDropdown() {
         {initials(session.data?.user.username)}
       </summary>
       <div className={styles.acctPop}>
-        {LINKS.slice(0, 5).map((l) => (
+        {LINKS.slice(0, 6).map((l) => (
           <NavLink key={l.to} to={l.to} className={item} onClick={close}>
             {t(l.key)}
           </NavLink>

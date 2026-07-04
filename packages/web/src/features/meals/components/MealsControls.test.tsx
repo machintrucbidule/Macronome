@@ -49,6 +49,7 @@ function settings(aiConfigured: boolean): Settings {
   return {
     locale: 'fr',
     theme: 'dark',
+    integrations: { home_assistant: null, barclaude_gateway: null },
     current_mode: null,
     open_period_note: null,
     ai: aiConfigured

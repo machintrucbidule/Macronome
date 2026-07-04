@@ -44,6 +44,22 @@ export enum ErrorCode {
   AiRateLimited = 'ai_rate_limited',
   AiUnavailable = 'ai_unavailable',
 
+  // integrations — Home Assistant proxy (B-180)
+  HaNotConfigured = 'ha_not_configured',
+  HaUnauthorized = 'ha_unauthorized',
+  HaEntityNotFound = 'ha_entity_not_found',
+  HaNoMeasurement = 'ha_no_measurement',
+  HaUnavailable = 'ha_unavailable',
+  HaUnreachable = 'ha_unreachable',
+  HaBadResponse = 'ha_bad_response',
+
+  // integrations — BarclaudeGateway proxy (B-181/B-182)
+  GatewayNotConfigured = 'gateway_not_configured',
+  GatewayUnauthorized = 'gateway_unauthorized',
+  GatewayUnavailable = 'gateway_unavailable',
+  GatewayUnreachable = 'gateway_unreachable',
+  GatewayBadResponse = 'gateway_bad_response',
+
   // reserved (inert in v1)
   NotImplemented = 'not_implemented',
 }

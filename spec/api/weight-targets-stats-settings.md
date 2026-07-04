@@ -118,7 +118,7 @@ target_zone:{cal_min,cal_max}, signals:[{code,value,text}]}`.
 
 ## Settings, template, pantry (Paramètres)
 
-- `GET/PATCH /settings` — `{locale, theme, current_mode?, open_period_note?, ai?}`.
+- `GET/PATCH /settings` — `{locale, theme, current_mode?, open_period_note?, ai?, integrations?}`.
   - **`open_period_note`** (string | null) — the Weight open-interval note
     (`logic/weight-periods-trajectory.md §2.1`, `schema/tables-weight-targets.md`); persisted
     on `app_user.settings`, patchable, nullable (cleared on the closing weigh-in).
@@ -142,6 +142,12 @@ target_zone:{cal_min,cal_max}, signals:[{code,value,text}]}`.
     per-task merge; `api_key` absent = keep, `""`/`null` = clear, else replace — see
     `ai-connection.md` §4). Validation is **local** (format only; Zod at the controller);
     **no provider call** happens here. Bad URL → 422 (`base_url: invalid_url`).
+  - **`integrations`** is the external-integration connections object (Home Assistant +
+    BarclaudeGateway, B-180/B-181) — always present on read (both keys, `null` when not
+    configured), **redacted** (`token_set` / `api_key_set` instead of the secrets), and
+    patched per connection with the same secret keep/clear semantics as `ai`. Full
+    read/patch shapes and the proxy endpoints: `spec/api/integrations.md`; logic:
+    `spec/logic/integrations-connections.md`.
 - `GET /settings/ai/models` — server-side proxy that lists the configured provider's models
   via the **stored** `ai` config (`GET {base_url}/models`, Bearer `api_key`). → 200
   `{data:[{id}]}`. **This is the connection proof** (it both populates the model menus and

@@ -13,6 +13,7 @@ const SETTINGS: Settings = {
   locale: 'fr',
   theme: 'dark',
   ai: null,
+  integrations: { home_assistant: null, barclaude_gateway: null },
   current_mode: 'not_in_diet',
   open_period_note: null,
 };

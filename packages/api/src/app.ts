@@ -16,6 +16,7 @@ import dataRoutes from './http/routes/data.js';
 import daysRoutes from './http/routes/days.js';
 import foodsRoutes from './http/routes/foods.js';
 import healthRoutes from './http/routes/health.js';
+import integrationsRoutes from './http/routes/integrations.js';
 import journalRoutes from './http/routes/journal.js';
 import leftoverRoutes from './http/routes/leftover.js';
 import mealsRoutes from './http/routes/meals.js';
@@ -61,6 +62,7 @@ export function createApp(): Express {
   app.use('/api/v1/journal', journalRoutes);
   app.use('/api/v1/stats', statsRoutes);
   app.use('/api/v1/settings', settingsRoutes);
+  app.use('/api/v1/integrations', integrationsRoutes);
   app.use('/api/v1/ai', aiRoutes);
   app.use('/api/v1/containers', containersRoutes);
   app.use('/api/v1/meal-template', mealTemplateRoutes);

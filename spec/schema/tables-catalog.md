@@ -19,8 +19,8 @@ Profile (sex/birthdate/height) is edited on Cibles; settings on Paramètres.
 
 ### settings JSON
 
-The `settings` blob carries UI preferences and the AI-assistant connection config.
-Keys (all optional; service supplies defaults):
+The `settings` blob carries UI preferences, the AI-assistant connection config, and the
+external-integration connections. Keys (all optional; service supplies defaults):
 
 - `locale` — `'fr' | 'en'` (default `'fr'`).
 - `theme` — `'system' | 'light' | 'dark'` (default `'dark'`).
@@ -54,6 +54,31 @@ Keys (all optional; service supplies defaults):
   use** — the `dish_photo_macros` / `meal_suggestions` / `advice` calls are not yet built.
   _(Replaces the earlier inert `llm_endpoint {url,key?}` reservation — see `DECISIONS.md`
   Gap 14 / B-117.)_
+- `integrations` — the external-integration connections (B-180/B-181), or defaults to both
+  connections `null`. Shape (`spec/logic/integrations-connections.md`):
+
+```jsonc
+{
+  "home_assistant": {
+    // or null when not configured
+    "base_url": "http://…", // absolute URL of the HA instance (http allowed on LAN)
+    "token": "…", // SECRET — long-lived access token; same rules as ai.api_key
+    "weight_entity_id": "sensor.scale_weight", // always user-supplied, never defaulted in code
+    "weight_round_decimals": 1, // int 0..3 — server-side rounding of the imported weight
+  },
+  "barclaude_gateway": {
+    // or null when not configured
+    "base_url": "http://…", // absolute URL (host+port) of the local gateway
+    "api_key": "…", // SECRET — same rules as ai.api_key
+  },
+}
+```
+
+- `home_assistant.token` and `barclaude_gateway.api_key` follow the exact `ai.api_key`
+  SECRET doctrine: **write-only across the API boundary** (read DTO exposes `token_set` /
+  `api_key_set` booleans instead), never logged, not encrypted at rest in v1. Consumed
+  only by the server-side proxies under `/api/v1/integrations`
+  (`spec/api/integrations.md`).
 
 ## food
 

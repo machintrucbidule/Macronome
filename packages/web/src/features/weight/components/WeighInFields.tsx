@@ -3,6 +3,7 @@ import type { DietFlag } from '@macronome/shared';
 import { NumberInput } from '../../../components/Form/NumberInput';
 import { TextInput } from '../../../components/Form/TextInput';
 import { FlagToggle } from './FlagToggle';
+import { HaImportButton } from './HaImportButton';
 import styles from '../weight.module.css';
 
 export interface WeighInDraft {
@@ -19,12 +20,14 @@ interface WeighInFieldsProps {
   error: string | null;
   /** Open-interval mode (B-176): only régime + note are editable (date/weight/waist hidden). */
   openMode?: boolean;
+  /** Add mode (B-180): shows the HA import button (itself gated on the HA config). */
+  addMode?: boolean;
 }
 
 // Presentational form body for the weigh-in modal (date, weight, optional waist, the diet
 // flag for the period ending here, note). State lives in WeighInModal. In `openMode` only the
 // régime toggle + note show (the open interval has no measurement — B-176).
-export function WeighInFields({ draft, set, error, openMode }: WeighInFieldsProps) {
+export function WeighInFields({ draft, set, error, openMode, addMode }: WeighInFieldsProps) {
   const { t } = useTranslation();
   return (
     <div className={styles.modalBody}>
@@ -45,6 +48,12 @@ export function WeighInFields({ draft, set, error, openMode }: WeighInFieldsProp
             value={draft.weight}
             onChange={(e) => set({ weight: e.target.value })}
           />
+          {addMode && (
+            <HaImportButton
+              date={draft.date}
+              onWeight={(weightKg) => set({ weight: String(weightKg) })}
+            />
+          )}
           <NumberInput
             label={`${t('weight.field.waist')} ${t('common.optional')}`}
             suffix="cm"
