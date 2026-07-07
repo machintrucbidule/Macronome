@@ -1,10 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Macronome">
-  <!-- PWA app icon (PWA-1, design/components/pwa.md). Brand "tick" — metronome ring + needle,
-       amber baked (#e0b341) — on an opaque dark inner disc; transparent exterior. The maskable
-       and apple-touch variants composite this on the dark disc (pwa-assets.config.ts). The
-       browser-tab favicon.svg + the 00-foundations brand mark are unchanged. -->
-  <circle cx="256" cy="256" r="167" fill="#0d0f12" />
-  <circle cx="256" cy="256" r="150" fill="none" stroke="#e0b341" stroke-width="34" />
-  <line x1="256" y1="256" x2="193" y2="89" stroke="#e0b341" stroke-width="34" stroke-linecap="round" />
-  <circle cx="256" cy="256" r="17" fill="#e0b341" />
+  <!-- PWA app icon (PWA-1 + B-196, design/components/pwa.md). Brand "tick" — metronome ring +
+       needle, amber baked (#e0b341) — on an opaque dark inner disc; transparent exterior. The
+       mark is FULL-BLEED (disc r=240 of 256, ~3% breathing margin) so the taskbar icon renders
+       at the same visual size as neighbouring apps. Needle cap arithmetic: the round cap adds
+       stroke/2 = 24.5px of ink beyond the endpoint, so the endpoint (172,32) is pulled in from
+       the proportional scale — its cap ink tops out at y≈9 (still inside the canvas); a naive
+       ×1.437 scale of the old endpoint (193,89) would clip the tip. The maskable and apple-touch
+       variants composite this on the dark disc with COMPENSATED padding (pwa-assets.config.ts)
+       so their rendered mark size is unchanged. favicon.svg + the 00-foundations brand mark are
+       unchanged. -->
+  <circle cx="256" cy="256" r="240" fill="#0d0f12" />
+  <circle cx="256" cy="256" r="215" fill="none" stroke="#e0b341" stroke-width="49" />
+  <line x1="256" y1="256" x2="172" y2="32" stroke="#e0b341" stroke-width="49" stroke-linecap="round" />
+  <circle cx="256" cy="256" r="24" fill="#e0b341" />
 </svg>

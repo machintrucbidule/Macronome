@@ -15,6 +15,7 @@ import { IntegrationsPage } from '../features/integrations/IntegrationsPage';
 import { ContainersPage } from '../features/containers/ContainersPage';
 import { AccountPage } from '../features/account/AccountPage';
 import { AboutPage } from '../features/about/AboutPage';
+import { ContextMenuProvider } from '../components/ContextMenu/ContextMenuProvider';
 import { AppShell } from './AppShell';
 import { AppGate } from './AppGate';
 import { RequireAuth } from './RequireAuth';
@@ -54,13 +55,16 @@ export function AppRouter() {
     <BrowserRouter>
       <SettingsSync>
         <AppGate>
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/setup" element={<SetupWizard />} />
-            {PROTECTED.map(([path, element]) => (
-              <Route key={path} path={path} element={<RequireAuth>{element}</RequireAuth>} />
-            ))}
-          </Routes>
+          {/* Installed-window right-click menu (B-195) — inert in browser tabs / on mobile. */}
+          <ContextMenuProvider>
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/setup" element={<SetupWizard />} />
+              {PROTECTED.map(([path, element]) => (
+                <Route key={path} path={path} element={<RequireAuth>{element}</RequireAuth>} />
+              ))}
+            </Routes>
+          </ContextMenuProvider>
         </AppGate>
       </SettingsSync>
     </BrowserRouter>

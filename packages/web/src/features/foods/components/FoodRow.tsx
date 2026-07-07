@@ -21,6 +21,8 @@ export function FoodRow({ food, onOpen, onArchive, onRestore }: FoodRowProps) {
     <tr
       className={`${styles.row} ${tableStyles.clickable} ${archived ? tableStyles.archived : ''}`}
       onClick={() => onOpen(food)}
+      // Context-menu row id (B-195): resolved by useFoodsContextMenu.
+      data-food={food.id}
     >
       <td>
         <span className={tableStyles.nameLabel} title={food.name}>

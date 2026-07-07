@@ -22,6 +22,8 @@ export function RecipeRow({ recipe, onOpen, onArchive, onRestore }: RecipeRowPro
     <tr
       className={`${styles.row} ${tableStyles.clickable} ${archived ? tableStyles.archived : ''}`}
       onClick={() => onOpen(recipe)}
+      // Context-menu row id (B-195): resolved by useRecipesContextMenu.
+      data-recipe={recipe.id}
     >
       <td>
         <span className={tableStyles.nameLabel} title={recipe.name}>

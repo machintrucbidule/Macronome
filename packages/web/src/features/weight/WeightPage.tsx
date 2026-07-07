@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { GetWeightResponse, WeighIn } from '@macronome/shared';
 import { AppShell } from '../../app/AppShell';
@@ -33,6 +35,15 @@ export function WeightPage() {
   const { mode, setMode } = useWeightMode(serverMode);
   const csv = useCsvExport(dataApi.exportWeightCsv);
   const isMobile = useIsMobile();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // App-shortcut deep link (B-183): `?action=add` opens the add-weigh-in sheet, then the
+  // param is consumed (replace) so refresh/back never re-opens it.
+  useEffect(() => {
+    if (searchParams.get('action') !== 'add') return;
+    ctl.openAdd();
+    setSearchParams({}, { replace: true });
+  }, [searchParams, setSearchParams, ctl]);
 
   const empty = !!(query.data && query.data.cartouche.current === null);
   const common = {

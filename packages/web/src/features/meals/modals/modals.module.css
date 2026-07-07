@@ -256,6 +256,18 @@
   border-color: var(--accent);
   color: var(--text);
 }
+/* Live drop zone while an image drag hovers the gallery button (B-184). */
+.aiDropOver {
+  border-style: solid;
+  border-color: var(--accent);
+  color: var(--text);
+}
+/* Faint transient hint when files were ignored — cap reached / unsupported type (B-184). */
+.aiIgnoredHint {
+  margin-top: var(--sp-2);
+  font-size: var(--fs-11);
+  color: var(--text-dim);
+}
 .aiHint {
   margin-top: var(--sp-2);
   font-size: var(--fs-11);

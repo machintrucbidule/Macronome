@@ -6,6 +6,7 @@ import { AppShell } from '../../app/AppShell';
 import { Banner } from '../../components/Banner/Banner';
 import { SkeletonRows } from '../../components/states/SkeletonRows';
 import { MealsProvider } from './MealsContext';
+import { useMealsContextMenu } from './contextMenu/useMealsContextMenu';
 import { useMealsController } from './hooks/useMealsController';
 import { useUndoRedoKeys } from './hooks/useUndoRedoKeys';
 import { useActiveMeal } from './hooks/useActiveMeal';
@@ -62,6 +63,8 @@ export function MealsPage() {
   const date = params.date ?? todayIso();
   const ctl = useMealsController(date);
   useUndoRedoKeys({ undo: ctl.undo, redo: ctl.redo });
+  // Installed-window right-click menu on food lines / empty rows (B-195).
+  useMealsContextMenu(ctl);
   const [clearing, setClearing] = useState(false);
   const [copying, setCopying] = useState(false);
   // Mobile meal-tab layer (S4): which meal is shown ≤560px. Resets on day change; desktop

@@ -9,11 +9,25 @@ update** and **install** — plus the version line. Reuses `buttons.md` (ghost b
 ## App chrome (manifest + meta)
 
 - **Icon** — the brand "tick" (metronome ring + needle, amber `--accent` baked) on a
-  filled dark disc. The home-screen icon is opaque; the transparent-exterior variant is the
-  standard icon, and a padded **maskable** variant (mark on the dark disc) covers Android's
-  adaptive crop. iOS uses a dark **apple-touch** icon. The existing browser-tab `favicon`
-  and the `00-foundations.md` brand mark are unchanged.
+  filled dark disc. The mark is **full-bleed** on the standard (transparent-exterior)
+  icons — the disc spans ~94% of the canvas (a ~3% breathing margin) so the installed
+  taskbar/home icon renders at the same visual size as neighbouring apps (B-196). The
+  padded **maskable** variant (mark on the dark disc) keeps Android's adaptive-crop
+  safe zone, and iOS keeps its dark **apple-touch** icon — both via generation padding
+  compensated so their rendered mark size is unchanged. The existing browser-tab
+  `favicon` and the `00-foundations.md` brand mark are unchanged.
 - **Standalone** — `display: standalone` (no URL bar). `start_url: '/'`.
+- **App shortcuts (B-183)** — the manifest exposes five `shortcuts`, in this order:
+  **Repas du jour** (`/`) · **Ajouter une pesée** (`/weight?action=add`) · **Journal**
+  (`/history`) · **Stats** (`/stats`) · **Paramètres** (`/parametres`). Shown by the OS
+  on taskbar right-click (Windows) / icon long-press (Android). No per-shortcut icons
+  (the OS falls back to the app icon). `/weight?action=add` opens Poids with the
+  add-weigh-in sheet already open; the param is **consumed once** (stripped with a
+  `replace` navigation) so refresh/back never re-opens the sheet. Logged out, the
+  shortcut lands on Poids after login without the sheet (intent not preserved).
+- **Single window (B-183)** — `launch_handler: { client_mode: 'focus-existing' }`:
+  launching the installed app focuses the existing window instead of opening a second
+  one.
 - **Status-bar colour** — a `theme-color` meta tracks the live `--bg` token, so the OS
   app-bar follows the in-app light/dark theme (updated whenever the theme changes).
 

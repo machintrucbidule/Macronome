@@ -139,6 +139,9 @@ function editActions(d: MealActionDeps) {
       d.setLineSheetTarget({ mealId, mealIndex, entryId, orderIndex });
     },
     closeLineSheet: () => d.setLineSheetTarget(null),
+    // Context-menu "Modifier la quantité" (B-195): reuses the pendingFocus → QtyCell
+    // focus+select plumbing (B-105). Persisted lines only (id-keyed).
+    focusQty: (entryId: string) => d.setPendingFocus(entryId),
   };
 }
 

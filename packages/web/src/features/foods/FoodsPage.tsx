@@ -8,6 +8,7 @@ import type { MinRating, VisibilityFilter } from './components/FiltersPopover';
 import { FoodModal } from './modals/FoodModal';
 import { ArchiveConfirm } from './modals/ArchiveConfirm';
 import { useFoodMutations, useFoodsList } from './useFoods';
+import { useFoodsContextMenu } from './useFoodsContextMenu';
 import { useIsMobile } from '../../lib/useIsMobile';
 
 // Aliments page (specifications/screens/food-db.md): owns filter/sort/modal state, fetches via
@@ -71,6 +72,9 @@ export function FoodsPage() {
 
   const editingId = modal?.mode === 'edit' ? modal.food.id : null;
   const isDuplicate = (name: string): boolean => isDuplicateName(foods, name, editingId);
+  const openFood = (food: Food): void => setModal({ mode: 'edit', food });
+  // Installed-window right-click menu on food rows (B-195).
+  useFoodsContextMenu(foods, openFood, setArchiveTarget, (f) => restore.mutate(f.id));
 
   const common = {
     foods,
@@ -89,7 +93,7 @@ export function FoodsPage() {
     onShowArchived: setShowArchived,
     onSort,
     onAdd: () => setModal({ mode: 'add' }),
-    onOpen: (food: Food) => setModal({ mode: 'edit', food }),
+    onOpen: openFood,
   };
 
   return (

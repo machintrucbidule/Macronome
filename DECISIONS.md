@@ -3712,3 +3712,68 @@ reorder-undo).
 - controller/route; web `api/entries.move`, `useDay.moveEntry`, `lineActions.moveEntry` +
   UR-1 `MoveOp` plumbing, `useLineDnd` cross-column branch (day-level drag-source ref),
   `LineEditorSheet` SelectMenu row. No DB/schema change (existing columns).
+
+---
+
+## B-183 / B-184 / B-195 / B-196 — "PC ergonomics" batch (+ B-185 cancelled) — RESOLVED (user, 2026-07-08)
+
+**Problem.** The installed desktop app lacked OS affordances: no taskbar shortcuts and a
+second window opened on every launch (B-183); dish photos could only enter the AI analysis
+through the file picker — no clipboard paste, and the design doc's "drop area" was never
+implemented (B-184); right-click showed the browser menu everywhere (B-195); the taskbar
+icon rendered visibly smaller than neighbours — the mark occupies ~65% of the 512 canvas
+(B-196).
+
+**Decision (behaviour — all owner picks, 3 question rounds).**
+
+- **B-185 (in-app keyboard shortcuts) is withdrawn** — owner: "inutile". No code; removed
+  from the backlog.
+- **B-183:** manifest `shortcuts` in this order — _Repas du jour_ (`/`) · _Ajouter une
+  pesée_ (`/weight?action=add`, the add sheet **auto-opens**, param consumed once via a
+  `replace` navigation) · _Journal_ (`/history`) · _Stats_ (`/stats`) · _Paramètres_
+  (`/parametres`); no per-shortcut icons. `launch_handler: { client_mode:
+'focus-existing' }` (single window). Logged out, the shortcut lands on Poids after
+  login without the sheet (accepted).
+- **B-184:** the "Ajouter des photos" button becomes a real drop zone (dashed border →
+  solid `--accent` while a drag hovers) and Ctrl+V pastes clipboard images (named
+  `capture-N`), intercepted **only when image files are present** — text paste stays
+  native. The long-promised **faint hint** is implemented for all three paths ("Maximum
+  4 photos" / "Format non supporté", transient). **No size limit** (parity with the
+  picker; a too-big request surfaces the existing API error).
+- **B-195:** custom context menu **only** in the installed standalone window on desktop
+  (>560px); native menu kept in text fields. Zones: food line → Modifier la quantité ·
+  Changer l'aliment (custom: Modifier) · Déplacer vers ▸ · Épingler/Désépingler ·
+  Supprimer (scaffold lines: Changer l'aliment only — quantity focus is id-keyed and
+  scaffolds share the empty id); **empty row → Ajouter un aliment ici · Valeurs
+  manuelles + generic**; Poids closed-period row → Modifier · Supprimer (new dedicated
+  styled confirm, then direct delete); **anywhere else on Poids (incl. the open-period
+  row) → Ajouter une pesée + generic**; Journal row → Ouvrir le jour only; Aliments/
+  Recettes rows → Modifier · **Archiver/Restaurer** (existing vocabulary, not
+  "Supprimer"); generic = Aller à ▸ (6 primary screens only) · Actualiser les données.
+- **B-196:** the mark is enlarged to ~94% of the canvas (**small ~3% margin**, owner
+  pick over edge-to-edge) for the standard icons; maskable/apple keep their rendered
+  mark size via compensated generation padding (0.3→0.5, 0.1→0.37). Owner re-validates
+  visually (the mark itself is unchanged, PWA-1).
+
+**Decision (where it is computed).** Pure web presentation — no API/schema/DTO change
+(CLAUDE.md rule 2 untouched). Context-menu architecture: one global provider with a
+delegated `contextmenu` listener (gated by a subscribed `display-mode: standalone`
+matchMedia + the mobile breakpoint) + per-screen zone resolvers registered via context,
+resolving rows from data attributes; zone items call **existing** actions only (incl.
+B-187's `moveEntry`); "Actualiser les données" = invalidate all react-query caches.
+
+**Spec impact:** `design/components/pwa.md` (App chrome — icon bullet rewritten +
+new App shortcuts & Single window bullets), `design/components/ai-dish-analysis.md`
+(Image picker bullet rewritten + Clipboard paste sub-bullet), **new**
+`design/components/context-menu.md`, and one bullet each in the git-ignored
+`specifications/screens/{meals,weight,history,food-db,recipe}.md`.
+
+**Code (web-only):** `vite.config.ts` (manifest); `WeightPage` (`?action=add` consumed
+once); `AiImagePicker.tsx` extracted from `AiDishAnalysisDialog.tsx` (+`addFiles` core,
+drop/paste paths, hint) + `modals.module.css` `.aiDropOver`; new `components/ContextMenu/*`
+(provider, panel, list, types, gating, css) + `lib/useIsStandalone.ts` + per-screen
+resolvers (`features/meals/contextMenu/*`, weight/journal/foods/recipes hooks) + new
+`WeighInDeleteConfirm` + row data attributes + `mealActions.focusQty`; `public/icon.svg`
+regeometried + `pwa-assets.config.ts` paddings + regenerated PNGs; i18n `contextMenu.*`
+
+- `meals.aiAnalysis.hint*` (fr + en).

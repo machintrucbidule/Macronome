@@ -1,128 +1,18 @@
-import { useEffect, useRef, useState, type ChangeEvent } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { DishPhotoMacros } from '@macronome/shared';
 import { Modal, modalStyles } from '../../../components/Modal/Modal';
 import { Button } from '../../../components/Button/Button';
 import { Banner } from '../../../components/Banner/Banner';
-import { useIsMobile } from '../../../lib/useIsMobile';
 import { useDishPhotoMacros } from '../hooks/useAi';
-import { ACCEPT, readAsDataUrl } from '../lib/imagePick';
 import { mapAiError } from '../lib/aiError';
+import { AiImagePicker } from './AiImagePicker';
 import styles from './modals.module.css';
 
 // "Analyse par IA" sub-dialog (design/components/ai-dish-analysis.md, B-118). Mirrors the foods
 // ParseLabelDialog: up to 4 dish photos AND/OR a note (at least one) → POST /ai/dish-photo-macros,
-// and on success pre-fill the parent custom-entry form. Persists nothing; reads images to data URLs.
-// ACCEPT/readAsDataUrl/error-mapping are shared with the mobile one-tap entry (lib/, QP-1/B-158).
-const MAX_IMAGES = 4;
-
-/** Selected-image thumbnails with a remove (×) each. */
-function Thumbnails({
-  images,
-  disabled,
-  onRemove,
-}: {
-  images: { url: string; name: string }[];
-  disabled: boolean;
-  onRemove: (index: number) => void;
-}) {
-  const { t } = useTranslation();
-  if (images.length === 0) return null;
-  return (
-    <div className={styles.aiThumbs}>
-      {images.map((im, i) => (
-        <div key={`${im.name}-${i}`} className={styles.aiThumb}>
-          <img src={im.url} alt={im.name} />
-          {!disabled && (
-            <button type="button" aria-label={t('common.remove')} onClick={() => onRemove(i)}>
-              ×
-            </button>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/** Image picker: gallery + (mobile) camera buttons + thumbnails. Reports selected data URLs up. */
-function AiImagePicker({
-  disabled,
-  onChange,
-}: {
-  disabled: boolean;
-  onChange: (urls: string[]) => void;
-}) {
-  const { t } = useTranslation();
-  const isMobile = useIsMobile();
-  const [images, setImages] = useState<{ url: string; name: string }[]>([]);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const cameraRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => onChange(images.map((im) => im.url)), [images, onChange]);
-
-  const onInput = async (e: ChangeEvent<HTMLInputElement>): Promise<void> => {
-    const files = e.target.files;
-    e.target.value = '';
-    if (!files?.length) return;
-    const room = MAX_IMAGES - images.length;
-    const accepted = [...files].filter((f) => ACCEPT.includes(f.type)).slice(0, room);
-    const picked = await Promise.all(
-      accepted.map(async (f) => ({ url: await readAsDataUrl(f), name: f.name })),
-    );
-    if (picked.length) setImages((cur) => [...cur, ...picked]);
-  };
-
-  return (
-    <>
-      <div className={styles.aiPick}>
-        <button
-          type="button"
-          className={styles.aiDrop}
-          disabled={disabled}
-          onClick={() => inputRef.current?.click()}
-        >
-          {t('meals.aiAnalysis.addImages')}
-        </button>
-        {/* Mobile-only: shoot a photo with the device camera (B-143). Single-shot capture,
-            same picker/base64 path; desktop keeps only the gallery button. */}
-        {isMobile && (
-          <button
-            type="button"
-            className={styles.aiDrop}
-            disabled={disabled}
-            onClick={() => cameraRef.current?.click()}
-          >
-            {t('meals.aiAnalysis.takePhoto')}
-          </button>
-        )}
-      </div>
-      <input
-        ref={inputRef}
-        type="file"
-        accept={ACCEPT}
-        multiple
-        hidden
-        onChange={(e) => void onInput(e)}
-      />
-      {isMobile && (
-        <input
-          ref={cameraRef}
-          type="file"
-          accept={ACCEPT}
-          capture="environment"
-          hidden
-          onChange={(e) => void onInput(e)}
-        />
-      )}
-      <div className={styles.aiHint}>{t('meals.aiAnalysis.imagesHint')}</div>
-      <Thumbnails
-        images={images}
-        disabled={disabled}
-        onRemove={(i) => setImages((c) => c.filter((_, idx) => idx !== i))}
-      />
-    </>
-  );
-}
+// and on success pre-fill the parent custom-entry form. Persists nothing; reads images to data
+// URLs. The picker (file inputs + drop zone + clipboard paste, B-184) lives in AiImagePicker.tsx.
 
 interface AiDishAnalysisDialogProps {
   onClose: () => void;

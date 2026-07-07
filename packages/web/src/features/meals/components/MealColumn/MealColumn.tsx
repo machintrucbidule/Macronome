@@ -72,6 +72,9 @@ export function MealColumn({ meal, index, meals, width, active = false }: MealCo
       className={styles.col}
       style={{ width, flexBasis: width }}
       data-meal-col={active ? 'active' : 'idle'}
+      // Context-menu meal identity (B-195): lets the delegated resolver map a row to its meal.
+      data-ctx-meal={meal.id}
+      data-ctx-meal-index={meal.order_index}
     >
       <MealHeader
         name={meal.slot_name}

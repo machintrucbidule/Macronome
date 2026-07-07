@@ -1,10 +1,13 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { DietFlag, GetWeightResponse } from '@macronome/shared';
+import type { DietFlag, GetWeightResponse, WeighIn } from '@macronome/shared';
 import { EmptyState } from '../../../components/states/EmptyState';
 import { SkeletonRows } from '../../../components/states/SkeletonRows';
 import { PeriodTable } from './PeriodTable';
 import { WeightHeader } from './WeightHeader';
 import { WeightOverview } from './WeightOverview';
+import { WeighInDeleteConfirm } from './WeighInDeleteConfirm';
+import { useWeightContextMenu } from './useWeightContextMenu';
 import type { WeightController } from '../useWeightController';
 import styles from '../weight.module.css';
 
@@ -26,9 +29,13 @@ export function WeightDesktop(props: WeightDesktopProps) {
   const { data, loading, empty, ctl, mode, onMode, onExport } = props;
   const { t } = useTranslation();
   const byDate = data ? new Map(data.weigh_ins.map((w) => [w.date, w])) : null;
+  // Context-menu "Supprimer la pesée" target (B-195): confirmed in a styled modal below.
+  const [deleting, setDeleting] = useState<WeighIn | null>(null);
+  useWeightContextMenu({ ctl, byDate, onDelete: setDeleting });
   return (
     <>
       <WeightHeader mode={mode} onMode={onMode} onAdd={ctl.openAdd} onExport={onExport} />
+      {deleting && <WeighInDeleteConfirm weighIn={deleting} onClose={() => setDeleting(null)} />}
       {loading ? (
         <SkeletonRows />
       ) : !data || empty ? (

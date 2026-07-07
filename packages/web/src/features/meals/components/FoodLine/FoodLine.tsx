@@ -69,6 +69,9 @@ function EmptyLine({
       className={`${styles.line} ${styles.empty}`}
       onClick={() => onAdd()}
       {...dropProps(row, dnd)}
+      // Context-menu row id (B-195) — distinct from data-line-row so the mobile
+      // long-press hit-test keeps targeting entry rows only.
+      data-ctx-row={row}
     >
       <span className={styles.grip} />
       <NameCell name={label} isCustom={false} onOpen={onAdd} />
@@ -191,8 +194,8 @@ function EntryRow({
       )}
       {...dropProps(row, dnd)}
       onClick={openSheet}
-      // Hit-test target for the mobile long-press reorder; omitted on desktop (DOM unchanged).
-      data-line-row={isMobile ? row : undefined}
+      // Hit-test target: mobile long-press reorder + desktop context menu (B-195).
+      data-line-row={row}
     >
       <span
         className={`${styles.grip} ${styles.gripDrag}`}

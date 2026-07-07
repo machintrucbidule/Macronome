@@ -12,6 +12,7 @@ import { JournalMobile } from './components/JournalMobile';
 import { currentYear } from './format';
 import { sortRows } from './sort';
 import { useJournal } from './useJournal';
+import { useJournalContextMenu } from './useJournalContextMenu';
 import { useJournalSort, type JournalSort } from './useJournalSort';
 import { useCsvExport } from '../../lib/useCsvExport';
 import { useIsMobile } from '../../lib/useIsMobile';
@@ -50,6 +51,8 @@ export function JournalPage() {
   const sort = useJournalSort();
   const csv = useCsvExport(dataApi.exportJournalCsv);
   const { query, patch, error, dismissError } = useJournal(year);
+  // Installed-window right-click menu on day rows (B-195).
+  useJournalContextMenu();
 
   const rows = query.data?.data ?? [];
   const sorted = useMemo(() => sortRows(rows, sort.sort, sort.dir), [rows, sort.sort, sort.dir]);

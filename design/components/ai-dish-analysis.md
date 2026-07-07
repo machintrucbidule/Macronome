@@ -32,9 +32,20 @@ semantic tokens only.
 
 A `modals.md` **sm/md** panel titled "Analyse par IA":
 
-- **Image picker** — a file input (`accept="image/*"`, **multiple**) plus a drop area; selected
-  images show as **thumbnails** with a remove (×) each. Cap **4** images (matches `spec/api/ai.md`);
-  adding beyond the cap is blocked with a faint hint. Accepts jpeg/png/webp.
+- **Image picker** — a file input (`accept="image/*"`, **multiple**) whose "Ajouter des
+  photos" button is also a **live drop zone** (B-184): image files dragged from the OS can
+  be dropped on it — while a drag hovers, the dashed border turns solid `--accent`.
+  Selected images show as **thumbnails** with a remove (×) each. Cap **4** images (matches
+  `spec/api/ai.md`). When files are ignored — cap reached or unsupported type — a **faint
+  transient hint** appears under the zone ("Maximum 4 photos" / "Format non supporté",
+  `--text-dim`, clears after a few seconds or on the next add), for all import paths
+  (picker, drop, paste). Accepts jpeg/png/webp; no size limit (a too-large request
+  surfaces the existing API error).
+  - **Clipboard paste (B-184)** — while the dialog is open, pasting an image (Ctrl+V,
+    e.g. a screenshot) adds it through the same path; pasted images are named
+    `capture-N`. The paste is intercepted **only when the clipboard carries image
+    files** — text paste (the note textarea, spellcheck) stays native. Disabled while
+    an analysis is running, like the other inputs.
   - **Camera capture (mobile, PWA-1/B-143)** — beside "Ajouter des photos", a second
     **"Prendre une photo"** button shown **only on the phone layout** (≤560px) opens the
     device camera directly (a single-shot input with `capture="environment"`), feeding the

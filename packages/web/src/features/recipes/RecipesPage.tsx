@@ -8,6 +8,7 @@ import type { MinRating } from './components/FiltersPopover';
 import { RecipeBuilderModal } from './modals/RecipeBuilderModal';
 import { RecipeArchiveConfirm } from './modals/RecipeArchiveConfirm';
 import { useRecipeMutations, useRecipesList } from './useRecipes';
+import { useRecipesContextMenu } from './useRecipesContextMenu';
 import { useIsMobile } from '../../lib/useIsMobile';
 
 // Recettes page (specifications/screens/recipe.md): owns search/filter/sort/modal state,
@@ -55,6 +56,14 @@ export function RecipesPage() {
       setDir('asc');
     }
   };
+
+  // Installed-window right-click menu on recipe rows (B-195).
+  useRecipesContextMenu({
+    recipes,
+    onOpen: (recipe) => setModal({ mode: 'edit', id: recipe.id }),
+    onArchive: (recipe) => setArchiveTarget(recipe),
+    onRestore: (recipe) => restore.mutate(recipe.id),
+  });
 
   // Props shared by both presentations (the desktop table and the mobile card list consume the
   // same server-side state + handlers); desktop adds the per-row archive/restore actions.

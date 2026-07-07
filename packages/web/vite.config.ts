@@ -30,6 +30,17 @@ export default defineConfig({
         background_color: '#0d0f12',
         display: 'standalone',
         start_url: '/',
+        // Single window: launching the installed app focuses the existing window (B-183).
+        launch_handler: { client_mode: 'focus-existing' },
+        // Taskbar right-click / icon long-press entries (B-183, design/components/pwa.md).
+        // `?action=add` opens Poids with the add-weigh-in sheet (consumed once by WeightPage).
+        shortcuts: [
+          { name: 'Repas du jour', url: '/' },
+          { name: 'Ajouter une pesée', url: '/weight?action=add' },
+          { name: 'Journal', url: '/history' },
+          { name: 'Stats', url: '/stats' },
+          { name: 'Paramètres', url: '/parametres' },
+        ],
         icons: [
           { src: 'pwa-64x64.png', sizes: '64x64', type: 'image/png' },
           { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },
