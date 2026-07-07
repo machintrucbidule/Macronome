@@ -1,6 +1,7 @@
 import type {
   CreateMealEntryRequest,
   MealEntry,
+  MoveEntryRequest,
   ReorderEntriesRequest,
   UpdateMealEntryRequest,
 } from '@macronome/shared';
@@ -16,6 +17,8 @@ export const entriesApi = {
     api.patch<MealEntry>(`/meals/${mealId}/entries/${id}`, body),
   reorder: (mealId: string, body: ReorderEntriesRequest) =>
     api.patch<void>(`/meals/${mealId}/entries/order`, body),
+  move: (mealId: string, id: string, body: MoveEntryRequest) =>
+    api.post<MealEntry>(`/meals/${mealId}/entries/${id}/move`, body),
   remove: (mealId: string, id: string) => api.del<void>(`/meals/${mealId}/entries/${id}`),
   pin: (mealId: string, id: string) => api.post<MealEntry>(`/meals/${mealId}/entries/${id}/pin`),
   unpin: (mealId: string, id: string) =>

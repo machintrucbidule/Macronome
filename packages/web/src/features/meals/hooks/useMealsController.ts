@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { DayDetail } from '@macronome/shared';
 import { usePantry } from '../../settings/usePantry';
 import { useDay } from './useDay';
@@ -26,6 +26,9 @@ export function useMealsController(date: string) {
   const [cookMealId, setCookMealId] = useState<string | null>(null);
   const [pendingFocus, setPendingFocus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Day-level drag source (B-187): lets a drop in ANOTHER meal's column know which line is
+  // being dragged (each column's DnD hook is per-meal). A ref, not state — no re-renders.
+  const lineDragRef = useRef<{ entryId: string; mealId: string } | null>(null);
   // Line-level undo/redo (UR-1 / B-133): records edits and replays inverses through useDay.
   const history = useMealHistory(day, date, setError);
 
@@ -56,6 +59,7 @@ export function useMealsController(date: string) {
     cookMealId,
     pendingFocus,
     error,
+    lineDragRef,
     actions,
     undo: history.undo,
     redo: history.redo,

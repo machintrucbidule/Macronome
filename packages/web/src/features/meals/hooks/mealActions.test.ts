@@ -6,7 +6,7 @@ import type {
   UpdateMealEntryRequest,
 } from '@macronome/shared';
 import { resolveEntryDefaultUnit } from './mealActions';
-import { pickActions } from './lineActions';
+import { moveLineActions, pickActions } from './lineActions';
 import type { MealActionDeps, Run } from './mealActions';
 
 // Default unit when adding an item to a meal (B-109): pin prefill → first portion → g.
@@ -131,5 +131,64 @@ describe('pickFood — food swap on an existing line (B-150)', () => {
       portion('p2', 'bol'),
     ]);
     expect(bodyOf(update)).toEqual({ food_id: 'new-food', unit: 'portion', portion_id: 'p1' });
+  });
+});
+
+// Cross-meal move (B-187/B-188): the action sends the target meal (order_index only for an
+// empty-row drop) and records a move op carrying the source row for undo.
+
+function moveDeps() {
+  const move = vi.fn().mockResolvedValue({ ...portionEntry, order_index: 7 });
+  const record = vi.fn();
+  const deps = {
+    day: {
+      query: { data: { meals: [{ id: 'meal-1', order_index: 0, entries: [portionEntry] }] } },
+    },
+    recordHistory: record,
+  } as unknown as MealActionDeps;
+  (deps.day as unknown as { moveEntry: { mutateAsync: typeof move } }).moveEntry = {
+    mutateAsync: move,
+  };
+  return { deps, move, record };
+}
+
+describe('moveEntry — cross-meal move (B-187/B-188)', () => {
+  test('omits order_index (server appends) and records the move with the source row', async () => {
+    const { deps, move, record } = moveDeps();
+    const actions = moveLineActions(deps, run);
+    await actions.moveEntry('meal-1', 'entry-1', 'meal-2');
+    expect(move).toHaveBeenCalledWith({
+      mealId: 'meal-1',
+      id: 'entry-1',
+      body: { target_meal_id: 'meal-2' },
+    });
+    expect(record).toHaveBeenCalledWith({
+      type: 'move',
+      mealId: 'meal-1',
+      entryId: 'entry-1',
+      targetMealId: 'meal-2',
+      fromOrderIndex: 0,
+      toOrderIndex: 7, // the landing row comes from the server response
+    });
+  });
+
+  test('passes an explicit order_index (empty-row drop)', async () => {
+    const { deps, move } = moveDeps();
+    const actions = moveLineActions(deps, run);
+    await actions.moveEntry('meal-1', 'entry-1', 'meal-2', 4);
+    expect(move).toHaveBeenCalledWith({
+      mealId: 'meal-1',
+      id: 'entry-1',
+      body: { target_meal_id: 'meal-2', order_index: 4 },
+    });
+  });
+
+  test('no-op on a same-meal target or a scaffold line (no id)', async () => {
+    const { deps, move, record } = moveDeps();
+    const actions = moveLineActions(deps, run);
+    await actions.moveEntry('meal-1', 'entry-1', 'meal-1');
+    await actions.moveEntry('meal-1', '', 'meal-2');
+    expect(move).not.toHaveBeenCalled();
+    expect(record).not.toHaveBeenCalled();
   });
 });

@@ -5,10 +5,12 @@ import type {
   PantryItem,
   UpdateMealEntryRequest,
 } from '@macronome/shared';
+import { ApiError } from '../../../api/client';
 import {
   findEntry,
   mealOrder,
   recordAdd,
+  recordMove,
   recordPin,
   recordRemove,
   recordReorder,
@@ -115,6 +117,44 @@ function editLine(
       onDone?.(real);
     })(),
   );
+}
+
+/** Cross-meal move (B-187/B-188): persisted lines only; the server resolves the landing row
+ *  when orderIndex is omitted (append after the target's last filled line) and blocks
+ *  leftover-grouped lines (422 surfaced by the existing error banner). */
+export function moveLineActions(d: MealActionDeps, run: Run) {
+  return {
+    moveEntry: (
+      sourceMealId: string,
+      entryId: string,
+      targetMealId: string,
+      orderIndex?: number,
+    ) => {
+      if (!entryId || sourceMealId === targetMealId) return Promise.resolve();
+      const entry = findEntry(d.day, entryId); // snapshot BEFORE the move (source row, for undo)
+      return run(
+        (async () => {
+          try {
+            const moved = await d.day.moveEntry.mutateAsync({
+              mealId: sourceMealId,
+              id: entryId,
+              body: {
+                target_meal_id: targetMealId,
+                ...(orderIndex == null ? {} : { order_index: orderIndex }),
+              },
+            });
+            if (entry)
+              recordMove(d.recordHistory, sourceMealId, entry, targetMealId, moved.order_index);
+          } catch (e) {
+            // Surface the leftover block under its own code so the banner can explain it.
+            if (e instanceof ApiError && e.details?.entry_id === 'entry_in_leftover_group')
+              throw new ApiError(e.status, 'entry_in_leftover_group', e.details);
+            throw e;
+          }
+        })(),
+      );
+    },
+  };
 }
 
 /** Quantity / unit / delete / pin / reorder on a line. setQty/setUnit take the full entry +

@@ -30,6 +30,15 @@ export const leftoverRepo = {
     return day ? group : null;
   },
 
+  /** Whether an entry is linked to any leftover group (blocks a cross-meal move, B-187). */
+  async isEntryLinked(entryId: string): Promise<boolean> {
+    const link = await prisma.leftoverGroupEntry.findFirst({
+      where: { mealEntryId: entryId },
+      select: { leftoverGroupId: true },
+    });
+    return link !== null;
+  },
+
   /** The meal_entry ids currently linked to a group (for a PATCH that keeps them). */
   async entryIdsOf(groupId: string): Promise<string[]> {
     const links = await prisma.leftoverGroupEntry.findMany({

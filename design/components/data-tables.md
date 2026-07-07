@@ -191,9 +191,10 @@ to overlays; desktop (≥561px) is unchanged.
   bold + L/G/P colour-coded + `L·G·P` legend). The pin/× icons are **not** on the line.
 - **Tap routing** (S9): tap **name** → **bottom-sheet** food picker (search-only); tap **quantity**
   → inline numeric edit; tap **elsewhere on the line** → bottom-sheet **line editor** (change
-  food · quantity + unit · pin · delete). Works on garde-manger scaffold pre-fill lines too (pinned,
-  qty 0): they resolve by row, and the sheet offers change-food + quantity (no pin/delete until
-  materialised). **Long-press the grip** → touch drag-to-reorder.
+  food · quantity + unit · move to meal (B-188) · pin · delete). Works on garde-manger scaffold
+  pre-fill lines too (pinned, qty 0): they resolve by row, and the sheet offers change-food +
+  quantity (no move/pin/delete until materialised). **Long-press the grip** → touch
+  drag-to-reorder.
 - **Meal “⋯” menu** (S9): a bottom sheet (rename · move left/right · delete). The 🍳 cook button
   is **removed on mobile**; the **⊟ Restes button stays in the meal footer** (owner correction
   2026-06-11) and its leftover popup opens as a **bottom sheet**.

@@ -1,6 +1,7 @@
 import type {
   CreateMealEntryRequest,
   MealEntry,
+  MoveEntryRequest,
   ReorderEntriesRequest,
   UpdateMealEntryRequest,
 } from '@macronome/shared';
@@ -9,6 +10,7 @@ import type { MealEntry as MealEntryModel } from '@prisma/client';
 import { dayRepo } from '../data/repositories/day.repo.js';
 import { entryRepo, type EntryWriteData } from '../data/repositories/entry.repo.js';
 import { foodRepo, type FoodWithPortions } from '../data/repositories/food.repo.js';
+import { leftoverRepo } from '../data/repositories/leftover.repo.js';
 import { resolveServedGrams, snapshotMacros, type ServingUnit } from '../domain/serving/index.js';
 import { ApiError } from '../http/errors.js';
 import { mealEntryDto } from './day-assembler.js';
@@ -120,6 +122,27 @@ export async function reorder(
     mealId,
     body.order.map((o) => ({ id: o.id, orderIndex: o.order_index })),
   );
+}
+
+/** Move a line to another meal of the same day (B-187/B-188). Only meal_id + order_index
+ *  change — the frozen snapshot is untouched. Null → 404 (entry or target not owned). */
+export async function move(
+  userId: string,
+  entryId: string,
+  body: MoveEntryRequest,
+): Promise<MealEntry | null> {
+  const entry = await entryRepo.ownedEntry(userId, entryId);
+  if (!entry) return null;
+  const target = await dayRepo.ownedMeal(userId, body.target_meal_id);
+  if (!target) return null;
+  if (target.id === entry.mealId) return mealEntryDto(entry); // no-op (same meal)
+  const source = await dayRepo.ownedMeal(userId, entry.mealId);
+  if (!source || source.dayLogId !== target.dayLogId)
+    throw new ApiError(422, ErrorCode.ValidationError, { target_meal_id: 'different_day' });
+  if (await leftoverRepo.isEntryLinked(entryId))
+    throw new ApiError(422, ErrorCode.ValidationError, { entry_id: 'entry_in_leftover_group' });
+  const orderIndex = body.order_index ?? (await entryRepo.nextOrderIndex(target.id));
+  return mealEntryDto(await entryRepo.move(entryId, target.id, orderIndex));
 }
 
 /** Rebuild a custom line's snapshot from its merged fields. */

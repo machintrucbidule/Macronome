@@ -183,6 +183,14 @@ export const ReorderEntriesSchema = z.object({
 });
 export type ReorderEntriesRequest = z.infer<typeof ReorderEntriesSchema>;
 
+/** POST /meals/:mealId/entries/:id/move — move a line to another meal of the same day
+ *  (B-187/B-188); order_index omitted → appended after the target meal's last row. */
+export const MoveEntrySchema = z.object({
+  target_meal_id: z.string().uuid(),
+  order_index: z.number().int().nonnegative().optional(),
+});
+export type MoveEntryRequest = z.infer<typeof MoveEntrySchema>;
+
 /** PATCH /meals/:mealId/entries/:id — change qty/unit/food or custom values. */
 export const UpdateMealEntrySchema = z
   .object({

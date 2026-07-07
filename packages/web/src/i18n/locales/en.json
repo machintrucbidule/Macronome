@@ -369,6 +369,7 @@
       "changeFood": "Change food",
       "editCustom": "Edit values",
       "quantity": "Quantity",
+      "moveToMeal": "Move to",
       "pin": "Pin to pantry",
       "unpin": "Unpin from pantry",
       "delete": "Remove food"
@@ -466,6 +467,7 @@
       "confirm": "Copy yesterday"
     },
     "copyEmpty": "Nothing to copy from yesterday.",
+    "moveInLeftover": "This line can't be moved: it belongs to a leftover group. Remove it from the group (⊟ Restes) first.",
     "clear": {
       "title": "Clear everything?",
       "prompt": "Every food and quantity for this day will be cleared (and any leftovers removed). Pantry foods stay at 0, the comment and activity are kept, and the verdict reverts to Auto.",

@@ -45,6 +45,22 @@ export const recordPin = (
 ): void =>
   rec?.({ type: 'pin', mealId, entryId: entry.id, pinnedBefore, snapshot: snapshotOf(entry) });
 
+export const recordMove = (
+  rec: Record,
+  sourceMealId: string,
+  entry: MealEntry,
+  targetMealId: string,
+  toOrderIndex: number,
+): void =>
+  rec?.({
+    type: 'move',
+    mealId: sourceMealId,
+    entryId: entry.id,
+    targetMealId,
+    fromOrderIndex: entry.order_index,
+    toOrderIndex,
+  });
+
 export const recordReorder = (
   rec: Record,
   mealId: string,

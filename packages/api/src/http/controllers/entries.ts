@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import {
   CreateMealEntrySchema,
   ErrorCode,
+  MoveEntrySchema,
   ReorderEntriesSchema,
   UpdateMealEntrySchema,
 } from '@macronome/shared';
@@ -40,6 +41,16 @@ export async function reorder(req: Request, res: Response): Promise<void> {
   const ok = await entriesService.reorder(userId(res), req.params.mealId as string, parsed.data);
   if (!ok) throw new ApiError(404, ErrorCode.NotFound);
   res.status(204).end();
+}
+
+/** POST /meals/:mealId/entries/:id/move — move the line to another meal of the same day
+ *  (B-187/B-188); the frozen snapshot is untouched. */
+export async function move(req: Request, res: Response): Promise<void> {
+  const parsed = MoveEntrySchema.safeParse(req.body);
+  if (!parsed.success) throw new ApiError(422, ErrorCode.ValidationError, zodDetails(parsed.error));
+  const entry = await entriesService.move(userId(res), req.params.id as string, parsed.data);
+  if (!entry) throw new ApiError(404, ErrorCode.NotFound);
+  res.status(200).json(entry);
 }
 
 /** DELETE /meals/:mealId/entries/:id. */

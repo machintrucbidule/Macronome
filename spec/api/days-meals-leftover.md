@@ -106,6 +106,16 @@ protein}}`. Both also accept an optional **`order_index`** (the line's row
   sparse (preserves intentionally blank rows). Reordering changes only `order_index`
   (never consumed/totals). → 204; the client refetches the day. Any id not in this
   meal → 404 (nothing written).
+- `POST /meals/:mealId/entries/:id/move` — **move** a line to another meal of the
+  **same day** (desktop cross-column drag, mobile line-editor sheet — B-187/B-188):
+  `{target_meal_id, order_index?}`. `order_index` omitted → appended after the
+  target meal's last row. Moving changes only the line's meal and `order_index` —
+  the macro **snapshot is untouched** (history stays frozen). Same-meal target →
+  no-op 200. Cross-day target → 422 `validation_error`
+  (`target_meal_id: 'different_day'`); a line in a **leftover group** → 422
+  `validation_error` (`entry_id: 'entry_in_leftover_group'`) — nothing written;
+  remove it from the group first. User-scoped (cross-tenant/unknown → 404).
+  → 200 MealEntry.
 - `PATCH /meals/:mealId/entries/:id` — change qty/unit/food/custom values; resets
   the snapshot for referenced foods at edit time. → 200.
 - `POST /meals/:mealId/entries/:id/pin` · `/unpin` — edits the pantry_item for

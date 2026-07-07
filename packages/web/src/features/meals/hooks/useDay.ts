@@ -5,6 +5,7 @@ import type {
   LeftoverRequest,
   PatchDayRequest,
   PatchLeftoverRequest,
+  MoveEntryRequest,
   PatchMealRequest,
   ReorderEntriesRequest,
   UpdateMealEntryRequest,
@@ -58,6 +59,11 @@ function useEntryMutations(onSuccess: () => void) {
       entriesApi.reorder(v.mealId, v.body),
     onSuccess,
   });
+  const moveEntry = useMutation({
+    mutationFn: (v: { mealId: string; id: string; body: MoveEntryRequest }) =>
+      entriesApi.move(v.mealId, v.id, v.body),
+    onSuccess,
+  });
   const removeEntry = useMutation({
     mutationFn: (v: { mealId: string; id: string }) => entriesApi.remove(v.mealId, v.id),
     onSuccess,
@@ -70,7 +76,7 @@ function useEntryMutations(onSuccess: () => void) {
     mutationFn: (v: { mealId: string; id: string }) => entriesApi.unpin(v.mealId, v.id),
     onSuccess,
   });
-  return { createEntry, updateEntry, reorderEntries, removeEntry, pinEntry, unpinEntry };
+  return { createEntry, updateEntry, reorderEntries, moveEntry, removeEntry, pinEntry, unpinEntry };
 }
 
 /** Day-level whole-day mutations (clear + kind conversions). Split out to keep useDay within
@@ -127,7 +133,7 @@ export function useDay(date: string) {
     onSuccess,
   });
 
-  const { createEntry, updateEntry, reorderEntries, removeEntry, pinEntry, unpinEntry } =
+  const { createEntry, updateEntry, reorderEntries, moveEntry, removeEntry, pinEntry, unpinEntry } =
     useEntryMutations(onSuccess);
 
   const { createLeftover, updateLeftover, removeLeftover } = useLeftoverMutations(onSuccess);
@@ -146,6 +152,7 @@ export function useDay(date: string) {
     createEntry,
     updateEntry,
     reorderEntries,
+    moveEntry,
     removeEntry,
     pinEntry,
     unpinEntry,

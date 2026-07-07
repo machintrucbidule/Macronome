@@ -62,6 +62,24 @@ test('update: undo applies before, redo applies after; ids are resolved', () => 
   ]);
 });
 
+test('move: undo returns the line to its source row, redo re-applies the target; ids resolved', () => {
+  const op: Op = {
+    type: 'move',
+    mealId: 'src',
+    entryId: 'old',
+    targetMealId: 'tgt',
+    fromOrderIndex: 2,
+    toOrderIndex: 5,
+  };
+  const r = remap({ old: 'new' });
+  expect(reconcileUndo(op, r, yes)).toEqual([
+    { kind: 'move', mealId: 'tgt', id: 'new', targetMealId: 'src', orderIndex: 2 },
+  ]);
+  expect(reconcileRedo(op, r)).toEqual([
+    { kind: 'move', mealId: 'src', id: 'new', targetMealId: 'tgt', orderIndex: 5 },
+  ]);
+});
+
 test('reorder: undo restores the before map, redo the after map; ids resolved', () => {
   const op: Op = {
     type: 'reorder',

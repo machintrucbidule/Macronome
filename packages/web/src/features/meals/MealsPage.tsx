@@ -69,11 +69,14 @@ export function MealsPage() {
   const [activeMeal, setActiveMeal] = useActiveMeal(date, ctl.day?.meals.length ?? 0);
 
   // A copy from an empty yesterday is an expected no-op, shown as a plain info banner;
+  // a blocked cross-meal move (leftover group, B-187/B-188) gets its own explanation;
   // any other failure keeps the generic error message (B-082).
   const errorMessage =
     ctl.error === 'copy_source_empty'
       ? t('meals.copyEmpty')
-      : t('meals.error', { code: ctl.error });
+      : ctl.error === 'entry_in_leftover_group'
+        ? t('meals.moveInLeftover')
+        : t('meals.error', { code: ctl.error });
 
   // Append the meal at the current end and activate its mobile tab (spec §5.3). No-op on desktop.
   const addMeal = (name: string): void => {

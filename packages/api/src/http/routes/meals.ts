@@ -18,6 +18,7 @@ router.patch('/:mealId/entries/:id', asyncHandler(entries.update));
 router.delete('/:mealId/entries/:id', asyncHandler(entries.remove));
 router.post('/:mealId/entries/:id/pin', asyncHandler(entries.pin));
 router.post('/:mealId/entries/:id/unpin', asyncHandler(entries.unpin));
+router.post('/:mealId/entries/:id/move', asyncHandler(entries.move));
 // `leftover/preview` must precede the create route so it isn't shadowed.
 router.post('/:mealId/leftover/preview', asyncHandler(leftover.preview));
 router.post('/:mealId/leftover', asyncHandler(leftover.create));

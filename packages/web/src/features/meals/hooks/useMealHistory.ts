@@ -65,6 +65,12 @@ export function useMealHistory(
         const id = it.id === CREATED && created ? created : it.id;
         if (it.kind === 'update')
           await day.updateEntry.mutateAsync({ mealId: it.mealId, id, body: it.body });
+        else if (it.kind === 'move')
+          await day.moveEntry.mutateAsync({
+            mealId: it.mealId,
+            id,
+            body: { target_meal_id: it.targetMealId, order_index: it.orderIndex },
+          });
         else if (it.kind === 'remove') await day.removeEntry.mutateAsync({ mealId: it.mealId, id });
         else if (it.kind === 'pin') await day.pinEntry.mutateAsync({ mealId: it.mealId, id });
         else await day.unpinEntry.mutateAsync({ mealId: it.mealId, id });

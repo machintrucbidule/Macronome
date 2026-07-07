@@ -48,6 +48,17 @@ export function reconcileUndo(op: Op, resolve: Resolve, exists: Exists): Intent[
       return [{ kind: 'update', mealId: op.mealId, id: resolve(op.entryId), body: op.before }];
     case 'reorder':
       return [{ kind: 'reorder', mealId: op.mealId, order: mapOrder(op.before, resolve) }];
+    case 'move':
+      // The line now lives in the target meal; move it back to the source row.
+      return [
+        {
+          kind: 'move',
+          mealId: op.targetMealId,
+          id: resolve(op.entryId),
+          targetMealId: op.mealId,
+          orderIndex: op.fromOrderIndex,
+        },
+      ];
     case 'pin':
       return undoPin(op, resolve, exists);
   }
@@ -70,6 +81,16 @@ export function reconcileRedo(op: Op, resolve: Resolve): Intent[] {
       return [{ kind: 'update', mealId: op.mealId, id: resolve(op.entryId), body: op.after }];
     case 'reorder':
       return [{ kind: 'reorder', mealId: op.mealId, order: mapOrder(op.after, resolve) }];
+    case 'move':
+      return [
+        {
+          kind: 'move',
+          mealId: op.mealId,
+          id: resolve(op.entryId),
+          targetMealId: op.targetMealId,
+          orderIndex: op.toOrderIndex,
+        },
+      ];
     case 'pin':
       // Re-apply the recorded toggle: pinnedBefore=false → pin again; true → unpin again.
       return op.pinnedBefore

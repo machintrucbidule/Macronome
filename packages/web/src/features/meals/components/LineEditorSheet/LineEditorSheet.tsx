@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { DayDetail, MealEntry } from '@macronome/shared';
 import { Modal } from '../../../../components/Modal/Modal';
+import { SelectMenu } from '../../../../components/SelectMenu/SelectMenu';
 import { evalQuantity } from '../../../../lib/format/parse';
 import { useMeals } from '../../MealsContext';
 import { useFood } from '../../hooks/useFoodLookup';
@@ -77,6 +78,30 @@ function QtyRow({ entry, target }: { entry: MealEntry; target: LineSheetTarget }
   );
 }
 
+// Move the line to another meal of the day (B-188): a dropdown pre-selected on the current
+// meal; picking another closes the sheet and moves the line (the server appends it after
+// the target meal's last filled line). Persisted lines only, like pin/delete.
+function MoveRow({ entry, target }: { entry: MealEntry; target: LineSheetTarget }) {
+  const { t } = useTranslation();
+  const { actions, day } = useMeals();
+  const meals = day?.meals ?? [];
+  return (
+    <div className={styles.moveRow}>
+      <span className={styles.label}>{t('meals.lineSheet.moveToMeal')}</span>
+      <SelectMenu
+        value={target.mealId}
+        options={meals.map((m) => ({ value: m.id, label: m.slot_name }))}
+        onChange={(id) => {
+          if (id === target.mealId) return;
+          actions.closeLineSheet();
+          void actions.moveEntry(target.mealId, entry.id, id);
+        }}
+        ariaLabel={t('meals.lineSheet.moveToMeal')}
+      />
+    </div>
+  );
+}
+
 // Display name for the edited line (custom name, or the looked-up food name with a loading dash).
 function lineName(
   isCustom: boolean,
@@ -106,6 +131,7 @@ function ReferencedControls({ entry, target }: { entry: MealEntry; target: LineS
   return (
     <>
       <QtyRow entry={entry} target={target} />
+      {entry.id && <MoveRow entry={entry} target={target} />}
       {entry.id && (
         <button
           type="button"
@@ -115,6 +141,32 @@ function ReferencedControls({ entry, target }: { entry: MealEntry; target: LineS
           {entry.is_pinned ? t('meals.lineSheet.unpin') : t('meals.lineSheet.pin')}
         </button>
       )}
+    </>
+  );
+}
+
+// Tail rows for a persisted line (no id → scaffold pre-fill, nothing persisted to act on):
+// custom lines get the move-to-meal dropdown here (referenced lines carry it in
+// ReferencedControls, between quantity and pin) + the delete action.
+function TailActions({
+  entry,
+  isCustom,
+  target,
+  onDelete,
+}: {
+  entry: MealEntry;
+  isCustom: boolean;
+  target: LineSheetTarget;
+  onDelete: () => void;
+}) {
+  const { t } = useTranslation();
+  if (!entry.id) return null;
+  return (
+    <>
+      {isCustom && <MoveRow entry={entry} target={target} />}
+      <button type="button" className={`${styles.action} ${styles.danger}`} onClick={onDelete}>
+        {t('meals.lineSheet.delete')}
+      </button>
     </>
   );
 }
@@ -150,14 +202,13 @@ export function LineEditorSheet({ target }: { target: LineSheetTarget }) {
           </span>
         </button>
         {entry && !isCustom && <ReferencedControls entry={entry} target={target} />}
-        {entry?.id && (
-          <button
-            type="button"
-            className={`${styles.action} ${styles.danger}`}
-            onClick={handoff(() => void actions.deleteEntry(target.mealId, entry.id))}
-          >
-            {t('meals.lineSheet.delete')}
-          </button>
+        {entry && (
+          <TailActions
+            entry={entry}
+            isCustom={isCustom}
+            target={target}
+            onDelete={handoff(() => void actions.deleteEntry(target.mealId, entry.id))}
+          />
         )}
       </div>
     </Modal>

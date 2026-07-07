@@ -96,8 +96,17 @@ export interface ReorderOp extends Base {
   before: OrderItem[];
   after: OrderItem[];
 }
+/** Cross-meal move (B-187/B-188). A move is its own inverse; undo restores the source row —
+ *  if that sparse row was refilled meanwhile the duplicate index is accepted (as reorder-undo). */
+export interface MoveOp extends Base {
+  type: 'move';
+  entryId: string;
+  targetMealId: string;
+  fromOrderIndex: number;
+  toOrderIndex: number;
+}
 
-export type Op = AddOp | RemoveOp | UpdateOp | PinOp | ReorderOp;
+export type Op = AddOp | RemoveOp | UpdateOp | PinOp | ReorderOp | MoveOp;
 
 /** Sentinel id meaning "the line just created by the preceding create intent" (idMap.ts fills it). */
 export const CREATED = '@created';
@@ -108,5 +117,6 @@ export type Intent =
   | { kind: 'update'; mealId: string; id: string; body: UpdateMealEntryRequest }
   | { kind: 'remove'; mealId: string; id: string }
   | { kind: 'reorder'; mealId: string; order: OrderItem[] }
+  | { kind: 'move'; mealId: string; id: string; targetMealId: string; orderIndex: number }
   | { kind: 'pin'; mealId: string; id: string }
   | { kind: 'unpin'; mealId: string; id: string };

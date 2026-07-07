@@ -21,6 +21,12 @@ import styles from './meal-column.module.css';
 // drag-reorders lines (B-029). Domain values come from the server (the web never computes).
 const MIN_LINES = 15;
 
+// Swap two meals' order_index (the header's move left/right arrows).
+function swapMeals(mutations: ReturnType<typeof useMeals>['mutations'], a: Meal, b: Meal): void {
+  void mutations.patchMeal.mutateAsync({ mealId: a.id, body: { order_index: b.order_index } });
+  void mutations.patchMeal.mutateAsync({ mealId: b.id, body: { order_index: a.order_index } });
+}
+
 interface MealColumnProps {
   meal: Meal;
   index: number;
@@ -34,13 +40,19 @@ interface MealColumnProps {
 
 export function MealColumn({ meal, index, meals, width, active = false }: MealColumnProps) {
   const { t } = useTranslation();
-  const { editing, mutations, actions } = useMeals();
+  const { editing, mutations, actions, lineDragRef } = useMeals();
   const [confirming, setConfirming] = useState(false);
   const rows = buildLineRows(meal.entries, MIN_LINES);
   const byRow = new Map<number, MealEntry>(
     rows.flatMap((r) => (r.entry ? ([[r.row, r.entry]] as const) : [])),
   );
-  const dnd = useLineDnd(meal.id, byRow, (id, order) => void actions.reorderEntries(id, order));
+  const dnd = useLineDnd(
+    meal.id,
+    byRow,
+    (id, order) => void actions.reorderEntries(id, order),
+    lineDragRef,
+    (entryId, src, tgt, row) => void actions.moveEntry(src, entryId, tgt, row),
+  );
   // Mobile long-press touch reorder (S9) runs alongside the desktop native DnD; both commit through
   // the same reorder action. Inert on desktop (mouse pointers are ignored + handlers unattached).
   const isMobile = useIsMobile();
@@ -53,17 +65,6 @@ export function MealColumn({ meal, index, meals, width, active = false }: MealCo
     return entry
       ? editing.entryId === entry.id
       : editing.entryId === null && editing.orderIndex === row;
-  };
-
-  const swap = (other: Meal): void => {
-    void mutations.patchMeal.mutateAsync({
-      mealId: meal.id,
-      body: { order_index: other.order_index },
-    });
-    void mutations.patchMeal.mutateAsync({
-      mealId: other.id,
-      body: { order_index: meal.order_index },
-    });
   };
 
   return (
@@ -81,8 +82,10 @@ export function MealColumn({ meal, index, meals, width, active = false }: MealCo
           const next = window.prompt(t('meals.meal.renamePrompt'), meal.slot_name);
           if (next) void actions.renameMeal(meal.id, next);
         }}
-        onMoveLeft={() => index > 0 && swap(meals[index - 1] as Meal)}
-        onMoveRight={() => index < meals.length - 1 && swap(meals[index + 1] as Meal)}
+        onMoveLeft={() => index > 0 && swapMeals(mutations, meal, meals[index - 1] as Meal)}
+        onMoveRight={() =>
+          index < meals.length - 1 && swapMeals(mutations, meal, meals[index + 1] as Meal)
+        }
         onDelete={() => setConfirming(true)}
         extra={photo.ready ? <MealPhotoButton busy={photo.busy} onClick={photo.trigger} /> : null}
       />

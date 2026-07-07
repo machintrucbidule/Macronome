@@ -3666,3 +3666,49 @@ text references `100 g/gr/gramme(s)/ml` (digit-guarded regex — accepts every o
 spelling incl. "par portion de 100g", rejects `1000 g`); anything else (`portion
 (30 g)`, `55 g`) ⇒ macros null — the only case where mapping would silently store
 wrong per-100 values. Spec §8.2 rewritten + §8.3 oracles 8–10.
+
+---
+
+## B-187 / B-188 — move a meal entry to another meal (desktop DnD + mobile sheet) — RESOLVED (user, 2026-07-07)
+
+**Problem.** A logged line could not change meal: reorder is strictly single-meal
+(`PATCH /meals/:mealId/entries/order`) and `PATCH entries/:id` has no `meal_id` (and
+rebuilds the snapshot, which a move must never do). Desktop dragging a line onto
+another column silently did nothing; mobile had no path at all.
+
+**Decision (behaviour).**
+
+- **One new API capability shared by both UIs:** `POST /meals/:mealId/entries/:id/move`
+  `{target_meal_id, order_index?}` → 200 MealEntry — moves the line to another meal of
+  the **same day**, changing only `meal_id` + `order_index`; the **macro snapshot is
+  untouched** (history stays frozen). `order_index` omitted → appended after the target
+  meal's last row (`nextOrderIndex`). Same-meal target → no-op 200. Cross-day target →
+  422 (`target_meal_id: 'different_day'`).
+- **Desktop (B-187):** dropping a dragged line onto another meal's column moves it —
+  drop on an **empty row lands exactly there**; drop on an **occupied row appends after
+  the target's last filled line** (owner pick; never a cross-meal swap). Mobile touch
+  reorder stays within-meal.
+- **Mobile (B-188):** the line-editor bottom sheet gains a **"move to meal" dropdown**
+  (day's meals, current pre-selected); picking another meal moves the line, landing
+  **after the target's last filled line** (owner pick). Persisted lines only, like
+  pin/delete.
+- **Leftover-grouped line → move blocked** with 422 (`entry_id:
+'entry_in_leftover_group'`) and a clear warning; the user removes it from the group
+  first (owner pick over silent detach, which would re-prorate the source meal's
+  consumed grams without confirmation).
+
+**Decision (where it is computed).** Landing position and all guards are server-side
+(CLAUDE.md rule 2); the web only sends the drop row (empty-row case) or omits
+`order_index`. Undo/redo: the move is recorded in the UR-1 line-op history (a move is
+its own inverse; restoring a since-refilled sparse row is accepted, as with
+reorder-undo).
+
+**Spec impact:** `spec/api/days-meals-leftover.md` (new move bullet in § Meal entries),
+`specifications/screens/meals.md` (Reorder-lines bullet gains the cross-meal move),
+`specifications/features/mobile-responsive/spec.md` §5.3 + `design/components/data-tables.md`
+(line-editor sheet action list gains "move to meal"). **Code:** shared `MoveEntrySchema`
+(`dto/day.ts`); api `entry.repo.move` + `leftover.repo.isEntryLinked` + `services/entries.move`
+
+- controller/route; web `api/entries.move`, `useDay.moveEntry`, `lineActions.moveEntry` +
+  UR-1 `MoveOp` plumbing, `useLineDnd` cross-column branch (day-level drag-source ref),
+  `LineEditorSheet` SelectMenu row. No DB/schema change (existing columns).

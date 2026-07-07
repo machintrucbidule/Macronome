@@ -61,6 +61,12 @@ export const entryRepo = {
     return prisma.mealEntry.update({ where: { id: entryId }, data });
   },
 
+  /** Re-parent a line to another meal (B-187/B-188). Only meal_id + order_index change —
+   *  the frozen macro snapshot is never touched. All guards are the caller's (service). */
+  move(entryId: string, mealId: string, orderIndex: number): Promise<MealEntryModel> {
+    return prisma.mealEntry.update({ where: { id: entryId }, data: { mealId, orderIndex } });
+  },
+
   /** Unpin cascade (B-045): drop every qty-0 referenced line for (slot, food) across all
    *  the user's days. Lines with qty > 0 are kept (they lose only the derived pin icon).
    *  User-scoped via day_log → meal → meal_entry. Returns the number of lines removed. */

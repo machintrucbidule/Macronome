@@ -80,6 +80,15 @@
   border-color: var(--accent);
 }
 
+/* Move-to-meal row (B-188): label + the SelectMenu dropdown, same layout as .qtyRow. */
+.moveRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: 12px var(--sp-5);
+  border-bottom: 1px solid var(--border);
+}
+
 /* Full-width action rows (pin / delete). */
 .action {
   width: 100%;

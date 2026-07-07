@@ -11,7 +11,7 @@ import { ApiError } from '../../../api/client';
 import { shiftIso } from '../format';
 import type { Op } from '../history/op';
 import { findEntry, recordAdd, recordUpdate } from '../history/recordHelpers';
-import { editLineActions, pickActions } from './lineActions';
+import { editLineActions, moveLineActions, pickActions } from './lineActions';
 import type { UseDay } from './useDay';
 
 // The default-unit-on-add helper lives with the line actions; re-exported for its co-located test.
@@ -259,6 +259,7 @@ export function createMealActions(d: MealActionDeps) {
     ...editActions(d),
     ...pickActions(d, run, resolveMealId),
     ...editLineActions(d, run, resolveEntry),
+    ...moveLineActions(d, run),
     ...customActions(d, run, resolveMealId),
     ...dayActions(d, run),
   };

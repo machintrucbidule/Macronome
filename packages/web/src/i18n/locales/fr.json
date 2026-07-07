@@ -369,6 +369,7 @@
       "changeFood": "Changer l'aliment",
       "editCustom": "Modifier les valeurs",
       "quantity": "Quantité",
+      "moveToMeal": "Déplacer vers",
       "pin": "Épingler au garde-manger",
       "unpin": "Retirer du garde-manger",
       "delete": "Supprimer l'aliment"
@@ -466,6 +467,7 @@
       "confirm": "Copier hier"
     },
     "copyEmpty": "Aucun repas hier à copier.",
+    "moveInLeftover": "Impossible de déplacer cette ligne : elle fait partie d'un groupe de restes. Retirez-la du groupe (⊟ Restes) d'abord.",
     "clear": {
       "title": "Tout effacer ?",
       "prompt": "Tous les aliments et quantités de ce jour seront effacés (et les restes déduits). Les aliments du garde-manger restent à 0, le commentaire et l'activité sont conservés, et le verdict repasse en Auto.",
