@@ -26,6 +26,20 @@ a {
   color: var(--accent);
 }
 
+/* B-199: Chromium/Edge paint a blinking text caret on selectable text and on focusable
+   non-input elements (e.g. the food-name cell role="button" tabindex=0). Hide it globally,
+   then re-enable it on genuine editable fields. No `user-select` change → text selection and
+   copy stay available everywhere. Firefox never showed the stray caret; this is inert there. */
+html {
+  caret-color: transparent;
+}
+input,
+textarea,
+select,
+[contenteditable] {
+  caret-color: auto;
+}
+
 /* Baseline keyboard focus ring (design/components/00-foundations.md §Focus ring): one
    --focus-coloured ring for interactive elements that don't style focus themselves —
    links, nav links, menu items, role=button. :where() keeps specificity at 0 so any
