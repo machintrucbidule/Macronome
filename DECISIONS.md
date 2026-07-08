@@ -4123,6 +4123,10 @@ frame.
 popup) un-clipped, the frame does **not** use `overflow:hidden`; instead the two edge columns round
 their **background** to the container's corners so no square nub shows through the rounded frame,
 and the desktop last column drops its now-redundant `border-right`. These rules are scoped ≥761px.
+The container also uses `width: fit-content` (capped `max-width:100%`) so the frame hugs the
+columns' real width: the integer-fit `colWidth = floor(width / n)` residual, plus meal counts below
+the fitted column count, otherwise leave a dead `--bg` strip between the last column and the right
+border inside the frame (owner-reported after the first cut, 2026-07-09).
 
 **Contract impact:** `design/components/data-tables.md` (instance A — opening sentence rewritten).
 **Code:** `packages/web/src/features/meals/meals.module.css` (`.scroller` border/radius, removed
