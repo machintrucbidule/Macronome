@@ -95,12 +95,13 @@
   color: var(--accent-ink);
 }
 
-/* period table — long table → self-contained scroll box with a sticky header
-   (design/components/data-tables.md .tblscroll: max-height 420px, sticky thead
-   pinned to the box top). */
+/* period table — renders in normal page flow with an appbar-sticky header (B-189, the
+   B-069 DataTable pattern): NO overflow container here, or the sticky offset would resolve
+   against this box instead of the viewport. A wide 15-column table scrolls the whole page
+   sideways on a narrow desktop window (a contained horizontal scroll and an appbar-sticky
+   header can't coexist in one wrapper — owner-accepted). */
 .tableWrap {
-  max-height: 420px;
-  overflow: auto;
+  width: 100%;
 }
 .table {
   width: 100%;
@@ -118,9 +119,12 @@
   padding: var(--sp-3) var(--sp-4);
   border-bottom: var(--bw) solid var(--border);
   position: sticky;
-  top: 0;
+  /* Stick BELOW the appbar (B-069/B-189): --z-sticky-sub < --z-appbar, so the account
+     dropdown (in the appbar's stacking context) overlays the header rather than the header
+     painting over it. --appbar-h offset resolves against the viewport (no overflow ancestor). */
+  top: var(--appbar-h);
   background: var(--bg);
-  z-index: var(--z-popover);
+  z-index: var(--z-sticky-sub);
 }
 .colHeadNum {
   text-align: right;

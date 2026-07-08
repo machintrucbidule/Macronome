@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { MealEntry } from '@macronome/shared';
-import { buildLineRows, firstFreeSlot } from './lineRows';
+import { MIN_LINES_DESKTOP, MIN_LINES_MOBILE, buildLineRows, firstFreeSlot } from './lineRows';
 
 // Positional rows (B-028): entries land at their order_index; blank rows in between are
 // kept; there are always ≥2 trailing empties and ≥ minLines total.
@@ -29,6 +29,18 @@ describe('buildLineRows (B-028)', () => {
     expect(rows[20]?.entry).toBe(e);
     expect(rows[21]?.entry).toBeNull();
     expect(rows[22]?.entry).toBeNull();
+  });
+
+  // B-186: viewport-dependent floor — 18 rows on desktop, 15 on mobile (trailing-empties rule
+  // unchanged, so a tall meal still grows past either floor as the case above shows).
+  it('applies the desktop floor of 18 empty rows', () => {
+    expect(MIN_LINES_DESKTOP).toBe(18);
+    expect(buildLineRows([], MIN_LINES_DESKTOP)).toHaveLength(18);
+  });
+
+  it('keeps the mobile floor at 15 empty rows', () => {
+    expect(MIN_LINES_MOBILE).toBe(15);
+    expect(buildLineRows([], MIN_LINES_MOBILE)).toHaveLength(15);
   });
 });
 

@@ -66,6 +66,20 @@ set in this folder, not any single mockup.
   mockup jargon). The block is **always rendered** (placeholder only when there is
   no body weight yet). See `DECISIONS.md` B-033/B-038, `components/metric-cards.md`.
 
+### 6. Poids period table scroll box — [CONFIRMED → app diverges] (B-189)
+
+- **Divergence:** `weight.html` (and the former `data-tables.md` mandate) wraps the
+  15-column period table in a fixed-height self-contained scroll box
+  (`.tblscroll`/`.tableWrap`: `max-height:420px; overflow:auto`, header pinned to the
+  box top). The shipped app now renders the table in **normal page flow** with the
+  standard **appbar-sticky** header (`top:var(--appbar-h)`, `z-index:var(--z-sticky-sub)`,
+  the B-069 pattern).
+- **Canonical = page flow + appbar-sticky header.** No inner vertical scroll box; the
+  page scrolls (both axes) — on a narrow desktop window the wide table makes the page
+  scroll sideways (a contained horizontal scroll and an appbar-sticky header can't
+  coexist in one wrapper — owner-accepted). The mockup is intentionally not reworked.
+  See `DECISIONS.md` B-186/B-189, `components/data-tables.md`.
+
 ---
 
 ## Auto-normalised (trivial) — [AUTO], no veto received

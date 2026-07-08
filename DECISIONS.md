@@ -3777,3 +3777,45 @@ resolvers (`features/meals/contextMenu/*`, weight/journal/foods/recipes hooks) +
 regeometried + `pwa-assets.config.ts` paddings + regenerated PNGs; i18n `contextMenu.*`
 
 - `meals.aiAnalysis.hint*` (fr + en).
+
+---
+
+## B-186 / B-189 — "Desktop layout tweaks" batch — RESOLVED (user, 2026-07-08)
+
+**Problem.** (B-186) Each meal grid showed a 15-line minimum on every viewport — the owner
+wanted a taller grid on desktop (more visible rows, not more trailing empties). (B-189) The
+Poids desktop period table was locked in a fixed-height 420px scroll box — but that box was
+**contract-mandated** (`design/components/data-tables.md` `.tblscroll`, and the
+`weight.html` mockup implements it), so the reported "bug" was reclassified to an
+improvement (contract conflict, amended deliberately).
+
+**Decision (behaviour — owner picks).**
+
+- **B-186:** the per-meal minimum line count is **viewport-dependent — 18 on desktop, 15 on
+  mobile** (`MIN_LINES_DESKTOP` / `MIN_LINES_MOBILE`, chosen by `useIsMobile()` in
+  `MealColumn`). The "≥ 2 trailing empty lines after the last filled" rule is **unchanged**
+  (it is independent of the floor in `buildLineRows` — `max(minLines, maxRow+1+2)`).
+- **B-189:** the Poids desktop period table drops its 420px scroll box and renders in
+  **normal page flow**; its header **sticks below the appbar** (`top:var(--appbar-h)`,
+  `z-index:var(--z-sticky-sub)` — the B-069 DataTable pattern, so the account dropdown still
+  overlays it). Mobile Poids (the `PeriodList` card list) is unaffected.
+- **B-189 horizontal overflow (owner decision):** a single wrapper cannot give **both** a
+  contained horizontal scroll **and** an appbar-sticky header (an `overflow` container in any
+  axis makes the sticky offset resolve against the box, not the viewport). The owner chose
+  **appbar-sticky header + the page scrolls sideways** on narrow desktop windows (~560–900px);
+  on a wide/maximized window (the table fits ≥~900px) there is no sideways scroll. This
+  mirrors the other dense tables (Journal/Aliments) exactly.
+
+**Decision (where it is computed).** Pure web presentation — no API/schema/DTO change
+(CLAUDE.md rule 2 untouched). B-186 is a caller-side floor passed to the existing pure
+`buildLineRows`; B-189 is CSS only (remove `.tableWrap` overflow → `width:100%`; `.colHead`
+`top:0`→`var(--appbar-h)`, `z-index` `--z-popover`→`--z-sticky-sub`).
+
+**Spec impact:** `design/components/data-tables.md` (retire the `.tblscroll` mandate for the
+Poids table — now an optional variant, no default user), `design/NORMALIZATION_LOG.md` (entry
+#6 — the `weight.html` scroll-box divergence), `specifications/screens/meals.md` (viewport
+floor 18/15) + `specifications/screens/weight.md` (period table page-flow + appbar-sticky +
+sideways page scroll). **Code (web-only):** `logic/lineRows.ts` (`MIN_LINES_DESKTOP=18` /
+`MIN_LINES_MOBILE=15`), `components/MealColumn/MealColumn.tsx` (viewport-dependent floor),
+`features/weight/weight.module.css` (`.tableWrap` + `.colHead`). Test: `lineRows.test.ts`
+(the 18/15 floors). No DB/schema/API change.

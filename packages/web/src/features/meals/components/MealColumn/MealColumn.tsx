@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { Meal, MealEntry } from '@macronome/shared';
 import { useIsMobile } from '../../../../lib/useIsMobile';
 import { useMeals } from '../../MealsContext';
-import { buildLineRows } from '../../logic/lineRows';
+import { MIN_LINES_DESKTOP, MIN_LINES_MOBILE, buildLineRows } from '../../logic/lineRows';
 import { useLineDnd } from '../../hooks/useLineDnd';
 import { useTouchReorder } from '../../hooks/useTouchReorder';
 import { useMealPhotoEntry } from '../../hooks/useMealPhotoEntry';
@@ -19,7 +19,6 @@ import styles from './meal-column.module.css';
 // One meal as a column: header + sub-header + the lines + footer totals. Each entry sits at
 // its order_index row; the remaining rows are clickable "+ aliment" empties (B-028). The grip
 // drag-reorders lines (B-029). Domain values come from the server (the web never computes).
-const MIN_LINES = 15;
 
 // Swap two meals' order_index (the header's move left/right arrows).
 function swapMeals(mutations: ReturnType<typeof useMeals>['mutations'], a: Meal, b: Meal): void {
@@ -42,7 +41,10 @@ export function MealColumn({ meal, index, meals, width, active = false }: MealCo
   const { t } = useTranslation();
   const { editing, mutations, actions, lineDragRef } = useMeals();
   const [confirming, setConfirming] = useState(false);
-  const rows = buildLineRows(meal.entries, MIN_LINES);
+  // Taller grid on desktop, unchanged on mobile (B-186): the floor feeds buildLineRows; the
+  // ≥2-trailing-empties rule inside it is independent of this minimum.
+  const isMobile = useIsMobile();
+  const rows = buildLineRows(meal.entries, isMobile ? MIN_LINES_MOBILE : MIN_LINES_DESKTOP);
   const byRow = new Map<number, MealEntry>(
     rows.flatMap((r) => (r.entry ? ([[r.row, r.entry]] as const) : [])),
   );
@@ -55,7 +57,6 @@ export function MealColumn({ meal, index, meals, width, active = false }: MealCo
   );
   // Mobile long-press touch reorder (S9) runs alongside the desktop native DnD; both commit through
   // the same reorder action. Inert on desktop (mouse pointers are ignored + handlers unattached).
-  const isMobile = useIsMobile();
   const touch = useTouchReorder(isMobile, byRow, (o) => void actions.reorderEntries(meal.id, o));
   // Mobile one-tap photo → AI → custom line (QP-1/B-158); wiring + state live in the hook.
   const photo = useMealPhotoEntry(meal);
