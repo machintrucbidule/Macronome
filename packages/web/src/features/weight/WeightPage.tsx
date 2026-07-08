@@ -39,11 +39,15 @@ export function WeightPage() {
 
   // App-shortcut deep link (B-183): `?action=add` opens the add-weigh-in sheet, then the
   // param is consumed (replace) so refresh/back never re-opens it.
+  // Fire only on the ?action=add transition — NOT on every render. `ctl` is a new object each
+  // render (useWeightController isn't memoized) and `setSearchParams` may be too; depending on
+  // them would re-run on the close re-render and re-open the modal on Cancel (B-183 follow-up).
+  const wantsAdd = searchParams.get('action') === 'add';
   useEffect(() => {
-    if (searchParams.get('action') !== 'add') return;
+    if (!wantsAdd) return;
     ctl.openAdd();
     setSearchParams({}, { replace: true });
-  }, [searchParams, setSearchParams, ctl]);
+  }, [wantsAdd]);
 
   const empty = !!(query.data && query.data.cartouche.current === null);
   const common = {

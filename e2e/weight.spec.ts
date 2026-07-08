@@ -120,6 +120,28 @@ test('the Régime/Maintien mode persists across a reload (B-177)', async ({ page
   );
 });
 
+test('the "Ajouter une pesée" deep link opens the add modal once; Cancel keeps it closed (B-183)', async ({
+  page,
+  playwright,
+}) => {
+  const user = await prisma.appUser.findUniqueOrThrow({ where: { username: USER } });
+  await prisma.weightEntry.deleteMany({ where: { userId: user.id } });
+  await login(page, playwright);
+
+  // The taskbar-shortcut deep link opens the add modal and the ?action=add param is consumed.
+  await page.goto('/weight?action=add');
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByLabel('Date')).toBeVisible(); // it is the add/edit modal (has a date)
+  await expect(page).toHaveURL(/\/weight$/); // the param was stripped (no F5/back re-open)
+
+  // Cancel closes it — and it must NOT instantly re-open (the reported bug).
+  await dialog.getByRole('button', { name: 'Annuler' }).click();
+  await expect(dialog).toBeHidden();
+  await page.waitForTimeout(500);
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+});
+
 /** ISO date n days before today (UTC) — the server's open-interval "today" is UTC. */
 function isoDaysAgoUtc(n: number): string {
   const d = new Date();
