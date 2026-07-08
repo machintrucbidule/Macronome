@@ -15,6 +15,15 @@
    shows through the rounded corner. Scoped ≥761px so the ≤760px stacked full-bordered-card layout
    below is untouched. */
 @media (min-width: 761px) {
+  /* Fill the scroller's full width so the outer frame's right edge sits at the page gutter and no
+     dead --bg strip shows before it: the columns grow to share any free space (flex-grow) when they
+     don't overflow. flex-shrink stays 0 (base `flex: 0 0 auto`), so when the meals overflow the
+     width there is no free space, columns keep their integer-fit `colWidth`, and the horizontal
+     scroll + ‹ › arrows work unchanged. Row layout only — the ≤760px stacked (column) layout must
+     not grow heights. */
+  .col {
+    flex-grow: 1;
+  }
   .col:first-child {
     border-top-left-radius: var(--r-lg);
     border-bottom-left-radius: var(--r-lg);

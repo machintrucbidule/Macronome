@@ -460,16 +460,11 @@
   /* B-201: the whole-table outer frame — a continuous border on all four sides with all four
      `--r-lg` corners — lives here on the container, not reconstructed from per-column edges. The
      columns provide only the inter-column dividers (meal-column.module.css). Removed at ≤760px,
-     where columns stack as individual full-bordered cards. */
+     where columns stack as individual full-bordered cards. The frame spans the full available
+     width (right edge at the page gutter); the columns fill it via `flex-grow` (≥761px in
+     meal-column.module.css), so there is no dead `--bg` strip before the right border. */
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
-  /* Hug the columns' real width: the integer-fit `colWidth = floor(width / n)` (logic/columnFit)
-     leaves a residual, and there can be fewer meals than the fitted column count, so the columns
-     rarely span the full available width. Without this the frame would enclose a dead `--bg` strip
-     between the last column and the right border. `fit-content` shrinks the frame to the columns;
-     `max-width:100%` keeps horizontal scrolling when the meals overflow the width. */
-  width: fit-content;
-  max-width: 100%;
 }
 .scroller::-webkit-scrollbar {
   height: 0;
@@ -547,11 +542,9 @@
     overflow-x: visible;
     gap: var(--sp-6);
     /* Stacked layout: each column is its own full-bordered card (meal-column.module.css), so the
-       container drops the desktop outer frame (B-201) and spans the full width again. */
+       container drops the desktop outer frame (B-201). */
     border: none;
     border-radius: 0;
-    width: auto;
-    max-width: none;
   }
   .navArrow,
   .hbar {
