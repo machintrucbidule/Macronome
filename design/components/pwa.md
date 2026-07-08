@@ -29,9 +29,9 @@ update** and **install** — plus the version line. Reuses `buttons.md` (ghost b
   Browsers without WCO support, and mobile, fall back to plain `display: standalone` (unchanged),
   and a browser tab is unaffected. Installed-window feature gates (`useIsStandalone`, the `lib/pwa`
   install button) treat a WCO window as installed too. In WCO the header keeps the normal appbar
-  height (B-204), and its background **fades `--bg-elev` → `--bg`** across the reserved strip right
-  of the account menu (B-205), so it blends into the page / native-controls area with no hard seam
-  (semantic tokens only; WCO-mode only).
+  height (B-204), and the runtime `theme-color` is set to **`--bg-elev`** so the strip the browser
+  paints behind the native window buttons matches the header — the title band is one uniform colour
+  across the full width, no seam (B-205; semantic tokens only, WCO-mode only).
 - **App shortcuts (B-183)** — the manifest exposes five `shortcuts`, in this order:
   **Repas du jour** (`/`) · **Ajouter une pesée** (`/weight?action=add`) · **Journal**
   (`/history`) · **Stats** (`/stats`) · **Paramètres** (`/parametres`). Shown by the OS
@@ -43,8 +43,10 @@ update** and **install** — plus the version line. Reuses `buttons.md` (ghost b
 - **Single window (B-183)** — `launch_handler: { client_mode: 'focus-existing' }`:
   launching the installed app focuses the existing window instead of opening a second
   one.
-- **Status-bar colour** — a `theme-color` meta tracks the live `--bg` token, so the OS
-  app-bar follows the in-app light/dark theme (updated whenever the theme changes).
+- **Status-bar colour** — a `theme-color` meta tracks a live token, so the OS app-bar follows the
+  in-app light/dark theme (updated whenever the theme changes). It reads **`--bg`** in a browser tab
+  and on the mobile status bar, and **`--bg-elev`** in the installed WCO window (so the native-button
+  strip matches the header — B-205).
 
 ## Update card (Paramètres → "Mise à jour")
 

@@ -4174,16 +4174,20 @@ Two tweaks to the installed-window `window-controls-overlay` chrome added in B-2
   be taller than the OS title strip; the whole bar stays the drag region, the overflow below is
   interactive client area (normal WCO behaviour). `pwa.md` fixes no WCO height → no contract change
   for this half.
-- **B-205 (improvement, owner run #51):** `.appbar` is `--bg-elev` while the surrounding page /
-  native-controls area is `--bg` → a hard seam on the right, under the native buttons. Decision: in
-  WCO, the header background **fades `--bg-elev` → `--bg`** across the reserved strip right of the
-  account menu. Implemented as a `linear-gradient(to right, …)` on `.appbar`, with a local
-  `--wco-reserved` custom prop (`calc(100% - env(titlebar-area-width) - env(titlebar-area-x))`) reused
-  by `padding-right` and the gradient stop so the fade starts exactly at the account menu's right
-  edge. Fade to `--bg` (solid, **not** transparent) so scrolled content never shows through. Semantic
-  tokens only; WCO-mode only; browser tab + mobile unchanged.
+- **B-205 (improvement, owner run #51):** `.appbar` is `--bg-elev` while the strip the browser paints
+  behind the native window buttons is coloured by `theme-color` (was `--bg`) → a hard seam on the
+  right. **Revised approach (owner, superseding the first cut):** instead of fading the header, make
+  that strip match the header — set the runtime `theme-color` to **`--bg-elev`** in the WCO window so
+  the whole title band is one uniform colour across the full width, no seam. The **initial gradient
+  attempt** (`linear-gradient` + `--wco-reserved` on `.appbar`, commit `2e6788b`) was **reverted**.
+  Implementation: `syncThemeColor()` reads `--bg-elev` when
+  `matchMedia('(display-mode: window-controls-overlay)')` matches, else `--bg` (mobile status bar /
+  browser tab unchanged); `ThemeProvider` re-syncs on the WCO media-query `change` (the overlay can be
+  toggled without a reload). Semantic tokens only.
 
-**Contract impact:** `design/components/pwa.md` (§ App chrome — "Window & title bar" bullet: WCO height
-
-- gradient note). **Code:** `packages/web/src/app/AppShell.module.css` (WCO block). Not unit-testable
-  (WCO + `env()` render CSS) → owner visual re-validation in the installed Edge window; full gate green.
+**Contract impact:** `design/components/pwa.md` (§ App chrome — "Window & title bar" + "Status-bar
+colour" bullets: WCO height + `theme-color = --bg-elev` in WCO). **Code:**
+`packages/web/src/app/AppShell.module.css` (WCO height; gradient reverted),
+`packages/web/src/app/applySettings.ts` (`syncThemeColor` WCO branch),
+`packages/web/src/app/providers/ThemeProvider.tsx` (WCO re-sync listener). Not unit-testable (WCO +
+`env()` / live meta) → owner visual re-validation in the installed Edge window; full gate green.

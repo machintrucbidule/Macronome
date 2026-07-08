@@ -15,14 +15,22 @@ function resolveTheme(mode: Theme): 'light' | 'dark' {
   return mode;
 }
 
-// Keep the PWA `theme-color` meta (OS status-bar colour) in sync with the active theme by
-// reading the live `--bg` token — no hardcoded hex, so it tracks the palette (PWA-1, rule 6).
+// Keep the PWA `theme-color` meta in sync with the active theme by reading a live token — no
+// hardcoded hex, so it tracks the palette (PWA-1, rule 6). Normally `--bg` (the OS status-bar
+// colour on mobile / a browser tab). In the installed WCO window the browser paints the strip
+// behind the native window buttons with theme-color, so there we use `--bg-elev` to match the
+// header → one uniform title band across the full width, no seam (B-205).
 export function syncThemeColor(): void {
   if (typeof document === 'undefined') return;
   const meta = document.querySelector('meta[name="theme-color"]');
   if (!meta) return;
-  const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
-  if (bg) meta.setAttribute('content', bg);
+  const wco =
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(display-mode: window-controls-overlay)').matches;
+  const token = wco ? '--bg-elev' : '--bg';
+  const color = getComputedStyle(document.documentElement).getPropertyValue(token).trim();
+  if (color) meta.setAttribute('content', color);
 }
 
 export function applyTheme(mode: Theme): void {

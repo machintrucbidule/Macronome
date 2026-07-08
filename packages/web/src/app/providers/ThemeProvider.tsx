@@ -18,6 +18,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const stored = (localStorage.getItem(STORAGE_KEY) as ThemeMode | null) ?? 'dark';
     document.documentElement.setAttribute('data-theme', resolve(stored));
     syncThemeColor();
+    // Toggling the window-controls-overlay on/off changes display-mode without a reload; re-sync
+    // theme-color so the WCO title band follows (--bg-elev in WCO, --bg otherwise) — B-205.
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
+    const mql = window.matchMedia('(display-mode: window-controls-overlay)');
+    const onChange = (): void => syncThemeColor();
+    mql.addEventListener('change', onChange);
+    return () => mql.removeEventListener('change', onChange);
   }, []);
 
   return <>{children}</>;
