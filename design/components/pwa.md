@@ -28,7 +28,10 @@ update** and **install** — plus the version line. Reuses `buttons.md` (ghost b
   buttons, on any OS. **We do not draw our own window buttons** — the browser keeps its native set.
   Browsers without WCO support, and mobile, fall back to plain `display: standalone` (unchanged),
   and a browser tab is unaffected. Installed-window feature gates (`useIsStandalone`, the `lib/pwa`
-  install button) treat a WCO window as installed too.
+  install button) treat a WCO window as installed too. In WCO the header keeps the normal appbar
+  height (B-204), and its background **fades `--bg-elev` → `--bg`** across the reserved strip right
+  of the account menu (B-205), so it blends into the page / native-controls area with no hard seam
+  (semantic tokens only; WCO-mode only).
 - **App shortcuts (B-183)** — the manifest exposes five `shortcuts`, in this order:
   **Repas du jour** (`/`) · **Ajouter une pesée** (`/weight?action=add`) · **Journal**
   (`/history`) · **Stats** (`/stats`) · **Paramètres** (`/parametres`). Shown by the OS

@@ -27,9 +27,20 @@
        is shorter than --appbar-h (51px) and would crush the header, so take the larger of the two
        (and still cover a taller OS title strip if one exceeds --appbar-h). */
     height: max(env(titlebar-area-height, var(--appbar-h)), var(--appbar-h));
+    /* Width reserved on the right for the native window buttons — reused by the padding and the
+       B-205 gradient so the fade starts exactly at the account menu's right edge. */
+    --wco-reserved: calc(100% - env(titlebar-area-width, 100%) - env(titlebar-area-x, 0px));
     padding-left: calc(env(titlebar-area-x, 0px) + var(--page-gutter));
-    padding-right: calc(
-      100% - env(titlebar-area-width, 100%) - env(titlebar-area-x, 0px) + var(--page-gutter)
+    padding-right: calc(var(--wco-reserved) + var(--page-gutter));
+    /* B-205: fade the header background --bg-elev → --bg across the reserved strip right of the
+       account menu, so the header blends into the page / native-controls area with no hard seam.
+       Solid --bg-elev up to the content's right edge, then fades (to --bg, not transparent, so
+       scrolled content never shows through). Semantic tokens only; WCO-mode only. */
+    background: linear-gradient(
+      to right,
+      var(--bg-elev),
+      var(--bg-elev) calc(100% - var(--wco-reserved) - var(--page-gutter)),
+      var(--bg)
     );
     -webkit-app-region: drag;
     app-region: drag;

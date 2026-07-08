@@ -4161,3 +4161,29 @@ shared `dto/settings.ts` (`Settings` + `PatchSettingsSchema`); api `services/set
 `DEFAULT_LINES_DESKTOP=20` / `DEFAULT_LINES_MOBILE=15`), `MealScroller.tsx`, `MealColumn.tsx`,
 `MealTemplateCard.tsx`, locales. Tests: `lineRows.test.ts` (defaults + arbitrary floor), integration
 `settings-pantry.test.ts` (round-trip + 422 out-of-bounds), and three `Settings` mocks updated.
+
+## B-204 / B-205 — WCO header height + gradient blend (run #51) — RESOLVED (user, 2026-07-09)
+
+Two tweaks to the installed-window `window-controls-overlay` chrome added in B-200, in the same
+`@media (display-mode: window-controls-overlay)` block of `AppShell.module.css`.
+
+- **B-204 (bug, no contract):** the WCO block forced `height: env(titlebar-area-height, …)`; a real
+  WCO window reports ~33-40px, shorter than `--appbar-h` (51px), crushing the header. Fix:
+  `height: max(env(titlebar-area-height, var(--appbar-h)), var(--appbar-h))` — at least the normal
+  height, and covers a taller OS title strip if one exceeds it. Accepted nuance (owner): the bar may
+  be taller than the OS title strip; the whole bar stays the drag region, the overflow below is
+  interactive client area (normal WCO behaviour). `pwa.md` fixes no WCO height → no contract change
+  for this half.
+- **B-205 (improvement, owner run #51):** `.appbar` is `--bg-elev` while the surrounding page /
+  native-controls area is `--bg` → a hard seam on the right, under the native buttons. Decision: in
+  WCO, the header background **fades `--bg-elev` → `--bg`** across the reserved strip right of the
+  account menu. Implemented as a `linear-gradient(to right, …)` on `.appbar`, with a local
+  `--wco-reserved` custom prop (`calc(100% - env(titlebar-area-width) - env(titlebar-area-x))`) reused
+  by `padding-right` and the gradient stop so the fade starts exactly at the account menu's right
+  edge. Fade to `--bg` (solid, **not** transparent) so scrolled content never shows through. Semantic
+  tokens only; WCO-mode only; browser tab + mobile unchanged.
+
+**Contract impact:** `design/components/pwa.md` (§ App chrome — "Window & title bar" bullet: WCO height
+
+- gradient note). **Code:** `packages/web/src/app/AppShell.module.css` (WCO block). Not unit-testable
+  (WCO + `env()` render CSS) → owner visual re-validation in the installed Edge window; full gate green.
