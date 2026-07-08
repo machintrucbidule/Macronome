@@ -16,13 +16,14 @@ import { mealEntryDto } from './day-assembler.js';
 import { todayString } from './day-context.js';
 
 // Pantry service (spec/api §Settings + §Meal entries pin/unpin; spec/logic/pantry-pin.md).
-// The garde-manger is one live dataset seen from two places: the Paramètres editor
-// (POST/DELETE /pantry) and the Repas 📌 toggle (POST /meals/:id/entries/:id/pin · /unpin).
-// pantry_item is the single source of truth: the pin icon is derived from it on every read
-// (B-045). Pinning runs the add cascade (qty-0 line on today + future days, Option C);
-// unpinning runs the delete cascade (drop qty-0 lines, keep qty>0). Dedup is the UNIQUE
-// (user, meal_slot_name, food_id): a direct duplicate add → 409 pantry_duplicate; the 📌
-// toggle is idempotent.
+// The garde-manger is seen from two places: the Paramètres editor (POST/DELETE /pantry) and
+// the Repas 📌 toggle (POST /meals/:id/entries/:id/pin · /unpin). Two stores (B-198):
+// pantry_item is the cross-day registry (drives prefill), and meal_entry.pinned is a per-line
+// flag marking a garde-manger line. Display = pinned AND pantry_item exists (day-assembler).
+// Pinning a line sets its flag + upserts the pin + runs the add cascade (Option C). Unpinning/
+// deleting a pinned line clears its flag and, when no pinned line for (slot, food) remains in
+// the acting meal (reference count → 0), wipes the food (drop qty-0 placeholders + clear qty>0
+// flags across days). Paramètres dedup is the UNIQUE (user, slot, food) → 409 pantry_duplicate.
 
 function toDto(row: PantryItemModel): PantryItem {
   return {
@@ -130,12 +131,35 @@ export async function syncUnitFromPinnedEntry(
   );
 }
 
+/** Unpin wipe cascade (B-198, shared): drop the food's qty-0 garde-manger placeholders and
+ *  clear the flag on its qty>0 lines (they stay as normal lines). Caller removes pantry_item. */
+async function wipeFoodCascade(userId: string, slotName: string, foodId: string): Promise<void> {
+  await entryRepo.deleteZeroQtyReferencedLines(userId, slotName, foodId);
+  await entryRepo.clearPinnedFlagQtyPositive(userId, slotName, foodId);
+}
+
 export async function remove(userId: string, id: string): Promise<boolean> {
   const item = await pantryRepo.findOwned(userId, id);
   if (!item) return false;
   await pantryRepo.deleteOwned(userId, id);
-  await entryRepo.deleteZeroQtyReferencedLines(userId, item.mealSlotName, item.foodId);
+  await wipeFoodCascade(userId, item.mealSlotName, item.foodId);
   return true;
+}
+
+/** After a garde-manger (pinned) line is deleted (× on Repas, B-198): if no pinned line for
+ *  (slot, food) remains in that meal, the food leaves the garde-manger (reference count →
+ *  0 → wipe). If another pinned line remains, the food stays pinned. No-op if not pinned. */
+export async function reconcilePinAfterLineRemoved(
+  userId: string,
+  mealId: string,
+  slotName: string,
+  foodId: string,
+): Promise<void> {
+  if ((await entryRepo.countPinnedInMeal(mealId, foodId)) > 0) return;
+  const item = await pantryRepo.findByTriple(userId, slotName, foodId);
+  if (!item) return;
+  await pantryRepo.deleteByTriple(userId, slotName, foodId);
+  await wipeFoodCascade(userId, slotName, foodId);
 }
 
 /** Resolve an owned referenced entry + its meal slot name (for the 📌 toggle). */
@@ -155,11 +179,13 @@ async function entryPinContext(
 
 type MealEntryModelLike = NonNullable<Awaited<ReturnType<typeof entryRepo.ownedEntry>>>;
 
-/** Pin the entry's food on its slot (idempotent upsert) + run the add cascade (today +
- *  future). The pin icon is derived live, so no per-line flag is written (B-045). */
+/** Pin THIS line (B-198): set its per-line flag, upsert the pantry_item (idempotent), and run
+ *  the add cascade (qty-0 placeholder on today + future days lacking a pinned F line). A
+ *  duplicate can be pinned too — both lines become garde-manger lines. */
 export async function pin(userId: string, entryId: string): Promise<MealEntry | null> {
   const ctx = await entryPinContext(userId, entryId);
   if (!ctx) return null;
+  await entryRepo.setPinned(entryId, true); // this line is now a garde-manger line
   let item = await pantryRepo.findByTriple(userId, ctx.slotName, ctx.foodId);
   if (!item) {
     // Capture the pinned line's own unit/portion onto the new pin (GM-2/B-093).
@@ -182,12 +208,25 @@ export async function pin(userId: string, entryId: string): Promise<MealEntry | 
   return mealEntryDto(ctx.entry, new Map(), true);
 }
 
-/** Unpin the entry's food from its slot + run the delete cascade (drop qty-0 lines on all
- *  days, keep qty>0). The line loses its derived pin icon; no per-line flag is cleared. */
+/** Unpin THIS line (B-198): clear its per-line flag. If no pinned line for (slot, food)
+ *  remains in the acting meal (reference count → 0), the food leaves the garde-manger — wipe
+ *  its placeholders + clear qty>0 flags across days. Else the food stays pinned (another line
+ *  keeps it). The acting line becomes a normal line. */
 export async function unpin(userId: string, entryId: string): Promise<MealEntry | null> {
   const ctx = await entryPinContext(userId, entryId);
   if (!ctx) return null;
-  await pantryRepo.deleteByTriple(userId, ctx.slotName, ctx.foodId);
-  await entryRepo.deleteZeroQtyReferencedLines(userId, ctx.slotName, ctx.foodId);
+  // Count pinned lines for (slot, food) in the acting meal — includes this line when it is a
+  // garde-manger line (the UI only offers unpin on those).
+  const total = await entryRepo.countPinnedInMeal(ctx.entry.mealId, ctx.foodId);
+  if (total <= 1) {
+    // Last garde-manger line for the food in this meal → the food leaves the garde-manger.
+    // The wipe handles the acting line itself (qty-0 placeholder deleted, qty>0 flag cleared),
+    // so we must NOT pre-clear its flag (the qty-0 delete filters on pinned=true).
+    await pantryRepo.deleteByTriple(userId, ctx.slotName, ctx.foodId);
+    await wipeFoodCascade(userId, ctx.slotName, ctx.foodId);
+  } else {
+    // Another pinned line keeps the food pinned; this line just becomes a normal line.
+    await entryRepo.setPinned(entryId, false);
+  }
   return mealEntryDto(ctx.entry, new Map(), false);
 }

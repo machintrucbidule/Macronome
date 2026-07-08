@@ -91,6 +91,7 @@ template). Only on detailed days.
 | snap_carb              | numeric     | NOT NULL                                                                                           |
 | snap_protein           | numeric     | NOT NULL                                                                                           |
 | order_index            | integer     | NOT NULL                                                                                           |
+| pinned                 | boolean     | NOT NULL DEFAULT false — this line is a garde-manger line (B-198, per-line pin; see logic)         |
 | created_at, updated_at | timestamptz |                                                                                                    |
 |                        |             | CHECK ((kind='referenced' AND food_id IS NOT NULL) OR (kind='custom' AND custom_name IS NOT NULL)) |
 

@@ -157,6 +157,8 @@ const MealEntrySchema = z.object({
   snap_carb: z.number(),
   snap_protein: z.number(),
   order_index: z.number().int(),
+  // Per-line garde-manger flag (B-198); optional+default so pre-B-198 envelopes still import.
+  pinned: z.boolean().optional().default(false),
   created_at: dateStr,
 });
 

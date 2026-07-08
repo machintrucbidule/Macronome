@@ -274,6 +274,9 @@ model MealEntry {
   snapCarb        Decimal  @map("snap_carb") @db.Decimal
   snapProtein     Decimal  @map("snap_protein") @db.Decimal
   orderIndex      Int      @map("order_index")
+  // Per-line garde-manger flag (B-198): this line is a pantry line. Display pins are derived
+  // as pinned AND pantry_item exists (spec/logic/pantry-pin.md §2); a manual duplicate is false.
+  pinned          Boolean  @default(false)
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz()
 

@@ -171,6 +171,7 @@ function mapLogging(
       snap_carb: num(e.snapCarb),
       snap_protein: num(e.snapProtein),
       order_index: e.orderIndex,
+      pinned: e.pinned,
       created_at: iso(e.createdAt),
     })),
     leftover_groups: rows.leftoverGroups.map((g) => ({

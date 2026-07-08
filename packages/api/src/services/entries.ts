@@ -14,7 +14,7 @@ import { leftoverRepo } from '../data/repositories/leftover.repo.js';
 import { resolveServedGrams, snapshotMacros, type ServingUnit } from '../domain/serving/index.js';
 import { ApiError } from '../http/errors.js';
 import { mealEntryDto } from './day-assembler.js';
-import { syncUnitFromPinnedEntry } from './pantry.js';
+import { reconcilePinAfterLineRemoved, syncUnitFromPinnedEntry } from './pantry.js';
 
 // Meal-entries service (spec/api/days-meals-leftover.md §Meal entries). The server
 // RESOLVES served_grams and the macro SNAPSHOT at write time (domain/serving), freezing
@@ -205,6 +205,17 @@ export async function update(
   return mealEntryDto(updated);
 }
 
-export function remove(userId: string, entryId: string): Promise<boolean> {
-  return entryRepo.delete(userId, entryId);
+/** Delete a line. If it was a garde-manger (pinned) line, deleting it unpins the food when no
+ *  other pinned line for (slot, food) remains in that meal (B-198 reference count). */
+export async function remove(userId: string, entryId: string): Promise<boolean> {
+  const existing = await entryRepo.ownedEntry(userId, entryId);
+  if (!existing) return false;
+  const wasPinnedFood =
+    existing.pinned && existing.kind === 'referenced' && existing.foodId !== null;
+  const meal = wasPinnedFood ? await dayRepo.ownedMeal(userId, existing.mealId) : null;
+  const deleted = await entryRepo.delete(userId, entryId);
+  if (deleted && wasPinnedFood && meal && existing.foodId) {
+    await reconcilePinAfterLineRemoved(userId, existing.mealId, meal.slotName, existing.foodId);
+  }
+  return deleted;
 }

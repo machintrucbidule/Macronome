@@ -53,6 +53,7 @@ function planMeals(source: DayAggregate): CopyMealData[] {
         snapCarb: num(e.snapCarb),
         snapProtein: num(e.snapProtein),
         orderIndex: e.orderIndex,
+        pinned: e.pinned, // preserve the per-line garde-manger flag (B-198); pantry_item untouched
       })),
       groups: groups.map(({ group, entryIds }) => ({
         containerName: group.containerName,

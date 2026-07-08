@@ -167,7 +167,10 @@ function EntryRow({
   const isCustom = entry.kind === 'custom';
   const food = useFood(isCustom ? null : entry.food_id);
   const name = isCustom ? (entry.custom_name ?? '') : (food.data?.data.name ?? '…');
-  const isZero = !isCustom && entry.served_quantity === 0;
+  // Muting (grey-out) is pin-conditional (B-107 refined by B-198): only a garde-manger line at
+  // qty 0 is greyed as an "unused pantry food"; a normal qty-0 line (e.g. a re-added duplicate)
+  // is not muted.
+  const isZero = !isCustom && entry.served_quantity === 0 && entry.is_pinned;
   const c = entry.consumed;
   // A pinned line is a garde-manger food: accent left-border + filled pin. Pantry is food-based,
   // so the pin only shows on referenced lines (custom lines have no food_id; see PinCell).

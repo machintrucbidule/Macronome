@@ -99,15 +99,30 @@ describe('FoodLine keyboard tab order (B-105)', () => {
   });
 });
 
-describe('FoodLine muted quantity-0 line (B-107)', () => {
-  it('marks a quantity-0 line muted (.zero) and a qty>0 line not', () => {
-    const zero = renderLine({
+describe('FoodLine muted quantity-0 line (B-107, pin-conditional B-198)', () => {
+  const zeroConsumed = { grams: 0, quantity: 0, kcal: 0, fat: 0, carb: 0, protein: 0 };
+
+  it('mutes a qty-0 GARDE-MANGER (pinned) line only', () => {
+    const zeroPinned = renderLine({
       ...entry(),
       served_quantity: 0,
-      consumed: { grams: 0, quantity: 0, kcal: 0, fat: 0, carb: 0, protein: 0 },
+      is_pinned: true,
+      consumed: zeroConsumed,
     });
-    expect(zero.container.querySelector(`.${styles.zero}`)).not.toBeNull();
-    cleanup();
+    expect(zeroPinned.container.querySelector(`.${styles.zero}`)).not.toBeNull();
+  });
+
+  it('does NOT mute a qty-0 NORMAL (unpinned) line — B-198 refinement', () => {
+    const zeroNormal = renderLine({
+      ...entry(),
+      served_quantity: 0,
+      is_pinned: false,
+      consumed: zeroConsumed,
+    });
+    expect(zeroNormal.container.querySelector(`.${styles.zero}`)).toBeNull();
+  });
+
+  it('does not mute a qty>0 line', () => {
     const filled = renderLine(entry());
     expect(filled.container.querySelector(`.${styles.zero}`)).toBeNull();
   });

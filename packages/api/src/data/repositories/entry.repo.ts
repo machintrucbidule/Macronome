@@ -67,9 +67,22 @@ export const entryRepo = {
     return prisma.mealEntry.update({ where: { id: entryId }, data: { mealId, orderIndex } });
   },
 
-  /** Unpin cascade (B-045): drop every qty-0 referenced line for (slot, food) across all
-   *  the user's days. Lines with qty > 0 are kept (they lose only the derived pin icon).
-   *  User-scoped via day_log → meal → meal_entry. Returns the number of lines removed. */
+  /** Set a line's per-line garde-manger flag (B-198). Caller owns the entry. */
+  setPinned(entryId: string, pinned: boolean): Promise<MealEntryModel> {
+    return prisma.mealEntry.update({ where: { id: entryId }, data: { pinned } });
+  },
+
+  /** Count the garde-manger (pinned) referenced lines for a food in one meal (B-198 reference
+   *  count): the food stays pinned while ≥1 remains in the acting meal. */
+  countPinnedInMeal(mealId: string, foodId: string): Promise<number> {
+    return prisma.mealEntry.count({
+      where: { mealId, kind: 'referenced', foodId, pinned: true },
+    });
+  },
+
+  /** Unpin wipe — delete every qty-0 **pinned** referenced line for (slot, food) across all
+   *  the user's days (the garde-manger placeholders). Normal qty-0 duplicates (pinned=false)
+   *  are left untouched (B-198). User-scoped. Returns the number of lines removed. */
   async deleteZeroQtyReferencedLines(
     userId: string,
     slotName: string,
@@ -78,7 +91,35 @@ export const entryRepo = {
     const mealIds = await this.userMealIds(userId, slotName);
     if (mealIds.length === 0) return 0;
     const res = await prisma.mealEntry.deleteMany({
-      where: { mealId: { in: mealIds }, kind: 'referenced', foodId, servedQuantity: 0 },
+      where: {
+        mealId: { in: mealIds },
+        kind: 'referenced',
+        foodId,
+        servedQuantity: 0,
+        pinned: true,
+      },
+    });
+    return res.count;
+  },
+
+  /** Unpin wipe — clear the garde-manger flag on qty>0 lines for (slot, food) across the
+   *  user's days, so a real logged line stays but reads as a normal line (B-198). */
+  async clearPinnedFlagQtyPositive(
+    userId: string,
+    slotName: string,
+    foodId: string,
+  ): Promise<number> {
+    const mealIds = await this.userMealIds(userId, slotName);
+    if (mealIds.length === 0) return 0;
+    const res = await prisma.mealEntry.updateMany({
+      where: {
+        mealId: { in: mealIds },
+        kind: 'referenced',
+        foodId,
+        servedQuantity: { gt: 0 },
+        pinned: true,
+      },
+      data: { pinned: false },
     });
     return res.count;
   },
@@ -104,12 +145,14 @@ export const entryRepo = {
       select: { id: true },
     });
     if (meals.length === 0) return;
+    // Dedup on a PINNED line for F (B-198): a day that lists F only as a normal (unpinned)
+    // duplicate still gets its own garde-manger placeholder.
     const present = await prisma.mealEntry.findMany({
-      where: { mealId: { in: meals.map((m) => m.id) }, kind: 'referenced', foodId },
+      where: { mealId: { in: meals.map((m) => m.id) }, kind: 'referenced', foodId, pinned: true },
       select: { mealId: true },
     });
-    const haveFood = new Set(present.map((e) => e.mealId));
-    const targets = meals.filter((m) => !haveFood.has(m.id));
+    const havePinnedFood = new Set(present.map((e) => e.mealId));
+    const targets = meals.filter((m) => !havePinnedFood.has(m.id));
     if (targets.length === 0) return;
     const maxima = await prisma.mealEntry.groupBy({
       by: ['mealId'],
@@ -131,6 +174,7 @@ export const entryRepo = {
         snapCarb: 0,
         snapProtein: 0,
         orderIndex: nextIndex.get(m.id) ?? 0,
+        pinned: true, // a prefill placeholder is a garde-manger line (B-198)
       })),
     });
   },
@@ -161,6 +205,7 @@ export const entryRepo = {
         kind: 'referenced',
         foodId,
         servedQuantity: 0,
+        pinned: true, // only garde-manger placeholders re-unit (B-198), not normal qty-0 lines
       },
       data: { unit: prefill.unit, portionId: prefill.portionId },
     });

@@ -262,8 +262,11 @@ export async function clear(userId: string, date: string): Promise<DayDetail | n
   for (const { meal, entries, groups } of aggregate.meals) {
     for (const g of groups) groupIds.push(g.group.id);
     for (const e of entries) {
+      // Keep-and-zero only a garde-manger line: its own per-line flag is set AND its food is
+      // still pinned (B-198). A manually re-added duplicate (pinned=false) is deleted like any
+      // normal line.
       const pin =
-        e.kind === 'referenced' && e.foodId !== null
+        e.kind === 'referenced' && e.foodId !== null && e.pinned
           ? pinByKey.get(pinKey(meal.slotName, e.foodId))
           : undefined;
       if (pin) zeroEntries.push({ id: e.id, unit: pin.unit, portionId: pin.portionId });

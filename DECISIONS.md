@@ -3842,3 +3842,52 @@ which **soft-navigates** the SPA via `useNavigate` (no reload; the existing `Wei
 can't install PWAs) — inert elsewhere. Web-only, restores the B-183 behaviour documented in
 `design/components/pwa.md` (no spec change). Test: `launchQueue.test.ts`. **Ships in the app
 bundle → requires a redeploy for the owner to get it.**
+
+---
+
+## B-198 — per-line garde-manger pin (re-added foods are normal lines) — RESOLVED (user, 2026-07-08, 2 question rounds)
+
+**Problem.** The pin was derived purely per `(user, slot_name, food_id)` with no per-line
+concept (`meal_entry.is_pinned` dropped in B-045). A food already pinned in a meal, when
+**manually re-added** as a second line, made that duplicate render pinned, share the pin's
+destructive cascades (clicking its pin ran a **global** unpin that cascade-deleted qty-0
+lines across all days), and be swept as a placeholder by "Tout effacer" and the unpin
+cascade. Behaviour conformed to the written contract → reclassified improvement, contract
+amended first.
+
+**Decision (behaviour — owner picks).** The pin becomes **per-line** with a **reference
+count**:
+
+1. A manually re-added line is a NORMAL line: **unpinned by default**, but it shows a real
+   (empty) pin control the user _can_ pin (per-line pin).
+2. "Tout effacer" **deletes** the non-pinned duplicate (keep-and-zero applies only to pinned
+   lines).
+3. Deleting (×) a pinned line **unpins the food** (same as the unpin button).
+4. Unpin (toggle off or delete) removes the food from the garde-manger: its qty-0 placeholder
+   lines drop today+future, its qty>0 lines stay as normal lines (today's unpin cascade).
+5. Reference count: if a food is pinned on **two lines of the same meal/day**, unpinning/
+   deleting one keeps the food pinned while ≥1 pinned line remains **in that meal+day**; only
+   the last one deletes the `pantry_item` + runs the cascade.
+6. **B-107 muting refined:** qty-0 greying is now **pin-conditional** — a normal qty-0 line is
+   no longer muted, only a garde-manger (pinned) qty-0 line is (honours "no pantry muting at
+   qty 0" for the duplicate).
+
+**Decision (where / how — model).** Reintroduce a per-line stored flag `meal_entry.pinned`
+(partially reverses B-045's "no per-line flag" — but keeps `pantry_item` as the cross-day
+registry, so B-045's liveness is preserved). Display uses a **hybrid derivation**:
+`is_pinned = referenced AND food_id AND entry.pinned AND pantry_item exists (slot, food)` —
+the flag distinguishes a garde-manger line from a normal duplicate; the `pantry_item` check
+keeps the icon live (unpin removes the row → all lines show unpinned at once, no per-line
+write). All computed server-side (rule 2).
+
+**Spec impact:** `spec/schema/tables-logging.md` (`meal_entry.pinned boolean`),
+`spec/logic/pantry-pin.md` §1–5 (two sources of truth, hybrid derivation, add-cascade dedup
+on a pinned line, reference-counted per-line unpin + delete-unpins, new oracles),
+`specifications/screens/meals.md` (pin display rules). **Code:** Prisma migration
+(`meal_entry.pinned` + backfill true for currently-pinned-derived referenced lines);
+`services/day-assembler.ts` (AND the flag), `services/pantry.ts` (per-line pin/unpin +
+reference count), `services/entries.ts` (delete a pinned line → reference-count unpin),
+`data/repositories/entry.repo.ts` (cascade filters on `pinned`, `setPinned`,
+`countPinnedInMeal`, clear-flag-on-qty-positive), `services/days.ts` (clear classification),
+`web/FoodLine.tsx` (pin-conditional muting). Tests: `settings-pantry.test.ts`,
+`days-clear.test.ts`, `pantry-prefill-unit.test.ts` (+ new cases). Reverses part of B-045.

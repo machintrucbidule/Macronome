@@ -219,6 +219,7 @@ async function insertLogging(tx: Tx, userId: string, env: DataExportEnvelope): P
         snapCarb: e.snap_carb,
         snapProtein: e.snap_protein,
         orderIndex: e.order_index,
+        pinned: e.pinned,
         createdAt: d(e.created_at),
       })),
     });

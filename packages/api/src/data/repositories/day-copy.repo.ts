@@ -23,6 +23,7 @@ export interface CopyEntryData {
   snapCarb: number;
   snapProtein: number;
   orderIndex: number;
+  pinned: boolean;
 }
 
 /** A copied leftover group; `entryIndexes` reference positions in the meal's `entries`. */
@@ -107,6 +108,7 @@ export const dayCopyRepo = {
               snapCarb: e.snapCarb,
               snapProtein: e.snapProtein,
               orderIndex: e.orderIndex,
+              pinned: e.pinned,
             },
           });
           entryIds.push(entry.id);

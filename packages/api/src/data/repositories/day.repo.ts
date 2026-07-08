@@ -65,6 +65,7 @@ async function seedMealsTx(
           snapCarb: 0,
           snapProtein: 0,
           orderIndex: p.orderIndex,
+          pinned: true, // a garde-manger pre-fill line is a pinned line (B-198)
         })),
       });
     }
