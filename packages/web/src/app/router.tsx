@@ -18,6 +18,7 @@ import { AboutPage } from '../features/about/AboutPage';
 import { ContextMenuProvider } from '../components/ContextMenu/ContextMenuProvider';
 import { AppShell } from './AppShell';
 import { AppGate } from './AppGate';
+import { LaunchHandler } from './LaunchHandler';
 import { RequireAuth } from './RequireAuth';
 import { SettingsSync } from './SettingsSync';
 import { HealthStatus } from './HealthStatus';
@@ -53,6 +54,8 @@ const PROTECTED: ReadonlyArray<[string, ReactElement]> = [
 export function AppRouter() {
   return (
     <BrowserRouter>
+      {/* App-shortcut / deep-link navigation when the installed app is already open (B-183). */}
+      <LaunchHandler />
       <SettingsSync>
         <AppGate>
           {/* Installed-window right-click menu (B-195) — inert in browser tabs / on mobile. */}

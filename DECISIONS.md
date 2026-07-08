@@ -3819,3 +3819,26 @@ sideways page scroll). **Code (web-only):** `logic/lineRows.ts` (`MIN_LINES_DESK
 `MIN_LINES_MOBILE=15`), `components/MealColumn/MealColumn.tsx` (viewport-dependent floor),
 `features/weight/weight.module.css` (`.tableWrap` + `.colHead`). Test: `lineRows.test.ts`
 (the 18/15 floors). No DB/schema/API change.
+
+---
+
+## B-183 follow-up — app shortcuts do nothing when the window is already open — RESOLVED (user, 2026-07-08)
+
+**Problem.** After B-183 shipped, the installed-app taskbar shortcut menu showed the entries
+but clicking one did nothing when the app was already open (it worked only on a cold launch).
+
+**Root cause.** The manifest declares `launch_handler: { client_mode: 'focus-existing' }` but
+the app had no `LaunchQueue` consumer. With `focus-existing` the browser only focuses the
+existing window and enqueues the shortcut's target URL into `window.launchQueue`; without a
+consumer the URL is dropped.
+
+**Decision (fix, no contract change).** Add the standard consumer: a pure
+`launchTargetPath(targetURL, current)` (`lib/pwa/launchQueue.ts`) → the in-app `path+search`
+to navigate to, or `null` when unchanged/missing (so a plain focus / clicking the current
+screen is a no-op), consumed by `app/LaunchHandler.tsx` (mounted once under `BrowserRouter`)
+which **soft-navigates** the SPA via `useNavigate` (no reload; the existing `WeightPage`
+`?action=add` effect then opens the add sheet). The manifest stays `focus-existing`
+(single-window preserved). Chromium/Edge desktop only (LaunchQueue is Chromium-only; Firefox
+can't install PWAs) — inert elsewhere. Web-only, restores the B-183 behaviour documented in
+`design/components/pwa.md` (no spec change). Test: `launchQueue.test.ts`. **Ships in the app
+bundle → requires a redeploy for the owner to get it.**
