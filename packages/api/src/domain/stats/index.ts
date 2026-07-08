@@ -8,3 +8,4 @@ export { zoneAsOf, monthEndDate, type TargetBand } from './monthly-zones.js';
 export { currentOkStreak, currentNokRun } from './streak.js';
 export { bestMonth } from './best-month.js';
 export { signals } from './signals.js';
+export { weightRecords, type WeightSample } from './records.js';

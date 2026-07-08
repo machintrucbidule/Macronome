@@ -7,6 +7,7 @@ import { MonthCalorieBars } from './MonthCalorieBars';
 import { MonthlyBars } from './MonthlyBars';
 import { ScrollBlock } from './ScrollBlock';
 import { Signals } from './Signals';
+import { WeightRecords } from './WeightRecords';
 import { YearSelector } from './YearSelector';
 import styles from '../stats.module.css';
 
@@ -62,6 +63,10 @@ export function AdherenceSections({ data, loading, year, onYear }: Props) {
           <section className={styles.section}>
             <h2 className={styles.h2}>{t('stats.section.signals')}</h2>
             <Signals signals={data.signals} />
+          </section>
+          <section className={styles.section}>
+            <h2 className={styles.h2}>{t('stats.section.records')}</h2>
+            <WeightRecords data={data.records} year={year} />
           </section>
         </>
       )}

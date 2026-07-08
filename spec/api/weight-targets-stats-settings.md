@@ -96,7 +96,8 @@ target_weight_kg,rate_kg_per_week,effective_from,until}]}`. `until` = the day be
   `{heatmap:[{date,status:'OK'|'NOK_under'|'NOK_over'|'none',kcal:number|null}],
 monthly:[{month,ok_count,nok_count,nok_under_count,nok_over_count,ok_rate,avg_kcal_ok,avg_kcal_nok,avg_kcal_global,target_zone:{cal_min,cal_max}|null}],
 key:{year_ok_rate,overall_ok_rate,current_ok_streak,best_month},
-target_zone:{cal_min,cal_max}, signals:[{code,value,text}]}`.
+target_zone:{cal_min,cal_max}, signals:[{code,value,text}],
+records:{all:{high,low}, year:{high,low}}}`.
   Heatmap `status` splits NOK by the day's expenditure (B-167): `NOK_under` = a real deficit
   (`day_kcal ≤ estimated_burn`, orange), `NOK_over` = surplus **or** unknown burn (red); the
   binary verdict is unchanged. Monthly `nok_under_count` + `nok_over_count` split `nok_count`
@@ -115,6 +116,11 @@ target_zone:{cal_min,cal_max}, signals:[{code,value,text}]}`.
   Heatmap `kcal` = that day's calorie value for logged cells, `null` when
   `status:'none'` (not logged) — feeds the cell tooltip `(date · status · kcal)`
   per `specifications/screens/stats.md`.
+  `records` = **weight records** (B-197): `all` = highest/lowest weigh-in over **all** the
+  user's data, `year` = highest/lowest of the **selected** `year`. Each of `high`/`low` is
+  `{weight_kg:number, date:'YYYY-MM-DD'} | null` (`null` when the scope has no weigh-in). On a
+  tie (the record weight reached on several days) the **most-recent** date is returned
+  (`spec/logic/stats-adherence.md §9`). Computed server-side from `weight_entry`.
 
 ## Settings, template, pantry (Paramètres)
 

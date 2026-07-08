@@ -154,6 +154,44 @@ describe('stats — future days excluded (B-016)', () => {
   });
 });
 
+describe('stats — weight records (B-197)', () => {
+  it('reports all-data + selected-year high/low weigh-ins with their dates', async () => {
+    const { agent, userId } = await authedAgent(app, 'alice');
+    await seedTarget(userId, '2026-01-01');
+    await seedWeight(userId, '2024-11-02', 82);
+    await seedWeight(userId, '2025-03-10', 78.5);
+    await seedWeight(userId, '2025-08-01', 80);
+    await seedWeight(userId, '2025-08-20', 78.5); // ties 2025-03-10 → most-recent date wins
+    await seedWeight(userId, '2026-01-15', 79);
+
+    const res = await agent.get('/api/v1/stats/adherence?year=2025');
+    expect(res.status).toBe(200);
+    expect(res.body.records.all).toEqual({
+      high: { weight_kg: 82, date: '2024-11-02' },
+      low: { weight_kg: 78.5, date: '2025-08-20' },
+    });
+    expect(res.body.records.year).toEqual({
+      high: { weight_kg: 80, date: '2025-08-01' },
+      low: { weight_kg: 78.5, date: '2025-08-20' },
+    });
+
+    // A year with no weigh-in → null records, all-data unchanged.
+    const empty = await agent.get('/api/v1/stats/adherence?year=2023');
+    expect(empty.body.records.year).toEqual({ high: null, low: null });
+    expect(empty.body.records.all.high).toEqual({ weight_kg: 82, date: '2024-11-02' });
+  });
+
+  it('is all-null when the user has no weigh-in', async () => {
+    const { agent, userId } = await authedAgent(app, 'alice');
+    await seedTarget(userId, '2026-01-01');
+    const res = await agent.get('/api/v1/stats/adherence?year=2026');
+    expect(res.body.records).toEqual({
+      all: { high: null, low: null },
+      year: { high: null, low: null },
+    });
+  });
+});
+
 describe('stats — tenancy & validation', () => {
   it("never reflects another user's days (tenancy isolation)", async () => {
     const alice = await authedAgent(app, 'alice');

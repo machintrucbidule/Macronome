@@ -12,6 +12,7 @@ import { monthEndDate, type TargetBand } from './monthly-zones.js';
 import { rolling } from './rolling.js';
 import { signals } from './signals.js';
 import { currentNokRun, currentOkStreak } from './streak.js';
+import { weightRecords } from './records.js';
 import type { DayStat } from './util.js';
 
 // Neutral oracles from spec/logic/stats-adherence.md (no personal data). Verdicts are the
@@ -241,4 +242,43 @@ test('signals: no NOK run → nok_run_clear (ok); good 14-day OK rate → ok dot
   expect(byCode.nok_run_clear!.status).toBe('ok'); // positive counterpart emitted
   expect(byCode.ok_rate_14!.value).toBe(100); // 5 OK of 5
   expect(byCode.ok_rate_14!.status).toBe('ok'); // 100 ≥ OK_RATE_GOOD_PCT
+});
+
+// §9 weight records (B-197) — min/max weigh-in over all data + the selected year, each with
+// its date; most-recent date on a tie; null when the scope has no weigh-in.
+const w = (date: string, weightKg: number) => ({ date, weightKg });
+const RECORD_SAMPLES = [
+  w('2024-11-02', 82.0),
+  w('2025-03-10', 78.5),
+  w('2025-08-01', 80.0),
+  w('2025-08-20', 78.5),
+  w('2026-01-15', 79.0),
+];
+
+test('weightRecords — all-data high/low with most-recent tie-break (spec §9)', () => {
+  const r = weightRecords(RECORD_SAMPLES, 2025);
+  expect(r.all.high).toEqual({ weight_kg: 82.0, date: '2024-11-02' });
+  // 78.5 reached 2025-03-10 AND 2025-08-20 → most-recent wins.
+  expect(r.all.low).toEqual({ weight_kg: 78.5, date: '2025-08-20' });
+});
+
+test('weightRecords — selected year scopes the year records (spec §9)', () => {
+  expect(weightRecords(RECORD_SAMPLES, 2025).year).toEqual({
+    high: { weight_kg: 80.0, date: '2025-08-01' },
+    low: { weight_kg: 78.5, date: '2025-08-20' },
+  });
+  // A single weigh-in in the year → high === low.
+  expect(weightRecords(RECORD_SAMPLES, 2026).year).toEqual({
+    high: { weight_kg: 79.0, date: '2026-01-15' },
+    low: { weight_kg: 79.0, date: '2026-01-15' },
+  });
+});
+
+test('weightRecords — empty scope yields nulls (spec §9)', () => {
+  expect(weightRecords([], 2025)).toEqual({
+    all: { high: null, low: null },
+    year: { high: null, low: null },
+  });
+  // A year with no weigh-in → null, while all-data still resolves.
+  expect(weightRecords(RECORD_SAMPLES, 2023).year).toEqual({ high: null, low: null });
 });

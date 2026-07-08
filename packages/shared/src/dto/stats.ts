@@ -105,10 +105,24 @@ export interface Signal {
   status: 'ok' | 'warn' | 'info';
 }
 
+/** One weight record: the weigh-in value + the date it was reached (B-197). */
+export interface WeightRecord {
+  weight_kg: number;
+  date: string;
+}
+
+/** Weight records (spec/logic/stats-adherence.md §9): highest & lowest weigh-in over all
+ * data and over the selected year. Each is null when the scope has no weigh-in. */
+export interface WeightRecords {
+  all: { high: WeightRecord | null; low: WeightRecord | null };
+  year: { high: WeightRecord | null; low: WeightRecord | null };
+}
+
 export interface AdherenceResponse {
   heatmap: HeatmapCell[];
   monthly: MonthlyStat[];
   key: KeyFigures;
   target_zone: TargetZone | null;
   signals: Signal[];
+  records: WeightRecords;
 }

@@ -800,7 +800,8 @@
       "adherence": "Adherence (OK/NOK)",
       "monthly": "By month",
       "avgCalories": "Average calories per month",
-      "signals": "Signals"
+      "signals": "Signals",
+      "records": "Weight records"
     },
     "rolling": {
       "window": "{{n}} days",
@@ -818,6 +819,12 @@
       "days": "d",
       "bestMonth": "Best month",
       "bestMonthNote": "{{rate}} OK"
+    },
+    "record": {
+      "highestAll": "Highest weight (all)",
+      "lowestAll": "Lowest weight (all)",
+      "highestYear": "Highest weight ({{year}})",
+      "lowestYear": "Lowest weight ({{year}})"
     },
     "heatmap": { "label": "Adherence calendar" },
     "status": {

@@ -9,6 +9,7 @@ import {
 } from '@macronome/shared';
 import { dayStatRepo, type DateRange } from '../data/repositories/day-stat.repo.js';
 import { targetRepo } from '../data/repositories/target.repo.js';
+import { weightRepo } from '../data/repositories/weight.repo.js';
 import {
   bestMonth,
   currentOkStreak,
@@ -17,6 +18,7 @@ import {
   okRate,
   rolling,
   signals,
+  weightRecords,
   type TargetBand,
 } from '../domain/stats/index.js';
 import { toDayStats } from './day-stat.js';
@@ -77,14 +79,20 @@ export async function getRolling(userId: string): Promise<RollingResponse> {
 /** GET /stats/adherence?year=YYYY — heatmap + monthly pivots + key figures + signals.
  * Needs full history (overall ok-rate, best month), read lightweight (M9d perf). */
 export async function getAdherence(userId: string, year: number): Promise<AdherenceResponse> {
-  const [days, zone, bands, burnCtx] = await Promise.all([
+  const [days, zone, bands, burnCtx, weighIns] = await Promise.all([
     dayStatRepo.readLightweight(userId),
     currentZone(userId),
     targetBands(userId),
     // The per-day burn (profile + weigh-in series) splits each NOK day into deficit/surplus on
     // the heatmap + monthly bars (B-167); reuses the Journal machinery verbatim (no recompute).
     loadBurnContext(userId),
+    // Weight records (B-197): min/max weigh-in over all data + the selected year, each with date.
+    weightRepo.findAll(userId),
   ]);
+  const records = weightRecords(
+    weighIns.map((w) => ({ date: w.date.toISOString().slice(0, 10), weightKg: num(w.weightKg) })),
+    year,
+  );
   const today = todayString();
   // Future planned days (date > today) are excluded from every aggregate until they
   // arrive (stats-adherence.md §1) — filtering here covers ok-rate, streak, best month,
@@ -108,5 +116,6 @@ export async function getAdherence(userId: string, year: number): Promise<Adhere
     },
     target_zone: zone,
     signals: signals(logged, zone, NOK_RUN_ALERT, OK_RATE_GOOD_PCT),
+    records,
   };
 }

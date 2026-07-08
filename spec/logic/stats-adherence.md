@@ -1,7 +1,8 @@
 # Logic spec — statistics & adherence
 
 Covers §3.8, RECONCILIATION_LOG §E4, OPEN_GAPS #2 (windows) and #12 (best
-month). Calorie/adherence-centric; no macro pivots. See `00-conventions.md`.
+month). Calorie/adherence-centric (no macro pivots), plus **weight records** (§9, B-197).
+See `00-conventions.md`.
 
 ## 1. Logged day
 
@@ -147,3 +148,26 @@ mapping is **server-decided** (the web never derives a verdict — rule 2):
 
 - No logged days → empty state + prompt.
 - Partial year → empty heatmap cells for dates with no data.
+
+## 9. Weight records (B-197)
+
+Four figures derived from the user's weigh-ins (`weight_entry`, one row per date;
+`@@unique(user, date)`). Not calorie/adherence data — the only non-adherence block here.
+
+- **All-data**: `high` = the max `weight_kg` over **all** weigh-ins, `low` = the min.
+- **Selected year**: same, restricted to weigh-ins whose `date` falls in the requested
+  `year` (the Stats year selector; default = current year).
+- Each of `high` / `low` is `{ weight_kg, date }` — the weight and the **date of that
+  weigh-in** — or `null` when the scope has no weigh-in (no data, or an empty year).
+- **Tie-break:** if the record weight was reached on several days, return the **most-recent**
+  date (matches §6 best-month's most-recent tie-break).
+- Server-computed (rule 2); the web only renders the four values + dates.
+
+**Worked examples (oracles).** Weigh-ins: `2024-11-02 → 82.0`, `2025-03-10 → 78.5`,
+`2025-08-01 → 80.0`, `2025-08-20 → 78.5`, `2026-01-15 → 79.0`.
+
+- All-data: `high = {82.0, 2024-11-02}`, `low = {78.5, 2025-08-20}` (78.5 reached
+  2025-03-10 **and** 2025-08-20 → most-recent wins).
+- Year 2025: `high = {80.0, 2025-08-01}`, `low = {78.5, 2025-08-20}`.
+- Year 2026: `high = {79.0, 2026-01-15}`, `low = {79.0, 2026-01-15}` (single weigh-in).
+- Year 2023 (no weigh-in): `high = null`, `low = null`.

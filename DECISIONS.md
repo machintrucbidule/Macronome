@@ -3891,3 +3891,33 @@ reference count), `services/entries.ts` (delete a pinned line → reference-coun
 `countPinnedInMeal`, clear-flag-on-qty-positive), `services/days.ts` (clear classification),
 `web/FoodLine.tsx` (pin-conditional muting). Tests: `settings-pantry.test.ts`,
 `days-clear.test.ts`, `pantry-prefill-unit.test.ts` (+ new cases). Reverses part of B-045.
+
+---
+
+## B-197 — weight records on Stats (all-time + selected-year high/low) — RESOLVED (user, 2026-07-08)
+
+**Problem / intent.** Stats had **no** long-term weight (deliberately dropped —
+`specifications/screens/stats.md`). Owner reverses this: show **four** server-computed weight
+records — highest & lowest weigh-in over **all** data, and highest & lowest of the
+**selected year** (the existing year selector, default current year) — **each with the date
+of its weigh-in**.
+
+**Decision (behaviour).** Records are min/max over raw weigh-ins (`weight_entry.weight_kg`);
+each is `{weight_kg, date}` or `null` when the scope has no weigh-in. **Tie-break: the
+most-recent date** (owner pick; matches the best-month convention). The two year records
+follow the year selector; the two all-data records don't. It is only the four records — the
+full weight-evolution chart stays on the Poids screen.
+
+**Decision (where it is computed).** Server-side (rule 2): new pure
+`packages/api/src/domain/stats/records.ts` `weightRecords(entries, year)`; `services/stats.ts`
+`getAdherence` fetches `weightRepo.findAll(userId)` and attaches a `records` block to the
+adherence response. The web only renders four `MetricCard`s.
+
+**Spec impact:** `spec/logic/stats-adherence.md` §9 (new — records + tie-break + oracles),
+`spec/api/weight-targets-stats-settings.md` §Stats (`records` on the adherence response),
+`specifications/screens/stats.md` (flip the "dropped" note; new §E records cards). **Code:**
+`domain/stats/records.ts` (+ index), `services/stats.ts`, shared `AdherenceResponse` DTO
+(`records`), web `features/stats/components/WeightRecords.tsx` + `AdherenceSections.tsx`, i18n
+`stats.record.*`. Tests: `domain/stats/stats.test.ts` (oracle), integration `stats.test.ts`
+(seed weigh-ins across years → assert `records`). **Reverses the earlier "no weight on Stats"
+decision** by deliberate amendment.
