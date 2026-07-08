@@ -1081,7 +1081,10 @@
       "deleteTitle": "Remove this meal from the template?",
       "deletePrompt": "“<b>{{name}}</b>” will be removed from the default day structure. Days you have already saved are not affected.",
       "addPlaceholder": "New meal (e.g. Snack)",
-      "add": "+ Add"
+      "add": "+ Add",
+      "linesDesktop": "Lines per meal (desktop)",
+      "linesMobile": "Lines per meal (mobile)",
+      "linesNote": "Minimum rows shown in each meal (5–50). A fuller meal shows more."
     },
     "pantry": {
       "title": "Pantry",

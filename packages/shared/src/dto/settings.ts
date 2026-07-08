@@ -97,6 +97,10 @@ export interface Settings {
   current_mode: z.infer<typeof DietFlagSchema> | null;
   /** Weight open-interval note (B-176); persisted on app_user.settings, cleared on close. */
   open_period_note: string | null;
+  /** Displayed-line floor per meal column (B-203, supersedes the fixed B-186 18/15); the min
+   * rows a meal shows on each layout — user-configurable, defaults desktop 20 / mobile 15. */
+  lines_desktop: number;
+  lines_mobile: number;
 }
 
 /** PATCH /settings — partial; merged onto the stored settings (other keys preserved). */
@@ -108,6 +112,8 @@ export const PatchSettingsSchema = z
     integrations: IntegrationsPatchSchema,
     current_mode: DietFlagSchema.nullable(),
     open_period_note: z.string().max(2000).nullable(),
+    lines_desktop: z.number().int().min(5).max(50),
+    lines_mobile: z.number().int().min(5).max(50),
   })
   .partial()
   .refine((b) => Object.keys(b).length > 0, { message: 'empty_patch' });

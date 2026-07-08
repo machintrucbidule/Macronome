@@ -52,6 +52,8 @@ function settings(aiConfigured: boolean): Settings {
     integrations: { home_assistant: null, barclaude_gateway: null },
     current_mode: null,
     open_period_note: null,
+    lines_desktop: 20,
+    lines_mobile: 15,
     ai: aiConfigured
       ? {
           provider: 'openai_compatible',

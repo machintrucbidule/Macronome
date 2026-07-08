@@ -3,12 +3,14 @@ import { useTranslation } from 'react-i18next';
 import type { MealTemplateItem as Item, PantryItem } from '@macronome/shared';
 import { useMealTemplate, useMealTemplateMutations } from '../useMealTemplate';
 import { usePantry } from '../usePantry';
+import { MealLinesFields } from './MealLinesFields';
 import { MealTemplateItem } from './MealTemplateItem';
 import styles from '../settings.module.css';
 
 // Structure de journée par défaut card (screens/settings.md): the ordered meal template +
 // each meal's garde-manger. Reorder swaps adjacent order_index values; rename/delete/add map
-// to the meal-template API. Editing here never touches already-created days.
+// to the meal-template API. Editing here never touches already-created days. It also hosts the
+// two per-meal displayed-line floors (B-203, MealLinesFields — saved on the settings blob).
 export function MealTemplateCard() {
   const { t } = useTranslation();
   const list = useMealTemplate();
@@ -43,6 +45,7 @@ export function MealTemplateCard() {
         <span className={styles.meta}>{t('settings.template.meta')}</span>
       </div>
       <div className={styles.cb}>
+        <MealLinesFields />
         <div className={styles.block}>
           <span className={styles.lab}>
             {t('settings.template.meals')}

@@ -11,11 +11,12 @@ export interface LineRow {
 
 const TRAILING_EMPTY = 2;
 
-// Minimum visible rows per meal grid — viewport-dependent (B-186): a taller grid on desktop,
-// unchanged on mobile. The caller (MealColumn) picks by useIsMobile(); the trailing-empties
-// rule below is independent of this floor.
-export const MIN_LINES_DESKTOP = 18;
-export const MIN_LINES_MOBILE = 15;
+// Fallback minimum visible rows per meal grid — used while the user setting loads (B-203, which
+// makes the floor user-configurable; supersedes the fixed B-186 18/15). The caller (MealScroller)
+// resolves the effective floor from settings by viewport and passes it to buildLineRows; the
+// trailing-empties rule below is independent of this floor.
+export const DEFAULT_LINES_DESKTOP = 20;
+export const DEFAULT_LINES_MOBILE = 15;
 
 export function buildLineRows(entries: MealEntry[], minLines: number): LineRow[] {
   const byRow = new Map<number, MealEntry>();

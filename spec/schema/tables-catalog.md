@@ -46,6 +46,9 @@ external-integration connections. Keys (all optional; service supplies defaults)
 - `locale` — `'fr' | 'en'` (default `'fr'`).
 - `theme` — `'system' | 'light' | 'dark'` (default `'dark'`).
 - `current_mode` — `'in_diet' | 'not_in_diet' | null` (Régime/Maintien, persisted from Poids).
+- `lines_desktop` — integer `5..50` (default `20`): the minimum displayed rows per meal column
+  on the desktop layout (B-203; user-configurable, supersedes the fixed B-186 floor).
+- `lines_mobile` — integer `5..50` (default `15`): the same minimum on the mobile layout (B-203).
 - `ai` — the AI-assistant connection, or `null` when never configured. Shape:
 
 ```jsonc

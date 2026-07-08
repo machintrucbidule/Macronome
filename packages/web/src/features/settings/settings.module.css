@@ -118,6 +118,11 @@
   color: var(--accent-ink);
 }
 
+/* Configurable displayed-line floor fields (B-203): a compact number+stepper on the template card. */
+.lines {
+  width: 96px;
+}
+
 /* meal template + pantry */
 .block {
   padding: var(--sp-4) 0;

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { Meal, MealEntry } from '@macronome/shared';
 import { useIsMobile } from '../../../../lib/useIsMobile';
 import { useMeals } from '../../MealsContext';
-import { MIN_LINES_DESKTOP, MIN_LINES_MOBILE, buildLineRows } from '../../logic/lineRows';
+import { DEFAULT_LINES_DESKTOP, DEFAULT_LINES_MOBILE, buildLineRows } from '../../logic/lineRows';
 import { useLineDnd } from '../../hooks/useLineDnd';
 import { useTouchReorder } from '../../hooks/useTouchReorder';
 import { useMealPhotoEntry } from '../../hooks/useMealPhotoEntry';
@@ -35,16 +35,20 @@ interface MealColumnProps {
   // mounted). The flag is surfaced as a `data-meal-col` attribute the scroller's mobile rule
   // targets; it has no effect on desktop (no ≥561px rule reads it).
   active?: boolean;
+  // Effective displayed-line floor for this viewport (B-203), resolved from the user setting by
+  // MealScroller. Optional so direct renders (tests) fall back to the viewport default.
+  minLines?: number;
 }
 
-export function MealColumn({ meal, index, meals, width, active = false }: MealColumnProps) {
+export function MealColumn(props: MealColumnProps) {
+  const { meal, index, meals, width, active = false, minLines } = props;
   const { t } = useTranslation();
   const { editing, mutations, actions, lineDragRef } = useMeals();
   const [confirming, setConfirming] = useState(false);
-  // Taller grid on desktop, unchanged on mobile (B-186): the floor feeds buildLineRows; the
-  // ≥2-trailing-empties rule inside it is independent of this minimum.
   const isMobile = useIsMobile();
-  const rows = buildLineRows(meal.entries, isMobile ? MIN_LINES_MOBILE : MIN_LINES_DESKTOP);
+  // Configurable per-meal line floor (B-203); fall back to the viewport default in direct renders.
+  const floor = minLines ?? (isMobile ? DEFAULT_LINES_MOBILE : DEFAULT_LINES_DESKTOP);
+  const rows = buildLineRows(meal.entries, floor);
   const byRow = new Map<number, MealEntry>(
     rows.flatMap((r) => (r.entry ? ([[r.row, r.entry]] as const) : [])),
   );

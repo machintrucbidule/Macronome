@@ -1,9 +1,18 @@
-import type { Meal } from '@macronome/shared';
+import type { Meal, Settings } from '@macronome/shared';
 import { useIsMobile } from '../../../../lib/useIsMobile';
+import { useSettingsQuery } from '../../../settings/useSettings';
 import { MealColumn } from '../MealColumn/MealColumn';
+import { DEFAULT_LINES_DESKTOP, DEFAULT_LINES_MOBILE } from '../../logic/lineRows';
 import { useMealScroller } from './useMealScroller';
 import { useMealSwipe } from '../../hooks/useMealSwipe';
 import styles from '../../meals.module.css';
+
+// Effective displayed-line floor (B-203): the user setting for this viewport, or the default while
+// it loads. Extracted so the component itself stays simple.
+function resolveMinLines(isMobile: boolean, settings: Settings | undefined): number {
+  if (isMobile) return settings?.lines_mobile ?? DEFAULT_LINES_MOBILE;
+  return settings?.lines_desktop ?? DEFAULT_LINES_DESKTOP;
+}
 
 // Horizontal meal scroller: integer-fit columns (logic/columnFit), overlay ‹ › arrows shown only
 // on overflow, and a sticky custom scrollbar synced to the scroll position. View chrome only.
@@ -21,6 +30,8 @@ export function MealScroller({ meals, activeIndex, onSwitchMeal }: MealScrollerP
   const { scrollerRef, barRef, colWidth, bar, atStart, atEnd, sync, scrollBy, onThumbDown } =
     useMealScroller(meals);
   const isMobile = useIsMobile();
+  // Configurable displayed-line floor (B-203), resolved by viewport and passed to every column.
+  const minLines = resolveMinLines(isMobile, useSettingsQuery().data?.data);
   const swipe = useMealSwipe(isMobile && !!onSwitchMeal, (dir) => {
     const next = Math.min(Math.max(activeIndex + dir, 0), meals.length - 1);
     onSwitchMeal?.(next);
@@ -57,6 +68,7 @@ export function MealScroller({ meals, activeIndex, onSwitchMeal }: MealScrollerP
             meals={meals}
             width={colWidth}
             active={i === activeIndex}
+            minLines={minLines}
           />
         ))}
       </div>

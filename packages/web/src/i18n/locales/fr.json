@@ -1081,7 +1081,10 @@
       "deleteTitle": "Retirer ce repas du modèle ?",
       "deletePrompt": "« <b>{{name}}</b> » sera retiré de la structure de journée par défaut. Tes journées déjà enregistrées ne changent pas.",
       "addPlaceholder": "Nouveau repas (ex. Collation)",
-      "add": "+ Ajouter"
+      "add": "+ Ajouter",
+      "linesDesktop": "Lignes par repas (ordinateur)",
+      "linesMobile": "Lignes par repas (mobile)",
+      "linesNote": "Nombre minimum de lignes affichées dans chaque repas (5–50). Un repas plus rempli en montre davantage."
     },
     "pantry": {
       "title": "Garde-manger",

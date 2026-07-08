@@ -28,7 +28,16 @@ const STORED_DEFAULTS: StoredSettings = {
   integrations: INTEGRATIONS_DEFAULTS,
   current_mode: null,
   open_period_note: null,
+  lines_desktop: 20,
+  lines_mobile: 15,
 };
+
+function storedIntegrations(s: Partial<StoredSettings>): StoredIntegrations {
+  return {
+    home_assistant: s.integrations?.home_assistant ?? null,
+    barclaude_gateway: s.integrations?.barclaude_gateway ?? null,
+  };
+}
 
 /** Coerce the stored JSON blob into the full StoredSettings shape (defaults for missing keys). */
 function toStored(stored: unknown): StoredSettings {
@@ -37,12 +46,11 @@ function toStored(stored: unknown): StoredSettings {
     locale: s.locale ?? STORED_DEFAULTS.locale,
     theme: s.theme ?? STORED_DEFAULTS.theme,
     ai: s.ai ?? STORED_DEFAULTS.ai,
-    integrations: {
-      home_assistant: s.integrations?.home_assistant ?? null,
-      barclaude_gateway: s.integrations?.barclaude_gateway ?? null,
-    },
+    integrations: storedIntegrations(s),
     current_mode: s.current_mode ?? STORED_DEFAULTS.current_mode,
     open_period_note: s.open_period_note ?? STORED_DEFAULTS.open_period_note,
+    lines_desktop: s.lines_desktop ?? STORED_DEFAULTS.lines_desktop,
+    lines_mobile: s.lines_mobile ?? STORED_DEFAULTS.lines_mobile,
   };
 }
 
@@ -72,6 +80,8 @@ export async function patch(userId: string, body: PatchSettingsRequest): Promise
   }
   if (body.current_mode !== undefined) merged.current_mode = body.current_mode;
   if (body.open_period_note !== undefined) merged.open_period_note = body.open_period_note;
+  if (body.lines_desktop !== undefined) merged.lines_desktop = body.lines_desktop;
+  if (body.lines_mobile !== undefined) merged.lines_mobile = body.lines_mobile;
   await userRepo.updateSettings(userId, merged);
   return toDto(merged);
 }

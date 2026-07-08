@@ -124,10 +124,14 @@ records:{all:{high,low}, year:{high,low}}}`.
 
 ## Settings, template, pantry (Paramètres)
 
-- `GET/PATCH /settings` — `{locale, theme, current_mode?, open_period_note?, ai?, integrations?}`.
+- `GET/PATCH /settings` —
+  `{locale, theme, current_mode?, open_period_note?, lines_desktop?, lines_mobile?, ai?, integrations?}`.
   - **`open_period_note`** (string | null) — the Weight open-interval note
     (`logic/weight-periods-trajectory.md §2.1`, `schema/tables-weight-targets.md`); persisted
     on `app_user.settings`, patchable, nullable (cleared on the closing weigh-in).
+  - **`lines_desktop`** / **`lines_mobile`** (integer, `5..50`; defaults `20` / `15`) — the
+    minimum displayed rows per meal column on each layout (B-203; user-configurable, supersedes
+    the fixed B-186 18/15). Out-of-range → 422. Always present on read.
   - **`ai`** is the AI-assistant connection (or `null`); see `spec/logic/ai-connection.md`
     and `spec/schema/tables-catalog.md`. On **read**, `ai` is **redacted**: the
     `api_key` is **never** returned; instead the object carries `api_key_set: boolean`.

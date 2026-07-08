@@ -16,6 +16,8 @@ const SETTINGS: Settings = {
   integrations: { home_assistant: null, barclaude_gateway: null },
   current_mode: 'not_in_diet',
   open_period_note: null,
+  lines_desktop: 20,
+  lines_mobile: 15,
 };
 
 function wrapper({ children }: { children: ReactNode }) {

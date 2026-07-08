@@ -64,6 +64,8 @@ function settingsWith(gatewayConfigured: boolean): Settings {
     },
     current_mode: null,
     open_period_note: null,
+    lines_desktop: 20,
+    lines_mobile: 15,
   };
 }
 

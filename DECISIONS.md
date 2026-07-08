@@ -4132,3 +4132,32 @@ border inside the frame (owner-reported after the first cut, 2026-07-09).
 **Code:** `packages/web/src/features/meals/meals.module.css` (`.scroller` border/radius, removed
 at ≤760px), `.../components/MealColumn/meal-column.module.css` (desktop `.col:first-child` /
 `.col:last-child` corner + divider rules). CSS-only → owner visual check.
+
+## B-203 — Configurable displayed-lines-per-meal floor (run #51) — RESOLVED (user, 2026-07-09)
+
+**Supersedes the B-186 half** that fixed the per-meal minimum at desktop 18 / mobile 15 (and its
+"No DB/schema/API change" note): the floor is now a **user setting**, defaults **desktop 20 /
+mobile 15**.
+
+- **Decision (owner, run #51):** two user-editable values — a desktop floor and a mobile floor —
+  **both visible on desktop and mobile**, on the Paramètres « Structure de journée par défaut »
+  card, as number + ▲▼ stepper fields (`design/components/forms-inputs.md` B-006). The
+  "fuller-day-wins + ≥2 trailing empties" rule (`max(minLines, maxRow+1+2)` in `buildLineRows`) is
+  **unchanged** — only the floor becomes configurable.
+- **Bounds (decided internally, within contract):** integer **5–50**; clamped client-side and
+  validated by Zod server-side (out-of-range → 422).
+- **Persistence:** two keys on the `app_user.settings` JSON blob — `lines_desktop` / `lines_mobile`
+  — via `GET/PATCH /settings` (no new endpoint, no migration; `settings` is untyped `jsonb`). The
+  MealTemplateCard gains a **2nd save path** (`useSettingsMutation`) beside `useMealTemplateMutations`.
+- **Where consumed:** `MealScroller` reads the setting, resolves the floor by `useIsMobile()`, and
+  passes `minLines` to each `MealColumn` (fallback to the defaults while it loads). Web renders; no
+  nutrition figure is computed client-side (CLAUDE.md rule 2 intact — this is a display preference).
+
+**Contract impact:** `spec/schema/tables-catalog.md` (§settings JSON — two new keys),
+`spec/api/weight-targets-stats-settings.md` (§Settings — two new fields), `specifications/screens/settings.md`
+(card fields), `specifications/screens/meals.md` (floor now configurable, defaults 20/15). **Code:**
+shared `dto/settings.ts` (`Settings` + `PatchSettingsSchema`); api `services/settings.ts`
+(`STORED_DEFAULTS` / `toStored` / `patch`); web `logic/lineRows.ts` (constants renamed to
+`DEFAULT_LINES_DESKTOP=20` / `DEFAULT_LINES_MOBILE=15`), `MealScroller.tsx`, `MealColumn.tsx`,
+`MealTemplateCard.tsx`, locales. Tests: `lineRows.test.ts` (defaults + arbitrary floor), integration
+`settings-pantry.test.ts` (round-trip + 422 out-of-bounds), and three `Settings` mocks updated.

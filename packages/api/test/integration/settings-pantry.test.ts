@@ -36,6 +36,8 @@ describe('settings — round-trip + partial merge', () => {
       integrations: { home_assistant: null, barclaude_gateway: null },
       current_mode: null,
       open_period_note: null,
+      lines_desktop: 20,
+      lines_mobile: 15,
     });
 
     const patched = await csrfPatch(agent, csrf, '/api/v1/settings', {
@@ -51,6 +53,30 @@ describe('settings — round-trip + partial merge', () => {
     expect(localeOnly.body.data.locale).toBe('en');
     expect(localeOnly.body.data.theme).toBe('light');
     expect(localeOnly.body.data.current_mode).toBe('not_in_diet');
+  });
+
+  it('persists the configurable line floors and rejects out-of-bounds values (B-203)', async () => {
+    const { agent, csrf } = await authedAgent(app, 'alice');
+
+    const patched = await csrfPatch(agent, csrf, '/api/v1/settings', {
+      lines_desktop: 24,
+      lines_mobile: 12,
+    });
+    expect(patched.status).toBe(200);
+    expect(patched.body.data.lines_desktop).toBe(24);
+    expect(patched.body.data.lines_mobile).toBe(12);
+
+    // Re-GET proves persistence + partial-merge preservation of the two keys.
+    const reread = await agent.get('/api/v1/settings');
+    expect(reread.body.data.lines_desktop).toBe(24);
+    expect(reread.body.data.lines_mobile).toBe(12);
+
+    // Out of the [5, 50] range → 422 (Zod validation), stored value untouched.
+    const tooHigh = await csrfPatch(agent, csrf, '/api/v1/settings', { lines_desktop: 500 });
+    expect(tooHigh.status).toBe(422);
+    const tooLow = await csrfPatch(agent, csrf, '/api/v1/settings', { lines_mobile: 1 });
+    expect(tooLow.status).toBe(422);
+    expect((await agent.get('/api/v1/settings')).body.data.lines_desktop).toBe(24);
   });
 
   it('persists current_mode so the Weight view reports it (Maintien gate)', async () => {
