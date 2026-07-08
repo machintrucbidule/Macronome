@@ -116,7 +116,9 @@ describe('token links — admin endpoints', () => {
       .set('x-csrf-token', admin.csrf);
     expect(again.status).toBe(404);
   });
+});
 
+describe('token links — admin reset-token', () => {
   it('reset-token: guards self (own_account) and replaces the pending link', async () => {
     const admin = await adminAgent(app, 'root');
     const bob = await authedAgent(app, 'bob');
