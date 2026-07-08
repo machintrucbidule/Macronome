@@ -33,10 +33,20 @@ const TABLE_TO_ENVELOPE: Record<string, string> = {
 const APP_USER_EXPORTED = new Set(['sex', 'birthdate', 'height_cm', 'settings']);
 
 // Columns intentionally never exported. Global: regenerated timestamps + the tenant pointer
-// (re-pointed at the importing user). Per-table: the app_user identity/credentials.
+// (re-pointed at the importing user). Per-table: the app_user identity/credentials, plus the
+// B-190 account metadata — an import must never change the importer's role or overwrite the
+// operational login/activity stamps.
 const GLOBAL_EXCLUDE = new Set(['updated_at', 'owner_id', 'user_id']);
 const PER_TABLE_EXCLUDE: Record<string, Set<string>> = {
-  app_user: new Set(['id', 'username', 'password_hash', 'created_at']),
+  app_user: new Set([
+    'id',
+    'username',
+    'password_hash',
+    'created_at',
+    'is_admin',
+    'last_login_at',
+    'last_seen_at',
+  ]),
 };
 
 /** Field names of an envelope array's element schema (the columns it serialises). */

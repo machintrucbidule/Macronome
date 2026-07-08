@@ -16,6 +16,7 @@ export const SessionUserSchema = z.object({
   username: z.string(),
   locale: z.enum(['fr', 'en']),
   theme: z.enum(['system', 'light', 'dark']),
+  is_admin: z.boolean(),
 });
 export type SessionUser = z.infer<typeof SessionUserSchema>;
 

@@ -23,6 +23,7 @@ function toSessionUser(user: UserRow): SessionUser {
     username: user.username,
     locale: settings.locale ?? 'fr',
     theme: settings.theme ?? 'dark',
+    is_admin: user.isAdmin,
   };
 }
 
@@ -35,6 +36,7 @@ export async function authenticate(
   const hash = user?.passwordHash ?? (await dummyHashOnce());
   const valid = await argon2.verify(hash, password).catch(() => false);
   if (!user || !valid) return null;
+  await userRepo.recordLogin(user.id);
   return toSessionUser(user);
 }
 

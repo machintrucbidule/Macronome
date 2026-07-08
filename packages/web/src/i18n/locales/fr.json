@@ -884,7 +884,7 @@
     }
   },
   "menu": {
-    "account": "Compte",
+    "account": "Mon compte",
     "about": "À propos",
     "logout": "Se déconnecter"
   },
@@ -1157,7 +1157,10 @@
     }
   },
   "account": {
-    "title": "Compte",
+    "title": "Mon compte",
+    "accountType": "Type de compte",
+    "typeAdmin": "Administrateur",
+    "typeUser": "Utilisateur",
     "credentials": "Identifiants",
     "profileInfo": "Mes informations",
     "username": "Nom d'utilisateur",

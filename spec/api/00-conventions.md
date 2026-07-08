@@ -8,22 +8,28 @@ Base path `/api/v1`. See `logic/*` for computation rules.
 
 - `POST /api/v1/auth/login` — body `{username, password, stay_signed_in}`.
   Sets an HTTP-only, Secure, SameSite cookie session; long-lived refresh when
-  `stay_signed_in`. 200 `{user:{id,username,locale,theme}}`.
+  `stay_signed_in`. 200 `{user:{id,username,locale,theme,is_admin}}`.
+  A successful login stamps `app_user.last_login_at` (and `last_seen_at`).
   - Failed credentials → **401** with a generic, non-enumerating body
     `{error:{code:'invalid_credentials'}}` (never reveal whether the user
     exists).
   - Rate-limit/lockout → **429** `{error:{code:'locked_out', retry_after_s}}`.
 - `POST /api/v1/auth/logout` — 204; clears session.
-- `GET /api/v1/auth/session` — 200 current user or 401.
+- `GET /api/v1/auth/session` — 200 current user (same `{user}` shape as login)
+  or 401.
+- Every authenticated request refreshes `app_user.last_seen_at`, throttled to
+  one write per hour per user; the stamp is fire-and-forget (never blocks or
+  fails the request). (B-190)
 - Password change is a dedicated secure flow (not a plain field):
   `POST /api/v1/auth/password` (current + new); never logged.
 - First-run bootstrap (single owner account):
   - `GET /api/v1/auth/setup-state` — unauthenticated, non-enumerating; 200
     `{setup_required}` (whether _any_ user exists yet; never reveals _which_).
   - `POST /api/v1/auth/setup` — body `{username, password, sex, birthdate, height_cm}`.
-    Allowed **only while no user exists**; creates the single owner, seeds defaults,
-    opens the session. Once an owner exists → **409** `{error:{code:'setup_already_completed'}}`
-    (creates nothing).
+    Allowed **only while no user exists**; creates the single owner **as admin**
+    (`is_admin = true`), seeds defaults, opens the session (stamping
+    `last_login_at`/`last_seen_at` like a login). Once an owner exists → **409**
+    `{error:{code:'setup_already_completed'}}` (creates nothing).
 - **No open/public sign-up.** Account creation is limited to the one-shot,
   zero-user-gated first-run setup above (disabled the instant the owner exists); no open
   registration endpoint is ever exposed. CSRF protection on all state-changing requests.

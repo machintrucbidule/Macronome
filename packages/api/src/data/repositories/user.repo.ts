@@ -8,6 +8,7 @@ export interface UserRow {
   username: string;
   passwordHash: string;
   settings: unknown;
+  isAdmin: boolean;
 }
 
 export interface NewUser {
@@ -16,6 +17,7 @@ export interface NewUser {
   sex: string;
   birthdate: Date;
   heightCm: number;
+  isAdmin?: boolean;
 }
 
 const SELECT = {
@@ -23,6 +25,7 @@ const SELECT = {
   username: true,
   passwordHash: true,
   settings: true,
+  isAdmin: true,
 } as const;
 
 export const userRepo = {
@@ -48,6 +51,7 @@ export const userRepo = {
         sex: user.sex,
         birthdate: user.birthdate,
         heightCm: user.heightCm,
+        isAdmin: user.isAdmin ?? false,
       },
       select: { id: true },
     });
@@ -55,6 +59,24 @@ export const userRepo = {
 
   async updatePasswordHash(id: string, passwordHash: string): Promise<void> {
     await prisma.appUser.update({ where: { id }, data: { passwordHash } });
+  },
+
+  /** Stamp a successful login — login screen or first-run setup (B-190). */
+  async recordLogin(id: string): Promise<void> {
+    const now = new Date();
+    await prisma.appUser.update({
+      where: { id },
+      data: { lastLoginAt: now, lastSeenAt: now },
+    });
+  },
+
+  /** Refresh last_seen_at on authenticated activity; the SQL guard throttles to
+   *  one write per hour per user (B-190). Raw so updated_at is not bumped. */
+  async recordActivity(id: string): Promise<void> {
+    await prisma.$executeRaw`
+      UPDATE "app_user" SET "last_seen_at" = now()
+      WHERE "id" = ${id}::uuid
+        AND ("last_seen_at" IS NULL OR "last_seen_at" < now() - interval '1 hour')`;
   },
 
   /** Replace the whole settings JSON blob (the service merges before calling). */

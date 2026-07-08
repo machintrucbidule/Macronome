@@ -4,16 +4,19 @@ See `00-overview.md`. Columns list type · null/not-null · constraints.
 
 ## app_user
 
-| column                 | type        | notes                                                               |
-| ---------------------- | ----------- | ------------------------------------------------------------------- |
-| id                     | uuid PK     |                                                                     |
-| username               | text        | NOT NULL, UNIQUE (citext or lower() unique index)                   |
-| password_hash          | text        | NOT NULL (argon2/bcrypt; never logged)                              |
-| sex                    | text        | NOT NULL, CHECK (sex IN ('male','female'))                          |
-| birthdate              | date        | NOT NULL, CHECK (birthdate < current_date)                          |
-| height_cm              | numeric     | NOT NULL, CHECK (height_cm > 0)                                     |
-| settings               | jsonb       | NOT NULL DEFAULT '{}' — UI + AI config; see **settings JSON** below |
-| created_at, updated_at | timestamptz |                                                                     |
+| column                 | type        | notes                                                                                                      |
+| ---------------------- | ----------- | ---------------------------------------------------------------------------------------------------------- |
+| id                     | uuid PK     |                                                                                                            |
+| username               | text        | NOT NULL, UNIQUE (citext or lower() unique index)                                                          |
+| password_hash          | text        | NOT NULL (argon2/bcrypt; never logged)                                                                     |
+| sex                    | text        | NOT NULL, CHECK (sex IN ('male','female'))                                                                 |
+| birthdate              | date        | NOT NULL, CHECK (birthdate < current_date)                                                                 |
+| height_cm              | numeric     | NOT NULL, CHECK (height_cm > 0)                                                                            |
+| settings               | jsonb       | NOT NULL DEFAULT '{}' — UI + AI config; see **settings JSON** below                                        |
+| is_admin               | boolean     | NOT NULL DEFAULT false — admin role (B-190); the upgrade migration promotes users existing at upgrade time |
+| last_login_at          | timestamptz | stamped at each successful login, incl. first-run setup (B-190)                                            |
+| last_seen_at           | timestamptz | stamped on authenticated activity, throttled to 1/hour (B-190)                                             |
+| created_at, updated_at | timestamptz |                                                                                                            |
 
 Profile (sex/birthdate/height) is edited on Cibles; settings on Paramètres.
 

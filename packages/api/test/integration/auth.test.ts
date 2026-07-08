@@ -19,7 +19,7 @@ function getCookie(res: request.Response, name: string): string | undefined {
   return undefined;
 }
 
-async function seedUser(username: string, password: string): Promise<void> {
+async function seedUser(username: string, password: string, isAdmin = false): Promise<void> {
   const passwordHash = await argon2.hash(password, { type: argon2.argon2id });
   await prisma.appUser.create({
     data: {
@@ -28,6 +28,7 @@ async function seedUser(username: string, password: string): Promise<void> {
       sex: 'male',
       birthdate: new Date('1990-01-01'),
       heightCm: 180,
+      isAdmin,
     },
   });
 }
@@ -91,12 +92,18 @@ describe('auth', () => {
       .send({ username: 'alice', password: 'correct-horse' });
 
     expect(login.status).toBe(200);
-    expect(login.body.user).toMatchObject({ username: 'alice', locale: 'fr', theme: 'dark' });
+    expect(login.body.user).toMatchObject({
+      username: 'alice',
+      locale: 'fr',
+      theme: 'dark',
+      is_admin: false,
+    });
     expect(getCookie(login, 'macronome.sid')).toBeTruthy();
 
     const session = await agent.get('/api/v1/auth/session');
     expect(session.status).toBe(200);
     expect(session.body.user.username).toBe('alice');
+    expect(session.body.user.is_admin).toBe(false);
   });
 
   it('regenerates the session id on login and keeps the session usable (B-022)', async () => {
@@ -148,6 +155,55 @@ describe('auth', () => {
   });
 });
 
+describe('auth role & login stamps (B-190)', () => {
+  it('exposes is_admin true on login and /session for an admin account', async () => {
+    await seedUser('root', 'correct-horse', true);
+    const { agent, csrf } = await csrfAgent();
+
+    const login = await agent
+      .post('/api/v1/auth/login')
+      .set('x-csrf-token', csrf)
+      .send({ username: 'root', password: 'correct-horse' });
+
+    expect(login.status).toBe(200);
+    expect(login.body.user.is_admin).toBe(true);
+
+    const session = await agent.get('/api/v1/auth/session');
+    expect(session.body.user.is_admin).toBe(true);
+  });
+
+  it('stamps last_login_at and last_seen_at on a successful login', async () => {
+    await seedUser('alice', 'correct-horse');
+    const before = await prisma.appUser.findUnique({ where: { username: 'alice' } });
+    expect(before?.lastLoginAt).toBeNull();
+    expect(before?.lastSeenAt).toBeNull();
+
+    const { agent, csrf } = await csrfAgent();
+    const login = await agent
+      .post('/api/v1/auth/login')
+      .set('x-csrf-token', csrf)
+      .send({ username: 'alice', password: 'correct-horse' });
+    expect(login.status).toBe(200);
+
+    const after = await prisma.appUser.findUnique({ where: { username: 'alice' } });
+    expect(after?.lastLoginAt).not.toBeNull();
+    expect(Date.now() - after!.lastLoginAt!.getTime()).toBeLessThan(10_000);
+    expect(after?.lastSeenAt?.getTime()).toBe(after?.lastLoginAt?.getTime());
+  });
+
+  it('does not stamp last_login_at on a failed login', async () => {
+    await seedUser('alice', 'correct-horse');
+    const { agent, csrf } = await csrfAgent();
+    await agent
+      .post('/api/v1/auth/login')
+      .set('x-csrf-token', csrf)
+      .send({ username: 'alice', password: 'wrong' });
+
+    const row = await prisma.appUser.findUnique({ where: { username: 'alice' } });
+    expect(row?.lastLoginAt).toBeNull();
+  });
+});
+
 const VALID_SETUP = {
   username: 'owner',
   password: 'correct-horse',
@@ -173,11 +229,20 @@ describe('auth setup (first-run)', () => {
     const res = await agent.post('/api/v1/auth/setup').set('x-csrf-token', csrf).send(VALID_SETUP);
 
     expect(res.status).toBe(200);
-    expect(res.body.user).toMatchObject({ username: 'owner', locale: 'fr', theme: 'dark' });
+    expect(res.body.user).toMatchObject({
+      username: 'owner',
+      locale: 'fr',
+      theme: 'dark',
+      is_admin: true,
+    });
     expect(getCookie(res, 'macronome.sid')).toBeTruthy();
 
     const user = await prisma.appUser.findUnique({ where: { username: 'owner' } });
     expect(user).not.toBeNull();
+    // The wizard's owner is admin, and completing setup counts as a login (B-190).
+    expect(user!.isAdmin).toBe(true);
+    expect(user!.lastLoginAt).not.toBeNull();
+    expect(user!.lastSeenAt).not.toBeNull();
     const slots = await prisma.mealSlotTemplate.count({ where: { userId: user!.id } });
     expect(slots).toBeGreaterThan(0);
     const rien = await prisma.container.findFirst({ where: { ownerId: user!.id, name: 'Rien' } });

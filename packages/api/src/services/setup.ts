@@ -17,7 +17,8 @@ export async function getSetupState(): Promise<{ setup_required: boolean }> {
 /**
  * Create the owner and return the session user, or null if an account already exists
  * (the controller maps null to 409 setup_already_completed). A fresh account has the
- * default settings blob, so locale/theme fall back to 'fr'/'dark'.
+ * default settings blob, so locale/theme fall back to 'fr'/'dark'. The owner is admin,
+ * and completing setup counts as a login (B-190).
  */
 export async function setupOwner(input: SetupRequest): Promise<SessionUser | null> {
   if ((await userRepo.count()) > 0) return null;
@@ -29,8 +30,16 @@ export async function setupOwner(input: SetupRequest): Promise<SessionUser | nul
     sex: input.sex,
     birthdate: new Date(input.birthdate),
     heightCm: input.height_cm,
+    isAdmin: true,
   });
   await seedDefaultsForUser(user.id);
+  await userRepo.recordLogin(user.id);
 
-  return { id: user.id, username: input.username.toLowerCase(), locale: 'fr', theme: 'dark' };
+  return {
+    id: user.id,
+    username: input.username.toLowerCase(),
+    locale: 'fr',
+    theme: 'dark',
+    is_admin: true,
+  };
 }

@@ -43,8 +43,9 @@ background:var(--bg-elev-2); border:1px solid var(--border-strong);
 border-radius:var(--r-md); box-shadow:var(--shadow); min-width:172px; padding:5px;
 z-index:var(--z-menu)`.
 
-Items (canonical set, fixed by masterplan v1.9):
-**Compte · Cibles · Contenants · Paramètres** · `—`(divider `.sep`: 1px border,
+Items (canonical set, fixed by masterplan v1.9; "Compte" renamed "Mon compte"
+by B-191):
+**Mon compte · Cibles · Contenants · Paramètres** · `—`(divider `.sep`: 1px border,
 margin 5px 0) · **Se déconnecter** (`.logout`, `color:var(--nok)`).
 Item: `display:block; padding:8px 12px; --fs-13; border-radius:var(--r-sm)`;
 hover `background: color-mix(in srgb, var(--accent) 14%, transparent)`.
@@ -59,7 +60,7 @@ On the phone breakpoint the appbar hides the **primary nav** and the **theme seg
 toggle** (spec §2.1; both move off the bar). The avatar then opens a **bottom sheet**
 (`Modal mobile="sheet"`, overlay taxonomy in `mobile.md` / `modals.md`) instead of the
 `<details>` dropdown. The sheet holds, as comfortable `--tap` rows: the **theme toggle**
-(moved out of the bar) + the canonical secondary destinations **Compte · Cibles ·
+(moved out of the bar) + the canonical secondary destinations **Mon compte · Cibles ·
 Contenants · Assistant IA · Paramètres · À propos · Déconnexion**. Selected via a
 `useIsMobile()` render-switch — **desktop (≥561px) keeps the exact `<details>` dropdown
 above, untouched** (`AccountMenu.tsx`). See `bottom-nav.md` for the bottom tab bar that

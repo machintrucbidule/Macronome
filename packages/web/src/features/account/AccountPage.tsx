@@ -36,6 +36,14 @@ export function AccountPage() {
               <span className={styles.ro}>{session.data?.user.username ?? '—'}</span>
             </div>
             <div className={styles.row}>
+              <span className={styles.lab}>{t('account.accountType')}</span>
+              <span className={styles.ro}>
+                {session.data
+                  ? t(session.data.user.is_admin ? 'account.typeAdmin' : 'account.typeUser')
+                  : '—'}
+              </span>
+            </div>
+            <div className={styles.row}>
               <span className={styles.lab}>{t('account.password')}</span>
               <Button variant="ghost" onClick={() => setPwOpen(true)}>
                 {t('account.changePassword')}

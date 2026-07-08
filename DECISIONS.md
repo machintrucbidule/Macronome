@@ -3921,3 +3921,56 @@ adherence response. The web only renders four `MetricCard`s.
 `stats.record.*`. Tests: `domain/stats/stats.test.ts` (oracle), integration `stats.test.ts`
 (seed weigh-ins across years → assert `records`). **Reverses the earlier "no weight on Stats"
 decision** by deliberate amendment.
+
+---
+
+## B-190/B-191 — admin role & login/activity stamps + "Mon compte" rename & account-type display — RESOLVED (user, 2026-07-08, 2 question rounds)
+
+**Problem / intent.** Multi-user foundations (Phase 3 deferred work): the data model has no
+role and no trace of when an account was last used, and the account menu/page predate the
+multi-user direction. B-190 adds the columns and exposes the role in the session; B-191
+renames the menu entry and surfaces the account type on the account page.
+
+**Decision (behaviour).**
+
+1. `app_user` gains `is_admin` (boolean, NOT NULL DEFAULT false), `last_login_at`
+   (timestamptz NULL) and `last_seen_at` (timestamptz NULL). The upgrade migration promotes
+   **all** users existing at upgrade time to admin (in practice exactly one owner).
+2. The first-run wizard's user is created **admin**; completing setup counts as a login
+   (stamps `last_login_at` + `last_seen_at`) — owner pick: any account that ever opened a
+   session has a non-null last login.
+3. **Two dates, not one** (owner pick, extends the original B-190 wording): `last_login_at`
+   is stamped only at the login screen (+ setup); `last_seen_at` is stamped by **any
+   authenticated request**, throttled to one write per hour, because "Rester connecté"
+   sessions make the pure login date stale for daily-active accounts. Both feed the future
+   Utilisateurs page (B-192).
+4. Login response and `GET /auth/session` expose `is_admin` (DTO
+   `{id,username,locale,theme,is_admin}`).
+5. Account-menu entry renamed **"Mon compte"** / EN **"My account"**; the page title is
+   renamed too (owner pick: menu ↔ page coherence). The Identifiants card gains a read-only
+   **Type de compte** row: **Administrateur / Utilisateur** (EN Administrator / User —
+   owner pick).
+
+**Decision (internals).** DTO field is `is_admin: boolean` (matches the schema flag).
+`create-user` script gains an optional valueless `--admin` flag (default standard).
+`recordLogin` uses `prisma.update` (bumps `updated_at`; accepted — nothing reads it);
+The three columns are **excluded from the IMP-1 export/import envelope** (whitelisted in
+the anti-omission guard): account metadata, not user data — an import must never change
+the importer's role or overwrite the login/activity stamps.
+`recordActivity` is a conditional raw `UPDATE … WHERE last_seen_at IS NULL OR
+last_seen_at < now() - interval '1 hour'` fired non-blocking from `requireAuth` (errors
+logged, never propagated; no `updated_at` bump). The role is **not** stored in the server
+session — re-read from the DB per request, so a future demotion (B-192) applies without
+session invalidation.
+
+**Spec impact:** `spec/schema/tables-catalog.md` (§app_user, three columns),
+`spec/api/00-conventions.md` §7 (session DTO shape, setup-creates-admin, login/activity
+stamps), `design/components/top-nav.md` (canonical menu set → "Mon compte"),
+`specifications/screens/account.md` (rename + Type de compte row). **Code:** Prisma
+migration `user_admin_last_login` (3 ADD COLUMN + promote backfill), `shared/dto/auth.ts`
+(`SessionUserSchema`), api `user.repo.ts` (`recordLogin`/`recordActivity`), `services/auth.ts`,
+`services/setup.ts`, `middleware/auth.ts`, `scripts/create-user.ts`, web locales
+(`menu.account`, `account.title`, `account.accountType|typeAdmin|typeUser`) +
+`AccountPage.tsx`. Tests: integration `auth.test.ts` (role in login/session/setup,
+login stamps), new `user-admin-migration.test.ts` (promote backfill + last-seen throttle),
+web `AccountPage.test.tsx`.

@@ -24,6 +24,9 @@ model AppUser {
   birthdate    DateTime @db.Date
   heightCm     Decimal  @map("height_cm") @db.Decimal
   settings     Json     @default("{}")
+  isAdmin      Boolean   @default(false) @map("is_admin")
+  lastLoginAt  DateTime? @map("last_login_at") @db.Timestamptz()
+  lastSeenAt   DateTime? @map("last_seen_at") @db.Timestamptz()
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz()
 

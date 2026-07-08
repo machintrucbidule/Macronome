@@ -4,14 +4,21 @@ import { seedDefaultsForUser } from '../src/services/user-bootstrap.js';
 
 // One-off bootstrap of the single v1 user (no public sign-up — ops.md §7).
 // Usage: npm run create-user -w @macronome/api -- \
-//   --username u --password p --sex male --birthdate 1990-01-01 --height 180
+//   --username u --password p --sex male --birthdate 1990-01-01 --height 180 [--admin]
 function parseArgs(): Record<string, string> {
   const args: Record<string, string> = {};
   const argv = process.argv.slice(2);
-  for (let i = 0; i < argv.length; i += 2) {
+  for (let i = 0; i < argv.length; ) {
     const key = argv[i]?.replace(/^--/, '');
     const value = argv[i + 1];
-    if (key && value !== undefined) args[key] = value;
+    if (key && value !== undefined && !value.startsWith('--')) {
+      args[key] = value;
+      i += 2;
+    } else {
+      // Valueless boolean flag (e.g. --admin), or trailing key.
+      if (key) args[key] = 'true';
+      i += 1;
+    }
   }
   return args;
 }
@@ -32,6 +39,7 @@ async function main(): Promise<void> {
       sex: a.sex!,
       birthdate: new Date(a.birthdate!),
       heightCm: Number(a.height),
+      isAdmin: a.admin === 'true',
     },
     select: { id: true, username: true },
   });

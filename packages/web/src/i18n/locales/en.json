@@ -884,7 +884,7 @@
     }
   },
   "menu": {
-    "account": "Account",
+    "account": "My account",
     "about": "About",
     "logout": "Log out"
   },
@@ -1157,7 +1157,10 @@
     }
   },
   "account": {
-    "title": "Account",
+    "title": "My account",
+    "accountType": "Account type",
+    "typeAdmin": "Administrator",
+    "typeUser": "User",
     "credentials": "Credentials",
     "profileInfo": "My information",
     "username": "Username",
