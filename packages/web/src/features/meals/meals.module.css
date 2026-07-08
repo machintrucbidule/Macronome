@@ -457,6 +457,12 @@
   overflow-x: auto;
   overflow-y: visible;
   scrollbar-width: none;
+  /* B-201: the whole-table outer frame — a continuous border on all four sides with all four
+     `--r-lg` corners — lives here on the container, not reconstructed from per-column edges. The
+     columns provide only the inter-column dividers (meal-column.module.css). Removed at ≤760px,
+     where columns stack as individual full-bordered cards. */
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
 }
 .scroller::-webkit-scrollbar {
   height: 0;
@@ -533,6 +539,10 @@
     flex-direction: column;
     overflow-x: visible;
     gap: var(--sp-6);
+    /* Stacked layout: each column is its own full-bordered card (meal-column.module.css), so the
+       container drops the desktop outer frame (B-201). */
+    border: none;
+    border-radius: 0;
   }
   .navArrow,
   .hbar {

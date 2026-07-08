@@ -13,6 +13,33 @@
   z-index: var(--z-appbar);
 }
 
+/* ===== Installed-window title bar (WCO, B-200) — window-controls-overlay only =====
+   The manifest's display_override promotes the installed window to window-controls-overlay: the OS
+   removes its own title bar and leaves only the native window buttons (minimise / maximise / close),
+   overlaid at their usual corner (top-right on Windows, top-left on macOS). We lift the appbar into
+   that freed strip and make it the window drag region. `env(titlebar-area-*)` is the rectangle the OS
+   leaves free of its buttons — confining the appbar to it keeps the right-hand controls (theme toggle,
+   account menu) clear of the native buttons on any OS. A browser tab and mobile never match this
+   query, so they render exactly as before. Fallbacks on every env() cover browsers that omit them. */
+@media (display-mode: window-controls-overlay) {
+  .appbar {
+    height: env(titlebar-area-height, var(--appbar-h));
+    padding-left: calc(env(titlebar-area-x, 0px) + var(--page-gutter));
+    padding-right: calc(
+      100% - env(titlebar-area-width, 100%) - env(titlebar-area-x, 0px) + var(--page-gutter)
+    );
+    -webkit-app-region: drag;
+    app-region: drag;
+  }
+  /* Interactive controls opt out of the drag region so they stay clickable. */
+  .nav a,
+  .themeToggleWrap,
+  .right {
+    -webkit-app-region: no-drag;
+    app-region: no-drag;
+  }
+}
+
 /* Brand mark — metronome "tick": ring + swinging needle (design/components/00-foundations.md). */
 .brand {
   display: flex;

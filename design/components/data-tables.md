@@ -160,8 +160,11 @@ desktop row hover (`--bg-elev`) still takes over on hover per the existing casca
 
 ## Line-list grid (Repas meal column) — instance A
 
-A meal `.meal` is a flex column on `--bg-elev`, `min-height:200px`, first column
-gets `--r-lg` left corners. Header `.meal-head` (name in `--font-display
+A meal `.meal` is a flex column on `--bg-elev`, `min-height:200px`. The **whole-table
+container** (the columns scroller) draws a **continuous outer border on all four sides with
+`--r-lg` on all four corners**; the columns themselves provide only the inter-column dividers
+(`border-right`), not the outer frame (B-201). (On the ≤760px stacked layout each column is
+instead an individual full-bordered `--r-lg` card.) Header `.meal-head` (name in `--font-display
 --fw-bold --fs-14` + cook 🍳 + ⋯ menu). Lines via CSS grid:
 `grid-template-columns: 7px 1fr 54px 34px 26px 26px 26px 15px 15px`
 (grip · name · qty+unit · kcal · L · G · P · pin · del). The **qty+unit column is

@@ -16,7 +16,19 @@ update** and **install** — plus the version line. Reuses `buttons.md` (ghost b
   safe zone, and iOS keeps its dark **apple-touch** icon — both via generation padding
   compensated so their rendered mark size is unchanged. The existing browser-tab
   `favicon` and the `00-foundations.md` brand mark are unchanged.
-- **Standalone** — `display: standalone` (no URL bar). `start_url: '/'`.
+- **Window & title bar** — `display: standalone` (no URL bar), `start_url: '/'`. In the
+  **installed window** the manifest also sets `display_override: ['window-controls-overlay',
+'standalone']` (B-200): where the browser supports it (desktop Edge/Chromium) the OS drops its
+  own title bar and leaves only the **native window buttons** (minimise / maximise / close) at
+  their usual corner (top-right on Windows, top-left on macOS), overlaid on the app. The app
+  **header** (brand tick + wordmark + primary nav + theme toggle + account menu) is lifted into
+  that freed title-bar strip; the strip is the window **drag** region (`app-region: drag`) and the
+  interactive controls opt out (`app-region: no-drag`). The header is confined to the OS-provided
+  free rectangle (`env(titlebar-area-*)`) so the right-hand controls never sit under the native
+  buttons, on any OS. **We do not draw our own window buttons** — the browser keeps its native set.
+  Browsers without WCO support, and mobile, fall back to plain `display: standalone` (unchanged),
+  and a browser tab is unaffected. Installed-window feature gates (`useIsStandalone`, the `lib/pwa`
+  install button) treat a WCO window as installed too.
 - **App shortcuts (B-183)** — the manifest exposes five `shortcuts`, in this order:
   **Repas du jour** (`/`) · **Ajouter une pesée** (`/weight?action=add`) · **Journal**
   (`/history`) · **Stats** (`/stats`) · **Paramètres** (`/parametres`). Shown by the OS

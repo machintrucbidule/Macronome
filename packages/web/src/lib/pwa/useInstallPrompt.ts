@@ -11,7 +11,10 @@ interface BeforeInstallPromptEvent extends Event {
 
 function isStandalone(): boolean {
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
-  return window.matchMedia('(display-mode: standalone)').matches;
+  // B-200: an installed window may run in window-controls-overlay, not standalone — both mean
+  // "already installed", so the install button stays hidden in either.
+  return window.matchMedia('(display-mode: standalone), (display-mode: window-controls-overlay)')
+    .matches;
 }
 
 export function useInstallPrompt(): { canInstall: boolean; promptInstall: () => void } {

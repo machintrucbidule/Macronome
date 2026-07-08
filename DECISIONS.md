@@ -4071,3 +4071,60 @@ button, row action, pending-links section). **Code:** migration `account_token`;
 token mode, Utilisateurs additions (InviteModal, ResetLinkModal, PendingTokens),
 locales. Tests: integration `account-tokens.test.ts`; web `InvitePage/ResetPage` tests +
 `UsersPage.test.tsx` extensions.
+
+---
+
+## B-200 — Installed-window chrome: window-controls-overlay (run #49) — RESOLVED (user, 2026-07-09)
+
+The installed PWA window previously ran in `display: standalone`, so the OS drew its own title
+bar **above** the app header → a redundant double banner. The manifest now also declares
+`display_override: ['window-controls-overlay', 'standalone']`: in the installed window (desktop
+Edge/Chromium) the OS title bar is dropped and only the native window buttons remain, and the app
+header is lifted into the freed title-bar strip.
+
+- **We do not draw our own window buttons.** The browser keeps its native minimise / maximise /
+  close set at the usual corner (top-right on Windows); the header (logo, name, nav, theme toggle,
+  account menu) moves up into the freed strip beside them. _(Owner decision, run #49.)_
+- **No overlap with the native buttons** (owner point, run #49): the header is confined to the
+  OS-provided free rectangle via the `env(titlebar-area-*)` CSS variables (`titlebar-area-x` left
+  inset, `titlebar-area-width`/`-height`), so the right-hand controls stop before the native
+  buttons whichever corner the OS uses (right on Windows, left on macOS). Fallbacks on every
+  `env()` cover browsers that omit them.
+- **Drag region:** the title-bar strip is `app-region: drag`; the interactive controls
+  (`.nav a`, theme toggle, account menu) are `app-region: no-drag`.
+- **Scope:** installed window only. A browser tab and mobile fall back to plain
+  `display: standalone`, byte-identical to before.
+
+**Rationale / regression note:** in WCO the window no longer matches `(display-mode: standalone)`,
+which would silently disable installed-window feature gates (the B-195 custom right-click menu, the
+install-button hide). The shared `useIsStandalone` hook and the `lib/pwa` `isStandalone()` helper
+therefore match `standalone` **or** `window-controls-overlay` — both mean "installed window".
+
+**Contract impact:** `design/components/pwa.md` (§ App chrome — "Window & title bar" bullet
+rewritten). **Code:** `packages/web/vite.config.ts` (manifest `display_override`),
+`packages/web/src/app/AppShell.module.css` (WCO `@media` block), `lib/useIsStandalone.ts`,
+`lib/pwa/useInstallPrompt.ts`. Not unit-testable (manifest + render CSS) → build + owner visual
+re-validation in the installed Edge window.
+
+## B-201 — Meals-table outer frame moves to the container (run #49) — RESOLVED (user, 2026-07-09)
+
+`data-tables.md` (instance A) previously specified only "first column gets `--r-lg` left corners",
+and the code reconstructed the table frame from per-column edges (first column: left border + left
+corners; every column: right border; no top/bottom) → square right corners, no continuous
+top/bottom border, and an orphaned bottom-left corner. The owner wants a real continuous outer
+frame.
+
+- **Decision (owner, run #49):** the **whole-table container** (`.scroller`) draws a continuous
+  outer border on all four sides with all four `--r-lg` corners; the per-column frame
+  reconstruction is dropped. Inner columns and their inter-column dividers are unchanged. The
+  ≤760px stacked layout (each column a full-bordered `--r-lg` card) is preserved unchanged.
+
+**Implementation note (internal, no UX effect):** to keep the column popovers (⋯ menu, Restes
+popup) un-clipped, the frame does **not** use `overflow:hidden`; instead the two edge columns round
+their **background** to the container's corners so no square nub shows through the rounded frame,
+and the desktop last column drops its now-redundant `border-right`. These rules are scoped ≥761px.
+
+**Contract impact:** `design/components/data-tables.md` (instance A — opening sentence rewritten).
+**Code:** `packages/web/src/features/meals/meals.module.css` (`.scroller` border/radius, removed
+at ≤760px), `.../components/MealColumn/meal-column.module.css` (desktop `.col:first-child` /
+`.col:last-child` corner + divider rules). CSS-only → owner visual check.

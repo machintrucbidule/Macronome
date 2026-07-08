@@ -8,10 +8,22 @@
   flex-direction: column;
   min-height: 200px;
 }
-.col:first-child {
-  border-left: 1px solid var(--border);
-  border-top-left-radius: var(--r-lg);
-  border-bottom-left-radius: var(--r-lg);
+/* B-201: the table's outer frame (continuous border + 4 rounded corners) now lives on the container
+   (.scroller, meals.module.css). Columns keep only the inter-column dividers (`border-right`). On
+   desktop the last column drops its right divider (the container draws that edge, else a double
+   line), and the two edge columns round their background to the frame's corners so no square nub
+   shows through the rounded corner. Scoped ≥761px so the ≤760px stacked full-bordered-card layout
+   below is untouched. */
+@media (min-width: 761px) {
+  .col:first-child {
+    border-top-left-radius: var(--r-lg);
+    border-bottom-left-radius: var(--r-lg);
+  }
+  .col:last-child {
+    border-right: none;
+    border-top-right-radius: var(--r-lg);
+    border-bottom-right-radius: var(--r-lg);
+  }
 }
 
 /* B-055: when the scroller stacks columns vertically (≤760px), each meal must be full-width and

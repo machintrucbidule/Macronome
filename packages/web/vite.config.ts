@@ -29,6 +29,10 @@ export default defineConfig({
         theme_color: '#0d0f12',
         background_color: '#0d0f12',
         display: 'standalone',
+        // WCO (B-200, design/components/pwa.md): in the installed window, drop the OS title bar and
+        // lift the app header into the freed title-bar strip (only the native window buttons remain).
+        // Falls back to `display: standalone` where WCO is unsupported (older browsers) and on mobile.
+        display_override: ['window-controls-overlay', 'standalone'],
         start_url: '/',
         // Single window: launching the installed app focuses the existing window (B-183).
         launch_handler: { client_mode: 'focus-existing' },
