@@ -23,7 +23,10 @@
    query, so they render exactly as before. Fallbacks on every env() cover browsers that omit them. */
 @media (display-mode: window-controls-overlay) {
   .appbar {
-    height: env(titlebar-area-height, var(--appbar-h));
+    /* B-204: keep the normal appbar height — the real WCO `env(titlebar-area-height)` (~33-40px)
+       is shorter than --appbar-h (51px) and would crush the header, so take the larger of the two
+       (and still cover a taller OS title strip if one exceeds --appbar-h). */
+    height: max(env(titlebar-area-height, var(--appbar-h)), var(--appbar-h));
     padding-left: calc(env(titlebar-area-x, 0px) + var(--page-gutter));
     padding-right: calc(
       100% - env(titlebar-area-width, 100%) - env(titlebar-area-x, 0px) + var(--page-gutter)
