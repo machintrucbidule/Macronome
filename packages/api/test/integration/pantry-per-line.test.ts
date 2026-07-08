@@ -99,7 +99,9 @@ describe('B-198 — per-line garde-manger pin', () => {
     expect(b.entries[0]).toMatchObject({ served_quantity: 0, is_pinned: true });
     expect((await agent.get('/api/v1/pantry')).body.data).toHaveLength(1); // still pinned
   });
+});
 
+describe('B-198 — per-line pin: unpin & reference count', () => {
   it('reference count — the food stays pinned until the last pinned line is unpinned', async () => {
     const { agent, csrf, userId } = await authedAgent(app, 'alice');
     const food = await seedFood(userId, 'Œuf');
