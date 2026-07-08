@@ -2,6 +2,8 @@ import type { ReactElement } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { LoginPage } from '../features/login/LoginPage';
 import { SetupWizard } from '../features/setup/SetupWizard';
+import { InvitePage } from '../features/invite/InvitePage';
+import { ResetPage } from '../features/reset/ResetPage';
 import { FoodsPage } from '../features/foods/FoodsPage';
 import { RecipesPage } from '../features/recipes/RecipesPage';
 import { CiblesPage } from '../features/targets/CiblesPage';
@@ -71,6 +73,9 @@ export function AppRouter() {
             <Routes>
               <Route path="/login" element={<LoginPage />} />
               <Route path="/setup" element={<SetupWizard />} />
+              {/* Token-link pages (B-193/B-194) — public; the token rides the URL fragment. */}
+              <Route path="/invite" element={<InvitePage />} />
+              <Route path="/reset" element={<ResetPage />} />
               {PROTECTED.map(([path, element]) => (
                 <Route key={path} path={path} element={<RequireAuth>{element}</RequireAuth>} />
               ))}

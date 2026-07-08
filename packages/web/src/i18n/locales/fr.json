@@ -36,7 +36,8 @@
     "success": "Connexion réussie.",
     "redirect": "→ JOURNAL DU JOUR",
     "host": "Instance auto-hébergée · accès privé",
-    "languageGroup": "Langue"
+    "languageGroup": "Langue",
+    "resetDone": "Mot de passe mis à jour — connecte-toi avec le nouveau."
   },
   "setup": {
     "title": "Bienvenue dans Macronome",
@@ -712,9 +713,19 @@
     "rangeEmpty": "Aucune pesée sur cette plage.",
     "today": "Aujourd'hui",
     "waistToggle": "Tour de taille",
-    "mode": { "label": "Mode" },
-    "range": { "3m": "3 mois", "6m": "6 mois", "1y": "1 an", "all": "Tout" },
-    "flag": { "in_diet": "En régime", "not_in_diet": "Maintien" },
+    "mode": {
+      "label": "Mode"
+    },
+    "range": {
+      "3m": "3 mois",
+      "6m": "6 mois",
+      "1y": "1 an",
+      "all": "Tout"
+    },
+    "flag": {
+      "in_diet": "En régime",
+      "not_in_diet": "Maintien"
+    },
     "legend": {
       "weighed": "Poids pesé",
       "trend": "Tendance lissée",
@@ -826,7 +837,9 @@
       "highestYear": "Poids max ({{year}})",
       "lowestYear": "Poids min ({{year}})"
     },
-    "heatmap": { "label": "Calendrier d'adhérence" },
+    "heatmap": {
+      "label": "Calendrier d'adhérence"
+    },
     "status": {
       "OK": "OK",
       "NOK_under": "NOK (déficit)",
@@ -933,6 +946,29 @@
       "lastAdmin": "Impossible : il doit rester au moins un administrateur.",
       "ownAccount": "Impossible d'agir sur votre propre compte.",
       "generic": "L'action a échoué. Réessaie."
+    },
+    "invite": "+ Inviter",
+    "resetLink": "Réinitialiser",
+    "resetLinkTitle": "Générer un lien de réinitialisation du mot de passe",
+    "inviteModal": {
+      "title": "Inviter un utilisateur",
+      "body": "Choisis le rôle du nouveau compte. Le lien est à usage unique et expire dans 7 jours.",
+      "generate": "Générer le lien",
+      "createdBody": "Lien d'invitation créé — copie-le et transmets-le. Il ne sera plus affiché."
+    },
+    "resetModal": {
+      "title": "Lien de réinitialisation",
+      "body": "Lien de réinitialisation du mot de passe pour « <b>{{name}}</b> » — usage unique, expire dans 7 jours. Il remplace tout lien précédent et ne sera plus affiché."
+    },
+    "links": {
+      "title": "Liens en attente",
+      "empty": "Aucun lien en attente.",
+      "invite": "Invitation",
+      "reset": "Réinitialisation",
+      "expires": "expire le {{date}}",
+      "revoke": "Révoquer",
+      "copy": "Copier",
+      "copied": "Copié !"
     }
   },
   "integrations": {
@@ -1216,5 +1252,24 @@
       "wrong": "Mot de passe actuel incorrect.",
       "success": "Mot de passe modifié."
     }
+  },
+  "invite": {
+    "title": "Créer ton compte",
+    "intro": "Tu as été invité·e sur cette instance Macronome. Trois étapes : identifiants, profil, cibles.",
+    "usernameTaken": "Ce nom d'utilisateur est déjà pris — choisis-en un autre.",
+    "deadTitle": "Lien invalide ou expiré",
+    "deadBody": "Ce lien d'invitation n'est plus valable (utilisé, révoqué ou expiré). Demande un nouveau lien à l'administrateur.",
+    "toLogin": "Aller à la connexion"
+  },
+  "reset": {
+    "title": "Nouveau mot de passe",
+    "intro": "Choisis un nouveau mot de passe pour ton compte.",
+    "newPassword": "Nouveau mot de passe",
+    "confirmPassword": "Confirmer le nouveau mot de passe",
+    "hint": "8 caractères minimum ; les deux champs doivent correspondre.",
+    "submit": "Mettre à jour le mot de passe",
+    "error": "La mise à jour a échoué — le lien n'est peut-être plus valable.",
+    "deadTitle": "Lien invalide ou expiré",
+    "deadBody": "Ce lien de réinitialisation n'est plus valable (utilisé, révoqué ou expiré). Demande un nouveau lien à l'administrateur."
   }
 }

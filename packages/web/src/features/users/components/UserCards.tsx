@@ -12,16 +12,25 @@ export function UserCards({
   selfId,
   onRole,
   onDelete,
+  onResetLink,
 }: {
   users: AdminUser[];
   selfId: string;
   onRole: (u: AdminUser) => void;
   onDelete: (u: AdminUser) => void;
+  onResetLink: (u: AdminUser) => void;
 }) {
   return (
     <div className={styles.cardList}>
       {users.map((u) => (
-        <UserCard key={u.id} user={u} self={u.id === selfId} onRole={onRole} onDelete={onDelete} />
+        <UserCard
+          key={u.id}
+          user={u}
+          self={u.id === selfId}
+          onRole={onRole}
+          onDelete={onDelete}
+          onResetLink={onResetLink}
+        />
       ))}
     </div>
   );
@@ -32,11 +41,13 @@ function UserCard({
   self,
   onRole,
   onDelete,
+  onResetLink,
 }: {
   user: AdminUser;
   self: boolean;
   onRole: (u: AdminUser) => void;
   onDelete: (u: AdminUser) => void;
+  onResetLink: (u: AdminUser) => void;
 }) {
   const { t, i18n } = useTranslation();
   const stamp = (label: string, iso: string | null): string =>
@@ -59,6 +70,9 @@ function UserCard({
       <div className={styles.actions}>
         <Button variant="ghost" disabled={self} onClick={() => onRole(user)}>
           {t(user.is_admin ? 'users.demote' : 'users.promote')}
+        </Button>
+        <Button variant="ghost" disabled={self} onClick={() => onResetLink(user)}>
+          {t('users.resetLink')}
         </Button>
         <Button variant="danger" disabled={self} onClick={() => onDelete(user)}>
           {t('common.remove')}

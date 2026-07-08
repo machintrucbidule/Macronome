@@ -31,10 +31,29 @@ Base path `/api/v1`. See `logic/*` for computation rules.
     `last_login_at`/`last_seen_at` like a login). Once an owner exists → **409**
     `{error:{code:'setup_already_completed'}}` (creates nothing).
 - **No open/public sign-up.** Account creation is limited to the one-shot,
-  zero-user-gated first-run setup above (disabled the instant the owner exists); no open
-  registration endpoint is ever exposed. CSRF protection on all state-changing requests.
-- Admin account management (list / promote / demote / delete users) lives under
-  `/api/v1/users` — see `users-admin.md` (B-192; admin-only, 403 for non-admins).
+  zero-user-gated first-run setup above, plus **token-gated registration via
+  admin-generated invitations** (B-193 — a deliberate, owner-approved carve-out
+  of the earlier "no registration endpoint" rule): no _open_ registration
+  endpoint is ever exposed. CSRF protection on all state-changing requests.
+- Token flows (B-193/B-194; tokens are single-use, 7-day, admin-revocable —
+  `users-admin.md`; the raw token travels in POST bodies only, never in a URL
+  path/query, and is redacted from logs):
+  - `POST /api/v1/auth/token-state` — body `{token}`; 200
+    `{valid, kind?, is_admin?}` (non-enumerating probe for the invite/reset
+    pages; `kind ∈ 'invite'|'password_reset'`).
+  - `POST /api/v1/auth/register` — body `{token, username, password, sex,
+birthdate, height_cm}` (the setup payload + token). Creates the account with
+    the invite's role, seeds defaults, consumes the token, opens the session →
+    200 `{user}`. Errors: **409** `{error:{code:'token_invalid'}}` (invalid /
+    expired / revoked / wrong-kind — one non-enumerating code) and **409**
+    `{error:{code:'username_taken'}}` (does **not** consume the invite).
+    Rate-limited like login.
+  - `POST /api/v1/auth/reset-password` — body `{token, new_password}` (min 8).
+    Sets the target account's password, consumes the token and **revokes all of
+    that account's sessions** → 204. 409 `token_invalid`. Rate-limited.
+- Admin account management (list / promote / demote / delete users, invitation
+  and password-reset links) lives under `/api/v1/users` — see `users-admin.md`
+  (B-192/B-193/B-194; admin-only, 403 for non-admins).
 
 ## Tenancy
 

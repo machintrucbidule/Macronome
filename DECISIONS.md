@@ -4017,3 +4017,57 @@ pointer), `design/components/top-nav.md` (conditional-entry pattern + both menu 
 `AccountMenu.tsx`, `RequireAdmin.tsx`, `router.tsx`, `api/users.ts`, `features/users/*`,
 locales `users.*`. Tests: integration `users-admin.test.ts` (403, guards, full wipe +
 session revocation), web `AccountMenu.test.tsx` + `features/users/UsersPage.test.tsx`.
+
+---
+
+## B-193/B-194 — invitation links & admin password-reset links (token machinery) — RESOLVED (user, 2026-07-08, 1 question round)
+
+**Problem / intent.** With roles (B-190) and the admin page (B-192) in place, the last
+multi-user gap: no way to create a second account (setup is zero-user-gated, create-user is
+CLI-only) and no in-app recovery for a forgotten password. B-193 adds admin-generated
+invitation links; B-194 reuses the same token machinery for password-reset links.
+
+**Decision (behaviour).**
+
+1. **§7 carve-out (deliberate, owner-approved):** the "no open registration endpoint" rule
+   is amended to "no _open_ registration" — registration exists but is **token-gated** by
+   admin-generated invitations. No e-mail sending; the admin copies the link.
+2. **Invitations:** single-use, 7-day expiry, role (user/admin) chosen at creation; listed
+   and revocable in a « Liens en attente » section of the Utilisateurs page. The link opens
+   the **existing 3-step setup wizard** bound to the token; on success the account is
+   created with the invite's role and the invitee lands **directly in the app** (owner
+   pick); the token is consumed. `username_taken` does **not** burn the invite.
+3. **Reset links:** generated from a **row action** on the Utilisateurs page (owner pick;
+   disabled on the self row — own_account guard, an admin changes their own password on
+   Mon compte). A new link **replaces** the account's pending one (owner pick: at most one
+   active per user). The link opens a set-new-password screen (password ×2, min 8); on
+   success the token is consumed, **all the account's sessions are revoked**, and the user
+   is sent to **/login with a success banner** (owner pick).
+
+**Decision (internals).** New `account_token` table (kind invite|password_reset,
+**sha256-hashed** token UNIQUE, is_admin, nullable user_id FK ON DELETE CASCADE with a
+kind-coherence CHECK, expires_at). Single-use = the row is **deleted** on consumption;
+revoke = delete; expired rows purged when the admin lists. Raw token
+`randomBytes(32).base64url`, returned **once** at creation; it travels in the web URL
+**fragment** (`/invite#…`, `/reset#…`) and API POST bodies only — never a URL path/query
+(pino logs urls); `req.body.token` added to the pino redact list. One non-enumerating
+error code `token_invalid` (unknown / expired / revoked / wrong kind) + `username_taken`.
+`loginRateLimit` guards /auth/register (username|ip key) and /auth/reset-password (ip-only
+key — the 2^256 token space is the real defence); the token-state probe is not limited.
+Account creation is shared: `services/account-create.ts` extracted from `setupOwner`
+(hash → create → seed → recordLogin), reused by the invite registration.
+`revokeAllSessions` extracted to `user.repo.ts` (shared with the B-192 delete).
+`account_token` is **excluded from the IMP-1 export/import envelope** (table-level
+whitelist in the anti-omission guard): transient security artifacts, not user data.
+
+**Spec impact:** `spec/schema/tables-catalog.md` (new `account_token`),
+`spec/api/00-conventions.md` §7 (carve-out + 3 public endpoints),
+`spec/api/users-admin.md` (§Token endpoints), `specifications/screens/login.md`
+(invitation wizard variant + reset screen), `specifications/screens/users.md` (invite
+button, row action, pending-links section). **Code:** migration `account_token`; api
+`account-token.repo.ts`, `services/account-create.ts` + `account-tokens.ts`,
+`controllers/account-tokens-admin.ts` + `auth.ts`, routes, logger redact; shared
+`dto/account-token.ts` + error codes; web `/invite` + `/reset` public routes, useSetup
+token mode, Utilisateurs additions (InviteModal, ResetLinkModal, PendingTokens),
+locales. Tests: integration `account-tokens.test.ts`; web `InvitePage/ResetPage` tests +
+`UsersPage.test.tsx` extensions.

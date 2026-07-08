@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLocation } from 'react-router-dom';
 import { AuthTopBar } from '../../app/AuthTopBar';
 import { useLogin, type LoginState } from './useLogin';
 import styles from './LoginPage.module.css';
@@ -25,6 +26,19 @@ function StateAlert({ state, lockSeconds }: { state: LoginState; lockSeconds: nu
       </div>
     );
   return null;
+}
+
+// Arriving from a completed password reset (B-194) — one-shot success banner.
+function ResetDoneNote() {
+  const { t } = useTranslation();
+  const location = useLocation();
+  const resetDone = (location.state as { resetDone?: boolean } | null)?.resetDone === true;
+  if (!resetDone) return null;
+  return (
+    <div className={styles.resetDone} role="status">
+      {t('login.resetDone')}
+    </div>
+  );
 }
 
 function SuccessFlash() {
@@ -69,6 +83,7 @@ export function LoginPage() {
           </div>
           <div className={styles.tagline}>{t('login.tagline')}</div>
 
+          {state === 'idle' && <ResetDoneNote />}
           <StateAlert state={state} lockSeconds={lockSeconds} />
 
           <label className={styles.field}>

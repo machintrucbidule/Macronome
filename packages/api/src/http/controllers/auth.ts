@@ -3,8 +3,12 @@ import {
   ErrorCode,
   LoginRequestSchema,
   PasswordChangeRequestSchema,
+  RegisterRequestSchema,
+  ResetPasswordRequestSchema,
   SetupRequestSchema,
+  TokenStateRequestSchema,
 } from '@macronome/shared';
+import * as accountTokensService from '../../services/account-tokens.js';
 import * as authService from '../../services/auth.js';
 import * as setupService from '../../services/setup.js';
 import { ApiError, zodDetails } from '../errors.js';
@@ -64,6 +68,37 @@ export async function setup(req: Request, res: Response): Promise<void> {
   await elevateSession(req, user.id);
   await saveSession(req);
   res.status(200).json({ user });
+}
+
+// Token-link flows (spec/api/00-conventions.md §7, B-193/B-194). Anonymous but
+// CSRF-protected POSTs (the SPA holds a csrf cookie before these pages mount);
+// tokens ride in the body only — never a URL — and are redacted from logs.
+
+/** Non-enumerating probe for the /invite and /reset pages. */
+export async function tokenState(req: Request, res: Response): Promise<void> {
+  const parsed = TokenStateRequestSchema.safeParse(req.body);
+  if (!parsed.success) throw new ApiError(422, ErrorCode.ValidationError, zodDetails(parsed.error));
+  res.status(200).json(await accountTokensService.tokenState(parsed.data.token));
+}
+
+/** Token-gated registration (B-193): the invite wizard's submit. */
+export async function register(req: Request, res: Response): Promise<void> {
+  const parsed = RegisterRequestSchema.safeParse(req.body);
+  if (!parsed.success) throw new ApiError(422, ErrorCode.ValidationError, zodDetails(parsed.error));
+
+  const user = await accountTokensService.registerWithInvite(parsed.data);
+  await elevateSession(req, user.id);
+  await saveSession(req);
+  res.status(200).json({ user });
+}
+
+/** Set a new password from a reset link (B-194). */
+export async function resetPassword(req: Request, res: Response): Promise<void> {
+  const parsed = ResetPasswordRequestSchema.safeParse(req.body);
+  if (!parsed.success) throw new ApiError(422, ErrorCode.ValidationError, zodDetails(parsed.error));
+
+  await accountTokensService.resetPassword(parsed.data);
+  res.status(204).end();
 }
 
 export async function session(req: Request, res: Response): Promise<void> {

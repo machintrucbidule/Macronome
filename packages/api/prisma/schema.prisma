@@ -33,6 +33,23 @@ model AppUser {
   @@map("app_user")
 }
 
+/// Admin-generated single-use link tokens (B-193 invitations / B-194 password
+/// resets; spec/schema/tables-catalog.md → account_token). Only the sha256 of
+/// the raw token is stored. The user_id FK (reset target, ON DELETE CASCADE)
+/// and the kind/coherence CHECKs live in migration SQL, not here.
+model AccountToken {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  kind      String
+  tokenHash String    @unique @map("token_hash")
+  isAdmin   Boolean   @default(false) @map("is_admin")
+  userId    String?   @map("user_id") @db.Uuid
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz()
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@map("account_token")
+}
+
 /// Catalog food (spec/schema/tables-catalog.md → food). Per-100 g macros; soft
 /// delete via archived_at. `normalized_name` is the unaccent+lower search key,
 /// maintained by domain/search/normalize.ts on write. Relations (owner_id → app_user,

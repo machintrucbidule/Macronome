@@ -73,31 +73,52 @@ export function targetsValid(d: SetupDraft): boolean {
   );
 }
 
-export function useSetup() {
+// `inviteToken` switches the wizard to the invite-registration mode (B-193): same
+// steps, but the submit posts /auth/register bound to the token, a dead link flips
+// `deadLink` (the hosting InvitePage shows the error screen), and username_taken
+// bounces back to the credentials step.
+export function useSetup({ inviteToken }: { inviteToken?: string | undefined } = {}) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [draft, setDraft] = useState<SetupDraft>(EMPTY);
   const [step, setStep] = useState(0);
   const [pending, setPending] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [deadLink, setDeadLink] = useState(false);
+  const [usernameTaken, setUsernameTaken] = useState(false);
   const submitting = useRef(false);
 
   const set = (patch: Partial<SetupDraft>): void => setDraft((d) => ({ ...d, ...patch }));
+
+  // Server verdicts → wizard states (kept out of create() for readability/complexity).
+  const onCreateError = (err: unknown): void => {
+    const code = err instanceof ApiError ? err.code : '';
+    if (code === 'setup_already_completed') void navigate('/login');
+    else if (code === 'token_invalid')
+      setDeadLink(true); // invite died mid-flow
+    else if (code === 'username_taken') {
+      setUsernameTaken(true);
+      setStep(0); // back to the credentials step; the invite is not consumed
+    } else setFailed(true);
+  };
 
   async function create(): Promise<void> {
     if (submitting.current) return; // guard against a double submit racing the redirect
     if (!credentialsValid(draft) || !profileValid(draft) || !targetsValid(draft)) return;
     submitting.current = true;
     setFailed(false);
+    setUsernameTaken(false);
     setPending(true);
     try {
-      await authApi.setup({
+      const fields = {
         username: draft.username.trim(),
         password: draft.password,
         sex: draft.sex as Sex,
         birthdate: draft.birthdate,
         height_cm: Number(draft.heightCm),
-      });
+      };
+      if (inviteToken) await authApi.register({ ...fields, token: inviteToken });
+      else await authApi.setup(fields);
       // The account now exists and the session is open: persist the initial targets (B-059).
       // A failure here must not strand the owner on /setup — the account exists and targets stay
       // editable on Cibles — so we swallow it and still enter the app.
@@ -122,11 +143,7 @@ export function useSetup() {
       void navigate('/');
       void queryClient.invalidateQueries({ queryKey: SESSION_KEY });
     } catch (err) {
-      if (err instanceof ApiError && err.code === 'setup_already_completed') {
-        void navigate('/login');
-        return;
-      }
-      setFailed(true);
+      onCreateError(err);
     } finally {
       setPending(false);
       submitting.current = false;
@@ -142,5 +159,7 @@ export function useSetup() {
     create,
     pending,
     failed,
+    deadLink,
+    usernameTaken,
   };
 }

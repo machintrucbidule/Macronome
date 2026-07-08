@@ -32,6 +32,11 @@ const TABLE_TO_ENVELOPE: Record<string, string> = {
 // app_user is projected (not a 1:1 array): its exported columns live in `profile` + `settings`.
 const APP_USER_EXPORTED = new Set(['sex', 'birthdate', 'height_cm', 'settings']);
 
+// Whole tables intentionally never exported: account_token (B-193/194) holds transient
+// single-use security artifacts (hashed invite/reset links) — instance-operational, not
+// user data; exporting/importing them would be meaningless and leak the hashes.
+const TABLE_EXCLUDE = new Set(['account_token']);
+
 // Columns intentionally never exported. Global: regenerated timestamps + the tenant pointer
 // (re-pointed at the importing user). Per-table: the app_user identity/credentials, plus the
 // B-190 account metadata — an import must never change the importer's role or overwrite the
@@ -67,7 +72,10 @@ describe('export/import envelope coverage (anti-omission guard)', () => {
   it('every Prisma scalar column is exported or explicitly whitelisted', () => {
     const violations: string[] = [];
 
-    for (const model of Prisma.dmmf.datamodel.models) {
+    const models = Prisma.dmmf.datamodel.models.filter(
+      (m) => !TABLE_EXCLUDE.has(m.dbName ?? m.name),
+    );
+    for (const model of models) {
       const table = model.dbName ?? model.name;
 
       // A brand-new table must be wired into the envelope (or consciously handled here).

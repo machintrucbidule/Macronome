@@ -1,14 +1,16 @@
 import { useTranslation } from 'react-i18next';
-import type { AdminUser } from '@macronome/shared';
+import type { AccountTokenSummary, AdminUser } from '@macronome/shared';
 import { Banner } from '../../../components/Banner/Banner';
+import { Button } from '../../../components/Button/Button';
 import { SkeletonRows } from '../../../components/states/SkeletonRows';
 import { ListToolbar, SortSheet, type SortOption } from '../../../components/ListChrome';
+import { PendingTokens } from './PendingTokens';
 import { UserCards } from './UserCards';
 import type { SortKey } from './UserTable';
 import styles from '../users-mobile.module.css';
 
-// Mobile Utilisateurs view (screens/users.md): count + Trier sheet over a card list.
-// No FAB (accounts arrive via invitations, B-193); the app bar shows the page title.
+// Mobile Utilisateurs view (screens/users.md): count + Inviter + Trier sheet over a
+// card list, then the pending-links section. No FAB; the app bar shows the title.
 interface UsersMobileProps {
   rows: AdminUser[];
   selfId: string;
@@ -20,6 +22,10 @@ interface UsersMobileProps {
   onDismissError: () => void;
   onRole: (u: AdminUser) => void;
   onDelete: (u: AdminUser) => void;
+  onInvite: () => void;
+  onResetLink: (u: AdminUser) => void;
+  tokens: AccountTokenSummary[];
+  onRevoke: (id: string) => void;
 }
 
 export function UsersMobile(props: UsersMobileProps) {
@@ -39,6 +45,9 @@ export function UsersMobile(props: UsersMobileProps) {
           <span className={styles.count}>{t('users.count', { count: props.rows.length })}</span>
         }
       >
+        <Button variant="ghost" onClick={props.onInvite}>
+          {t('users.invite')}
+        </Button>
         <SortSheet options={sortOptions} sort={props.sort} dir={props.dir} onSort={props.onSort} />
       </ListToolbar>
 
@@ -58,8 +67,11 @@ export function UsersMobile(props: UsersMobileProps) {
           selfId={props.selfId}
           onRole={props.onRole}
           onDelete={props.onDelete}
+          onResetLink={props.onResetLink}
         />
       )}
+
+      <PendingTokens tokens={props.tokens} onRevoke={props.onRevoke} />
     </>
   );
 }

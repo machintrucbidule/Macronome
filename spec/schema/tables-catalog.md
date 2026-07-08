@@ -20,6 +20,24 @@ See `00-overview.md`. Columns list type · null/not-null · constraints.
 
 Profile (sex/birthdate/height) is edited on Cibles; settings on Paramètres.
 
+## account_token
+
+Admin-generated single-use links (B-193 invitations, B-194 password resets).
+Consumption **deletes** the row (single-use); revocation deletes it too; expired
+rows are purged opportunistically when the admin lists pending links. Only the
+sha256 of the raw token is stored — the raw token is shown once at creation and
+travels in the web URL **fragment** (never in an API path/query).
+
+| column                 | type        | notes                                                                                                       |
+| ---------------------- | ----------- | ----------------------------------------------------------------------------------------------------------- |
+| id                     | uuid PK     |                                                                                                             |
+| kind                   | text        | NOT NULL, CHECK (kind IN ('invite','password_reset'))                                                       |
+| token_hash             | text        | NOT NULL, UNIQUE — sha256 hex of the raw single-use token                                                   |
+| is_admin               | boolean     | NOT NULL DEFAULT false — role granted by an invite (unused for resets)                                      |
+| user_id                | uuid        | NULL for invites; password-reset target, REFERENCES app_user(id) ON DELETE CASCADE; CHECK coherence w/ kind |
+| expires_at             | timestamptz | NOT NULL — creation + 7 days                                                                                |
+| created_at, updated_at | timestamptz |                                                                                                             |
+
 ### settings JSON
 
 The `settings` blob carries UI preferences, the AI-assistant connection config, and the

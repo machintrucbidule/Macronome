@@ -54,3 +54,4 @@ export * from './dto/data.js';
 export * from './dto/about.js';
 export * from './dto/ai.js';
 export * from './dto/user-admin.js';
+export * from './dto/account-token.js';

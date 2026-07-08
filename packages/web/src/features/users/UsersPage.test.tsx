@@ -2,11 +2,12 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import type { AdminUser } from '@macronome/shared';
+import type { AccountTokenSummary, AdminUser } from '@macronome/shared';
 import i18n from '../../i18n/config';
 import { SESSION_KEY } from '../../app/useSession';
 import { RequireAdmin } from '../../app/RequireAdmin';
 import { USERS_KEY } from './useUsers';
+import { TOKENS_KEY } from './useTokens';
 import { UsersPage } from './UsersPage';
 
 // B-192: the Utilisateurs page renders the account rows (roles, « — » for null
@@ -36,14 +37,34 @@ const ROWS: AdminUser[] = [
   },
 ];
 
+const TOKENS: AccountTokenSummary[] = [
+  {
+    id: 'tok-1',
+    kind: 'invite',
+    is_admin: true,
+    username: null,
+    created_at: '2026-07-08T10:00:00.000Z',
+    expires_at: '2026-07-15T10:00:00.000Z',
+  },
+  {
+    id: 'tok-2',
+    kind: 'password_reset',
+    is_admin: false,
+    username: 'ghost',
+    created_at: '2026-07-08T11:00:00.000Z',
+    expires_at: '2026-07-15T11:00:00.000Z',
+  },
+];
+
 afterEach(cleanup);
 
-function renderPage(isAdmin = true) {
+function renderPage(isAdmin = true, tokens: AccountTokenSummary[] = []) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   client.setQueryData(SESSION_KEY, {
     user: { id: SELF_ID, username: 'ivan', locale: 'fr', theme: 'dark', is_admin: isAdmin },
   });
   client.setQueryData(USERS_KEY, { data: ROWS });
+  client.setQueryData(TOKENS_KEY, { data: tokens });
   return render(
     <QueryClientProvider client={client}>
       <MemoryRouter initialEntries={['/users']}>
@@ -112,5 +133,27 @@ describe('UsersPage (B-192)', () => {
     renderPage(false);
     screen.getByText('home-screen');
     expect(screen.queryByText(i18n.t('users.lead'))).toBeNull();
+  });
+
+  it('lists pending links with type, target and revoke; shows the invite button (B-193/194)', () => {
+    renderPage(true, TOKENS);
+    screen.getByRole('button', { name: i18n.t('users.invite') });
+
+    const section = screen.getByText(i18n.t('users.links.title')).closest('section')!;
+    const links = within(section);
+    links.getByText(i18n.t('users.links.invite'));
+    links.getByText(i18n.t('users.links.reset'));
+    links.getByText('ghost'); // the reset target
+    links.getByText(i18n.t('account.typeAdmin')); // the invite's role
+    expect(links.getAllByTitle(i18n.t('users.links.revoke'))).toHaveLength(2);
+  });
+
+  it('disables the reset-link row action on the caller-own row only (B-194)', () => {
+    const { container } = renderPage();
+    const buttons = rowsBody(container).getAllByText(i18n.t('users.resetLink'));
+    expect(buttons).toHaveLength(2);
+    const [selfBtn, otherBtn] = buttons; // rows sorted by created_at: self first
+    expect((selfBtn as HTMLButtonElement).disabled).toBe(true);
+    expect((otherBtn as HTMLButtonElement).disabled).toBe(false);
   });
 });

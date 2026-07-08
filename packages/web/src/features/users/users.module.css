@@ -136,3 +136,89 @@
   gap: var(--sp-4);
   padding: 0 var(--sp-6) var(--sp-6);
 }
+.modalError {
+  color: var(--nok);
+  font-size: var(--fs-12);
+  margin: 0;
+}
+.radioRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  font-size: var(--fs-13);
+  cursor: pointer;
+}
+.linkRow {
+  display: flex;
+  gap: var(--sp-3);
+  align-items: center;
+}
+.linkField {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg-elev-2);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  padding: var(--sp-3) var(--sp-4);
+}
+
+/* « Liens en attente » (B-193/194) */
+.tokensSection {
+  margin-top: var(--sp-7);
+}
+.tokensTitle {
+  font-family: var(--font-display);
+  font-size: var(--fs-15);
+  font-weight: var(--fw-bold);
+  margin: 0 0 var(--sp-3);
+}
+.tokensEmpty {
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  color: var(--text-faint);
+  margin: 0;
+}
+.tokensList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--bg-elev);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+.tokenRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-3) var(--sp-5);
+  border-bottom: var(--bw) solid var(--border);
+  font-size: var(--fs-13);
+  flex-wrap: wrap;
+}
+.tokenRow:last-child {
+  border-bottom: 0;
+}
+.tokenKind {
+  font-family: var(--font-num);
+  font-size: var(--fs-9);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  color: var(--text-faint);
+  border: var(--bw) solid var(--border-strong);
+  border-radius: var(--r-pill);
+  padding: 2px 7px;
+}
+.tokenWho {
+  font-weight: var(--fw-bold);
+}
+.tokenDates {
+  margin-left: auto;
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}

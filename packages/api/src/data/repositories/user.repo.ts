@@ -70,6 +70,13 @@ export const userRepo = {
     });
   },
 
+  /** Revoke every session of an account (rows in connect-pg-simple's table —
+   *  not a Prisma model; userId lives in the sess JSON). Used by the admin
+   *  delete (B-192) and the password reset (B-194). */
+  async revokeAllSessions(id: string): Promise<void> {
+    await prisma.$executeRaw`DELETE FROM "session" WHERE "sess"->>'userId' = ${id}`;
+  },
+
   /** Refresh last_seen_at on authenticated activity; the SQL guard throttles to
    *  one write per hour per user (B-190). Raw so updated_at is not bumped. */
   async recordActivity(id: string): Promise<void> {

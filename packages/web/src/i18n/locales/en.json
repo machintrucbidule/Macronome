@@ -36,7 +36,8 @@
     "success": "Signed in.",
     "redirect": "→ TODAY'S JOURNAL",
     "host": "Self-hosted instance · private access",
-    "languageGroup": "Language"
+    "languageGroup": "Language",
+    "resetDone": "Password updated — sign in with the new one."
   },
   "setup": {
     "title": "Welcome to Macronome",
@@ -712,9 +713,19 @@
     "rangeEmpty": "No weigh-ins in this range.",
     "today": "Today",
     "waistToggle": "Waist",
-    "mode": { "label": "Mode" },
-    "range": { "3m": "3 months", "6m": "6 months", "1y": "1 year", "all": "All" },
-    "flag": { "in_diet": "In diet", "not_in_diet": "Maintenance" },
+    "mode": {
+      "label": "Mode"
+    },
+    "range": {
+      "3m": "3 months",
+      "6m": "6 months",
+      "1y": "1 year",
+      "all": "All"
+    },
+    "flag": {
+      "in_diet": "In diet",
+      "not_in_diet": "Maintenance"
+    },
     "legend": {
       "weighed": "Weighed",
       "trend": "Smoothed trend",
@@ -826,7 +837,9 @@
       "highestYear": "Highest weight ({{year}})",
       "lowestYear": "Lowest weight ({{year}})"
     },
-    "heatmap": { "label": "Adherence calendar" },
+    "heatmap": {
+      "label": "Adherence calendar"
+    },
     "status": {
       "OK": "OK",
       "NOK_under": "NOK (deficit)",
@@ -933,6 +946,29 @@
       "lastAdmin": "Not possible: at least one administrator must remain.",
       "ownAccount": "You cannot act on your own account.",
       "generic": "The action failed. Try again."
+    },
+    "invite": "+ Invite",
+    "resetLink": "Reset",
+    "resetLinkTitle": "Generate a password-reset link",
+    "inviteModal": {
+      "title": "Invite a user",
+      "body": "Pick the new account's role. The link is single-use and expires in 7 days.",
+      "generate": "Generate link",
+      "createdBody": "Invitation link created — copy it and pass it along. It will not be shown again."
+    },
+    "resetModal": {
+      "title": "Password-reset link",
+      "body": "Password-reset link for “<b>{{name}}</b>” — single-use, expires in 7 days. It replaces any previous link and will not be shown again."
+    },
+    "links": {
+      "title": "Pending links",
+      "empty": "No pending links.",
+      "invite": "Invitation",
+      "reset": "Reset",
+      "expires": "expires {{date}}",
+      "revoke": "Revoke",
+      "copy": "Copy",
+      "copied": "Copied!"
     }
   },
   "integrations": {
@@ -1216,5 +1252,24 @@
       "wrong": "Current password is incorrect.",
       "success": "Password changed."
     }
+  },
+  "invite": {
+    "title": "Create your account",
+    "intro": "You have been invited to this Macronome instance. Three steps: credentials, profile, targets.",
+    "usernameTaken": "This username is already taken — pick another one.",
+    "deadTitle": "Invalid or expired link",
+    "deadBody": "This invitation link is no longer valid (used, revoked or expired). Ask the administrator for a new one.",
+    "toLogin": "Go to login"
+  },
+  "reset": {
+    "title": "New password",
+    "intro": "Choose a new password for your account.",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm new password",
+    "hint": "8 characters minimum; both fields must match.",
+    "submit": "Update password",
+    "error": "The update failed — the link may no longer be valid.",
+    "deadTitle": "Invalid or expired link",
+    "deadBody": "This reset link is no longer valid (used, revoked or expired). Ask the administrator for a new one."
   }
 }

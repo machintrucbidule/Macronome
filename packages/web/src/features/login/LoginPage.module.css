@@ -215,6 +215,21 @@
   line-height: 1.4;
 }
 
+/* Post-reset success banner (B-194) — the .alert layout in the ok tone. */
+.resetDone {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--ok-soft);
+  border: 1px solid color-mix(in srgb, var(--ok) 45%, transparent);
+  color: var(--text);
+  border-radius: var(--r-md);
+  padding: 11px 13px;
+  margin-bottom: 18px;
+  font-size: 13.5px;
+  line-height: 1.4;
+}
+
 .count {
   font-family: var(--font-num);
   color: var(--nok);
