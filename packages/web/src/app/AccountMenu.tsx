@@ -15,15 +15,23 @@ import styles from './AppShell.module.css';
 // Modal presentation) that also carries the theme toggle moved out of the
 // appbar. The two paths are selected by useIsMobile() — desktop dropdown stays byte-identical.
 
-const LINKS = [
+// Secondary destinations (excluding À propos, rendered separately). `adminOnly`
+// entries are filtered on the session role (B-192 conditional-entry pattern,
+// design/components/top-nav.md) — visibility only; RequireAdmin + the API 403
+// are the real guards.
+const MENU_LINKS: ReadonlyArray<{ to: string; key: string; adminOnly?: boolean }> = [
   { to: '/account', key: 'menu.account' },
   { to: '/cibles', key: 'cibles.title' },
   { to: '/containers', key: 'containers.title' },
   { to: '/assistant-ia', key: 'settings.ai.title' },
   { to: '/integrations', key: 'integrations.title' },
+  { to: '/users', key: 'users.title', adminOnly: true },
   { to: '/parametres', key: 'settings.title' },
-  { to: '/about', key: 'menu.about' },
-] as const;
+];
+
+function visibleLinks(isAdmin: boolean) {
+  return MENU_LINKS.filter((l) => !l.adminOnly || isAdmin);
+}
 
 async function logout(): Promise<void> {
   await authApi.logout();
@@ -57,7 +65,7 @@ function AccountDropdown() {
         {initials(session.data?.user.username)}
       </summary>
       <div className={styles.acctPop}>
-        {LINKS.slice(0, 6).map((l) => (
+        {visibleLinks(session.data?.user.is_admin ?? false).map((l) => (
           <NavLink key={l.to} to={l.to} className={item} onClick={close}>
             {t(l.key)}
           </NavLink>
@@ -102,11 +110,14 @@ function AccountSheet() {
           onClose={close}
         >
           <div className={styles.sheetBody}>
-            {LINKS.map((l) => (
+            {visibleLinks(session.data?.user.is_admin ?? false).map((l) => (
               <NavLink key={l.to} to={l.to} className={item} onClick={close}>
                 {t(l.key)}
               </NavLink>
             ))}
+            <NavLink to="/about" className={item} onClick={close}>
+              {t('menu.about')}
+            </NavLink>
             <button
               type="button"
               className={`${item} ${styles.logout}`}

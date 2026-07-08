@@ -13,12 +13,14 @@ import { SettingsPage } from '../features/settings/SettingsPage';
 import { AiAssistantPage } from '../features/settings/AiAssistantPage';
 import { IntegrationsPage } from '../features/integrations/IntegrationsPage';
 import { ContainersPage } from '../features/containers/ContainersPage';
+import { UsersPage } from '../features/users/UsersPage';
 import { AccountPage } from '../features/account/AccountPage';
 import { AboutPage } from '../features/about/AboutPage';
 import { ContextMenuProvider } from '../components/ContextMenu/ContextMenuProvider';
 import { AppShell } from './AppShell';
 import { AppGate } from './AppGate';
 import { LaunchHandler } from './LaunchHandler';
+import { RequireAdmin } from './RequireAdmin';
 import { RequireAuth } from './RequireAuth';
 import { SettingsSync } from './SettingsSync';
 import { HealthStatus } from './HealthStatus';
@@ -40,6 +42,12 @@ const PROTECTED: ReadonlyArray<[string, ReactElement]> = [
   ['/containers', <ContainersPage />],
   ['/assistant-ia', <AiAssistantPage />],
   ['/integrations', <IntegrationsPage />],
+  [
+    '/users',
+    <RequireAdmin>
+      <UsersPage />
+    </RequireAdmin>,
+  ],
   ['/parametres', <SettingsPage />],
   ['/account', <AccountPage />],
   ['/about', <AboutPage />],

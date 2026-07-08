@@ -27,6 +27,10 @@ export enum ErrorCode {
   PantryDuplicate = 'pantry_duplicate',
   CopySourceEmpty = 'copy_source_empty',
 
+  // admin user management (B-192)
+  LastAdmin = 'last_admin',
+  OwnAccount = 'own_account',
+
   // data export / import (IMP-1)
   ImportInvalidFormat = 'import_invalid_format',
   ImportUnsupportedVersion = 'import_unsupported_version',

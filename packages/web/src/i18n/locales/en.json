@@ -905,6 +905,36 @@
     "deleteWeighInTitle": "Delete this weigh-in?",
     "deleteWeighInPrompt": "The weigh-in of {{date}} will be deleted and the adjacent periods re-derived."
   },
+  "users": {
+    "title": "Users",
+    "lead": "This instance's accounts: promote or demote an administrator, or delete an account and all its data. You cannot act on your own account.",
+    "count": "{{count}} account",
+    "count_other": "{{count}} accounts",
+    "col": {
+      "username": "User",
+      "created": "Created",
+      "lastLogin": "Last login",
+      "lastSeen": "Last activity",
+      "role": "Role"
+    },
+    "you": "(you)",
+    "promote": "Promote",
+    "demote": "Demote",
+    "roleConfirm": {
+      "title": "Change role?",
+      "promoteBody": "“<b>{{name}}</b>” will become an administrator: access to user management.",
+      "demoteBody": "“<b>{{name}}</b>” will become a standard user again and lose access to user management."
+    },
+    "deleteConfirm": {
+      "title": "Delete account?",
+      "body": "The account “<b>{{name}}</b>” and <b>all its data</b> will be permanently deleted. This cannot be undone."
+    },
+    "errors": {
+      "lastAdmin": "Not possible: at least one administrator must remain.",
+      "ownAccount": "You cannot act on your own account.",
+      "generic": "The action failed. Try again."
+    }
+  },
   "integrations": {
     "title": "Integrations",
     "intro": "Connect services from your local network. Secrets stay server-side: the browser never talks to these services directly.",

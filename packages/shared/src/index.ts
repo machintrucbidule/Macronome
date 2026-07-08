@@ -53,3 +53,4 @@ export * from './dto/pantry.js';
 export * from './dto/data.js';
 export * from './dto/about.js';
 export * from './dto/ai.js';
+export * from './dto/user-admin.js';

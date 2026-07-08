@@ -28,6 +28,7 @@ const TITLE_KEYS: Record<string, string> = {
   '/containers': 'containers.title',
   '/assistant-ia': 'settings.ai.title',
   '/integrations': 'integrations.title',
+  '/users': 'users.title',
   '/parametres': 'settings.title',
   '/account': 'menu.account',
   '/about': 'menu.about',

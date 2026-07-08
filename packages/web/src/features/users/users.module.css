@@ -1,0 +1,138 @@
+/* Utilisateurs desktop view (screens/users.md, B-192). Table per
+   design/components/data-tables.md; semantic tokens only (CLAUDE.md rule 6).
+   Structure cribbed from containers.module.css — wider wrap (6 columns). */
+
+.wrap {
+  max-width: 960px;
+  margin: 0 auto;
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  margin: var(--sp-2) 0 var(--sp-4);
+  flex-wrap: wrap;
+}
+.title {
+  font-family: var(--font-display);
+  font-size: var(--fs-20);
+  font-weight: var(--fw-bold);
+}
+.count {
+  font-family: var(--font-num);
+  font-size: var(--fs-12);
+  color: var(--text-faint);
+  margin-left: var(--sp-3);
+}
+.lead {
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  color: var(--text-faint);
+  margin: 0 0 var(--sp-4);
+  line-height: 1.45;
+}
+.banner {
+  margin-bottom: var(--sp-4);
+}
+.card {
+  background: var(--bg-elev);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-13);
+}
+.table thead th {
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  color: var(--text-faint);
+  font-weight: var(--fw-regular);
+  text-align: left;
+  padding: var(--sp-3) var(--sp-5);
+  border-bottom: var(--bw) solid var(--border);
+  cursor: pointer;
+  user-select: none;
+}
+.table thead th.plain {
+  cursor: default;
+}
+.table td.a {
+  text-align: right;
+  white-space: nowrap;
+}
+.table tbody td {
+  padding: var(--sp-3) var(--sp-5);
+  border-bottom: var(--bw) solid var(--border);
+}
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.table tbody tr:hover {
+  background: var(--bg-elev-2);
+}
+.num {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.badge {
+  font-family: var(--font-num);
+  font-size: var(--fs-9);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  color: var(--text-faint);
+  border: var(--bw) solid var(--border-strong);
+  border-radius: var(--r-pill);
+  padding: 2px 7px;
+  margin-left: var(--sp-3);
+}
+.action {
+  border: 0;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-family: var(--font-num);
+  font-size: var(--fs-12);
+  padding: var(--sp-1) var(--sp-3);
+  border-radius: var(--r-sm);
+}
+.action:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--bg-elev-2);
+}
+.del {
+  border: 0;
+  background: transparent;
+  color: var(--text-faint);
+  cursor: pointer;
+  font-size: var(--fs-14);
+  padding: var(--sp-1) var(--sp-3);
+  border-radius: var(--r-sm);
+}
+.del:hover:not(:disabled) {
+  color: var(--nok);
+  background: var(--bg-elev-2);
+}
+.action:disabled,
+.del:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.modalBody {
+  padding: var(--sp-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-4);
+  padding: 0 var(--sp-6) var(--sp-6);
+}

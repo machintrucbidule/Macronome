@@ -905,6 +905,36 @@
     "deleteWeighInTitle": "Supprimer la pesée ?",
     "deleteWeighInPrompt": "La pesée du {{date}} sera supprimée et les périodes adjacentes recalculées."
   },
+  "users": {
+    "title": "Utilisateurs",
+    "lead": "Comptes de l'instance : promouvoir ou rétrograder un administrateur, ou supprimer un compte et toutes ses données. Vous ne pouvez pas agir sur votre propre compte.",
+    "count": "{{count}} compte",
+    "count_other": "{{count}} comptes",
+    "col": {
+      "username": "Utilisateur",
+      "created": "Créé le",
+      "lastLogin": "Dernière connexion",
+      "lastSeen": "Dernière activité",
+      "role": "Rôle"
+    },
+    "you": "(vous)",
+    "promote": "Promouvoir",
+    "demote": "Rétrograder",
+    "roleConfirm": {
+      "title": "Changer le rôle ?",
+      "promoteBody": "« <b>{{name}}</b> » deviendra administrateur : accès à la gestion des utilisateurs.",
+      "demoteBody": "« <b>{{name}}</b> » redeviendra utilisateur standard et perdra l'accès à la gestion des utilisateurs."
+    },
+    "deleteConfirm": {
+      "title": "Supprimer le compte ?",
+      "body": "Le compte « <b>{{name}}</b> » et <b>toutes ses données</b> seront définitivement supprimés. Cette action est irréversible."
+    },
+    "errors": {
+      "lastAdmin": "Impossible : il doit rester au moins un administrateur.",
+      "ownAccount": "Impossible d'agir sur votre propre compte.",
+      "generic": "L'action a échoué. Réessaie."
+    }
+  },
   "integrations": {
     "title": "Intégrations",
     "intro": "Connecte des services de ton réseau local. Les secrets restent côté serveur : le navigateur ne parle jamais directement à ces services.",

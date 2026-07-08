@@ -3974,3 +3974,46 @@ migration `user_admin_last_login` (3 ADD COLUMN + promote backfill), `shared/dto
 `AccountPage.tsx`. Tests: integration `auth.test.ts` (role in login/session/setup,
 login stamps), new `user-admin-migration.test.ts` (promote backfill + last-seen throttle),
 web `AccountPage.test.tsx`.
+
+---
+
+## B-192 — admin "Utilisateurs" page (list / promote / demote / delete accounts) — RESOLVED (user, 2026-07-08, 1 question round)
+
+**Problem / intent.** With roles in place (B-190), the admin needs a management surface:
+see the instance's accounts, grant/revoke admin, and remove an account entirely. Deferred
+Phase-3 work; first admin-only screen and first conditional nav entry.
+
+**Decision (behaviour).**
+
+1. Account-menu entry **"Utilisateurs"** between Intégrations and Paramètres, **visible to
+   admins only**; a non-admin navigating to `/users` directly is **silently redirected to
+   `/`** (owner pick); the API answers 403 regardless.
+2. The page lists **account metadata only** (owner rule: an admin never reads other users'
+   data): username, created, **both** stamps — last login and last activity (owner pick) —
+   and role. The caller's own row is badged **« (vous) »** with **disabled actions** (owner
+   pick: an admin never acts on their own account; another admin must).
+3. **Promote/demote** behind a **simple confirm** (owner pick); **delete** behind a
+   **typed confirmation** — retype the username — and removes the account **and all its
+   data**, revoking the deleted user's sessions.
+4. Guards: **never fewer than 1 admin** (`last_admin`, 409) and **no self-action**
+   (`own_account`, 409). With own_account enforced, last_admin is unreachable through
+   normal HTTP flow (the caller is always another admin) — kept as a race-safety net,
+   tested at service level.
+
+**Decision (internals).** `requireAdmin` middleware re-reads the role from the DB on every
+request (a demotion applies immediately; nothing stored in the session). Delete reuses the
+IMP-1 wipe machinery — `deleteAllUserData(tx, id, {keepStructure: false})` — then deletes
+the `app_user` row and the user's `session` rows (raw SQL, `sess->>'userId'`), all in one
+transaction. List sorted `created_at asc`, no pagination. New `ErrorCode`s `last_admin`,
+`own_account`. Web: shared `MENU_LINKS` with an `adminOnly` flag filtered on
+`session.user.is_admin` (replaces the fragile positional `slice(0, 6)` in the desktop menu);
+new `RequireAdmin` route guard (loading → null, non-admin → `Navigate '/'`).
+
+**Spec impact:** new `spec/api/users-admin.md`, `spec/api/00-conventions.md` (409 codes +
+pointer), `design/components/top-nav.md` (conditional-entry pattern + both menu lists), new
+`specifications/screens/users.md`. **Code:** api `middleware/require-admin.ts`,
+`repositories/user-admin.repo.ts`, `services/users-admin.ts`, `controllers/users-admin.ts`,
+`routes/users-admin.ts`, `app.ts`; shared `dto/user-admin.ts` + `errors.ts`; web
+`AccountMenu.tsx`, `RequireAdmin.tsx`, `router.tsx`, `api/users.ts`, `features/users/*`,
+locales `users.*`. Tests: integration `users-admin.test.ts` (403, guards, full wipe +
+session revocation), web `AccountMenu.test.tsx` + `features/users/UsersPage.test.tsx`.

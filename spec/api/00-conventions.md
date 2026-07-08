@@ -33,6 +33,8 @@ Base path `/api/v1`. See `logic/*` for computation rules.
 - **No open/public sign-up.** Account creation is limited to the one-shot,
   zero-user-gated first-run setup above (disabled the instant the owner exists); no open
   registration endpoint is ever exposed. CSRF protection on all state-changing requests.
+- Admin account management (list / promote / demote / delete users) lives under
+  `/api/v1/users` — see `users-admin.md` (B-192; admin-only, 403 for non-admins).
 
 ## Tenancy
 
@@ -51,7 +53,8 @@ avoid existence leaks).
 Validation failures → **422** with per-field `details`.
 Domain blocks (e.g. leftover incoherent) → **409** with a `code` the client maps
 to a warning (e.g. `leftover_exceeds_served`, `gross_below_tare`, `copy_source_empty`,
-`weigh_in_date_occupied`, `target_date_occupied` — both carry `{existing_id}`).
+`weigh_in_date_occupied`, `target_date_occupied` — both carry `{existing_id}` —
+and the admin guards `last_admin`, `own_account` — see `users-admin.md`, B-192).
 Targets carb ceiling ≤ 0 is **not** an error — it returns 200 with a `warnings` array.
 The macro-label parser (`POST /foods/parse-label`, PM-1/B-114) returns **422**
 `{error:{code}}` for structurally-impossible input: `reconstituted_label`,

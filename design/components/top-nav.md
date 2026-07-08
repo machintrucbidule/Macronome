@@ -44,11 +44,18 @@ border-radius:var(--r-md); box-shadow:var(--shadow); min-width:172px; padding:5p
 z-index:var(--z-menu)`.
 
 Items (canonical set, fixed by masterplan v1.9; "Compte" renamed "Mon compte"
-by B-191):
-**Mon compte · Cibles · Contenants · Paramètres** · `—`(divider `.sep`: 1px border,
-margin 5px 0) · **Se déconnecter** (`.logout`, `color:var(--nok)`).
+by B-191; admin-conditional "Utilisateurs" added by B-192):
+**Mon compte · Cibles · Contenants · Utilisateurs*ᵃᵈᵐⁱⁿ* · Paramètres** ·
+`—`(divider `.sep`: 1px border, margin 5px 0) · **Se déconnecter** (`.logout`,
+`color:var(--nok)`).
 Item: `display:block; padding:8px 12px; --fs-13; border-radius:var(--r-sm)`;
 hover `background: color-mix(in srgb, var(--accent) 14%, transparent)`.
+
+**Conditional entries (B-192 pattern):** a menu item may carry an `adminOnly`
+flag; both menu variants filter the shared link list on the session role
+(`session.user.is_admin`) — no per-variant duplication, no positional slicing.
+Visibility is presentation only: the route guard (redirect) and the API role
+guard (403) are the real protections.
 
 > meals.html's old `.popmenu` (button + Paramètres/Compte/Déconnexion only) is
 > replaced by this. Implement the open/close as a click-toggled menu (the
@@ -61,7 +68,8 @@ toggle** (spec §2.1; both move off the bar). The avatar then opens a **bottom s
 (`Modal mobile="sheet"`, overlay taxonomy in `mobile.md` / `modals.md`) instead of the
 `<details>` dropdown. The sheet holds, as comfortable `--tap` rows: the **theme toggle**
 (moved out of the bar) + the canonical secondary destinations **Mon compte · Cibles ·
-Contenants · Assistant IA · Paramètres · À propos · Déconnexion**. Selected via a
+Contenants · Assistant IA · Intégrations · Utilisateurs*ᵃᵈᵐⁱⁿ* · Paramètres ·
+À propos · Déconnexion**. Selected via a
 `useIsMobile()` render-switch — **desktop (≥561px) keeps the exact `<details>` dropdown
 above, untouched** (`AccountMenu.tsx`). See `bottom-nav.md` for the bottom tab bar that
 carries the primary routes on mobile.

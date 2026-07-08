@@ -29,6 +29,7 @@ import settingsRoutes from './http/routes/settings.js';
 import statsRoutes from './http/routes/stats.js';
 import targetRoutes from './http/routes/target.js';
 import targetsRoutes from './http/routes/targets.js';
+import usersAdminRoutes from './http/routes/users-admin.js';
 import weightRoutes from './http/routes/weight.js';
 import { logger } from './observability/logger.js';
 
@@ -68,6 +69,7 @@ export function createApp(): Express {
   app.use('/api/v1/meal-template', mealTemplateRoutes);
   app.use('/api/v1/pantry', pantryRoutes);
   app.use('/api/v1/data', dataRoutes);
+  app.use('/api/v1/users', usersAdminRoutes);
 
   // Serve the built SPA from the same origin in prod (ADR-0001); inert in dev.
   if (env.WEB_DIST) serveSpa(app, env.WEB_DIST);
