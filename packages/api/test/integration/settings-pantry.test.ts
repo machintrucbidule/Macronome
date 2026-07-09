@@ -33,7 +33,7 @@ describe('settings — round-trip + partial merge', () => {
       locale: 'fr',
       theme: 'dark',
       ai: null,
-      integrations: { home_assistant: null, barclaude_gateway: null },
+      integrations: { home_assistant: null, barclaude_gateway: null, google_drive: null },
       current_mode: null,
       open_period_note: null,
       lines_desktop: 20,

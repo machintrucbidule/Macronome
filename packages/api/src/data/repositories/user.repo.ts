@@ -90,4 +90,13 @@ export const userRepo = {
   async updateSettings(id: string, settings: Prisma.InputJsonValue): Promise<void> {
     await prisma.appUser.update({ where: { id }, data: { settings } });
   },
+
+  /** Users who opted into the Google Drive backup (settings.integrations.google_drive
+   *  .enabled = true) — the scheduler's per-tick candidate list (B-208). */
+  findBackupCandidates(): Promise<{ id: string }[]> {
+    return prisma.appUser.findMany({
+      where: { settings: { path: ['integrations', 'google_drive', 'enabled'], equals: true } },
+      select: { id: true },
+    });
+  },
 };

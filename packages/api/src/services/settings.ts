@@ -1,4 +1,10 @@
-import type { AiConnection, DietFlag, PatchSettingsRequest, Settings } from '@macronome/shared';
+import type {
+  AiConnection,
+  DietFlag,
+  GoogleDriveConnection,
+  PatchSettingsRequest,
+  Settings,
+} from '@macronome/shared';
 import { userRepo } from '../data/repositories/user.repo.js';
 import { mergeAi, redact } from '../domain/ai-connection/index.js';
 import {
@@ -36,6 +42,7 @@ function storedIntegrations(s: Partial<StoredSettings>): StoredIntegrations {
   return {
     home_assistant: s.integrations?.home_assistant ?? null,
     barclaude_gateway: s.integrations?.barclaude_gateway ?? null,
+    google_drive: s.integrations?.google_drive ?? null,
   };
 }
 
@@ -113,4 +120,35 @@ export async function rawAiConfig(userId: string): Promise<AiConnection | null> 
 export async function rawIntegrations(userId: string): Promise<StoredIntegrations> {
   const user = await userRepo.findById(userId);
   return user ? toStored(user.settings).integrations : INTEGRATIONS_DEFAULTS;
+}
+
+/** Raw (secret-bearing) Google Drive connection, or null — used by the backup service only. */
+export async function rawGoogleDrive(userId: string): Promise<GoogleDriveConnection | null> {
+  const user = await userRepo.findById(userId);
+  return user ? toStored(user.settings).integrations.google_drive : null;
+}
+
+/**
+ * Write the server-managed Google Drive fields (`refresh_token`, `folder_id`, `last_*`) —
+ * the OAuth callback, the scheduler and Backup-now use this, never PATCH /settings. Merges
+ * `fields` onto the stored connection (creating a minimal one if absent) and persists the
+ * whole blob. Returns null when the user is absent.
+ */
+export async function writeGoogleDrive(
+  userId: string,
+  fields: Partial<GoogleDriveConnection>,
+): Promise<GoogleDriveConnection | null> {
+  const user = await userRepo.findById(userId);
+  if (!user) return null;
+  const merged = toStored(user.settings);
+  const current: GoogleDriveConnection = merged.integrations.google_drive ?? {
+    client_id: '',
+    enabled: false,
+    retention_days: 7,
+    time_of_day: '03:00',
+  };
+  const next: GoogleDriveConnection = { ...current, ...fields };
+  merged.integrations = { ...merged.integrations, google_drive: next };
+  await userRepo.updateSettings(userId, merged);
+  return next;
 }

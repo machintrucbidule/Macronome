@@ -67,6 +67,23 @@ export enum ErrorCode {
   GatewayBadResponse = 'gateway_bad_response',
   GatewayNotFound = 'gateway_not_found',
 
+  // integrations — Google Drive backup (B-208; integrations-connections.md §9.5)
+  GdriveNotConfigured = 'gdrive_not_configured',
+  GdriveInsecureContext = 'gdrive_insecure_context',
+  GdriveNotConnected = 'gdrive_not_connected',
+  GdriveOauthDenied = 'gdrive_oauth_denied',
+  GdriveOauthFailed = 'gdrive_oauth_failed',
+  GdriveTokenExpired = 'gdrive_token_expired',
+  GdriveUnauthorized = 'gdrive_unauthorized',
+  GdriveQuotaExceeded = 'gdrive_quota_exceeded',
+  GdriveUnavailable = 'gdrive_unavailable',
+  GdriveUnreachable = 'gdrive_unreachable',
+  GdriveBadResponse = 'gdrive_bad_response',
+
+  // integrations — Google Drive config validation (B-208)
+  InvalidRetentionDays = 'invalid_retention_days',
+  InvalidTimeOfDay = 'invalid_time_of_day',
+
   // reserved (inert in v1)
   NotImplemented = 'not_implemented',
 }

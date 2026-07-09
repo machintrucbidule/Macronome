@@ -61,6 +61,7 @@ function settingsWith(gatewayConfigured: boolean): Settings {
       barclaude_gateway: gatewayConfigured
         ? { base_url: 'http://gw.local:8080', api_key_set: true }
         : null,
+      google_drive: null,
     },
     current_mode: null,
     open_period_note: null,

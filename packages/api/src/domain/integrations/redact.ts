@@ -11,6 +11,7 @@ const isSet = (secret: string | undefined): boolean =>
 export function redactIntegrations(integrations: StoredIntegrations): IntegrationsRead {
   const ha = integrations.home_assistant;
   const bg = integrations.barclaude_gateway;
+  const gd = integrations.google_drive;
   return {
     home_assistant: ha
       ? {
@@ -21,5 +22,19 @@ export function redactIntegrations(integrations: StoredIntegrations): Integratio
         }
       : null,
     barclaude_gateway: bg ? { base_url: bg.base_url, api_key_set: isSet(bg.api_key) } : null,
+    google_drive: gd
+      ? {
+          client_id: gd.client_id,
+          client_secret_set: isSet(gd.client_secret),
+          refresh_token_set: isSet(gd.refresh_token),
+          folder_id: gd.folder_id ?? null,
+          enabled: gd.enabled,
+          retention_days: gd.retention_days,
+          time_of_day: gd.time_of_day,
+          last_backup_at: gd.last_backup_at ?? null,
+          last_status: gd.last_status ?? null,
+          last_error: gd.last_error ?? null,
+        }
+      : null,
   };
 }
