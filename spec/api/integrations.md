@@ -35,6 +35,7 @@ plain config themselves (except the OAuth callback, which writes the obtained to
       "enabled": true,
       "retention_days": 7,
       "time_of_day": "03:00",
+      "time_zone": "Europe/Paris",
       "last_backup_at": "2026-01-15T02:00:00Z",
       "last_status": "ok",
       "last_error": null
@@ -47,10 +48,12 @@ plain config themselves (except the OAuth callback, which writes the obtained to
   a connection set to `null` disconnects it). Validation is local (Zod at the
   controller): bad URL → 422 (`invalid_url`), bad entity id → 422 (`invalid_entity_id`),
   bad decimals → 422 (`invalid_round_decimals`), bad Drive retention → 422
-  (`invalid_retention_days`), bad Drive time → 422 (`invalid_time_of_day`). For
-  `google_drive` the **only patchable fields** are `client_id`, `client_secret`, `enabled`,
-  `retention_days`, `time_of_day`; `refresh_token` / `folder_id` / `last_*` are
-  server-written and **ignored if present in a patch** (`integrations-connections.md §3`).
+  (`invalid_retention_days`), bad Drive time → 422 (`invalid_time_of_day`), unrecognised
+  Drive timezone → 422 (`invalid_time_zone`). For `google_drive` the **only patchable
+  fields** are `client_id`, `client_secret`, `enabled`, `retention_days`, `time_of_day`,
+  `time_zone` (the IANA zone `time_of_day` is read in, B-220; sent by the web from the
+  browser, `null` in the read shape when never set); `refresh_token` / `folder_id` / `last_*`
+  are server-written and **ignored if present in a patch** (`integrations-connections.md §3`).
 
 ## Endpoints
 

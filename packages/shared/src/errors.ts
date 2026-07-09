@@ -80,9 +80,10 @@ export enum ErrorCode {
   GdriveUnreachable = 'gdrive_unreachable',
   GdriveBadResponse = 'gdrive_bad_response',
 
-  // integrations — Google Drive config validation (B-208)
+  // integrations — Google Drive config validation (B-208, B-220)
   InvalidRetentionDays = 'invalid_retention_days',
   InvalidTimeOfDay = 'invalid_time_of_day',
+  InvalidTimeZone = 'invalid_time_zone',
 
   // reserved (inert in v1)
   NotImplemented = 'not_implemented',

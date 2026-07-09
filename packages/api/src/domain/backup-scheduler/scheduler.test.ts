@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest';
 import { isBackupDue } from './due.js';
+import { calendarInZone } from './calendar.js';
 import { backupsToRotate, backupDateFromName, type BackupFile } from './rotate.js';
 import { backupFilename } from './filename.js';
 
@@ -89,6 +90,38 @@ test('§5.1.7 due exactly at the scheduled minute (≥ is inclusive)', () => {
       lastBackupDate: '2026-01-14',
     }),
   ).toBe(true);
+});
+
+// --- §1.1 calendarInZone (B-220) --------------------------------------------
+// The scheduler reads the daily time in the user's IANA zone: a 00:0x-Paris schedule is due
+// just after local midnight even though the server clock (UTC) is still 22:0x the day before.
+
+test('§1.1 reduces a UTC instant to the Europe/Paris wall clock (summer +02:00)', () => {
+  // 22:05Z on 2026-07-09 is 00:05 on 2026-07-10 in Paris (CEST, +02:00).
+  expect(calendarInZone(new Date('2026-07-09T22:05:00Z'), 'Europe/Paris')).toEqual({
+    date: '2026-07-10',
+    time: '00:05',
+  });
+});
+
+test('§1.1 reduces the same instant to the UTC wall clock', () => {
+  expect(calendarInZone(new Date('2026-07-09T22:05:00Z'), 'UTC')).toEqual({
+    date: '2026-07-09',
+    time: '22:05',
+  });
+});
+
+test('§1.1 midnight in-zone is 00:00, not 24:00', () => {
+  expect(calendarInZone(new Date('2026-07-09T22:00:00Z'), 'Europe/Paris')).toEqual({
+    date: '2026-07-10',
+    time: '00:00',
+  });
+});
+
+test('§1.1 an unrecognised zone falls back to the server-local calendar', () => {
+  const instant = new Date('2026-07-09T22:05:00Z');
+  const server = calendarInZone(instant, undefined);
+  expect(calendarInZone(instant, 'Not/AZone')).toEqual(server);
 });
 
 // --- §5.2 backupsToRotate ---------------------------------------------------

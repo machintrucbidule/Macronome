@@ -145,12 +145,44 @@ test('§9.6 redaction hides both google_drive secrets and passes the rest', () =
     enabled: true,
     retention_days: 7,
     time_of_day: '03:00',
+    time_zone: null,
     last_backup_at: '2026-01-15T02:00:00Z',
     last_status: 'ok',
     last_error: null,
   });
   expect(read).not.toHaveProperty('client_secret');
   expect(read).not.toHaveProperty('refresh_token');
+});
+
+test('§1.1 (B-220) merge carries time_zone (patch ?? prev) and redact exposes it', () => {
+  // Absent in the patch → the stored zone is kept.
+  const kept = mergeIntegrations(
+    {
+      home_assistant: null,
+      barclaude_gateway: null,
+      google_drive: { ...gd, time_zone: 'Europe/Paris' },
+    },
+    { google_drive: { retention_days: 14 } },
+  ).google_drive;
+  expect(kept?.time_zone).toBe('Europe/Paris');
+  // Present in the patch → replaced.
+  const set = mergeIntegrations(storedGd, {
+    google_drive: { time_zone: 'America/New_York' },
+  }).google_drive;
+  expect(set?.time_zone).toBe('America/New_York');
+  // Redaction surfaces the stored zone (null when never set).
+  expect(redactIntegrations(storedGd).google_drive?.time_zone).toBeNull();
+  expect(
+    redactIntegrations({ ...storedGd, google_drive: { ...gd, time_zone: 'Europe/Paris' } })
+      .google_drive?.time_zone,
+  ).toBe('Europe/Paris');
+});
+
+test('§2 (B-220) time_zone must be an IANA zone the runtime recognises (invalid_time_zone)', () => {
+  expect(GoogleDrivePatchSchema.safeParse({ time_zone: 'Europe/Paris' }).success).toBe(true);
+  const res = GoogleDrivePatchSchema.safeParse({ time_zone: 'Not/AZone' });
+  expect(res.success).toBe(false);
+  if (!res.success) expect(res.error.issues[0]?.message).toBe('invalid_time_zone');
 });
 
 test('§9.6 empty secrets → *_set false (the "not connected" signal)', () => {

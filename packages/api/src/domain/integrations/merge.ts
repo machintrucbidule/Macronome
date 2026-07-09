@@ -70,7 +70,13 @@ function serverFields(stored: GoogleDriveConnection | null): Partial<GoogleDrive
 /** Google Drive (§9): the `client_secret` follows the secret rule; the server-written
  * fields (`refresh_token`, `folder_id`, `last_*`) are carried over from the stored
  * connection and NEVER read from a patch (set only by the OAuth callback / scheduler). */
-const GDRIVE_DEFAULTS = { client_id: '', enabled: false, retention_days: 7, time_of_day: '03:00' };
+const GDRIVE_DEFAULTS = {
+  client_id: '',
+  enabled: false,
+  retention_days: 7,
+  time_of_day: '03:00',
+  time_zone: undefined as string | undefined,
+};
 
 function mergeGdrive(
   stored: GoogleDriveConnection | null,
@@ -83,6 +89,7 @@ function mergeGdrive(
     enabled: patch.enabled ?? prev.enabled,
     retention_days: patch.retention_days ?? prev.retention_days,
     time_of_day: patch.time_of_day ?? prev.time_of_day,
+    time_zone: patch.time_zone ?? prev.time_zone,
   };
   const client_secret = resolveSecret(stored?.client_secret, patch.client_secret);
   if (client_secret !== undefined) result.client_secret = client_secret;

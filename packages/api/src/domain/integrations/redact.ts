@@ -31,6 +31,7 @@ export function redactIntegrations(integrations: StoredIntegrations): Integratio
           enabled: gd.enabled,
           retention_days: gd.retention_days,
           time_of_day: gd.time_of_day,
+          time_zone: gd.time_zone ?? null,
           last_backup_at: gd.last_backup_at ?? null,
           last_status: gd.last_status ?? null,
           last_error: gd.last_error ?? null,

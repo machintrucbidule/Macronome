@@ -18,9 +18,15 @@ A single timer, started once at server boot (`server.ts`), fires a **tick roughl
 connected (`refresh_token` set):
 
 1. Convert the persisted `last_backup_at` (ISO-8601 **UTC** instant) and the current
-   instant to the **server-local** calendar (the process time zone — `TZ`, default UTC;
-   the operator sets `TZ`, see `ops.md`). The domain decision (`§2`) is a **pure calendar
-   comparison** — the service does the UTC→local conversion, the domain function does not.
+   instant to the calendar of the connection's stored **`time_zone`** (an IANA name, e.g.
+   `Europe/Paris`, captured from the user's browser when they save the schedule — B-220), so
+   the daily `time_of_day` is read in **the user's local time**, not the server's. When
+   `time_zone` is absent (a connection last saved before B-220) or the runtime does not
+   recognise it, fall back to the **server-local** calendar (the process time zone — `TZ`,
+   default UTC; the operator sets `TZ`, see `ops.md`). Both instants are reduced with the
+   **same** zone, so "now" and "last backup" are comparable. The domain decision (`§2`) is a
+   **pure calendar comparison** — the service does the UTC→zone conversion (`calendarInZone`),
+   the domain function does not.
 2. If `isBackupDue` (`§2`) → run one backup: `buildExport(userId)` → upload → rotate
    (`integrations-connections.md §9.4`). On success, persist `last_backup_at = now`,
    `last_status = "ok"`, `last_error = null`. On failure, persist `last_status = "error"`

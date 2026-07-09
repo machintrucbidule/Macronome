@@ -4575,3 +4575,35 @@ return-to after signing out). Bundled with B-218 (both feed the same return-to t
 accepts only a single-leading-slash same-origin path whose pathname is not in `PUBLIC_PATHS`, else
 `/`). **Tests:** `features/login/useLogin.test.ts` (return-to navigation + `safeNext` rejection of
 `/login`, `//host`, absent). **Gate:** web unit + typecheck + lint green.
+
+---
+
+## B-220 — Daily backup schedule fires at the user's local time, not the server's — RESOLVED (owner, 2026-07-10)
+
+**Improvement (correctness/UX).** The Google Drive daily backup time (`time_of_day`, e.g. `00:02`)
+was interpreted in the **server process timezone** (`TZ`, default UTC per `ops.md`). An operator
+whose container runs in UTC while living in `Europe/Paris` set `00:02` and saw the run fire at
+`02:02` local (00:02 UTC) — or, at 00:08 local, not yet at all. The user's reasonable expectation
+is that the time they pick is **their** local time.
+
+**Decision (owner):** persist the connection's **IANA timezone** (`time_zone`, e.g.
+`Europe/Paris`) alongside the schedule and read `time_of_day` in that zone. IANA (not a fixed
+offset) so DST is handled correctly. The web captures it automatically from the browser
+(`Intl.DateTimeFormat().resolvedOptions().timeZone`) on every schedule save — the user never types
+it. When `time_zone` is absent (a connection last saved before B-220) or unrecognised by the
+runtime, the scheduler falls back to the server-local calendar (pre-B-220 behaviour), so existing
+installs keep working with **no migration** until the next save. Rotation (retention by UTC
+filename date) is untouched — only the trigger time is timezone-sensitive. The pure `isBackupDue`
+decision is unchanged; only the UTC→calendar reduction moved into a new pure `calendarInZone`.
+
+**Contract impact:** `spec/logic/backup-scheduler.md §1.1`, `spec/schema/tables-catalog.md`
+(`google_drive.time_zone`), `spec/api/integrations.md` (patchable/read + `invalid_time_zone`),
+`specifications/screens/settings.md` (card captures the browser zone on save). **Code (shared):**
+`dto/integrations.ts` (`time_zone` on the 3 gdrive schemas, IANA-validated via `Intl`), new
+`ErrorCode.InvalidTimeZone`. **Code (api):** new pure `domain/backup-scheduler/calendar.ts`
+(`calendarInZone`, server-TZ fallback), `services/scheduler.ts` (reduce now + last_backup in
+`cfg.time_zone`), `domain/integrations/{merge.ts,redact.ts}` (carry/expose `time_zone`). **Code
+(web):** `features/settings/useGoogleDriveBackup.ts` (send the browser zone on save). **Tests:**
+`domain/backup-scheduler/scheduler.test.ts` (`calendarInZone` Europe/Paris + UTC + fallback),
+`domain/integrations/integrations.test.ts` (merge carries / redact exposes `time_zone`). **Gate:**
+unit + integration + typecheck + lint + check:i18n + check:schema green.

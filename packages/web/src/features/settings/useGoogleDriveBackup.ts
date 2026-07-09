@@ -35,6 +35,7 @@ const EMPTY_GDRIVE: GoogleDriveRead = {
   enabled: false,
   retention_days: 7,
   time_of_day: '03:00',
+  time_zone: null,
   last_backup_at: null,
   last_status: null,
   last_error: null,
@@ -91,6 +92,9 @@ function useGdriveConfig(gd: GoogleDriveRead | null) {
       enabled,
       retention_days: retentionDays,
       time_of_day: timeOfDay,
+      // B-220: pair the chosen time with the browser's IANA zone so the daily backup fires at
+      // the user's local time regardless of the server's TZ.
+      time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     };
     if (secretDirty) patch.client_secret = clientSecret;
     save.mutate(

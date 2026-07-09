@@ -20,8 +20,24 @@ const retentionDays = z
   .int({ message: 'invalid_retention_days' })
   .min(1, { message: 'invalid_retention_days' })
   .max(90, { message: 'invalid_retention_days' });
-/** Daily scheduled time `HH:MM` (24-h, server-local); §2/§9. */
+/** Daily scheduled time `HH:MM` (24-h); interpreted in `time_zone` below (§2/§9, B-220). */
 const timeOfDay = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, { message: 'invalid_time_of_day' });
+/**
+ * IANA timezone the daily `time_of_day` is read in (B-220), e.g. `Europe/Paris`. Captured from
+ * the user's browser when they save the schedule; when absent the scheduler falls back to the
+ * server process timezone. Validated by asking the runtime's `Intl` whether it accepts the zone.
+ */
+const timeZone = z.string().refine(
+  (v) => {
+    try {
+      new Intl.DateTimeFormat(undefined, { timeZone: v });
+      return true;
+    } catch {
+      return false;
+    }
+  },
+  { message: 'invalid_time_zone' },
+);
 
 // --- Home Assistant ---------------------------------------------------------
 
@@ -92,6 +108,7 @@ export const GoogleDriveConnectionSchema = z.object({
   enabled: z.boolean(),
   retention_days: retentionDays,
   time_of_day: timeOfDay,
+  time_zone: timeZone.optional(),
   last_backup_at: z.string().nullable().optional(),
   last_status: backupStatus.nullable().optional(),
   last_error: z.string().nullable().optional(),
@@ -107,6 +124,7 @@ export const GoogleDriveReadSchema = z.object({
   enabled: z.boolean(),
   retention_days: z.number(),
   time_of_day: z.string(),
+  time_zone: z.string().nullable(),
   last_backup_at: z.string().nullable(),
   last_status: backupStatus.nullable(),
   last_error: z.string().nullable(),
@@ -124,6 +142,7 @@ export const GoogleDrivePatchSchema = z.object({
   enabled: z.boolean().optional(),
   retention_days: retentionDays.optional(),
   time_of_day: timeOfDay.optional(),
+  time_zone: timeZone.optional(),
 });
 export type GoogleDrivePatch = z.infer<typeof GoogleDrivePatchSchema>;
 

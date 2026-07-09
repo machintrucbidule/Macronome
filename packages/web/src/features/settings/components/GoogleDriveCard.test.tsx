@@ -31,6 +31,7 @@ function gdRead(over: Partial<GoogleDriveRead> = {}): GoogleDriveRead {
     enabled: false,
     retention_days: 7,
     time_of_day: '03:00',
+    time_zone: null,
     last_backup_at: null,
     last_status: null,
     last_error: null,

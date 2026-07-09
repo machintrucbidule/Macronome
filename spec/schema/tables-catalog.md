@@ -108,7 +108,8 @@ external-integration connections. Keys (all optional; service supplies defaults)
     "folder_id": "…", // or null — id of the app-created "Macronome Backups" folder; server-written
     "enabled": false, // scheduler opt-in; default false
     "retention_days": 7, // int 1..90 — rolling days kept on Drive; default 7
-    "time_of_day": "03:00", // "HH:MM" local (server TZ) scheduled time; default "03:00"
+    "time_of_day": "03:00", // "HH:MM" scheduled time, read in time_zone below; default "03:00"
+    "time_zone": "Europe/Paris", // or absent — IANA zone time_of_day is read in (B-220); from the browser on save; absent ⇒ server TZ
     "last_backup_at": "…", // or null — ISO-8601 UTC of last successful backup; server-written
     "last_status": "ok", // "ok" | "error" | null — last attempt outcome; server-written
     "last_error": "…", // or null — short reason when last_status = "error"; server-written
@@ -124,9 +125,10 @@ external-integration connections. Keys (all optional; service supplies defaults)
 - `google_drive.client_secret` and `google_drive.refresh_token` follow the same SECRET
   doctrine (read DTO exposes `client_secret_set` / `refresh_token_set` booleans;
   `refresh_token_set` is the "connected" signal). `client_id`, `folder_id`, `enabled`,
-  `retention_days`, `time_of_day`, and the `last_*` status fields are **not secret** and
-  are returned as-is. Only `client_id`, `client_secret`, `enabled`, `retention_days`,
-  `time_of_day` are **patchable**; `refresh_token`, `folder_id`, and the `last_*` fields are
+  `retention_days`, `time_of_day`, `time_zone`, and the `last_*` status fields are **not
+  secret** and are returned as-is. Only `client_id`, `client_secret`, `enabled`,
+  `retention_days`, `time_of_day`, `time_zone` are **patchable**; `refresh_token`,
+  `folder_id`, and the `last_*` fields are
   **server-written only** (OAuth callback / scheduler / Backup-now), never accepted from a
   `PATCH /settings`. See `spec/logic/integrations-connections.md §9` and
   `spec/logic/backup-scheduler.md`. **Caveat:** because the data-export envelope embeds the

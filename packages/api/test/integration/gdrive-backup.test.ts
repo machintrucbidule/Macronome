@@ -92,7 +92,14 @@ describe('settings — google_drive config (B-208)', () => {
   it('stores the client creds and redacts secrets to *_set booleans', async () => {
     const a = await authedAgent(app, 'alice');
     const res = await csrfPatch(a.agent, a.csrf, '/api/v1/settings', {
-      integrations: { google_drive: { ...CREDS, retention_days: 14, time_of_day: '02:30' } },
+      integrations: {
+        google_drive: {
+          ...CREDS,
+          retention_days: 14,
+          time_of_day: '02:30',
+          time_zone: 'Europe/Paris', // B-220 — round-trips through Zod → merge → persist → redact
+        },
+      },
     });
     expect(res.status).toBe(200);
     expect(res.body.data.integrations.google_drive).toEqual({
@@ -103,6 +110,7 @@ describe('settings — google_drive config (B-208)', () => {
       enabled: true,
       retention_days: 14,
       time_of_day: '02:30',
+      time_zone: 'Europe/Paris',
       last_backup_at: null,
       last_status: null,
       last_error: null,
