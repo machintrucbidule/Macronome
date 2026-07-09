@@ -4551,3 +4551,27 @@ rewritten to name `PUBLIC_ORIGIN`/`TRUSTED_PROXY` and note the callback URL is b
 oracles); the existing `gdrive-backup.test.ts` connect cases are unchanged (behaviour identical when
 `PUBLIC_ORIGIN` is unset). **Gate:** typecheck + lint + check:i18n + check:schema + unit + integration
 green.
+
+---
+
+## B-219 — After login, return to the previously-requested page — RESOLVED (owner, 2026-07-09)
+
+**Improvement (UX).** Previously login always sent the user to `/` on success (`login.md` L13 &
+L69). An unauthenticated deep link (or a mid-use session expiry) bounced to `/login` and, after
+signing in, dropped the user on the home screen instead of where they were headed — disruptive in
+the installed webapp with no URL bar to re-navigate.
+
+**Decision (owner):** on success, return the user to the protected route that triggered the
+redirect; if there is no such target, or it is a public/auth path, fall back to `/`. The return
+target is carried in the **URL** (`?next=`), not in-memory router state, so it survives the API
+client's **hard** redirect on a mid-use 401 (`window.location.assign`, which discards router
+state) as well as the guard's soft `<Navigate>`. Explicit **logout** does not set `?next=` (no
+return-to after signing out). Bundled with B-218 (both feed the same return-to target).
+
+**Contract impact:** `specifications/screens/login.md` (L13 & L69 amended — this entry).
+**Code (web):** `app/RequireAuth.tsx` (redirect to `/login?next=<pathname+search>` instead of
+`state.from`), `api/client.ts` (`handleUnauthorized` appends `?next=<current pathname+search>`),
+`features/login/useLogin.ts` (reads `next` from `location.search`; new pure `safeNext` helper —
+accepts only a single-leading-slash same-origin path whose pathname is not in `PUBLIC_PATHS`, else
+`/`). **Tests:** `features/login/useLogin.test.ts` (return-to navigation + `safeNext` rejection of
+`/login`, `//host`, absent). **Gate:** web unit + typecheck + lint green.

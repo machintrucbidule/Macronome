@@ -22,15 +22,36 @@ function readCsrfToken(): string | null {
   return match?.[1] ? decodeURIComponent(match[1]) : null;
 }
 
+// B-218: post-login grace window. Right after a successful login the auth cookie is still
+// propagating; a background protected-page query can race navigate('/') and transiently 401.
+// During this window we suppress the hard redirect below so an authenticated user is not
+// ejected back to /login (RequireAuth's /auth/session probe stays the authoritative gate).
+const LOGIN_GRACE_MS = 5000;
+let loginGraceUntil = 0;
+
+/** Open the post-login grace window (called by useLogin on a successful login). */
+export function markLoginSuccess(now: number = Date.now()): void {
+  loginGraceUntil = now + LOGIN_GRACE_MS;
+}
+
+/** Whether we are still inside the post-login grace window. Pure — unit-testable. */
+export function isWithinLoginGrace(now: number = Date.now()): boolean {
+  return now < loginGraceUntil;
+}
+
 // Global session-expiry handling: a 401 on a non-auth call while on a protected page means
-// the session lapsed mid-use — bounce to /login (mirrors the logout flow). Auth probes
-// (/auth/*) carry their own 401 semantics (RequireAuth, login bad-creds) and never redirect;
-// neither do background calls on a public page (RequireAuth guards route entry instead).
+// the session lapsed mid-use — bounce to /login (mirrors the logout flow), carrying the
+// current page as ?next= so login can return there (B-219). Auth probes (/auth/*) carry their
+// own 401 semantics (RequireAuth, login bad-creds) and never redirect; neither do background
+// calls on a public page (RequireAuth guards route entry instead), nor 401s inside the
+// post-login grace window (B-218).
 function handleUnauthorized(path: string): void {
   if (path.startsWith('/auth/')) return;
   if (typeof window === 'undefined') return;
   if (PUBLIC_PATHS.has(window.location.pathname)) return;
-  window.location.assign('/login');
+  if (isWithinLoginGrace()) return;
+  const next = window.location.pathname + window.location.search;
+  window.location.assign(`/login?next=${encodeURIComponent(next)}`);
 }
 
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
