@@ -4513,3 +4513,11 @@ refactored to render `<SettingsCard>` (ids `appearance`/`template`/`data`/`gdriv
   header). **Tests:** new `SettingsCard.test.tsx` (default open/collapsed, toggle, localStorage persistence);
   `GoogleDriveCard.test.tsx` updated to expand the (now default-collapsed) card first. **Gate:** typecheck +
   lint + check:i18n + web unit green. No new i18n keys (the toggle's accessible name is the card title).
+
+**Follow-up — localStorage persistence removed (owner, 2026-07-09):** the owner never wanted the
+persistence ("j'ai juste demandé fermé par défaut, configuré ou pas"), and it had an UX flaw — configuring
+the Google Drive card forces it open, then the persisted "open" kept it stuck open. **Decision:** drop the
+persistence entirely. `SettingsCard` uses `useState(defaultOpen)`; **each page load applies the per-card
+default** (template + gdrive collapsed, others open) and toggling is **session-only**, not persisted. Scope
+= the Paramètres screen only. `useCollapsed.ts` deleted; `settings.md` §Layout updated; `SettingsCard.test`
+persistence case replaced by a "remount → default" case.

@@ -4,11 +4,9 @@ import type { ReactNode } from 'react';
 import { SettingsCard } from './SettingsCard';
 
 // SettingsCard (B-209): the shared collapsible card shell for Paramètres. Default open/collapsed,
-// toggle on title click, and per-id persistence in localStorage (macronome.settings.collapsed).
-// jsdom provides a real localStorage; clear it between tests.
+// toggle on title click. State is NOT persisted (session-only) — each mount uses the default.
 afterEach(() => {
   cleanup();
-  localStorage.clear();
 });
 
 function renderCard(props: { defaultOpen?: boolean; aside?: ReactNode } = {}) {
@@ -41,16 +39,13 @@ describe('SettingsCard (B-209)', () => {
     expect(screen.getByText('Body content')).toBeTruthy();
   });
 
-  it('persists the collapsed state and re-reads it on remount (stored state wins)', () => {
+  it('does not persist: a remount goes back to the default (state is session-only)', () => {
     const { unmount } = renderCard(); // open by default
-    fireEvent.click(toggle()); // collapse
+    fireEvent.click(toggle()); // collapse in this session
     expect(screen.queryByText('Body content')).toBeNull();
-    expect(JSON.parse(localStorage.getItem('macronome.settings.collapsed') ?? '{}')).toEqual({
-      demo: false,
-    });
     unmount();
-    renderCard(); // defaultOpen true, but the stored state says collapsed
-    expect(screen.queryByText('Body content')).toBeNull();
+    renderCard(); // fresh mount → back to the default (open)
+    expect(screen.getByText('Body content')).toBeTruthy();
   });
 
   it('keeps the header aside visible when collapsed', () => {

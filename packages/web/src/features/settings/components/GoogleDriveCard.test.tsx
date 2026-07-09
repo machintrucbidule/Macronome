@@ -75,7 +75,6 @@ const connectBtn = () => screen.getByRole('button', { name: i18n.t('settings.gdr
 
 afterEach(async () => {
   cleanup();
-  localStorage.clear();
   await i18n.changeLanguage('fr');
   vi.clearAllMocks();
 });

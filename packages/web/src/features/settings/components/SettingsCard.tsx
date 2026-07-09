@@ -1,13 +1,13 @@
-import type { ReactNode } from 'react';
-import { useCollapsed } from '../useCollapsed';
+import { useState, type ReactNode } from 'react';
 import styles from '../settings.module.css';
 
 // Shared collapsible card shell for the Paramètres screen (B-209, specifications/screens/
 // settings.md). The title row is a toggle (chevron ▾/▸, aria-expanded) that shows/hides the
-// body; open/closed state persists per `id` in localStorage (useCollapsed). Mirrors the house
-// AdviceArchive disclosure (glyph swap, conditional body — no animation). Renders; never computes.
+// body. Each load applies the per-card default (open/collapsed); toggling is session-only —
+// NOT persisted (owner decision). Mirrors the house AdviceArchive disclosure (glyph swap,
+// conditional body — no animation). Renders; never computes.
 interface SettingsCardProps {
-  /** Stable id for the localStorage collapse map. */
+  /** Stable id, used for the body's aria-controls target. */
   id: string;
   title: string;
   /** Open by default; pass false for the long/rarely-touched cards (template, Google Drive). */
@@ -30,7 +30,7 @@ export function SettingsCard({
   bodyClassName,
   children,
 }: SettingsCardProps) {
-  const [open, setOpen] = useCollapsed(id, defaultOpen);
+  const [open, setOpen] = useState(defaultOpen);
   const bodyId = `settings-card-${id}`;
   const cardCls = flow ? `${styles.card} ${styles.flow}` : styles.card;
   const bodyCls = bodyClassName ? `${styles.cb} ${bodyClassName}` : styles.cb;
