@@ -176,6 +176,17 @@ const LeftoverGroupEntrySchema = z.object({
   meal_entry_id: z.string(),
 });
 
+// B-202 archived AI "Conseils". `snapshot` is an opaque JSON object; `user_id`/`updated_at` are
+// re-pointed/regenerated on import (never exported). The array is optional+default so pre-advice
+// envelopes still import.
+const AdviceSchema = z.object({
+  id: z.string(),
+  model: z.string(),
+  content: z.string(),
+  snapshot: jsonValue,
+  created_at: dateStr,
+});
+
 /** The full export/import envelope. `format_version` gates compatibility. */
 export const DataExportEnvelopeSchema = z.object({
   format_version: z.number().int(),
@@ -196,6 +207,7 @@ export const DataExportEnvelopeSchema = z.object({
   meal_entries: z.array(MealEntrySchema),
   leftover_groups: z.array(LeftoverGroupSchema),
   leftover_group_entries: z.array(LeftoverGroupEntrySchema),
+  advices: z.array(AdviceSchema).optional().default([]),
 });
 
 export type DataExportEnvelope = z.infer<typeof DataExportEnvelopeSchema>;

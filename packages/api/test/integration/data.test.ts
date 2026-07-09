@@ -73,6 +73,16 @@ async function seedAccount(userId: string): Promise<void> {
       orderIndex: 0,
     },
   });
+
+  // B-202: an archived Conseils advice must round-trip (envelope + DB), snapshot verbatim.
+  await prisma.advice.create({
+    data: {
+      userId,
+      model: 'coach-x',
+      content: '## Bilan\n- Belle régularité.',
+      snapshot: { profile_engine: { bmr: 1730 }, journal_30d: [] },
+    },
+  });
 }
 
 /** Seed the account and log a non-trivial TODAY: a referenced line, a custom line, a pin, a
@@ -139,11 +149,17 @@ describe('data export / wipe / import (IMP-1)', () => {
       (f) => f.name === 'Poulet',
     );
     expect(chickenBefore?.ai_proposable).toBe(false);
+    // B-202: the archived advice is in the envelope (content + snapshot).
+    const advicesBefore = before.advices as { content: string; snapshot: unknown }[];
+    expect(advicesBefore).toHaveLength(1);
+    expect(advicesBefore[0]!.content).toContain('Belle régularité');
+    expect(advicesBefore[0]!.snapshot).toMatchObject({ profile_engine: { bmr: 1730 } });
 
     const wiped = await csrfPost(agent, csrf, `/api/v1/data/wipe`);
     expect(wiped.status).toBe(200);
     expect(await prisma.food.count({ where: { ownerId: userId } })).toBe(0);
     expect(await prisma.dayLog.count({ where: { userId } })).toBe(0);
+    expect(await prisma.advice.count({ where: { userId } })).toBe(0); // advice is content → wiped
     // Seed preserved: the default template + the built-in "Rien" container survive.
     expect(await prisma.mealSlotTemplate.count({ where: { userId } })).toBe(4);
     expect(await prisma.container.count({ where: { ownerId: userId, isBuiltin: true } })).toBe(1);
@@ -166,6 +182,10 @@ describe('data export / wipe / import (IMP-1)', () => {
     // Envelope audit: the restored food keeps ai_proposable=false (not reset to the default true).
     const chicken = await prisma.food.findFirst({ where: { ownerId: userId, name: 'Poulet' } });
     expect(chicken?.aiProposable).toBe(false);
+    // B-202: the archived advice is restored (content + snapshot verbatim).
+    const advice = await prisma.advice.findFirst({ where: { userId } });
+    expect(advice?.content).toContain('Belle régularité');
+    expect(advice?.snapshot).toMatchObject({ profile_engine: { bmr: 1730 } });
   });
 
   it('keeps credentials on import (login still works)', async () => {

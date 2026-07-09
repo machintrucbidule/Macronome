@@ -29,3 +29,22 @@ export async function mealSuggestions(req: Request, res: Response): Promise<void
   const data = await aiService.mealSuggestions(userId(res), parsed.data);
   res.status(200).json({ data });
 }
+
+/** POST /ai/advice — generate personalised advice and ARCHIVE it (201). Empty body (B-202). */
+export async function generateAdvice(_req: Request, res: Response): Promise<void> {
+  const data = await aiService.generateAdvice(userId(res));
+  res.status(201).json({ data });
+}
+
+/** GET /ai/advice — list the archived advices, newest first (200). */
+export async function listAdvice(_req: Request, res: Response): Promise<void> {
+  const data = await aiService.listAdvice(userId(res));
+  res.status(200).json({ data });
+}
+
+/** DELETE /ai/advice/:id — delete one archived advice (204; 404 unknown / other tenant). */
+export async function deleteAdvice(req: Request, res: Response): Promise<void> {
+  const ok = await aiService.deleteAdvice(userId(res), req.params.id as string);
+  if (!ok) throw new ApiError(404, ErrorCode.NotFound);
+  res.status(204).send();
+}

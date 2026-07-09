@@ -109,6 +109,8 @@ test('§8.6b blank prompt is normalised to the default, never stored blank', () 
   expect(merged.tasks.advice.prompt).toBe(defaultTaskPrompt('advice'));
 });
 
-test('§8.7 default prompt is the English advice string (locale-independent)', () => {
-  expect(defaultTaskPrompt('advice')).toContain('personalized nutrition advice');
+test('§8.7 default prompt is the English advice scope (locale-independent, B-202)', () => {
+  // Tone + data usage only; the format (Markdown) + language live in the app, not the prompt.
+  expect(defaultTaskPrompt('advice')).toContain('supportive nutrition coach');
+  expect(defaultTaskPrompt('advice')).toContain('never paternalistic');
 });

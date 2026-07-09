@@ -171,6 +171,19 @@ async function insertWeightTargets(tx: Tx, userId: string, env: DataExportEnvelo
       })),
     });
   }
+  // B-202 archived Conseils: no cross-table FK (only user_id), re-pointed here; snapshot verbatim.
+  if (env.advices.length) {
+    await tx.advice.createMany({
+      data: env.advices.map((a) => ({
+        id: a.id,
+        userId,
+        model: a.model,
+        content: a.content,
+        snapshot: (a.snapshot ?? {}) as Prisma.InputJsonValue,
+        createdAt: d(a.created_at),
+      })),
+    });
+  }
 }
 
 async function insertLogging(tx: Tx, userId: string, env: DataExportEnvelope): Promise<void> {

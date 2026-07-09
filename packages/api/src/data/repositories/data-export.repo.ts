@@ -1,4 +1,5 @@
 import type {
+  Advice,
   AppUser,
   Container,
   DayLog,
@@ -38,6 +39,7 @@ export interface ExportRows {
   mealEntries: MealEntry[];
   leftoverGroups: LeftoverGroup[];
   leftoverGroupEntries: LeftoverGroupEntry[];
+  advices: Advice[];
 }
 
 export const dataExportRepo = {
@@ -55,6 +57,7 @@ export const dataExportRepo = {
       weightEntries,
       targets,
       dayLogs,
+      advices,
     ] = await Promise.all([
       prisma.mealSlotTemplate.findMany({ where: { userId }, orderBy: { orderIndex: 'asc' } }),
       prisma.container.findMany({ where: { ownerId: userId } }),
@@ -64,6 +67,7 @@ export const dataExportRepo = {
       prisma.weightEntry.findMany({ where: { userId } }),
       prisma.target.findMany({ where: { userId } }),
       prisma.dayLog.findMany({ where: { userId } }),
+      prisma.advice.findMany({ where: { userId } }),
     ]);
 
     const foodIds = foods.map((f) => f.id);
@@ -102,6 +106,7 @@ export const dataExportRepo = {
       mealEntries,
       leftoverGroups,
       leftoverGroupEntries,
+      advices,
     };
   },
 };

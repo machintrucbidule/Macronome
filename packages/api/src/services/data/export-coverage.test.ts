@@ -27,6 +27,7 @@ const TABLE_TO_ENVELOPE: Record<string, string> = {
   meal_entry: 'meal_entries',
   leftover_group: 'leftover_groups',
   leftover_group_entry: 'leftover_group_entries',
+  advice: 'advices',
 };
 
 // app_user is projected (not a 1:1 array): its exported columns live in `profile` + `settings`.
@@ -54,12 +55,18 @@ const PER_TABLE_EXCLUDE: Record<string, Set<string>> = {
   ]),
 };
 
-/** Field names of an envelope array's element schema (the columns it serialises). */
+/** Field names of an envelope array's element schema (the columns it serialises). Unwraps any
+ *  optional/default wrapper (e.g. `advices: z.array(...).optional().default([])`, B-202) to reach
+ *  the array. */
 function envelopeColumns(arrayKey: string): Set<string> {
   const shape = DataExportEnvelopeSchema.shape as Record<string, z.ZodTypeAny>;
-  const arr = shape[arrayKey] as z.ZodArray<z.ZodObject<z.ZodRawShape>> | undefined;
-  if (!arr) return new Set();
-  return new Set(Object.keys(arr.element.shape));
+  let node: z.ZodTypeAny | undefined = shape[arrayKey];
+  while (node instanceof z.ZodOptional || node instanceof z.ZodDefault) {
+    node = node._def.innerType as z.ZodTypeAny;
+  }
+  if (!(node instanceof z.ZodArray)) return new Set();
+  const element = node.element as z.ZodObject<z.ZodRawShape>;
+  return new Set(Object.keys(element.shape));
 }
 
 function exportedColumns(table: string): Set<string> {

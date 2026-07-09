@@ -31,6 +31,7 @@ export async function deleteAllUserData(
   await tx.recipe.deleteMany({ where: { ownerId: userId } });
   await tx.weightEntry.deleteMany({ where: { userId } });
   await tx.target.deleteMany({ where: { userId } });
+  await tx.advice.deleteMany({ where: { userId } }); // B-202: archived Conseils are content
   await tx.container.deleteMany({
     where: { ownerId: userId, ...(opts.keepStructure ? { isBuiltin: false } : {}) },
   });

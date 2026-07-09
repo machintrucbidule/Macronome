@@ -329,3 +329,19 @@ model LeftoverGroupEntry {
   @@id([leftoverGroupId, mealEntryId])
   @@map("leftover_group_entry")
 }
+
+/// Archived AI "Conseils" (spec/schema/tables-catalog.md → advice, B-202). One row per
+/// `advice` AI-use generation: the free-Markdown reply + a compact JSON snapshot of the data
+/// that produced it. The user_id FK (ON DELETE CASCADE) + the (user_id, created_at DESC) index
+/// live in migration SQL. jsonb via bare `Json` (JSONB set in the migration).
+model Advice {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  model     String
+  content   String
+  snapshot  Json
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@map("advice")
+}

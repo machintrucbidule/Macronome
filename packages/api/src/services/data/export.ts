@@ -108,7 +108,7 @@ function mapCatalog(
   };
 }
 
-function mapWeightTargets(rows: ExportRows): Pick<Env, 'weight_entries' | 'targets'> {
+function mapWeightTargets(rows: ExportRows): Pick<Env, 'weight_entries' | 'targets' | 'advices'> {
   return {
     weight_entries: rows.weightEntries.map((w) => ({
       id: w.id,
@@ -129,6 +129,14 @@ function mapWeightTargets(rows: ExportRows): Pick<Env, 'weight_entries' | 'targe
       rate_kg_per_week: numN(t.rateKgPerWeek),
       effective_from: day(t.effectiveFrom),
       created_at: iso(t.createdAt),
+    })),
+    // B-202: archived Conseils. snapshot travels verbatim as JSON; user_id/updated_at excluded.
+    advices: rows.advices.map((a) => ({
+      id: a.id,
+      model: a.model,
+      content: a.content,
+      snapshot: a.snapshot,
+      created_at: iso(a.createdAt),
     })),
   };
 }

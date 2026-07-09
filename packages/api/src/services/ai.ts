@@ -1,13 +1,18 @@
 import {
   ErrorCode,
+  type Advice,
   type DishPhotoMacros,
   type DishPhotoMacrosRequest,
   type MealProposal,
   type MealSuggestions,
   type MealSuggestionsRequest,
 } from '@macronome/shared';
+import type { Advice as AdviceModel } from '@prisma/client';
 import { ApiError } from '../http/errors.js';
 import { buildDishPhotoMessages, parseDishPhotoResult } from '../domain/ai-dish-photo/index.js';
+import { buildAdviceMessages, parseAdvice } from '../domain/ai-advice/index.js';
+import { adviceRepo } from '../data/repositories/advice.repo.js';
+import { buildAdviceData } from './advice-data.js';
 import {
   buildMealSuggestionsMessages,
   dayUsedFoods,
@@ -210,4 +215,45 @@ export async function mealSuggestions(
   });
 
   return { status: 'proposals', remaining, proposals };
+}
+
+// AI advice orchestration (spec/api/ai.md, spec/logic/ai-advice.md, B-202). The third AI use, and the
+// only one that PERSISTS: assemble the user's data (server-side), call the model, and ARCHIVE the
+// free-Markdown reply + the data snapshot. List/delete operate on that archive (user-scoped).
+
+const toAdviceDto = (row: AdviceModel): Advice => ({
+  id: row.id,
+  created_at: row.createdAt.toISOString(),
+  model: row.model,
+  content: row.content,
+  snapshot: row.snapshot as Record<string, unknown>,
+});
+
+/** Generate + archive one advice. 409 when the advice task has no model; 502 on an empty reply. */
+export async function generateAdvice(userId: string): Promise<Advice> {
+  const ai = await rawAiConfig(userId);
+  const model = ai?.tasks.advice.model ?? null;
+  if (model === null) throw new ApiError(409, ErrorCode.AiNotConfigured);
+
+  const locale = (await getSettings(userId))?.locale ?? 'fr';
+  const today = new Date().toISOString().slice(0, 10);
+  const payload = await buildAdviceData(userId, today);
+  const messages = buildAdviceMessages(ai!.tasks.advice.prompt, payload, locale);
+  const text = await aiProvider.chatCompletion(ai, model, messages);
+
+  const parsed = parseAdvice(text);
+  if (!parsed.ok) throw new ApiError(502, ErrorCode.AiBadResponse);
+
+  const row = await adviceRepo.create(userId, { model, content: parsed.data, snapshot: payload });
+  return toAdviceDto(row);
+}
+
+/** The user's archived advices, newest first. */
+export async function listAdvice(userId: string): Promise<Advice[]> {
+  return (await adviceRepo.list(userId)).map(toAdviceDto);
+}
+
+/** Delete one archived advice; false when the id is unknown / another tenant's (→ 404). */
+export function deleteAdvice(userId: string, id: string): Promise<boolean> {
+  return adviceRepo.remove(userId, id);
 }

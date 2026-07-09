@@ -138,3 +138,27 @@ export type MealSuggestions = z.infer<typeof MealSuggestionsSchema>;
 export interface MealSuggestionsResponse {
   data: MealSuggestions;
 }
+
+// --- Advice (Conseils) (spec/api/ai.md, spec/logic/ai-advice.md, B-202) -------------------------
+// The third AI use PERSISTS: each generation is archived (a free-Markdown reply + a compact data
+// snapshot of what produced it). POST /ai/advice generates + archives; GET lists newest-first;
+// DELETE removes one. Output language follows the UI locale; Markdown is enforced server-side.
+
+/** One archived advice. `content` is free Markdown (rendered + sanitised on the Conseils page);
+ *  `snapshot` is the compact aggregated payload that produced it — an opaque JSON object kept for
+ *  provenance/export (the page's live dashboard reads the read-services, not this). */
+export const AdviceSchema = z.object({
+  id: z.string().uuid(),
+  created_at: z.string(),
+  model: z.string(),
+  content: z.string(),
+  snapshot: z.record(z.unknown()),
+});
+export type Advice = z.infer<typeof AdviceSchema>;
+
+export interface AdviceResponse {
+  data: Advice;
+}
+export interface AdviceListResponse {
+  data: Advice[];
+}
