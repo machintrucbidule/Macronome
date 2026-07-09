@@ -24,6 +24,7 @@ const TITLE_KEYS: Record<string, string> = {
   '/foods': 'foods.title',
   '/recipes': 'recipes.title',
   '/stats': 'stats.title',
+  '/conseils': 'conseils.title',
   '/cibles': 'cibles.title',
   '/containers': 'containers.title',
   '/assistant-ia': 'settings.ai.title',
@@ -75,6 +76,20 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
           </NavLink>
         </nav>
         <div className={styles.right}>
+          {/* Persistent Conseils entry (B-202): the AI-advice page has no primary tab / account-menu
+              entry, so this 💡 is its only entry point — kept visible at every width (unlike the theme
+              toggle, it is NOT hidden ≤560px). In `.right` it inherits the WCO app-region:no-drag. */}
+          <NavLink
+            to="/conseils"
+            className={({ isActive }) => `${styles.bulb} ${isActive ? styles.bulbActive : ''}`}
+            title={t('conseils.title')}
+            aria-label={t('conseils.title')}
+          >
+            {/* Lightbulb as an SVG (not the 💡 emoji) so it tints via currentColor per top-nav.md. */}
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+              <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z" />
+            </svg>
+          </NavLink>
           {/* Theme toggle is hidden ≤560px (it moves into the account sheet); the wrapper
               keeps that toggle out of ThemeToggle's own module. */}
           <span className={styles.themeToggleWrap}>

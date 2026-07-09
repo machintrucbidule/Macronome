@@ -806,6 +806,38 @@
       "error": "L'import a échoué."
     }
   },
+  "conseils": {
+    "title": "Conseils",
+    "intro": "Des conseils personnalisés à partir de tes données de suivi. Bienveillants, jamais culpabilisants.",
+    "dashboard": "Tes données (ce que l'IA voit)",
+    "section": {
+      "engine": "Profil & moteur métabolique",
+      "targets": "Cibles",
+      "weight": "Poids & corps",
+      "rolling": "Moyennes glissantes"
+    },
+    "th": {
+      "from": "Période",
+      "band": "Bande (kcal)",
+      "protein": "Prot. g/kg",
+      "fat": "Lip. g/kg"
+    },
+    "noTarget": "Aucune cible définie.",
+    "generate": "Générer des conseils IA",
+    "generating": "Génération en cours…",
+    "notConfigured": "IA non configurée",
+    "configureLink": "Assistant IA",
+    "archiveTitle": "Historique",
+    "empty": "Aucun conseil pour l'instant. Clique sur « Générer des conseils IA ».",
+    "errors": {
+      "ai_not_configured": "IA non configurée.",
+      "ai_unauthorized": "Le fournisseur a refusé la connexion (clé API ?).",
+      "ai_unreachable": "Fournisseur IA injoignable (réseau / délai dépassé).",
+      "ai_bad_response": "Réponse IA inexploitable.",
+      "ai_rate_limited": "Quota IA atteint, réessaie plus tard.",
+      "ai_unavailable": "Service IA momentanément indisponible."
+    }
+  },
   "stats": {
     "title": "Stats",
     "asOf": "au {{date}}",

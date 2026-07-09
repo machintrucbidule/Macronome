@@ -806,6 +806,38 @@
       "error": "Import failed."
     }
   },
+  "conseils": {
+    "title": "Advice",
+    "intro": "Personalised advice from your tracking data. Supportive, never guilt-inducing.",
+    "dashboard": "Your data (what the AI sees)",
+    "section": {
+      "engine": "Profile & metabolic engine",
+      "targets": "Targets",
+      "weight": "Weight & body",
+      "rolling": "Rolling averages"
+    },
+    "th": {
+      "from": "Period",
+      "band": "Band (kcal)",
+      "protein": "Prot. g/kg",
+      "fat": "Fat g/kg"
+    },
+    "noTarget": "No target set.",
+    "generate": "Generate AI advice",
+    "generating": "Generating…",
+    "notConfigured": "AI not configured",
+    "configureLink": "AI assistant",
+    "archiveTitle": "History",
+    "empty": "No advice yet. Click “Generate AI advice”.",
+    "errors": {
+      "ai_not_configured": "AI not configured.",
+      "ai_unauthorized": "The provider refused the connection (API key?).",
+      "ai_unreachable": "AI provider unreachable (network / timeout).",
+      "ai_bad_response": "Unusable AI response.",
+      "ai_rate_limited": "AI quota reached, try again later.",
+      "ai_unavailable": "AI service temporarily unavailable."
+    }
+  },
   "stats": {
     "title": "Stats",
     "asOf": "as of {{date}}",

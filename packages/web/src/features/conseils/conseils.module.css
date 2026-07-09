@@ -1,0 +1,208 @@
+/* Conseils page (specifications/screens/conseils.md, B-202). Single scrolling column; semantic
+   tokens only. Reused dashboard components bring their own module styles. */
+.wrap {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+}
+.h1 {
+  font-family: var(--font-display);
+  font-size: var(--fs-22);
+}
+.lead {
+  color: var(--text-dim);
+  font-size: var(--fs-13);
+  line-height: var(--lh-snug);
+  margin-top: calc(-1 * var(--sp-4));
+}
+
+/* Block A — collapsible dashboard. */
+.dashboard {
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--bg-elev);
+  padding: var(--sp-5) var(--sp-6);
+}
+.dashSummary {
+  font-family: var(--font-display);
+  font-size: var(--fs-15);
+  cursor: pointer;
+  list-style: none;
+}
+.dashSummary::-webkit-details-marker {
+  display: none;
+}
+.dashSummary::before {
+  content: '▸ ';
+  color: var(--text-faint);
+}
+.dashboard[open] > .dashSummary::before {
+  content: '▾ ';
+}
+.section {
+  margin-top: var(--sp-6);
+}
+.h2 {
+  font-family: var(--font-display);
+  font-size: var(--fs-14);
+  margin-bottom: var(--sp-4);
+}
+
+/* Read-only target-band history table. */
+.thistory {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-12);
+}
+.thistory th,
+.thistory td {
+  text-align: right;
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: var(--bw) solid var(--border);
+}
+.thistory th:first-child,
+.thistory td:first-child {
+  text-align: left;
+}
+.thistory th {
+  color: var(--text-faint);
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  text-transform: uppercase;
+}
+
+/* Block B/E — generate + AiNotConfigured. */
+.generate {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+.genBtn {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+  font-family: var(--font-num);
+  font-size: var(--fs-13);
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-radius: var(--r-md);
+  padding: 9px 16px;
+  cursor: pointer;
+}
+.genBtn:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+.spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--accent-ink) 40%, transparent);
+  border-top-color: var(--accent-ink);
+  animation: conseils-spin 0.7s linear infinite;
+}
+@keyframes conseils-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.notConfigured {
+  font-family: var(--font-num);
+  font-size: var(--fs-12);
+  color: var(--text-dim);
+}
+.notConfigured a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.notConfigured a:hover {
+  text-decoration: underline;
+}
+
+/* Block D — archive. */
+.archiveTitle {
+  font-family: var(--font-display);
+  font-size: var(--fs-16);
+}
+.archive {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+.item {
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--bg-elev);
+  padding: var(--sp-4) var(--sp-6);
+}
+.itemHead {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-3);
+}
+.itemMeta {
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  color: var(--text-faint);
+}
+.del {
+  margin-left: auto;
+  border: 0;
+  background: none;
+  color: var(--text-faint);
+  font-size: var(--fs-16);
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 var(--sp-2);
+}
+.del:hover {
+  color: var(--nok);
+}
+.empty {
+  color: var(--text-faint);
+  font-size: var(--fs-13);
+}
+
+/* Rendered advice Markdown (sanitised via react-markdown, no raw HTML). */
+.md {
+  font-size: var(--fs-13);
+  line-height: var(--lh-snug);
+  color: var(--text);
+}
+.md h1,
+.md h2,
+.md h3 {
+  font-family: var(--font-display);
+  font-size: var(--fs-14);
+  margin: var(--sp-5) 0 var(--sp-3);
+}
+.md p {
+  margin: var(--sp-3) 0;
+}
+.md ul,
+.md ol {
+  margin: var(--sp-3) 0;
+  padding-left: var(--sp-7);
+}
+.md li {
+  margin: var(--sp-2) 0;
+}
+.md strong {
+  color: var(--text);
+  font-weight: var(--fw-bold);
+}
+.md a {
+  color: var(--accent);
+}
+.md code {
+  font-family: var(--font-num);
+  font-size: var(--fs-12);
+  background: var(--bg-elev-2);
+  padding: 1px 4px;
+  border-radius: var(--r-sm);
+}

@@ -132,6 +132,24 @@
   margin-left: auto;
 }
 
+/* Conseils lightbulb (B-202) — a persistent appbar icon in the right cluster; stays visible at every
+   width (NOT in the ≤560px hide list). Active route → accent. */
+.bulb {
+  display: grid;
+  place-items: center;
+  min-width: var(--tap);
+  min-height: var(--tap);
+  font-size: var(--fs-16);
+  line-height: 1;
+  border-radius: var(--r-sm);
+  color: var(--text-dim);
+  text-decoration: none;
+}
+.bulb:hover,
+.bulbActive {
+  color: var(--accent);
+}
+
 /* Account menu (top-right avatar dropdown). */
 .acct {
   position: relative;
