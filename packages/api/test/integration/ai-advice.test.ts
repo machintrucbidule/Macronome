@@ -74,6 +74,28 @@ describe('POST /ai/advice (B-202)', () => {
     expect(rows[0]!.content).toContain('Belle régularité');
   });
 
+  it('accepts a content-parts array reply (Gemini/reasoning shape), not only a bare string', async () => {
+    const a = await authedAgent(app, 'alice');
+    await configureAdvice(a);
+    // Some OpenAI-compatible providers return message.content as [{ type:'text', text }] parts.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() =>
+        Promise.resolve(
+          new Response(
+            JSON.stringify({
+              choices: [{ message: { content: [{ type: 'text', text: '## Bilan\n\nOK' }] } }],
+            }),
+            { status: 200 },
+          ),
+        ),
+      ),
+    );
+    const res = await csrfPost(a.agent, a.csrf, '/api/v1/ai/advice', {});
+    expect(res.status).toBe(201);
+    expect(res.body.data.content).toBe('## Bilan\n\nOK');
+  });
+
   it('502 ai_bad_response on an empty reply (nothing archived)', async () => {
     const a = await authedAgent(app, 'alice');
     await configureAdvice(a);

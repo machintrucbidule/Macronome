@@ -144,8 +144,39 @@ export async function chatCompletion(
   );
   const content = (body as { choices?: { message?: { content?: unknown } }[] })?.choices?.[0]
     ?.message?.content;
-  if (typeof content !== 'string' || content.trim() === '') {
+  const text = extractMessageText(content);
+  if (text.trim() === '') {
+    // Log the SHAPE only (never the content/key) so an empty/odd reply is diagnosable in prod.
+    logger.warn(
+      {
+        model,
+        contentType:
+          content === undefined ? 'missing' : Array.isArray(content) ? 'array' : typeof content,
+        hasChoices: Array.isArray((body as { choices?: unknown })?.choices),
+      },
+      'ai chat completion returned no usable text',
+    );
     throw new ApiError(502, ErrorCode.AiBadResponse);
   }
-  return content;
+  return text;
+}
+
+/**
+ * Extract the assistant text from an OpenAI-style completion, tolerating providers that return
+ * `message.content` as an **array of content parts** (`[{ type: 'text', text }]`) rather than a
+ * bare string — Gemini's OpenAI-compat endpoint and some reasoning models do this, and the plain
+ * `typeof content === 'string'` check would otherwise drop such a (valid) reply as unusable and
+ * surface a spurious `ai_bad_response`. Returns '' when nothing usable is present.
+ */
+function extractMessageText(content: unknown): string {
+  if (typeof content === 'string') return content;
+  if (Array.isArray(content)) {
+    return content
+      .map((part) => {
+        const text = (part as { text?: unknown })?.text;
+        return typeof text === 'string' ? text : '';
+      })
+      .join('');
+  }
+  return '';
 }

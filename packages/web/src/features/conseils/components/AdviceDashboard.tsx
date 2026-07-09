@@ -16,7 +16,8 @@ import styles from '../conseils.module.css';
 
 // Aggregated-data dashboard (B-202, block A): a read-only recap of what the AI is sent, ASSEMBLED
 // from the existing read-services by REUSING their display components (CLAUDE.md rule 2 — the web
-// never computes). Collapsible so the generate action stays reachable. The raw 30-day journal / meal
+// never computes). Collapsible and COLLAPSED by default so the generate action stays front-and-centre
+// (the recap is a "what the AI sees" detail, opened on demand). The raw 30-day journal / meal
 // food-lines are NOT duplicated here (they live on Journal/Repas) but are still sent to the model.
 export function AdviceDashboard() {
   const { t } = useTranslation();
@@ -34,7 +35,7 @@ export function AdviceDashboard() {
   const goal = c && c.current !== null && c.gap_to_goal !== null ? c.current - c.gap_to_goal : null;
 
   return (
-    <details className={styles.dashboard} open>
+    <details className={styles.dashboard}>
       <summary className={styles.dashSummary}>{t('conseils.dashboard')}</summary>
 
       <section className={styles.section}>

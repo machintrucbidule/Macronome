@@ -27,14 +27,14 @@ export function ConseilsPage() {
         <h1 className={styles.h1}>{t('conseils.title')}</h1>
         <p className={styles.lead}>{t('conseils.intro')}</p>
 
-        <AdviceDashboard />
-
         <AdviceGenerate
           ready={ready}
           pending={generate.isPending}
           error={generate.error}
           onGenerate={() => generate.mutate()}
         />
+
+        <AdviceDashboard />
 
         <h2 className={styles.archiveTitle}>{t('conseils.archiveTitle')}</h2>
         {list.isLoading ? (
