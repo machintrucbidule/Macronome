@@ -451,3 +451,30 @@
   display: flex;
   justify-content: flex-end;
 }
+
+/* Google Drive backup card (B-208): action row (Connect/Disconnect left, Backup-now + Save
+   right) and the monospace callback URL shown in the setup guide. */
+.gdriveActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+.gdriveActionsRight {
+  display: flex;
+  gap: var(--sp-3);
+  margin-left: auto;
+}
+.gdriveCallback {
+  display: inline-block;
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  color: var(--text);
+  background: var(--bg-field);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 1px var(--sp-2);
+  margin-left: var(--sp-2);
+  word-break: break-all;
+}

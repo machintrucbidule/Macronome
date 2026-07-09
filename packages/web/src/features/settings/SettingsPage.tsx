@@ -3,6 +3,7 @@ import { AppShell } from '../../app/AppShell';
 import { AppearanceCard } from './components/AppearanceCard';
 import { MealTemplateCard } from './components/MealTemplateCard';
 import { DataCard } from './components/DataCard';
+import { GoogleDriveCard } from './components/GoogleDriveCard';
 import { UpdateCard } from './components/UpdateCard';
 import styles from './settings.module.css';
 
@@ -20,6 +21,7 @@ export function SettingsPage() {
         <AppearanceCard />
         <MealTemplateCard />
         <DataCard />
+        <GoogleDriveCard />
         <UpdateCard />
       </div>
     </AppShell>
