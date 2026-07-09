@@ -4607,3 +4607,25 @@ decision is unchanged; only the UTC→calendar reduction moved into a new pure `
 `domain/backup-scheduler/scheduler.test.ts` (`calendarInZone` Europe/Paris + UTC + fallback),
 `domain/integrations/integrations.test.ts` (merge carries / redact exposes `time_zone`). **Gate:**
 unit + integration + typecheck + lint + check:i18n + check:schema green.
+
+---
+
+## B-221 — Backup scheduler polls every ~60 s so it fires near the configured minute — RESOLVED (owner, 2026-07-10)
+
+**Improvement (UX).** Follow-up to B-220: with the timezone fixed, the owner set `01:30` and the
+backup ran at `01:37`. The scheduler is a catch-up **poll**, and the poll interval was **15 min**,
+so a run could land up to ~15 min after the configured `HH:MM` — incoherent with a to-the-minute
+schedule field.
+
+**Decision (owner):** drop the poll interval to **~60 s** (`TICK_MS` 15 min → 60 s in
+`services/scheduler.ts`) so a run fires within ~1 min of the set time (and a failed backup retries
+~1 min later). Kept the poll design over an exact per-schedule timer — the poll survives restarts,
+config changes and DST, is idempotent (one success/day via `isBackupDue` + `last_backup_at`), and
+the once-a-minute `findBackupCandidates` query is negligible on a single-user self-hosted instance.
+
+**Contract impact:** none structural — the tick interval is an explicit **non-contractual**
+implementation constant; only the "~15 min" prose in `spec/logic/backup-scheduler.md §1` (two
+mentions) is refreshed to "~60 s". No `isBackupDue`/rotation/DTO/schema change. **Code (api):**
+`services/scheduler.ts` (constant + comment). **Tests:** none added (a poll-frequency constant,
+not domain logic; the interval-independent oracles already cover the due decision). **Gate:**
+unit + typecheck + lint green.

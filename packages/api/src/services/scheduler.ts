@@ -6,11 +6,13 @@ import { rawGoogleDrive } from './settings.js';
 
 // In-process catch-up scheduler for the Google Drive backup (spec/logic/backup-scheduler.md
 // §1). Started once at boot from server.ts (never from createApp, so it stays inert under
-// tests). A ~15-min tick runs a user's backup when it is past the scheduled time today and
+// tests). A ~60-second tick runs a user's backup when it is past the scheduled time today and
 // no successful backup ran today; state lives in the persisted last_backup_at. The scheduled
-// time is read in the user's stored time_zone (B-220), falling back to the process TZ.
+// time is read in the user's stored time_zone (B-220), falling back to the process TZ. A
+// minute-grained poll fires within ~1 min of the configured HH:MM (B-221) and retries a failed
+// backup ~1 min later, without an exact per-schedule timer (the poll survives restarts / DST).
 
-const TICK_MS = 15 * 60 * 1000;
+const TICK_MS = 60 * 1000;
 const inFlight = new Set<string>();
 
 async function runIfDue(userId: string, now: Date): Promise<void> {

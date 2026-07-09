@@ -14,7 +14,8 @@ no prior scheduler in the codebase.
 ## 1. The scheduler loop (catch-up)
 
 A single timer, started once at server boot (`server.ts`), fires a **tick roughly every
-15 minutes**. On each tick, for every user whose `google_drive.enabled` is true and who is
+60 seconds** (B-221 — minute-grained so a run fires within ~1 min of the configured `HH:MM`;
+was ~15 min). On each tick, for every user whose `google_drive.enabled` is true and who is
 connected (`refresh_token` set):
 
 1. Convert the persisted `last_backup_at` (ISO-8601 **UTC** instant) and the current
@@ -46,7 +47,7 @@ Properties this design guarantees:
   succeeds or the day ends. Only **one** backup per day is retained (one-per-day model —
   a missed _past_ day is not separately recovered; catch-up recovers **today's** run).
 
-The tick interval is an implementation constant (~15 min), not a contract oracle; the
+The tick interval is an implementation constant (~60 s, B-221), not a contract oracle; the
 oracles test the pure decision, which is interval-independent.
 
 ## 2. `isBackupDue` — the due decision (pure)
