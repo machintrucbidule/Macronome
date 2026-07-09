@@ -16,10 +16,29 @@ Left → right:
    `color:var(--text-dim)`, `padding:6px 10px; border-radius:var(--r-sm)`.
    Order (masterplan v1.9): **Repas · Journal · Poids · Aliments · Recettes ·
    Stats**.
-3. **Right cluster** `.right` (`margin-left:auto; gap:8px`): theme **segmented
-   toggle** (dark `●` / light `○`) + account button. (CONFIRMED ①A: theme
-   toggle present on every screen incl. Paramètres/Compte; **no language toggle
-   here** — language lives in Paramètres.)
+3. **Right cluster** `.right` (`margin-left:auto; gap:8px`): a **Conseils 💡
+   lightbulb** icon button + theme **segmented toggle** (dark `●` / light `○`) +
+   account button. (CONFIRMED ①A: theme toggle present on every screen incl.
+   Paramètres/Compte; **no language toggle here** — language lives in Paramètres.)
+
+## Conseils lightbulb (appbar icon button) — [B-202]
+
+A **persistent icon button** in the `.right` cluster, **before** the theme toggle and the
+account avatar: a **💡 lightbulb** that is a `NavLink` to **`/conseils`** (the AI advice
+page). It is the app's first always-on appbar icon (there is **no** shared `IconButton`
+primitive yet — this establishes the appbar-icon pattern; the row-hover icon affordance of
+`00-foundations.md` is a different, table-row pattern).
+
+- Style: borderless, transparent background, `color:var(--text-dim)`; **hover / active-route**
+  → `color:var(--accent)`; a `--tap` (40→44px) hit target, `border-radius:var(--r-sm)`, the
+  glyph at `--fs-16`. `aria-label` "Conseils" (localised); `title` the same. Active-route
+  emphasis mirrors the nav links (accent), but as a **tint** (no filled pill — it is an icon,
+  not a text tab).
+- **Visible on mobile too** (owner decision, B-202): **unlike** the primary nav and the theme
+  toggle, the lightbulb is **exempt** from the ≤560px appbar hide (below) and from the ≤900px
+  `.nav` hide — Conseils has no bottom-tab slot, so the lightbulb is its only entry point and
+  must stay on the bar at every width. In the installed WCO window it inherits
+  `app-region:no-drag` (it is interactive chrome), like the other right-cluster controls.
 
 ## Nav link states — [CONFIRMED ④A]
 
@@ -64,7 +83,8 @@ guard (403) are the real protections.
 ## Mobile account sheet (≤560px) — mobile-responsive S3
 
 On the phone breakpoint the appbar hides the **primary nav** and the **theme segmented
-toggle** (spec §2.1; both move off the bar). The avatar then opens a **bottom sheet**
+toggle** (spec §2.1; both move off the bar) — but **keeps the Conseils 💡 lightbulb** (B-202),
+its only entry point (see above). The avatar then opens a **bottom sheet**
 (`Modal mobile="sheet"`, overlay taxonomy in `mobile.md` / `modals.md`) instead of the
 `<details>` dropdown. The sheet holds, as comfortable `--tap` rows: the **theme toggle**
 (moved out of the bar) + the canonical secondary destinations **Mon compte · Cibles ·

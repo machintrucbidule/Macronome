@@ -1,8 +1,14 @@
 import { expect, test } from 'vitest';
 import { defaultTaskPrompt, isVisionModel } from './ai.js';
 
-test('defaultTaskPrompt returns the English advice scope', () => {
-  expect(defaultTaskPrompt('advice')).toContain('personalized nutrition advice');
+test('defaultTaskPrompt returns the English advice scope (B-202)', () => {
+  const prompt = defaultTaskPrompt('advice');
+  expect(prompt).toContain('supportive nutrition coach');
+  // Non-paternalistic tone is baked into the editable default (owner decision, B-202).
+  expect(prompt).toContain('never paternalistic');
+  // Scope carries data usage but NOT the output format/language (Markdown is hard-coded; the
+  // language follows the UI locale — see spec/logic/ai-advice.md §2).
+  expect(prompt).not.toContain('Markdown');
 });
 
 test('defaultTaskPrompt leans the dish-photo scope to the pessimistic side (B-129)', () => {

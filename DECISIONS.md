@@ -4273,3 +4273,52 @@ Ctrl), `hooks/useMealsController.ts` (expose `selection`), `components/MealsCont
 (selectable footer), i18n `meals.sum.*`. Tests: `selectionSum.test.ts` (neutral oracle + dedup),
 `useMealSelection.test.ts`, a component test (Σ active + readout + multi-meal/footer selection).
 Full gate green + owner desktop visual check.
+
+## B-202 — Conseils (advice) contracts slice (run #56) — RESOLVED (user, 2026-07-09)
+
+Ship the long-reserved **third AI use**, `advice` / "Conseils": a page that aggregates a broad set of
+the user's data, generates AI advice on demand, renders the Markdown reply, and **archives** it (list
+
+- per-item delete). This entry records the **contract slice (Batch 1)** only; backend = Batch 2, web =
+  Batch 3 (B-202 stays open until Batch 3 ships).
+
+**Endpoints (`spec/api/ai.md`).** `POST /ai/advice` (empty body) **generates and archives** → `201
+{data: Advice}`; `GET /ai/advice` lists newest-first; `DELETE /ai/advice/:id` (user-scoped, cross-tenant
+→ 404). `Advice = { id, created_at, model, content /*markdown*/, snapshot /*object*/ }`. Advice is the
+**archiving exception** to the "AI uses persist nothing" rule.
+
+**Output format/language (owner decision, this session — supersedes the run-#50 "output in French" /
+the backlog's "markdown FR in the default prompt" note).** **Markdown is enforced by a hard-coded
+format instruction** (never in the editable prompt); the reply **language follows the UI locale**
+(`settings.locale`) via a hard-coded language clause (`Respond in French/English.`), mirroring the
+dish-photo task. So `DEFAULT_TASK_PROMPTS.advice` carries **only tone (non-paternalistic) + data
+usage** — no format, no language (`spec/logic/ai-advice.md §2`, `constants/ai.ts`).
+
+**Data scope (owner, run #50).** The aggregator assembles server-side (rule 2): profile + metabolic
+engine, current target + **history**, weight/BMI/waist trend + EMA/trajectory + per-period
+intake/burn/activity, rolling intake, **monthly adherence over ALL history** + signals + records,
+**30-day** day-level journal, and **30-day full meal food-lines**. No new read endpoint — the 30-day
+slice is computed in the aggregator. Privacy widens vs meal-suggestions (it _does_ send BMI/weight
+trend + food-lines) but still never sends credentials, other users, or free-text comments.
+
+**Archive + snapshot.** New `advice` table (`spec/schema/tables-catalog.md`): `id`, `user_id` FK
+CASCADE, `model`, `content` text, `snapshot` jsonb, timestamps; index `idx_advice_user_created`
+(`indexes.md`). `snapshot` = the compact aggregated payload that produced the advice (provenance,
+export, optional display). Included in the IMP-1 envelope as `advices`
+(`spec/api/data-export-import.md`). **Backlog reference correction:** the export contract is
+`data-export-import.md`, **not** `migration-etl.md` (the unrelated O1 Excel ETL); the anti-omission
+whitelist is a test → Batch 2.
+
+**Entry point.** A persistent **💡 lightbulb** icon in the appbar right cluster (`design/components/
+top-nav.md`), `NavLink` to `/conseils`, **visible at every width incl. mobile** (exempt from the
+≤560px nav/theme-toggle hide) — establishes the appbar-icon pattern (no shared `IconButton` yet).
+
+**Contract impact:** `spec/api/ai.md` (3 advice endpoints + persist carve-out); new
+`spec/logic/ai-advice.md` (payload assembly + prompt + trivial markdown parse + archive + neutral
+oracles); `spec/logic/ai-connection.md` (un-reserve advice; §3 default-prompt block); `spec/schema/
+tables-catalog.md` + `00-overview.md` + `indexes.md` (`advice` table + entity map + index);
+`spec/api/data-export-import.md` (`advices` in the envelope); `design/components/top-nav.md` (lightbulb);
+`specifications/screens/conseils.md` (+ `mockups/conseils.html`, local). **Code (content only):**
+`packages/shared/src/constants/ai.ts` `DEFAULT_TASK_PROMPTS.advice` rewritten + `ai.test.ts`. Gate:
+typecheck + lint + shared `ai.test.ts` green (no runtime in this slice; conseils.\* i18n + backend land
+in Batches 2/3).

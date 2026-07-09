@@ -74,10 +74,10 @@ external-integration connections. Keys (all optional; service supplies defaults)
   `spec/api/weight-targets-stats-settings.md`). Not encrypted at rest in v1 (self-hosted,
   single owner, private volume); the protection is non-return + non-logging. Encryption at
   rest is a possible future hardening.
-- v1 stores and **verifies** this config (model listing proves the link) but performs **no AI
-  use** — the `dish_photo_macros` / `meal_suggestions` / `advice` calls are not yet built.
-  _(Replaces the earlier inert `llm_endpoint {url,key?}` reservation — see `DECISIONS.md`
-  Gap 14 / B-117.)_
+- This config is stored and **verified** (model listing proves the link); all three AI **uses**
+  are built — `dish_photo_macros` (B-118), `meal_suggestions` (B-123), and `advice` (B-202,
+  archived to the `advice` table). _(Replaces the earlier inert `llm_endpoint {url,key?}`
+  reservation — see `DECISIONS.md` Gap 14 / B-117.)_
 - `integrations` — the external-integration connections (B-180/B-181), or defaults to both
   connections `null`. Shape (`spec/logic/integrations-connections.md`):
 
@@ -194,3 +194,23 @@ not stored on the recipe; the derived `food` row carries the snapshot-able macro
 Deletable freely (no soft delete): leftover history freezes its own
 container_name + tare_g, so deletion never affects history (OPEN_GAPS #13). The
 built-in "Rien" cannot be edited or deleted (enforced in app + is_builtin).
+
+## advice
+
+Archived AI "Conseils" (B-202): one row per generation of the `advice` AI use
+(`spec/logic/ai-advice.md`, `spec/api/ai.md`). The user generates on demand, the reply
+(free Markdown) is stored with a compact snapshot of the data that produced it, and past
+advices are listed newest-first and deletable per item.
+
+| column                 | type        | notes                                                                     |
+| ---------------------- | ----------- | ------------------------------------------------------------------------- |
+| id                     | uuid PK     |                                                                           |
+| user_id                | uuid        | NOT NULL REFERENCES app_user(id) ON DELETE CASCADE                        |
+| model                  | text        | NOT NULL — the invoked `settings.ai.tasks.advice.model` id                |
+| content                | text        | NOT NULL — the model's reply, free Markdown (`ai-advice.md §5`)           |
+| snapshot               | jsonb       | NOT NULL — compact aggregated data that produced it (`ai-advice.md §2.2`) |
+| created_at, updated_at | timestamptz |                                                                           |
+
+Listed by `created_at DESC` on the Conseils page (`idx_advice_user_created`,
+`spec/schema/indexes.md`). Included verbatim in the IMP-1 export/import envelope
+(`spec/api/data-export-import.md`, `advices`). Deleting a user cascades their advices.

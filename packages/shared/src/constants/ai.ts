@@ -34,8 +34,12 @@ const DEFAULT_TASK_PROMPTS: Record<AiTaskKey, string> = {
     're-propose a food already eaten in a meaningful amount today, and make every proposed set ' +
     'internally coherent — foods that plausibly go together as one meal.',
   advice:
-    'Give personalized nutrition advice based on the provided tracking data ' +
-    '(recent intake, target adherence, weight trend).',
+    'You are a supportive nutrition coach. Using the tracking data provided — recent intake and ' +
+    'calorie/macro adherence, weight and BMI trend, current and past targets, logging regularity, ' +
+    'and the recent food log — give practical, personalised advice to help the user progress toward ' +
+    'their goals. Be encouraging and factual: never paternalistic, never reproachful, never ' +
+    'guilt-inducing. Focus on concrete, actionable suggestions and acknowledge what is already ' +
+    'going well.',
 };
 
 /** Pure function — the English default prompt for a task (spec §3, oracle §8.7). */

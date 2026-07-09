@@ -5,8 +5,9 @@ Each endpoint backs one configured task of `settings.ai` (`spec/logic/ai-connect
 `00-conventions.md` for auth, tenancy, and the error envelope. Base path `/api/v1`. All routes
 require auth and are user-scoped (the AI config is read from the authenticated user's settings).
 
-These calls make an **outbound request** to the user's configured OpenAI-compatible endpoint and
-**persist nothing** — they return an estimate that the client uses to pre-fill a form.
+These calls make an **outbound request** to the user's configured OpenAI-compatible endpoint. The
+first two (dish photo, meal suggestions) **persist nothing** — they return an estimate the client
+uses to pre-fill a form. **Advice** (Conseils, below) is the exception: it **archives** each reply.
 
 ## Dish photo → macro estimate
 
@@ -152,7 +153,42 @@ ai_unauthorized`; `429 ai_rate_limited`; `503 ai_unavailable`; `504 ai_unreachab
 ai_bad_response` (no parseable/valid proposal). `error.details.provider_message` is passed
   through as for the photo task.
 
-## Reserved (not implemented)
+## Advice (Conseils)
 
-- `advice` — the remaining `settings.ai` task. Its `/ai/*` endpoint is **not defined yet**
-  (reserved, like the generic `POST /advisor/query` in `00-conventions.md`).
+The third AI use, `advice` (B-202): from the **Conseils** page the user asks the configured model
+for personalised nutrition advice. Unlike the two uses above, advice **persists** — each generation
+is **archived** so the user can revisit and delete past advices. The model call is **on demand** (a
+paid call behind a button). Backed by the `settings.ai.tasks.advice` task (text model + editable
+scope prompt); the data payload is assembled **server-side** from the user's existing figures (the web
+never computes — `spec/logic/ai-advice.md`). All routes require auth and are user-scoped
+(cross-tenant → 404).
+
+An **`Advice`** is `{ "id": uuid, "created_at": ISO-8601, "model": "<provider model id>", "content":
+"<markdown>", "snapshot": { … } }` — `content` is the model's free **Markdown** reply (in the user's
+UI language, `spec/logic/ai-advice.md §2`); `snapshot` is the compact aggregated data that produced
+it (kept for provenance, export, and display).
+
+- `POST /ai/advice` — **generate and archive**. Empty body `{}` (the payload is assembled
+  server-side; nothing is sent by the client). Calls the provider, then persists the reply.
+
+  → **201** `{ "data": Advice }` (the newly-archived row).
+
+  **Errors:** the standard AI table (identical mapping to `dish-photo-macros`): `409
+ai_not_configured` (no `base_url`/`api_key`, or `tasks.advice.model` is null); `502
+ai_unauthorized`; `429 ai_rate_limited`; `503 ai_unavailable`; `504 ai_unreachable`; `502
+ai_bad_response` (empty/unusable reply). `error.details.provider_message` is passed through as for
+  the other tasks.
+
+- `GET /ai/advice` — **list** the archived advices, **newest first** (`created_at DESC`).
+
+  → **200** `{ "data": Advice[] }`. Empty array when none.
+
+- `DELETE /ai/advice/:id` — **delete** one archived advice. User-scoped; an id owned by another user
+  or absent → **404** `not_found` (no cross-tenant leak).
+
+  → **204** No Content.
+
+  **Errors:** `404 not_found` (unknown/other-tenant id).
+
+**Persistence:** the `POST` **archives** the advice (the exception to the "persist nothing" rule
+above); `GET`/`DELETE` operate on that archive.

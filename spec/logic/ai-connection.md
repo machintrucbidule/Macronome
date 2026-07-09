@@ -2,10 +2,11 @@
 
 The AI assistant connects to a remote, **OpenAI-compatible** chat endpoint (the target is
 Google Gemini's OpenAI-compatible API, but any compatible provider — online or local — works).
-v1 covers **configuration + link verification only**: storing the connection, redacting the
+This file covers **configuration + link verification**: storing the connection, redacting the
 secret, merging partial edits, and listing the provider's models (which doubles as the
-connection test). **No AI use** (photo→macros, meal suggestions, advice) is computed in v1; the
-chat/vision calls are reserved. See `00-conventions.md`; the persisted shape is in
+connection test). The **AI uses** themselves — photo→macros (B-118), meal suggestions (B-123), and
+advice (B-202) — are now built (see `spec/api/ai.md`, `spec/logic/ai-*.md`). See `00-conventions.md`;
+the persisted shape is in
 `spec/schema/tables-catalog.md` (`settings.ai`), the endpoints in
 `spec/api/weight-targets-stats-settings.md`.
 
@@ -52,11 +53,17 @@ dish_photo_macros → "Estimate the macronutrients (protein, fat, carbs) and cal
                      dish. Use the photo(s) when provided; otherwise rely on the written
                      description. Identify the foods and their approximate quantities."
 meal_suggestions  → "Suggest meal ideas that fit the indicated macro and calorie targets."
-advice            → "Give personalized nutrition advice based on the provided tracking data
-                     (recent intake, target adherence, weight trend)."
+advice            → "You are a supportive nutrition coach. Using the tracking data provided —
+                     recent intake and calorie/macro adherence, weight and BMI trend, current and
+                     past targets, logging regularity, and the recent food log — give practical,
+                     personalised advice … never paternalistic, never reproachful, never
+                     guilt-inducing …" (full text in constants/ai.ts; B-202).
 ```
 
-These are **provisional** (to be refined later) and are the only prompt text v1 ships. The
+The `advice` scope carries **only tone + data usage** — **not** the output format or language:
+Markdown is enforced by a hard-coded format instruction and the reply language follows the user's UI
+locale, both appended at call time (`spec/logic/ai-advice.md §2`), never in the editable prompt.
+The `dish_photo_macros` / `meal_suggestions` defaults are as shipped. The
 **technical response-format instructions** (output schema, SI units, constraints) are **not**
 part of `prompt` and **not** stored — they are hard-coded in the app and concatenated with the
 task prompt at call time (future), guaranteeing the return format regardless of the user's
@@ -124,8 +131,8 @@ surfaced to the caller in `error.details.provider_message`.
 
 ### 6b. Chat completion (text + vision)
 
-The second provider operation — **chat completion** — backs the AI _uses_. It is **implemented**
-from B-118 (the `dish_photo_macros` task; `meal_suggestions` / `advice` still pending):
+The second provider operation — **chat completion** — backs the AI _uses_. It is **implemented** for
+all three tasks: `dish_photo_macros` (B-118), `meal_suggestions` (B-123), and `advice` (B-202):
 
 - Request: `POST {base_url}/chat/completions` with the auth headers (§6a) and a
   body `{ model, messages, temperature }` where `model` is the **invoked task's** model

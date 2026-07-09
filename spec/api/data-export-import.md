@@ -88,9 +88,15 @@ preserved per row; `updated_at` is regenerated on import. Credentials are absent
   "meals":            [ { "id","day_log_id","slot_name","order_index","created_at" } ],
   "meal_entries":     [ { "id","meal_id","kind","food_id","custom_name","served_quantity","unit","portion_id","served_grams","snap_kcal","snap_fat","snap_carb","snap_protein","order_index","created_at" } ],
   "leftover_groups":  [ { "id","meal_id","container_name","tare_g","gross_grams","created_at" } ],
-  "leftover_group_entries": [ { "leftover_group_id","meal_entry_id" } ]
+  "leftover_group_entries": [ { "leftover_group_id","meal_entry_id" } ],
+  "advices":          [ { "id","model","content","snapshot","created_at" } ]
 }
 ```
 
 Recipe-derived foods (`source='recipe'`, `recipe_id` → recipe) are ordinary `foods` rows in the
 envelope; on import recipes are inserted before foods so the derived link resolves.
+
+`advices` (B-202) are the archived AI "Conseils" (`spec/schema/tables-catalog.md` §advice): each row
+carries its Markdown `content` + the compact `snapshot` JSON, with **no cross-row FK** (only
+`user_id`, re-pointed on import), so import order is unconstrained. `snapshot` travels verbatim as a
+JSON object. Excluded from the CSV exports (JSON envelope only).
