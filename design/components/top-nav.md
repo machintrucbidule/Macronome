@@ -24,7 +24,7 @@ Left → right:
 ## Conseils lightbulb (appbar icon button) — [B-202]
 
 A **persistent icon button** in the `.right` cluster, **before** the theme toggle and the
-account avatar: a **💡 lightbulb** that is a `NavLink` to **`/conseils`** (the AI advice
+account avatar: a **💡 lightbulb** that is a `NavLink` to **`/advices`** (the AI advice
 page). It is the app's first always-on appbar icon (there is **no** shared `IconButton`
 primitive yet — this establishes the appbar-icon pattern; the row-hover icon affordance of
 `00-foundations.md` is a different, table-row pattern).

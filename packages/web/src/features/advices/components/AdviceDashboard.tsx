@@ -12,7 +12,7 @@ import { useTarget, useTargetHistory } from '../../targets/useTargets';
 import { useWeight } from '../../weight/useWeight';
 import { useRolling, useAdherence } from '../../stats/useStats';
 import { AdviceTargetHistory } from './AdviceTargetHistory';
-import styles from '../conseils.module.css';
+import styles from '../advices.module.css';
 
 // Aggregated-data dashboard (B-202, block A): a read-only recap of what the AI is sent, ASSEMBLED
 // from the existing read-services by REUSING their display components (CLAUDE.md rule 2 — the web
@@ -36,10 +36,10 @@ export function AdviceDashboard() {
 
   return (
     <details className={styles.dashboard}>
-      <summary className={styles.dashSummary}>{t('conseils.dashboard')}</summary>
+      <summary className={styles.dashSummary}>{t('advices.dashboard')}</summary>
 
       <section className={styles.section}>
-        <h2 className={styles.h2}>{t('conseils.section.engine')}</h2>
+        <h2 className={styles.h2}>{t('advices.section.engine')}</h2>
         {target.data ? (
           <EnginePanel engine={target.data.engine} warnings={target.data.warnings} />
         ) : (
@@ -48,12 +48,12 @@ export function AdviceDashboard() {
       </section>
 
       <section className={styles.section}>
-        <h2 className={styles.h2}>{t('conseils.section.targets')}</h2>
+        <h2 className={styles.h2}>{t('advices.section.targets')}</h2>
         {history.data ? <AdviceTargetHistory versions={history.data.versions} /> : <SkeletonRows />}
       </section>
 
       <section className={styles.section}>
-        <h2 className={styles.h2}>{t('conseils.section.weight')}</h2>
+        <h2 className={styles.h2}>{t('advices.section.weight')}</h2>
         {weight.data && c ? (
           <>
             <Cartouche data={c} />
@@ -76,7 +76,7 @@ export function AdviceDashboard() {
       </section>
 
       <section className={styles.section}>
-        <h2 className={styles.h2}>{t('conseils.section.rolling')}</h2>
+        <h2 className={styles.h2}>{t('advices.section.rolling')}</h2>
         {rolling.data ? <RollingCards windows={rolling.data.windows} /> : <SkeletonRows />}
       </section>
 

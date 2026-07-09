@@ -8,9 +8,9 @@ import { SESSION_KEY } from '../../app/useSession';
 import { SETTINGS_KEY } from '../settings/useSettings';
 import { aiApi } from '../../api/ai';
 import { ApiError } from '../../api/client';
-import { ConseilsPage } from './ConseilsPage';
+import { AdvicesPage } from './AdvicesPage';
 
-// B-202 web slice: the Conseils page renders the archive + generate control + AiNotConfigured state,
+// B-202 web slice: the Advices page renders the archive + generate control + AiNotConfigured state,
 // and shows the generated Markdown reply. The dashboard is pure reuse of already-tested components,
 // so it's stubbed here to isolate the advice core (generate / archive / delete / unconfigured / error).
 vi.mock('./components/AdviceDashboard', () => ({
@@ -61,20 +61,20 @@ function renderPage(adviceModel: string | null) {
   client.setQueryData(SETTINGS_KEY, { data: settings(adviceModel) });
   return render(
     <QueryClientProvider client={client}>
-      <MemoryRouter initialEntries={['/conseils']}>
-        <ConseilsPage />
+      <MemoryRouter initialEntries={['/advices']}>
+        <AdvicesPage />
       </MemoryRouter>
     </QueryClientProvider>,
   );
 }
 
-describe('ConseilsPage (B-202)', () => {
+describe('AdvicesPage (B-202)', () => {
   it('renders the dashboard, the generate button, and an empty archive', async () => {
     vi.spyOn(aiApi, 'listAdvice').mockResolvedValue({ data: [] });
     renderPage('coach-x');
     expect(await screen.findByText('dashboard-stub')).toBeTruthy();
-    expect(screen.getByRole('button', { name: i18n.t('conseils.generate') })).toBeTruthy();
-    expect(await screen.findByText(i18n.t('conseils.empty'))).toBeTruthy();
+    expect(screen.getByRole('button', { name: i18n.t('advices.generate') })).toBeTruthy();
+    expect(await screen.findByText(i18n.t('advices.empty'))).toBeTruthy();
   });
 
   it('generate archives a Markdown reply that appears at the top of the archive', async () => {
@@ -86,7 +86,7 @@ describe('ConseilsPage (B-202)', () => {
       return Promise.resolve({ data: a });
     });
     renderPage('coach-x');
-    fireEvent.click(await screen.findByRole('button', { name: i18n.t('conseils.generate') }));
+    fireEvent.click(await screen.findByRole('button', { name: i18n.t('advices.generate') }));
     // Markdown rendered (heading + list item), not raw text.
     expect(await screen.findByRole('heading', { name: 'Bilan' })).toBeTruthy();
     expect(screen.getByText('Belle régularité')).toBeTruthy();
@@ -110,17 +110,17 @@ describe('ConseilsPage (B-202)', () => {
     vi.spyOn(aiApi, 'listAdvice').mockResolvedValue({ data: [] });
     renderPage(null);
     // Scope to the AiNotConfigured paragraph — the account menu also has an "Assistant IA" link.
-    const notCfg = await screen.findByText(new RegExp(i18n.t('conseils.notConfigured')));
-    const link = within(notCfg).getByRole('link', { name: i18n.t('conseils.configureLink') });
+    const notCfg = await screen.findByText(new RegExp(i18n.t('advices.notConfigured')));
+    const link = within(notCfg).getByRole('link', { name: i18n.t('advices.configureLink') });
     expect(link.getAttribute('href')).toBe('/assistant-ia');
-    expect(screen.queryByRole('button', { name: i18n.t('conseils.generate') })).toBeNull();
+    expect(screen.queryByRole('button', { name: i18n.t('advices.generate') })).toBeNull();
   });
 
   it('shows an error banner when generation fails', async () => {
     vi.spyOn(aiApi, 'listAdvice').mockResolvedValue({ data: [] });
     vi.spyOn(aiApi, 'generateAdvice').mockRejectedValue(new ApiError(502, 'ai_bad_response'));
     renderPage('coach-x');
-    fireEvent.click(await screen.findByRole('button', { name: i18n.t('conseils.generate') }));
-    expect(await screen.findByText(i18n.t('conseils.errors.ai_bad_response'))).toBeTruthy();
+    fireEvent.click(await screen.findByRole('button', { name: i18n.t('advices.generate') }));
+    expect(await screen.findByText(i18n.t('advices.errors.ai_bad_response'))).toBeTruthy();
   });
 });

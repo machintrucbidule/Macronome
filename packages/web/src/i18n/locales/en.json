@@ -806,9 +806,9 @@
       "error": "Import failed."
     }
   },
-  "conseils": {
+  "advices": {
     "title": "Advice",
-    "intro": "Personalised advice from your tracking data. Supportive, never guilt-inducing.",
+    "intro": "Personalised advice from your tracking data.",
     "dashboard": "Your data (what the AI sees)",
     "section": {
       "engine": "Profile & metabolic engine",

@@ -806,9 +806,9 @@
       "error": "L'import a échoué."
     }
   },
-  "conseils": {
+  "advices": {
     "title": "Conseils",
-    "intro": "Des conseils personnalisés à partir de tes données de suivi. Bienveillants, jamais culpabilisants.",
+    "intro": "Des conseils personnalisés à partir de tes données de suivi.",
     "dashboard": "Tes données (ce que l'IA voit)",
     "section": {
       "engine": "Profil & moteur métabolique",

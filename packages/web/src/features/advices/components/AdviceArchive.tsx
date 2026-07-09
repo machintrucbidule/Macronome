@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import type { Advice } from '@macronome/shared';
 import { AdviceMarkdown } from './AdviceMarkdown';
-import styles from '../conseils.module.css';
+import styles from '../advices.module.css';
 
 // Archived-advice list (B-202, block D): newest first, each item = date · model + the rendered
 // Markdown + a per-item delete (×). The delete calls back to the page's mutation. Empty → a hint.
@@ -18,7 +18,7 @@ function dateTime(iso: string, locale: string): string {
 
 export function AdviceArchive({ advices, onDelete }: AdviceArchiveProps) {
   const { t, i18n } = useTranslation();
-  if (advices.length === 0) return <p className={styles.empty}>{t('conseils.empty')}</p>;
+  if (advices.length === 0) return <p className={styles.empty}>{t('advices.empty')}</p>;
   return (
     <div className={styles.archive}>
       {advices.map((a) => (

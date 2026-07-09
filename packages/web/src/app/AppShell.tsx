@@ -24,7 +24,7 @@ const TITLE_KEYS: Record<string, string> = {
   '/foods': 'foods.title',
   '/recipes': 'recipes.title',
   '/stats': 'stats.title',
-  '/conseils': 'conseils.title',
+  '/advices': 'advices.title',
   '/cibles': 'cibles.title',
   '/containers': 'containers.title',
   '/assistant-ia': 'settings.ai.title',
@@ -80,10 +80,10 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
               entry, so this 💡 is its only entry point — kept visible at every width (unlike the theme
               toggle, it is NOT hidden ≤560px). In `.right` it inherits the WCO app-region:no-drag. */}
           <NavLink
-            to="/conseils"
+            to="/advices"
             className={({ isActive }) => `${styles.bulb} ${isActive ? styles.bulbActive : ''}`}
-            title={t('conseils.title')}
-            aria-label={t('conseils.title')}
+            title={t('advices.title')}
+            aria-label={t('advices.title')}
           >
             {/* Lightbulb as an SVG (not the 💡 emoji) so it tints via currentColor per top-nav.md. */}
             <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">

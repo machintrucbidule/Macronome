@@ -2,7 +2,7 @@ import { expect, test, type Page, type PlaywrightWorkerArgs } from '@playwright/
 import argon2 from 'argon2';
 import { PrismaClient } from '@prisma/client';
 
-// e2e for the Conseils page (B-202): open via the 💡 lightbulb → generate → the archived advice
+// e2e for the advices page (B-202): open via the 💡 lightbulb → generate → the archived advice
 // appears → delete → it disappears. The AI provider call is not exercised end-to-end; the browser→API
 // advice calls are stubbed at the Playwright layer (real generation/persistence is covered by the API
 // integration tests). The user's settings are seeded with the advice task configured so the button
@@ -89,13 +89,13 @@ async function stubAdvice(page: Page): Promise<void> {
 }
 
 test('open via the lightbulb → generate → archived → delete', async ({ page, playwright }) => {
-  await seedUser('e2e_conseils');
-  await login(page, playwright, 'e2e_conseils');
+  await seedUser('e2e_advices');
+  await login(page, playwright, 'e2e_advices');
   await stubAdvice(page);
 
   await page.goto('/');
   await page.getByRole('link', { name: 'Conseils' }).click();
-  await expect(page).toHaveURL(/\/conseils$/);
+  await expect(page).toHaveURL(/\/advices$/);
 
   // Generate → the archived Markdown reply appears (rendered heading + list).
   await page.getByRole('button', { name: 'Générer des conseils IA' }).click();

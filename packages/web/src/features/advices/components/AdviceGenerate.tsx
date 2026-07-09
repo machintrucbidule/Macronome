@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Banner } from '../../../components/Banner/Banner';
 import { mapAiError } from '../../meals/lib/aiError';
-import styles from '../conseils.module.css';
+import styles from '../advices.module.css';
 
 // Generate control (B-202, block B/E). When the `advice` AI task has no model, show the
 // AiNotConfigured state (message + link to Assistant IA) in place of the button. Otherwise a primary
@@ -20,8 +20,7 @@ export function AdviceGenerate({ ready, pending, error, onGenerate }: AdviceGene
   if (!ready) {
     return (
       <p className={styles.notConfigured}>
-        {t('conseils.notConfigured')} —{' '}
-        <Link to="/assistant-ia">{t('conseils.configureLink')}</Link>
+        {t('advices.notConfigured')} — <Link to="/assistant-ia">{t('advices.configureLink')}</Link>
       </p>
     );
   }
@@ -29,12 +28,12 @@ export function AdviceGenerate({ ready, pending, error, onGenerate }: AdviceGene
   return (
     <div className={styles.generate}>
       <button type="button" className={styles.genBtn} disabled={pending} onClick={onGenerate}>
-        {pending ? t('conseils.generating') : t('conseils.generate')}
+        {pending ? t('advices.generating') : t('advices.generate')}
         {pending && <span className={styles.spinner} aria-hidden="true" />}
       </button>
       {err && (
         <Banner tone="warning">
-          {t(`conseils.errors.${err.code}`)}
+          {t(`advices.errors.${err.code}`)}
           {err.detail ? ` — ${err.detail}` : ''}
         </Banner>
       )}
