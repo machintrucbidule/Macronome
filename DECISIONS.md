@@ -4230,3 +4230,46 @@ bullets). **Code:** `components/Modal/useFocusTrap.ts` (`initialFocusRef`), `Mod
 `lib/useKeyboardViewport.ts`. Tests: `useKeyboardViewport.test.ts` (mocked `visualViewport`), focus
 tests for both sheets (jsdom `document.activeElement`). Open-keyboard rendering is not jsdom-testable
 → owner visual check on mobile / installed Edge; full gate green.
+
+## B-207 — Repas selection sum (grams/kcal/macros), desktop (run #56) — RESOLVED (user, 2026-07-09)
+
+The last Excel capability still missing: an **Excel-status-bar-style live SUM** — select a subset of
+meal food-lines (across any meals) and read their summed **weight (g)**, **kcal**, and **macros
+L/G/P**. Added as an opt-in **selection mode**, **desktop-only** (the controls row is `display:none`
+≤560px, so there is no mobile surface).
+
+**Rule-2 exception — client-side ephemeral display aggregate.** The sum is a **pure addition of the
+per-line `consumed` values the rows already hold** (`entry.consumed.grams/kcal/fat/carb/protein`),
+computed in the client, **display-only, non-persisted, never authoritative**; the per-line figures
+stay server-computed. This is admissible under the same reasoning as **B-139** (client-side écart
+derivation "from props it already holds, display-only, never authoritative — no DTO/API change") and
+`useLeftoverForm.servedTotal`. It is distinct from the _forbidden_ case (leftover **proration**, which
+must stay server-side): a plain sum of already-frozen per-line values invents no nutrition figure.
+Rounding follows **B-019 / 00-conventions**: kcal + aggregate macro grams = **integer, half-up**.
+
+**Selection-mode design (owner decisions, run #50 + this session).** A **Σ toggle** in the controls
+row's right group enters selection mode (distinct accent-filled `aria-pressed` state); **click a line
+body** toggles a line, **click a meal footer** toggles the whole meal, **Ctrl/⌘-click** enters mode +
+selects, leaving the mode **clears**. Selection is a single **global cross-meal `Set<entry_id>`** →
+one grand total; "select a meal total" = add all its eligible line ids, so the Set **dedups** and a
+meal + its own lines never double-count. Eligible = filled `[data-line-row]` lines, **excluding** empty
+rows and greyed qty-0 garde-manger scaffolds. **Highlight** = a full-row **blue** tint via a **new
+`--select` token** (there was none; `--focus` is an alias of `--accent`, so it couldn't be reused) —
+deliberately **not** `--accent`, so it never looks like the amber **pinned** left-edge (a line both
+pinned and selected shows both). The readout (Σ · kcal · g · L · G · P) shows **centered** in the
+controls row while the mode is on. The name/qty/pin/delete controls keep their own actions (they stop
+the row click).
+
+**Contract impact:** `design/tokens.css` + `packages/web/src/styles/tokens.css` (+ mockups copy) new
+`--select` token (blue, both themes); `design/components/data-tables.md` (`.selected` line/footer
+highlight + Σ toggle active state + selection-sum readout section); `specifications/screens/meals.md`
+(controls-row Σ + readout, new "Selection sum (desktop-only)" interaction block, desktop-only note).
+**Code:** new `features/meals/logic/selectionSum.ts` (reduce over `consumed` + `isSelectableEntry` +
+`eligibleIds`), new `features/meals/hooks/useMealSelection.ts` (mode + `Set` + toggle/toggleMeal/
+Ctrl), `hooks/useMealsController.ts` (expose `selection`), `components/MealsControls.tsx` +
+`meals.module.css` (Σ toggle + centered readout), `components/FoodLine/FoodLine.tsx` +
+`food-line.module.css` (`.selected`/`.selectable` + row toggle) + `PinCell.tsx`/`QtyCell.tsx`
+(stopPropagation), `components/MealColumn/MealFooter.tsx` + `MealColumn.tsx` + `meal-column.module.css`
+(selectable footer), i18n `meals.sum.*`. Tests: `selectionSum.test.ts` (neutral oracle + dedup),
+`useMealSelection.test.ts`, a component test (Σ active + readout + multi-meal/footer selection).
+Full gate green + owner desktop visual check.

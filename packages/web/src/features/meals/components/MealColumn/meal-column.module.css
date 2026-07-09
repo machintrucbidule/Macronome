@@ -193,6 +193,15 @@
   composes: row from '../FoodLine/food-line.module.css';
   padding: 7px 10px;
 }
+/* Selection-sum (B-207): a selected meal footer gets the same blue `--select` tint as a selected
+   line, mixed over the footer's own `--bg-elev-2` so it reads over the darker footer. The footer's
+   figures are unchanged — only its selectable/selected state is new. Desktop-only feature. */
+.footSelectable {
+  cursor: pointer;
+}
+.footSelected {
+  background: color-mix(in srgb, var(--select) 22%, var(--bg-elev-2));
+}
 .restes {
   grid-column: 1 / span 2;
   display: flex;

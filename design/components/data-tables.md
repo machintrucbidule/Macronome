@@ -177,13 +177,36 @@ text cells name/qty/unit/macros in `--text-faint`, grip/📌/× at `opacity:.45`
 quantity-0 line, e.g. a garde-manger placeholder, reads as inactive; reverts to normal
 the instant qty > 0; B-107), `.pinned`
 (`box-shadow: inset 3px 0 0 color-mix(--accent 70%)` + accent 📌), `.editing`
-(`background:var(--bg-field)`, inline search input), `.dragging` (`opacity:.4`).
+(`background:var(--bg-field)`, inline search input), `.dragging` (`opacity:.4`),
+`.selected` (**B-207 desktop selection-sum** — a full-row `--select` **blue** background tint,
+**no checkbox and no extra column**; deliberately distinct from `.pinned`'s amber left edge, so a
+line that is both pinned **and** selected shows both — the blue fill + the amber edge).
 Hover reveals grip/pin/del. A meal keeps ≥2 trailing empty lines, ≥15 lines min.
 
 **Macro values colour-coded.** The per-line **L/G/P** macros **and** the meal-total
 L/G/P are tinted with the macro tokens (`--c-fat`/`--c-carb`/`--c-prot`), matching the
 totals dots, **at every width** (owner-approved desktop change, 2026-06-11). `kcal` keeps
 its colour; `.zero` lines stay muted (the tint is gated on `:not(.zero)`).
+
+### Selection sum (desktop controls bar, B-207)
+
+An Excel-status-bar-style live SUM of a chosen subset of meal food-lines — **desktop only** (the
+controls row is `display:none` ≤560px, so no mobile surface). A **Σ toggle** in the controls-row
+right action group (with Copier hier / Tout effacer / + Repas) enters **selection mode**; it carries
+a **distinct active/pressed state** (accent-filled fill + `--accent-ink`, `aria-pressed=true`) so the
+mode is obvious. In selection mode a **click on a line body** toggles that line's `.selected` state,
+and a **click on a meal footer** toggles the whole meal (= all its eligible lines); **Ctrl/⌘-click**
+enters the mode and selects; leaving the mode (Σ off) clears the selection. The pin/delete/qty/name
+controls keep their own actions (they stop the row-click). Eligible lines = filled entry rows only
+(`[data-line-row]`), excluding empty rows and greyed qty-0 pantry scaffolds.
+
+The **sum readout** shows **centered** in the controls bar (in the `.ctrlSpacer`, between Proposition
+IA and the undo/redo group), only while selection mode is on: `Σ · <kcal> kcal · <g> g · L <fat> · G
+<carb> · P <protein>` in `--font-num`, each figure rounded per `00-conventions` (kcal + aggregate
+macro grams = integer, half-up). The sum is a **client-side ephemeral display aggregate** — a pure
+addition of the per-line `consumed` values the rows already hold; non-persisted, never authoritative
+(see `DECISIONS.md` B-207). A **selected meal footer** is highlighted the same blue `.selected` way
+over its `--bg-elev-2` background; its total figures are unchanged (only its selectable state is new).
 
 ### Mobile (≤560px) — meal tabs, two-row line, sheets (mobile-responsive S4 + S9)
 

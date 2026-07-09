@@ -109,6 +109,7 @@
   --accent: #e0b341; /* the metronome needle — warm amber */
   --accent-ink: #1a1407; /* text/icon on accent fills */
   --focus: #e0b341;
+  --select: #4a93e6; /* B-207: row-selection tint (spreadsheet blue), distinct from --accent amber */
 
   /* Semantic status */
   --ok: #4db07e;
@@ -173,6 +174,7 @@
   --accent: #b8860b;
   --accent-ink: #fff8e6;
   --focus: #b8860b;
+  --select: #2f6fb0; /* B-207: row-selection tint (spreadsheet blue), distinct from --accent amber */
 
   --ok: #1f8a52;
   --ok-soft: #dcefe3; /* CONFIRMED: app value (not login #e2f1e8) */

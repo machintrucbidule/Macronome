@@ -4,6 +4,7 @@ import type { Meal, MealEntry } from '@macronome/shared';
 import { useIsMobile } from '../../../../lib/useIsMobile';
 import { useMeals } from '../../MealsContext';
 import { DEFAULT_LINES_DESKTOP, DEFAULT_LINES_MOBILE, buildLineRows } from '../../logic/lineRows';
+import { eligibleIds } from '../../logic/selectionSum';
 import { useLineDnd } from '../../hooks/useLineDnd';
 import { useTouchReorder } from '../../hooks/useTouchReorder';
 import { useMealPhotoEntry } from '../../hooks/useMealPhotoEntry';
@@ -113,7 +114,7 @@ export function MealColumn(props: MealColumnProps) {
           />
         ))}
       </div>
-      <MealFooter mealId={meal.id} totals={meal.totals} />
+      <MealFooter mealId={meal.id} totals={meal.totals} entryIds={eligibleIds(meal)} />
       {confirming && (
         <MealDeleteConfirm
           name={meal.slot_name}

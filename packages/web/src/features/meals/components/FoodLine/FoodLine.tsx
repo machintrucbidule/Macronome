@@ -1,4 +1,4 @@
-import type { DragEvent } from 'react';
+import type { DragEvent, MouseEvent } from 'react';
 import type { MealEntry } from '@macronome/shared';
 import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../../../../lib/useIsMobile';
@@ -7,6 +7,8 @@ import { useFood } from '../../hooks/useFoodLookup';
 import type { LineDnd } from '../../hooks/useLineDnd';
 import type { TouchReorder } from '../../hooks/useTouchReorder';
 import { r0 } from '../../format';
+import { isSelectableEntry } from '../../logic/selectionSum';
+import type { MealSelection } from '../../hooks/useMealSelection';
 import { QtyCell } from './QtyCell';
 import { PinCell } from './PinCell';
 import { InlineFoodSearch } from '../InlineFoodSearch/InlineFoodSearch';
@@ -32,22 +34,45 @@ const dropProps = (row: number, dnd: LineDnd) => ({
   onDrop: () => dnd.onDrop(row),
 });
 
-/** Build an entry row's class list (kept out of the component to cap its complexity). */
-function entryRowClass(
-  isZero: boolean,
-  isPinned: boolean,
-  isDragging: boolean,
-  isGrabbed: boolean,
-): string {
+/** Build an entry row's class list (kept out of the component to cap its complexity). `.selectable`
+ *  (the desktop selection-mode cursor cue) is derived here so EntryRow stays within the caps. */
+function entryRowClass(flags: {
+  isZero: boolean;
+  isPinned: boolean;
+  isDragging: boolean;
+  isGrabbed: boolean;
+  isSelected: boolean;
+  isMobile: boolean;
+  mode: boolean;
+  selectable: boolean;
+}): string {
+  const showSelectableCue = !flags.isMobile && flags.mode && flags.selectable;
   return [
     styles.line,
-    isZero && styles.zero,
-    isPinned && styles.pinned,
-    isDragging && styles.dragging,
-    isGrabbed && styles.grabbed,
+    flags.isZero && styles.zero,
+    flags.isPinned && styles.pinned,
+    flags.isDragging && styles.dragging,
+    flags.isGrabbed && styles.grabbed,
+    flags.isSelected && styles.selected,
+    showSelectableCue && styles.selectable,
   ]
     .filter(Boolean)
     .join(' ');
+}
+
+// Desktop selection-sum row click (B-207), kept at module scope so EntryRow stays within the
+// complexity/line caps. Ctrl/⌘-click enters the mode + selects; a plain click toggles only while
+// selection mode is on; ineligible lines never toggle.
+function rowSelectHandler(
+  entry: MealEntry,
+  selection: MealSelection,
+  selectable: boolean,
+): (e: MouseEvent) => void {
+  return (e) => {
+    if (!selectable) return;
+    if (e.ctrlKey || e.metaKey) selection.selectFromRow(entry.id, true);
+    else if (selection.mode) selection.toggle(entry.id);
+  };
 }
 
 function EmptyLine({
@@ -163,7 +188,7 @@ function EntryRow({
   isMobile: boolean;
 }) {
   const { t } = useTranslation();
-  const { actions } = useMeals();
+  const { actions, selection } = useMeals();
   const isCustom = entry.kind === 'custom';
   const food = useFood(isCustom ? null : entry.food_id);
   const name = isCustom ? (entry.custom_name ?? '') : (food.data?.data.name ?? '…');
@@ -182,21 +207,24 @@ function EntryRow({
 
   // Mobile: a tap on the line body (anywhere the name/qty cells don't intercept) opens the
   // bottom-sheet line editor (spec §5.3). Works for garde-manger scaffold pre-fill lines too
-  // (empty id, pinned, qty 0): the sheet resolves them by `row`. Desktop passes no handler.
-  const openSheet = isMobile
-    ? () => actions.openLineSheet(mealId, mealIndex, entry.id, row)
-    : undefined;
+  // (empty id, pinned, qty 0): the sheet resolves them by `row`.
+  const openSheet = (): void => actions.openLineSheet(mealId, mealIndex, entry.id, row);
+  const selectable = isSelectableEntry(entry); // desktop selection-sum eligibility (B-207)
 
   return (
     <div
-      className={entryRowClass(
+      className={entryRowClass({
         isZero,
-        entry.is_pinned,
-        dnd.dragId === entry.id,
-        touch.grabbedId === entry.id,
-      )}
+        isPinned: entry.is_pinned,
+        isDragging: dnd.dragId === entry.id,
+        isGrabbed: touch.grabbedId === entry.id,
+        isSelected: selection.isSelected(entry.id),
+        isMobile,
+        mode: selection.mode,
+        selectable,
+      })}
       {...dropProps(row, dnd)}
-      onClick={openSheet}
+      onClick={isMobile ? openSheet : rowSelectHandler(entry, selection, selectable)}
       // Hit-test target: mobile long-press reorder + desktop context menu (B-195).
       data-line-row={row}
     >
@@ -224,7 +252,10 @@ function EntryRow({
         className={styles.del}
         tabIndex={-1}
         title={t('common.remove')}
-        onClick={() => void actions.deleteEntry(mealId, entry.id)}
+        onClick={(e) => {
+          e.stopPropagation(); // don't toggle row selection (B-207)
+          void actions.deleteEntry(mealId, entry.id);
+        }}
       >
         ×
       </button>

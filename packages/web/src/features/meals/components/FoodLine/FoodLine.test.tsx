@@ -53,6 +53,13 @@ function renderLine(e: MealEntry | null = entry()) {
       togglePin: vi.fn(),
     },
     pendingFocus: null,
+    selection: {
+      mode: false,
+      selected: new Set<string>(),
+      isSelected: () => false,
+      toggle: vi.fn(),
+      selectFromRow: vi.fn(),
+    },
   } as unknown as MealsController;
   const utils = render(
     <QueryClientProvider client={qc}>

@@ -54,6 +54,16 @@ function renderColumn(deleteMeal = vi.fn()) {
       renameMeal: vi.fn(),
       reorderEntries: vi.fn(),
     },
+    selection: {
+      mode: false,
+      selected: new Set<string>(),
+      isSelected: () => false,
+      allSelected: () => false,
+      toggle: vi.fn(),
+      toggleMeal: vi.fn(),
+      selectFromRow: vi.fn(),
+      enter: vi.fn(),
+    },
   } as unknown as MealsController;
   const utils = render(
     <MealsProvider value={ctrl}>

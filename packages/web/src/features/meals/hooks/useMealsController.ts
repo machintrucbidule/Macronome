@@ -3,6 +3,7 @@ import type { DayDetail } from '@macronome/shared';
 import { usePantry } from '../../settings/usePantry';
 import { useDay } from './useDay';
 import { useMealHistory } from './useMealHistory';
+import { useMealSelection } from './useMealSelection';
 import {
   createMealActions,
   type CustomTarget,
@@ -31,6 +32,8 @@ export function useMealsController(date: string) {
   const lineDragRef = useRef<{ entryId: string; mealId: string } | null>(null);
   // Line-level undo/redo (UR-1 / B-133): records edits and replays inverses through useDay.
   const history = useMealHistory(day, date, setError);
+  // Desktop-only selection-sum (B-207): ephemeral cross-meal selection + derived Σ readout.
+  const selection = useMealSelection(day.query.data);
 
   const actions = createMealActions({
     day,
@@ -61,6 +64,7 @@ export function useMealsController(date: string) {
     error,
     lineDragRef,
     actions,
+    selection,
     undo: history.undo,
     redo: history.redo,
     canUndo: history.canUndo,

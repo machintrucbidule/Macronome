@@ -5,6 +5,8 @@ import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { DayDetail } from '@macronome/shared';
 import i18n from '../../../i18n/config';
+import { MealsProvider } from '../MealsContext';
+import type { MealsController } from '../hooks/useMealsController';
 import { MealsControls } from './MealsControls';
 import { CopyYesterdayConfirm } from './CopyYesterdayConfirm';
 
@@ -35,6 +37,15 @@ const DAY: DayDetail = {
   meals: [],
 };
 
+// MealsControls reads useMeals().selection (B-207) — provide a minimal selection stub.
+const selectionStub = {
+  mode: false,
+  selected: new Set<string>(),
+  sum: { grams: 0, kcal: 0, fat: 0, carb: 0, protein: 0 },
+  toggleMode: vi.fn(),
+  isSelected: () => false,
+};
+
 function wrapper({ children }: { children: ReactNode }) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false, staleTime: Infinity } },
@@ -42,7 +53,15 @@ function wrapper({ children }: { children: ReactNode }) {
   return createElement(
     QueryClientProvider,
     { client },
-    createElement(MemoryRouter, null, children),
+    createElement(
+      MemoryRouter,
+      null,
+      createElement(
+        MealsProvider,
+        { value: { selection: selectionStub } as unknown as MealsController },
+        children,
+      ),
+    ),
   );
 }
 

@@ -3,8 +3,63 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { DayDetail } from '@macronome/shared';
 import { useSettingsQuery } from '../../settings/useSettings';
+import { useMeals } from '../MealsContext';
+import type { MealSelection } from '../hooks/useMealSelection';
+import { r0 } from '../format';
 import { AiProposalsDialog } from '../modals/AiProposalsDialog';
 import styles from '../meals.module.css';
+
+// Centered Σ readout (B-207), shown only in selection mode: an empty selection shows a hint, else
+// the summed grams · kcal · L/G/P (each via r0), mirroring the meal-footer figures.
+function SumReadout({ selection }: { selection: MealSelection }) {
+  const { t } = useTranslation();
+  if (!selection.mode) return null;
+  if (selection.selected.size === 0)
+    return <span className={styles.sumHint}>{t('meals.sum.empty')}</span>;
+  const s = selection.sum;
+  return (
+    <span className={styles.sumReadout}>
+      <span className={styles.sumSigma}>Σ</span>
+      <span>
+        {r0(s.kcal)} {t('meals.col.kcal')}
+      </span>
+      <span>
+        {r0(s.grams)} {t('meals.sum.grams')}
+      </span>
+      <span>
+        {t('meals.col.fat')} {r0(s.fat)}
+      </span>
+      <span>
+        {t('meals.col.carb')} {r0(s.carb)}
+      </span>
+      <span>
+        {t('meals.col.protein')} {r0(s.protein)}
+      </span>
+    </span>
+  );
+}
+
+// The centered readout + the Σ toggle (B-207), extracted so MealsControls stays within the line cap.
+function SelectionBar({ selection }: { selection: MealSelection }) {
+  const { t } = useTranslation();
+  return (
+    <>
+      <span className={styles.ctrlSpacer}>
+        <SumReadout selection={selection} />
+      </span>
+      <button
+        type="button"
+        className={`${styles.sumToggle}${selection.mode ? ` ${styles.sumToggleOn}` : ''}`}
+        onClick={selection.toggleMode}
+        aria-pressed={selection.mode}
+        title={t('meals.sum.toggle')}
+        aria-label={t('meals.sum.toggle')}
+      >
+        Σ
+      </button>
+    </>
+  );
+}
 
 // Controls row above the meal scroller: the ✨ Proposition IA button (B-123), Copier hier
 // (B-082), Tout effacer (B-046), and + Repas. Kept out of MealsPage so the page stays a thin
@@ -35,6 +90,7 @@ export function MealsControls({
 }: Props) {
   const { t } = useTranslation();
   const [showProposals, setShowProposals] = useState(false);
+  const { selection } = useMeals();
   const settings = useSettingsQuery().data?.data;
   // The meal-suggestions endpoint needs a connection AND a model for this task (else 409). Gate
   // the button on the same condition (D7); stay optimistic while settings are still loading.
@@ -63,7 +119,7 @@ export function MealsControls({
           <Link to="/parametres">{t('meals.proposals.configureLink')}</Link>
         </span>
       )}
-      <span className={styles.ctrlSpacer} />
+      <SelectionBar selection={selection} />
       <button
         type="button"
         className={styles.histBtn}

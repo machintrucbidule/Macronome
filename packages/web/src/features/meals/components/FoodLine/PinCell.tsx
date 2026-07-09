@@ -35,7 +35,10 @@ export function PinCell({ mealId, entryId, isPinned, show }: PinCellProps) {
       tabIndex={-1}
       title={title}
       aria-pressed={isPinned}
-      onClick={() => void actions.togglePin(mealId, entryId, isPinned)}
+      onClick={(e) => {
+        e.stopPropagation(); // don't toggle row selection (B-207)
+        void actions.togglePin(mealId, entryId, isPinned);
+      }}
     >
       📌
     </button>

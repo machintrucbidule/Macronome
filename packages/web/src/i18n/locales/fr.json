@@ -568,6 +568,11 @@
       "carb": "G",
       "protein": "P"
     },
+    "sum": {
+      "toggle": "Somme de la sélection",
+      "empty": "Sélectionnez des lignes",
+      "grams": "g"
+    },
     "line": {
       "addFood": "+ aliment",
       "manual": "Saisie manuelle",
