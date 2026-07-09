@@ -45,15 +45,52 @@
   padding: var(--sp-4) var(--sp-6);
   border-bottom: var(--bw) solid var(--border);
 }
-.ch .t {
+.ch .t,
+.chToggle .t {
   font-family: var(--font-display);
   font-weight: var(--fw-bold);
   font-size: var(--fs-14);
 }
-.ch .meta {
+.ch .meta,
+.chToggle .meta {
   font-family: var(--font-num);
   font-size: var(--fs-11);
   color: var(--text-faint);
+}
+
+/* Collapsible card header (B-209): the whole title row is a toggle button. Reuses the .ch
+   layout; the bottom border only shows while expanded (it separates header from body). */
+.chToggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding: var(--sp-4) var(--sp-6);
+  border: 0;
+  border-bottom: var(--bw) solid var(--border);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.chToggle[aria-expanded='false'] {
+  border-bottom: 0;
+}
+.chToggle:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+.chRight {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.chevron {
+  color: var(--text-faint);
+  font-size: var(--fs-12);
+  line-height: 1;
 }
 .cb {
   padding: 0 var(--sp-6);

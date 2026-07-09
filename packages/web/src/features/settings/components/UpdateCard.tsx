@@ -5,6 +5,7 @@ import { Button } from '../../../components/Button/Button';
 import { api } from '../../../api/client';
 import { forceUpdate } from '../../../lib/pwa/registerSw';
 import { useInstallPrompt } from '../../../lib/pwa/useInstallPrompt';
+import { SettingsCard } from './SettingsCard';
 import styles from '../settings.module.css';
 
 // Mise à jour card (PWA-1, design/components/pwa.md): the running version (read from the public
@@ -36,27 +37,25 @@ export function UpdateCard() {
   const version = health.data?.version;
 
   return (
-    <div className={styles.card}>
-      <div className={styles.ch}>
-        <span className={styles.t}>{t('settings.update.title')}</span>
-        {version && (
-          <span className={styles.meta}>{t('settings.update.version', { version })}</span>
-        )}
-      </div>
-      <div className={styles.cb}>
-        <Row label={t('settings.update.refresh.label')} desc={t('settings.update.refresh.desc')}>
-          <Button variant="ghost" onClick={() => void forceUpdate()}>
-            {t('settings.update.refresh.button')}
+    <SettingsCard
+      id="update"
+      title={t('settings.update.title')}
+      aside={
+        version && <span className={styles.meta}>{t('settings.update.version', { version })}</span>
+      }
+    >
+      <Row label={t('settings.update.refresh.label')} desc={t('settings.update.refresh.desc')}>
+        <Button variant="ghost" onClick={() => void forceUpdate()}>
+          {t('settings.update.refresh.button')}
+        </Button>
+      </Row>
+      {canInstall && (
+        <Row label={t('settings.update.install.label')} desc={t('settings.update.install.desc')}>
+          <Button variant="ghost" onClick={promptInstall}>
+            {t('settings.update.install.button')}
           </Button>
         </Row>
-        {canInstall && (
-          <Row label={t('settings.update.install.label')} desc={t('settings.update.install.desc')}>
-            <Button variant="ghost" onClick={promptInstall}>
-              {t('settings.update.install.button')}
-            </Button>
-          </Row>
-        )}
-      </div>
-    </div>
+      )}
+    </SettingsCard>
   );
 }

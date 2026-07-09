@@ -6,6 +6,7 @@ import { useGoogleDriveBackup } from '../useGoogleDriveBackup';
 import { GoogleDriveActions } from './GoogleDriveActions';
 import { GoogleDriveFields } from './GoogleDriveFields';
 import { GoogleDriveHelp } from './GoogleDriveHelp';
+import { SettingsCard } from './SettingsCard';
 import styles from '../settings.module.css';
 
 // Google Drive backup card (specifications/screens/settings.md, B-208): OAuth Connect + the
@@ -35,57 +36,59 @@ export function GoogleDriveCard() {
   const { flash, dismiss } = useGdriveFlash();
 
   return (
-    <div className={styles.card}>
-      <div className={styles.ch}>
-        <span className={styles.t}>{t('settings.gdrive.title')}</span>
+    <SettingsCard
+      id="gdrive"
+      title={t('settings.gdrive.title')}
+      defaultOpen={false}
+      bodyClassName={styles.aiBody}
+      aside={
         <span className={styles.pill}>
           {f.connected ? t('settings.gdrive.connected') : t('settings.gdrive.notConnected')}
         </span>
-      </div>
-      <div className={`${styles.cb} ${styles.aiBody}`}>
-        <p className={styles.aiIntro}>{t('settings.gdrive.desc')}</p>
+      }
+    >
+      <p className={styles.aiIntro}>{t('settings.gdrive.desc')}</p>
 
-        {flash?.ok && (
-          <Banner tone="info" onDismiss={dismiss}>
-            {t('settings.gdrive.connectedOk')}
-          </Banner>
+      {flash?.ok && (
+        <Banner tone="info" onDismiss={dismiss}>
+          {t('settings.gdrive.connectedOk')}
+        </Banner>
+      )}
+      {flash?.error && (
+        <Banner tone="warning" onDismiss={dismiss}>
+          {t(`settings.gdrive.errors.${flash.error}`)}
+        </Banner>
+      )}
+
+      <GoogleDriveFields f={f} />
+
+      <p className={styles.aiNote}>
+        {f.lastBackupAt
+          ? t('settings.gdrive.lastBackup', { date: formatDate(f.lastBackupAt, i18n.language) })
+          : t('settings.gdrive.neverBackedUp')}
+        {f.lastStatus === 'error' && ` — ${t('settings.gdrive.lastFailed')}`}
+        {f.folderUrl && (
+          <>
+            {' · '}
+            <a href={f.folderUrl} target="_blank" rel="noreferrer">
+              {t('settings.gdrive.openFolder')}
+            </a>
+          </>
         )}
-        {flash?.error && (
-          <Banner tone="warning" onDismiss={dismiss}>
-            {t(`settings.gdrive.errors.${flash.error}`)}
-          </Banner>
-        )}
+      </p>
 
-        <GoogleDriveFields f={f} />
+      {f.connectError && (
+        <Banner tone="warning">{t(`settings.gdrive.errors.${f.connectError}`)}</Banner>
+      )}
+      {f.backupError && (
+        <Banner tone="warning">{t(`settings.gdrive.errors.${f.backupError}`)}</Banner>
+      )}
 
-        <p className={styles.aiNote}>
-          {f.lastBackupAt
-            ? t('settings.gdrive.lastBackup', { date: formatDate(f.lastBackupAt, i18n.language) })
-            : t('settings.gdrive.neverBackedUp')}
-          {f.lastStatus === 'error' && ` — ${t('settings.gdrive.lastFailed')}`}
-          {f.folderUrl && (
-            <>
-              {' · '}
-              <a href={f.folderUrl} target="_blank" rel="noreferrer">
-                {t('settings.gdrive.openFolder')}
-              </a>
-            </>
-          )}
-        </p>
+      <GoogleDriveHelp />
 
-        {f.connectError && (
-          <Banner tone="warning">{t(`settings.gdrive.errors.${f.connectError}`)}</Banner>
-        )}
-        {f.backupError && (
-          <Banner tone="warning">{t(`settings.gdrive.errors.${f.backupError}`)}</Banner>
-        )}
+      <p className={styles.aiNote}>{t('settings.gdrive.cleartextNote')}</p>
 
-        <GoogleDriveHelp />
-
-        <p className={styles.aiNote}>{t('settings.gdrive.cleartextNote')}</p>
-
-        <GoogleDriveActions f={f} />
-      </div>
-    </div>
+      <GoogleDriveActions f={f} />
+    </SettingsCard>
   );
 }

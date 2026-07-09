@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import type { Locale, Theme } from '@macronome/shared';
 import { applyLocale, applyTheme } from '../../../app/applySettings';
 import { useSettingsMutation, useSettingsQuery } from '../useSettings';
+import { SettingsCard } from './SettingsCard';
 import styles from '../settings.module.css';
 
 // Apparence & langue card (screens/settings.md): theme (system/light/dark) + language
@@ -31,45 +32,40 @@ export function AppearanceCard() {
   };
 
   return (
-    <div className={styles.card}>
-      <div className={styles.ch}>
-        <span className={styles.t}>{t('settings.appearance.title')}</span>
-      </div>
-      <div className={styles.cb}>
-        <div className={styles.row}>
-          <span className={styles.lab}>{t('settings.appearance.theme')}</span>
-          <div className={styles.seg}>
-            {THEMES.map((mode) => (
-              <button
-                key={mode}
-                type="button"
-                aria-pressed={theme === mode}
-                onClick={() => setTheme(mode)}
-              >
-                {t(THEME_KEY[mode])}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className={styles.row}>
-          <span className={styles.lab}>{t('settings.appearance.language')}</span>
-          <div className={styles.seg}>
-            <button type="button" aria-pressed={locale === 'fr'} onClick={() => setLocale('fr')}>
-              {t('settings.appearance.fr')}
+    <SettingsCard id="appearance" title={t('settings.appearance.title')}>
+      <div className={styles.row}>
+        <span className={styles.lab}>{t('settings.appearance.theme')}</span>
+        <div className={styles.seg}>
+          {THEMES.map((mode) => (
+            <button
+              key={mode}
+              type="button"
+              aria-pressed={theme === mode}
+              onClick={() => setTheme(mode)}
+            >
+              {t(THEME_KEY[mode])}
             </button>
-            <button type="button" aria-pressed={locale === 'en'} onClick={() => setLocale('en')}>
-              {t('settings.appearance.en')}
-            </button>
-          </div>
-        </div>
-        <div className={styles.row}>
-          <span className={styles.lab}>
-            {t('settings.appearance.units')}
-            <span className={styles.desc}>{t('settings.appearance.unitsNote')}</span>
-          </span>
-          <span className={styles.ro}>{t('settings.appearance.unitsValue')}</span>
+          ))}
         </div>
       </div>
-    </div>
+      <div className={styles.row}>
+        <span className={styles.lab}>{t('settings.appearance.language')}</span>
+        <div className={styles.seg}>
+          <button type="button" aria-pressed={locale === 'fr'} onClick={() => setLocale('fr')}>
+            {t('settings.appearance.fr')}
+          </button>
+          <button type="button" aria-pressed={locale === 'en'} onClick={() => setLocale('en')}>
+            {t('settings.appearance.en')}
+          </button>
+        </div>
+      </div>
+      <div className={styles.row}>
+        <span className={styles.lab}>
+          {t('settings.appearance.units')}
+          <span className={styles.desc}>{t('settings.appearance.unitsNote')}</span>
+        </span>
+        <span className={styles.ro}>{t('settings.appearance.unitsValue')}</span>
+      </div>
+    </SettingsCard>
   );
 }

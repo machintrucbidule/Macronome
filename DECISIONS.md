@@ -4485,3 +4485,31 @@ cleartext note); `docs/architecture/ops.md` (§6/§6c operator setup + hardened 
 `docs/architecture/decisions/0004-drive-backup.md`. **No code, no schema.prisma, no migration** —
 config lives in the existing `settings` jsonb blob; the backup reuses `buildExport` unchanged.
 **Backend (Batch 7) and web (Batch 8) follow.**
+
+## B-209 — Collapsible Settings-page cards — RESOLVED (owner, 2026-07-09)
+
+**Decision:** on the **Paramètres screen only**, every section card becomes **collapsible** — the title
+row is a toggle (chevron **`▾` open / `▸` collapsed**, `aria-expanded`) that shows/hides the card body.
+The header (title + any right-side meta) stays visible collapsed. **Default: all open EXCEPT "Structure
+de journée par défaut" and "Sauvegarde Google Drive"**, which start collapsed (longest / least-touched).
+Per-card open/closed state is **persisted client-side in `localStorage`** under `macronome.settings
+.collapsed` (a JSON map keyed by a stable card id) — a **pure UI preference**, deliberately **not
+server-backed** and therefore **not synced across devices** (unlike theme/locale, which are on
+`app_user.settings`). No animation beyond the glyph swap (matches the house `AdviceArchive` disclosure).
+**Web-only — no backend/API/DTO/schema change** (CLAUDE.md rule 2 untouched).
+
+**Why localStorage-only:** collapse state is a transient per-device view preference, not account data;
+mirroring the existing `macronome.theme` fast-path idiom keeps it simple and avoids a settings-blob
+round-trip for a cosmetic toggle. Accepted trade-off: it does not follow the user to another device.
+
+**Contract impact:** `specifications/screens/settings.md` (§Layout — Collapsible cards note). **Code
+(web-only):** new `features/settings/useCollapsed.ts` (localStorage JSON-map hook) + `features/settings/
+components/SettingsCard.tsx` (shared `.card` wrapper: toggle header + chevron + collapsible body); the
+five settings cards (`AppearanceCard`/`MealTemplateCard`/`DataCard`/`GoogleDriveCard`/`UpdateCard`)
+refactored to render `<SettingsCard>` (ids `appearance`/`template`/`data`/`gdrive`/`update`; `template`
+
+- `gdrive` `defaultOpen=false`; `template` keeps `flow`; `gdrive` keeps `aiBody` body class);
+  `settings.module.css` (`.chToggle`/`.chRight`/`.chevron`, `.t`/`.meta` selectors extended to the toggle
+  header). **Tests:** new `SettingsCard.test.tsx` (default open/collapsed, toggle, localStorage persistence);
+  `GoogleDriveCard.test.tsx` updated to expand the (now default-collapsed) card first. **Gate:** typecheck +
+  lint + check:i18n + web unit green. No new i18n keys (the toggle's accessible name is the card title).

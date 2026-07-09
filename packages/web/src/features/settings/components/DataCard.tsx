@@ -3,6 +3,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import { Button } from '../../../components/Button/Button';
 import { ConfirmTyped } from '../../../components/Modal/ConfirmTyped';
 import { useDataActions } from '../useData';
+import { SettingsCard } from './SettingsCard';
 import styles from '../settings.module.css';
 
 // Données card (specifications/screens/settings.md §Données — IMP-1): export a full snapshot,
@@ -25,28 +26,23 @@ export function DataCard() {
   const a = useDataActions();
 
   return (
-    <div className={styles.card}>
-      <div className={styles.ch}>
-        <span className={styles.t}>{t('settings.data.title')}</span>
-      </div>
-      <div className={styles.cb}>
-        <Row label={t('settings.data.export.label')} desc={t('settings.data.export.desc')}>
-          <Button variant="ghost" onClick={a.onExport} disabled={a.exporting}>
-            {t('settings.data.export.button')}
-          </Button>
-        </Row>
-        <Row label={t('settings.data.import.label')} desc={t('settings.data.import.desc')}>
-          <Button variant="ghost" onClick={a.onPickFile}>
-            {t('settings.data.import.button')}
-          </Button>
-        </Row>
-        <Row label={t('settings.data.wipe.label')} desc={t('settings.data.wipe.desc')}>
-          <Button variant="danger" onClick={() => a.setMode('wipe')}>
-            {t('settings.data.wipe.button')}
-          </Button>
-        </Row>
-        {a.error && <div className={styles.error}>{a.error}</div>}
-      </div>
+    <SettingsCard id="data" title={t('settings.data.title')}>
+      <Row label={t('settings.data.export.label')} desc={t('settings.data.export.desc')}>
+        <Button variant="ghost" onClick={a.onExport} disabled={a.exporting}>
+          {t('settings.data.export.button')}
+        </Button>
+      </Row>
+      <Row label={t('settings.data.import.label')} desc={t('settings.data.import.desc')}>
+        <Button variant="ghost" onClick={a.onPickFile}>
+          {t('settings.data.import.button')}
+        </Button>
+      </Row>
+      <Row label={t('settings.data.wipe.label')} desc={t('settings.data.wipe.desc')}>
+        <Button variant="danger" onClick={() => a.setMode('wipe')}>
+          {t('settings.data.wipe.button')}
+        </Button>
+      </Row>
+      {a.error && <div className={styles.error}>{a.error}</div>}
 
       <input
         ref={a.fileRef}
@@ -81,6 +77,6 @@ export function DataCard() {
           <Trans i18nKey="settings.data.import.modalBody" components={{ b: <b /> }} />
         </ConfirmTyped>
       )}
-    </div>
+    </SettingsCard>
   );
 }

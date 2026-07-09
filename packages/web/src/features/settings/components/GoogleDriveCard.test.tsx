@@ -57,19 +57,25 @@ function renderCard(gd: GoogleDriveRead | null, entry = '/parametres') {
     Promise.resolve({ data: { ...settings(gd), ...body } }),
   );
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(
+  const r = render(
     <QueryClientProvider client={qc}>
       <MemoryRouter initialEntries={[entry]}>
         <GoogleDriveCard />
       </MemoryRouter>
     </QueryClientProvider>,
   );
+  // B-209: the card is collapsible and defaults to collapsed — expand it to reach the body.
+  fireEvent.click(
+    screen.getByRole('button', { name: new RegExp(i18n.t('settings.gdrive.title')) }),
+  );
+  return r;
 }
 
 const connectBtn = () => screen.getByRole('button', { name: i18n.t('settings.gdrive.connect') });
 
 afterEach(async () => {
   cleanup();
+  localStorage.clear();
   await i18n.changeLanguage('fr');
   vi.clearAllMocks();
 });
