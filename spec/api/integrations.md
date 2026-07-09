@@ -1,13 +1,18 @@
-# API — integrations (Home Assistant, BarclaudeGateway proxies)
+# API — integrations (Home Assistant, BarclaudeGateway, Google Drive)
 
 See `00-conventions.md`. Scoped to the authenticated user. Logic in
 `spec/logic/integrations-connections.md`; stored shapes in `spec/schema/tables-catalog.md`
 (`settings.integrations`); the settings read/patch transport is documented in
 `weight-targets-stats-settings.md` §Settings.
 
-All endpoints are **server-side proxies** reading the **stored** connection config —
-secrets never reach the browser. The UI persists edits first (a normal `/settings`
-PATCH), then calls the proxy ("persist then test", same flow as `/settings/ai/models`).
+The Home Assistant and BarclaudeGateway endpoints are **server-side proxies** reading the
+**stored** connection config — secrets never reach the browser. The UI persists edits first
+(a normal `/settings` PATCH), then calls the proxy ("persist then test", same flow as
+`/settings/ai/models`). The **Google Drive** endpoints (backup, B-208) are not proxies but
+an OAuth handshake + backup actions; they read/write the same stored config and likewise
+never return secrets. All config (URLs, tokens, Drive scheduling fields) is written through
+the normal `PATCH /settings` merge — these endpoints only perform actions, never store
+plain config themselves (except the OAuth callback, which writes the obtained token).
 
 ## Settings transport (read/patch)
 
@@ -21,15 +26,31 @@ PATCH), then calls the proxy ("persist then test", same flow as `/settings/ai/mo
       "weight_entity_id": "sensor.scale_weight",
       "weight_round_decimals": 1
     },
-    "barclaude_gateway": { "base_url": "http://gateway.local:8080", "api_key_set": true }
+    "barclaude_gateway": { "base_url": "http://gateway.local:8080", "api_key_set": true },
+    "google_drive": {
+      "client_id": "1234.apps.googleusercontent.com",
+      "client_secret_set": true,
+      "refresh_token_set": true,
+      "folder_id": "F1",
+      "enabled": true,
+      "retention_days": 7,
+      "time_of_day": "03:00",
+      "last_backup_at": "2026-01-15T02:00:00Z",
+      "last_status": "ok",
+      "last_error": null
+    }
   }
   ```
-  Either connection is `null` when not configured.
+  Any connection is `null` when not configured.
 - On **`PATCH /settings`**, `integrations` is a partial object merged per connection
   (`integrations-connections.md §3`; secrets absent = keep, `""`/`null` = clear;
   a connection set to `null` disconnects it). Validation is local (Zod at the
   controller): bad URL → 422 (`invalid_url`), bad entity id → 422 (`invalid_entity_id`),
-  bad decimals → 422 (`invalid_round_decimals`).
+  bad decimals → 422 (`invalid_round_decimals`), bad Drive retention → 422
+  (`invalid_retention_days`), bad Drive time → 422 (`invalid_time_of_day`). For
+  `google_drive` the **only patchable fields** are `client_id`, `client_secret`, `enabled`,
+  `retention_days`, `time_of_day`; `refresh_token` / `folder_id` / `last_*` are
+  server-written and **ignored if present in a patch** (`integrations-connections.md §3`).
 
 ## Endpoints
 
@@ -63,3 +84,41 @@ product_url}` (absent upstream fields → null; `price_eur ← price.default`;
   derived from kJ, `name = "Brand Name"`, `comment = unitQuantityLabel`).
   Errors: same table as `/ping` **plus** upstream 404/`not_found` → 404
   `gateway_not_found`.
+
+## Google Drive backup (B-208)
+
+OAuth handshake + backup actions on the stored `integrations.google_drive` connection
+(`integrations-connections.md §9`; scheduling/rotation in `backup-scheduler.md`). No
+config-write endpoint: `client_id`/`client_secret` and the scheduling fields
+(`enabled`/`retention_days`/`time_of_day`) are set through the normal `PATCH /settings`
+merge (above). All error codes: `integrations-connections.md §9.5`.
+
+- `POST /integrations/google-drive/connect` — starts the OAuth flow. Requires
+  `client_id`/`client_secret` stored (`integrations-connections.md §9.2`) and an **HTTPS**
+  origin derived from the trusted-proxy headers. → 200 `{data: {auth_url}}` (the Google
+  consent URL the browser then visits). CSRF-protected.
+  Errors: `gdrive_not_configured` 409 · `gdrive_insecure_context` 409.
+- `GET /integrations/google-drive/callback?code&state` — Google's redirect target (the
+  exact URL the operator registered). Validates `state`, exchanges `code` → `refresh_token`
+  (stored, server-written only), creates/finds the "Macronome Backups" folder (stores
+  `folder_id`), then **302-redirects** the browser to `/parametres`. Not a JSON endpoint
+  (it is hit by the browser via Google). On `?error=access_denied` it redirects to
+  `/parametres` with an error marker; internal failures map to the codes below.
+  Errors: `gdrive_oauth_denied` 400 · `gdrive_oauth_failed` 502 · `gdrive_unreachable` 504.
+- `GET /integrations/google-drive/status` — the current backup state for the Settings card
+  (also derivable from the redacted `GET /settings`, provided as a focused endpoint for
+  status polling). → 200 `{data: {connected, enabled, retention_days, time_of_day,
+last_backup_at, last_status, last_error, folder_url}}` where `connected` = a
+  `refresh_token` is stored and `folder_url` = the Drive folder link (or `null`). Returns
+  the not-configured state (`connected:false`) rather than an error when nothing is set up.
+- `POST /integrations/google-drive/disconnect` — best-effort revokes the token at Google,
+  clears `refresh_token`/`folder_id`/`last_*`, sets `enabled:false`, keeps
+  `client_id`/`client_secret`/config (`integrations-connections.md §9.3`). → 200 `{data:
+{connected: false}}`. CSRF-protected. Idempotent (already-disconnected → 200).
+- `POST /integrations/google-drive/backup-now` — runs one backup immediately
+  (`buildExport` → upload → rotate, `integrations-connections.md §9.4`), then persists the
+  `last_*` status. → 200 `{data: {last_backup_at, last_status, last_error}}`. Requires a
+  connected account. CSRF-protected.
+  Errors: `gdrive_not_connected` 409 · `gdrive_token_expired` 502 · `gdrive_unauthorized`
+  502 · `gdrive_quota_exceeded` 502 · `gdrive_unavailable` 503 · `gdrive_unreachable` 504 ·
+  `gdrive_bad_response` 502.

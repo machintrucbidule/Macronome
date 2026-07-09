@@ -100,6 +100,19 @@ external-integration connections. Keys (all optional; service supplies defaults)
     "base_url": "http://…", // absolute URL (host+port) of the local gateway
     "api_key": "…", // SECRET — same rules as ai.api_key
   },
+  "google_drive": {
+    // or null when not configured — outbound OAuth backup (B-208), opt-in / dormant by default
+    "client_id": "…", // operator's OAuth client id (public, not a secret)
+    "client_secret": "…", // SECRET — same rules as ai.api_key
+    "refresh_token": "…", // SECRET — obtained via Connect; SERVER-WRITTEN ONLY (never accepted from a PATCH)
+    "folder_id": "…", // or null — id of the app-created "Macronome Backups" folder; server-written
+    "enabled": false, // scheduler opt-in; default false
+    "retention_days": 7, // int 1..90 — rolling days kept on Drive; default 7
+    "time_of_day": "03:00", // "HH:MM" local (server TZ) scheduled time; default "03:00"
+    "last_backup_at": "…", // or null — ISO-8601 UTC of last successful backup; server-written
+    "last_status": "ok", // "ok" | "error" | null — last attempt outcome; server-written
+    "last_error": "…", // or null — short reason when last_status = "error"; server-written
+  },
 }
 ```
 
@@ -108,6 +121,19 @@ external-integration connections. Keys (all optional; service supplies defaults)
   `api_key_set` booleans instead), never logged, not encrypted at rest in v1. Consumed
   only by the server-side proxies under `/api/v1/integrations`
   (`spec/api/integrations.md`).
+- `google_drive.client_secret` and `google_drive.refresh_token` follow the same SECRET
+  doctrine (read DTO exposes `client_secret_set` / `refresh_token_set` booleans;
+  `refresh_token_set` is the "connected" signal). `client_id`, `folder_id`, `enabled`,
+  `retention_days`, `time_of_day`, and the `last_*` status fields are **not secret** and
+  are returned as-is. Only `client_id`, `client_secret`, `enabled`, `retention_days`,
+  `time_of_day` are **patchable**; `refresh_token`, `folder_id`, and the `last_*` fields are
+  **server-written only** (OAuth callback / scheduler / Backup-now), never accepted from a
+  `PATCH /settings`. See `spec/logic/integrations-connections.md §9` and
+  `spec/logic/backup-scheduler.md`. **Caveat:** because the data-export envelope embeds the
+  `settings` blob verbatim (`spec/api/data-export-import.md`), the Drive backup file itself
+  contains these secrets (and `ai`/HA secrets) in cleartext — the accepted v1 posture
+  (owner decision, `DECISIONS.md` → "B-208"); surfaced in the Settings card's cleartext
+  note.
 
 ## food
 

@@ -133,11 +133,58 @@ Guaranteed by design:
   a backup. The documented restore command above must be exercised once against a
   scratch DB before go-live.
 
-Explicitly the **operator's** choice, out of architecture scope: backup schedule
-(e.g. nightly), retention, off-host copy (NAS), Proxmox VM/CT snapshots, and PITR/WAL
-archiving. None are needed by the app; standard dumps cover the data-loss risk for a
-single-user daily tracker. (Recommended-but-not-required: a dump before each
-`migrate deploy`, per §5.)
+Explicitly the **operator's** choice, out of architecture scope: retention, off-host copy
+(NAS), Proxmox VM/CT snapshots, and PITR/WAL archiving. None are needed by the app; standard
+dumps cover the data-loss risk for a single-user daily tracker. (Recommended-but-not-required:
+a dump before each `migrate deploy`, per §5.) The one **in-app** convenience for off-host
+copies is the opt-in Google Drive backup (§6c) — orthogonal to the DB dumps above, which
+remain the authoritative full-fidelity backup.
+
+---
+
+## 6c. Automated off-host backup to Google Drive (opt-in) — ADR-0004
+
+An **optional, per-user, in-app** nightly backup of the account **data-export envelope**
+(the same JSON as Settings → "Exporter mes données") to the operator's **own** Google Drive.
+It is **dormant by default** and configured entirely in **Settings → Sauvegarde Google
+Drive**. It does **not** replace the Postgres dumps of §6 (which capture the full DB); it is a
+convenience off-host copy of the user-facing data. See ADR-0004 and
+`spec/logic/integrations-connections.md §9` + `spec/logic/backup-scheduler.md`.
+
+**Deployment posture required (why it is opt-in).** The OAuth "Connect" flow needs the app to
+present an **exact HTTPS callback URL** that Google has registered. ADR-0001's default is plain
+HTTP behind the operator's proxy, so **Connect only completes once the deployment is hardened**:
+
+- Front the app with **HTTPS** (your reverse proxy / tunnel terminates TLS, §2).
+- Set **`TRUSTED_PROXY`** to the proxy address/CIDR (§4) so the app derives the correct
+  `https://…` origin from `X-Forwarded-Proto`/`X-Forwarded-Host`. Without it Connect returns
+  `gdrive_insecure_context`.
+- Set the container **`TZ`** to the operator's zone if the default UTC is not desired — the
+  daily "Heure" (default `03:00`) is interpreted in the process-local time (`backup-scheduler.md`).
+
+**One-time Google setup (operator).** Each operator uses **their own** Google OAuth client —
+Macronome ships none. The in-app card carries the full click-by-click guide with the exact
+links; the steps are:
+
+1. Create (or pick) a project in the **Google Cloud Console**.
+2. **Enable the Google Drive API** for that project.
+3. Configure the **OAuth consent screen** as **External**.
+4. Add the least-privilege scope **`.../auth/drive.file`** (the app only ever touches the
+   files/folder it creates — it makes its own "Macronome Backups" folder).
+5. **Publish the consent screen to "Production."** In "Testing" Google **expires the refresh
+   token after 7 days**; publishing makes the token durable. The app stays **unverified** (only
+   you use it) — the "unverified app" warning at consent is expected and safe to accept.
+6. Create an **OAuth client ID** of type **Web application**.
+7. **Register the exact callback URL the card displays**
+   (`https://<your-host>/api/v1/integrations/google-drive/callback`) as an Authorized redirect URI.
+8. Copy the **client_id** and **client_secret** into the card's two fields, **Connecter**, then
+   enable and (optionally) set retention/time.
+
+**Not encrypted / secrets in cleartext.** The uploaded file is the export envelope, which embeds
+the `settings` blob — so **the backup file contains the Google refresh token, the AI API key, and
+the Home-Assistant token in cleartext** (accepted v1 posture, owner decision; ADR-0004). Keep the
+"Macronome Backups" Drive folder private. **Retention** defaults to **7 rolling days** (1–90); the
+scheduler catches up after downtime and never double-runs a day (`backup-scheduler.md`).
 
 ---
 

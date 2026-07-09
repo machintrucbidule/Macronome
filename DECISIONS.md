@@ -4420,3 +4420,68 @@ analysis/avoidances in the assembled message), `ai-meal-suggestions.test.ts` (AV
 
 - collapse defaults), new `AiCard.test.tsx` (field renders + saved in PATCH). **Gate:** typecheck +
   unit (632) + lint + check:i18n + integration (247) all green.
+
+## B-208 — Google Drive nightly backup: contracts (Batch 6) — RESOLVED (owner, 2026-07-09)
+
+An **opt-in, per-user, nightly off-host backup** of the account **data-export envelope** (the same
+JSON as Settings → "Exporter mes données", `buildExport(userId)`) to the operator's own Google
+Drive. This session writes the **contracts only** (no app code); the backend (Batch 7) and web
+(Batch 8) implement against them. It introduces the codebase's **first outbound OAuth integration**
+and its **first in-process scheduler**, both **dormant by default** — ADR-0004 keeps ADR-0001
+(single image, zero-config, operator-fronted proxy) intact for anyone who leaves it off.
+
+**Google mechanism (OAuth, not a service account).** On a personal Gmail, service-account-owned
+files count against the SA's own (0 GB) quota, so the user authorises the app against **their own**
+Drive via OAuth. Each **operator** brings **their own** OAuth client (`client_id`/`client_secret`);
+Macronome ships none. Scope is least-privilege **`drive.file`** → the app creates and manages its
+own **"Macronome Backups"** folder (no full-Drive scope, no arbitrary-folder picker). The consent
+screen must be **published to "Production"** (stays unverified) so the refresh token does not expire
+after 7 days ("Testing" limit).
+
+**Connection shape** (`settings.integrations.google_drive`, or `null`): `client_id` (public),
+`client_secret` + `refresh_token` (**SECRET**, redacted to `client_secret_set`/`refresh_token_set`),
+`folder_id`, `enabled` (default false), `retention_days` (1..90, default **7**), `time_of_day`
+(`HH:MM`, default **"03:00"**, server-local TZ), and server-written `last_backup_at`/`last_status`/
+`last_error`. **Patchable** via the normal `PATCH /settings` merge: `client_id`, `client_secret`,
+`enabled`, `retention_days`, `time_of_day`. **Server-written only** (OAuth callback / scheduler /
+Backup-now, ignored if present in a patch): `refresh_token`, `folder_id`, `last_*`.
+
+**OAuth handshake + hardened posture (decided).** The app **derives its callback URL** from the
+request origin honouring `X-Forwarded-*` **only** from the trusted proxy (`TRUSTED_PROXY`, same gate
+as the secure cookie). OAuth requires an exact Google-registered **HTTPS** redirect URI, so
+**Connect only completes on a hardened deployment** (HTTPS + trusted proxy); a plain-HTTP attempt
+returns `gdrive_insecure_context`. ADR-0001's default HTTP is unaffected while dormant.
+
+**In-process catch-up scheduler (decided).** A single ~15-min timer (`server.ts`) runs a user's
+backup when **past the scheduled time today AND no successful backup ran today** (state = persisted
+`last_backup_at`). Survives restarts, never double-runs, catches up a missed day — no cron
+container (consistent with the single-process ADR-0001). Pure decisions `isBackupDue` +
+`backupsToRotate` (rotation **by age** = last `retention_days` rolling days) carry neutral CI
+oracles.
+
+**Owner decisions made this session (flagged in the plan, approved):** (1) rotation **by age**
+(rolling days), not keep-newest-N — faithful to "7 rolling days" and robust to manual backups; (2)
+`time_of_day` in **server-local** time (operator sets `TZ`); (3) **disconnect** keeps
+`client_id`/`client_secret`/config for 1-click reconnect, clears only token/folder/status; (4) **no
+account e-mail displayed** (generic "Connecté" + folder link) — respects `drive.file`
+least-privilege; (5) a **new ADR-0004** rather than a note; (6) **secrets kept in cleartext** in the
+backup (accepted v1 posture) but made **visible** — the export envelope embeds the `settings` blob,
+so the backup file itself contains the Google refresh token + AI key + HA token in clear; a card
+note states this.
+
+**New error codes** (logic §9.5, to mirror in `shared/errors.ts` at Batch 7): `gdrive_not_configured`
+409 · `gdrive_insecure_context` 409 · `gdrive_not_connected` 409 · `gdrive_oauth_denied` 400 ·
+`gdrive_oauth_failed` 502 · `gdrive_token_expired` 502 · `gdrive_unauthorized` 502 ·
+`gdrive_quota_exceeded` 502 · `gdrive_unavailable` 503 · `gdrive_unreachable` 504 ·
+`gdrive_bad_response` 502. New validation codes: `invalid_retention_days`, `invalid_time_of_day`.
+
+**Contract impact (this batch, contracts only):** `spec/logic/integrations-connections.md` (title/
+intro, §1 `google_drive` object, §2 validation, §3 merge, §4 redaction, new §9 OAuth + Drive ops +
+error table + oracles); new `spec/logic/backup-scheduler.md` (catch-up loop + `isBackupDue` +
+`backupsToRotate` + oracles); `spec/api/integrations.md` (header, settings read/patch block,
+connect/callback/status/disconnect/backup-now); `spec/schema/tables-catalog.md` (§settings JSON
+`integrations.google_drive`); `specifications/screens/settings.md` (new card + setup guide +
+cleartext note); `docs/architecture/ops.md` (§6/§6c operator setup + hardened posture); new
+`docs/architecture/decisions/0004-drive-backup.md`. **No code, no schema.prisma, no migration** —
+config lives in the existing `settings` jsonb blob; the backup reuses `buildExport` unchanged.
+**Backend (Batch 7) and web (Batch 8) follow.**
