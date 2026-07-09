@@ -4,9 +4,13 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
+  /* Fill the (fillBody) sheet so .results owns the scroll and .search stays pinned (B-206). */
+  flex: 1;
 }
 
 .search {
+  /* Pinned at the top of the sheet; the results below it scroll. */
+  flex: none;
   margin: var(--sp-4) var(--sp-5);
   padding: 12px 14px;
   /* --fs-13 = 16px on mobile → no iOS focus-zoom (cross-cutting rule §8). */
@@ -24,6 +28,10 @@
 .results {
   display: flex;
   flex-direction: column;
+  /* Own scroll region below the pinned search, bound to the visible (keyboard-aware) sheet. */
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 .row {
   display: flex;

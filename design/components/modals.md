@@ -26,12 +26,15 @@ padding:14px 20px 20px`; right-aligned ghost + primary; a left-slotted danger
 
 ## Size scale — [AUTO-normalised]
 
-- **sm** `width:380px` (`max-width:94vw`) — weigh-in entry, container add/edit.
-- **md** `width:min(560px,93vw)` — custom food, food add/edit, leftover.
-- **lg** `width:min(960px,97vw)` — recipe builder (two-column `.builder`:
+The `Modal` `size` prop has **three** desktop widths (mobile ignores it — every modal is a
+full-width bottom sheet, MS-1). Cook-mode is a separate full-screen takeover, **not** a `size`.
+
+- **md** (default) `width:min(560px,93vw)` — custom food, food add/edit, leftover, Chronodrive
+  search, the target engine panels.
+- **confirm** `width:min(420px,92vw)` — confirmations, short editors/menus, weigh-in (incl. the
+  open-period reduced mode), container add/edit, parse-label, typed-confirm.
+- **wide** `width:min(880px,95vw)` — recipe builder (two-column `.builder`:
   `minmax(0,1fr) 300px`, collapses to 1 col ≤780px).
-- **cook** full-screen takeover — see below.
-- **confirm** `width:min(420px,92vw)` — archive confirmation.
 
 ## Mobile presentation (≤560px) — every modal is a bottom sheet (MS-1)
 
@@ -82,6 +85,33 @@ the desktop width (unchanged ≥561px); it has no effect on the mobile sheet (wh
 > (see `useFocusTrap.ts`); the trap's Tab-cycling `.focus()` calls use it too, to avoid scroll
 > jumps when tabbing a tall sheet. _(Diagnosed via the S3 account sheet — the sheet variant's first
 > consumer; the variant was dormant in S2. The animation itself was never the problem.)_
+
+> **Search overlays auto-focus their input (initial-focus target).** A search overlay — the Repas
+> food picker (`FoodPickerSheet`), the Chronodrive search (`ChronoSearchDialog`), the recipe-builder
+> ingredient search (`IngredientSearch`) — must land focus on its **search input** on open so the
+> mobile keyboard opens, **not** on the header `×`. The focus trap otherwise focuses the first
+> focusable in DOM order, and the Close button is rendered before the body — so it wins and the
+> keyboard never opens. `Modal` therefore accepts an **optional `initialFocusRef`**: the overlay
+> passes a ref to its input and the trap focuses that ref instead (still with
+> `{ preventScroll: true }`, per the rule above). Overlays that pass no ref keep the default
+> (first-focusable) behaviour. The inline `IngredientSearch` (an `Autocomplete`, not a `Modal`)
+> self-focuses its input with the same `preventScroll`.
+
+### Keyboard-aware search sheets (mobile)
+
+On the phone breakpoint a search sheet reacts to the **on-screen keyboard** so its input and first
+results never sit behind it:
+
+- A `visualViewport` hook (`lib/useKeyboardViewport.ts`) measures the keyboard's bottom overlap and
+  exposes it as `--kb-inset` (0 when the keyboard is closed). The bottom-sheet geometry subtracts it:
+  the scrim bottom becomes `calc(56px + env(safe-area-inset-bottom) + var(--kb-inset, 0px))` and the
+  sheet `max-height` loses `var(--kb-inset, 0px)`, so the sheet **lifts above the keyboard** and caps
+  to the _visible_ viewport. Non-search sheets don't mount the hook, so `--kb-inset` stays 0 and their
+  geometry is unchanged.
+- The search sheet opts into a **filled body** (`Modal`'s `fillBody`): the panel becomes a flex column
+  whose body owns the scroll, so the **search input stays pinned at the top** and the **results scroll
+  in their own region** below it (instead of the whole sheet scrolling and pushing the input
+  off-screen). Keyboard closed → identical to the standard sheet.
 
 ### Overlay taxonomy (one interaction language across screens)
 
@@ -144,7 +174,7 @@ States: open (empty) · pending (button disabled) · error (inline, stays open) 
 
 ## Open-period modal (Poids, B-176)
 
-sm-size — a **reduced mode of the weigh-in modal** for the synthetic open interval
+confirm-size — a **reduced mode of the weigh-in modal** for the synthetic open interval
 (`logic/weight-periods-trajectory.md §2.1`), opened by clicking the open-interval lead row.
 It has **no closing weigh-in**, so only the period-level fields are editable:
 

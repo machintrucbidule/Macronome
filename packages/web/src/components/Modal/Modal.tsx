@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, type ReactNode } from 'react';
+import { useEffect, useId, useRef, type ReactNode, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import styles from './Modal.module.css';
@@ -22,6 +22,18 @@ interface ModalProps {
    * omitted → the bar is exactly title + close. No effect on desktop.
    */
   headerAction?: ReactNode;
+  /**
+   * Optional initial-focus target (B-206). Search overlays pass a ref to their input so the focus
+   * trap lands focus on it (keyboard opens) instead of the header "×". Omitted → default
+   * first-focusable behaviour, unchanged for every other modal.
+   */
+  initialFocusRef?: RefObject<HTMLElement | null>;
+  /**
+   * Optional (B-206): make the mobile sheet a flex column whose body owns the scroll — the sheet's
+   * direct child stays pinned at the top and its inner list scrolls. Used by the keyboard-aware
+   * search sheets. Off by default (desktop + non-search modals unchanged).
+   */
+  fillBody?: boolean;
   onClose: () => void;
   children: ReactNode;
 }
@@ -30,17 +42,28 @@ interface ModalProps {
 // food modal) gets Escape, not the modal beneath it — without it both close at once.
 const modalStack: string[] = [];
 
-export function Modal({ title, size = 'md', headerAction, onClose, children }: ModalProps) {
+export function Modal({
+  title,
+  size = 'md',
+  headerAction,
+  initialFocusRef,
+  fillBody = false,
+  onClose,
+  children,
+}: ModalProps) {
   const { t } = useTranslation();
   const panelRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
-  useFocusTrap(panelRef);
+  useFocusTrap(panelRef, initialFocusRef);
   // On mobile every modal is a bottom sheet (MS-1); ≥561px `variant` is undefined → no extra
   // class, no close button → desktop markup unchanged.
   const isMobile = useIsMobile();
   const variant = isMobile ? 'sheet' : undefined;
+  // fillBody only affects the mobile sheet (the panel becomes a flex column with an inner scroll);
+  // ≥561px it is inert so desktop layout is unchanged.
+  const fillClass = fillBody && variant ? styles.fill : '';
 
   useEffect(() => {
     modalStack.push(titleId);
@@ -68,7 +91,7 @@ export function Modal({ title, size = 'md', headerAction, onClose, children }: M
     >
       <div
         ref={panelRef}
-        className={`${styles.modal} ${styles[size]} ${variant ? styles[variant] : ''}`}
+        className={`${styles.modal} ${styles[size]} ${variant ? styles[variant] : ''} ${fillClass}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}

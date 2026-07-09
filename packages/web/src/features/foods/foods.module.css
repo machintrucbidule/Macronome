@@ -247,6 +247,23 @@
 .chronoSearchRow > :first-child {
   flex: 1;
 }
+/* Keyboard-aware fill (B-206): on the phone breakpoint the dialog is a fillBody bottom sheet — the
+   search row stays pinned and the result list owns the scroll, so nothing hides behind the keyboard.
+   Scoped to mobile; the desktop centered dialog keeps its single-scroll body unchanged. */
+@media (max-width: 560px) {
+  .chronoBody {
+    flex: 1;
+    min-height: 0;
+  }
+  .chronoSearchRow {
+    flex: none;
+  }
+  .chronoList {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
+}
 /* Same look as the meals aiSpinner (modals.module.css) — feature-scoped copy. */
 .chronoSpinner {
   display: inline-block;

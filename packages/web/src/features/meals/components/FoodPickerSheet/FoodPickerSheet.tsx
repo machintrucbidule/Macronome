@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal } from '../../../../components/Modal/Modal';
 import { useMeals } from '../../MealsContext';
 import { useFoodSearch } from '../../hooks/useFoodLookup';
 import type { EditTarget } from '../../hooks/mealActions';
+import { useKeyboardViewport } from '../../../../lib/useKeyboardViewport';
 import styles from './food-picker-sheet.module.css';
 
 // Mobile-only food picker (spec §5.3 / overlay taxonomy §0.2). Replaces the inline autocomplete on
@@ -19,6 +20,9 @@ export function FoodPickerSheet({ target }: { target: EditTarget }) {
   const [query, setQuery] = useState(target.initialQuery ?? '');
   const search = useFoodSearch(query, true);
   const results = search.data?.data ?? [];
+  const searchRef = useRef<HTMLInputElement>(null);
+  // Keyboard-aware sheet (B-206): publishes --kb-inset while this sheet is open.
+  useKeyboardViewport();
 
   // Outline the line's current food when replacing (parity with the inline picker's `currentId`).
   const currentFoodId = useMemo(() => {
@@ -57,11 +61,11 @@ export function FoodPickerSheet({ target }: { target: EditTarget }) {
     );
 
   return (
-    <Modal title={title} onClose={actions.closeEdit}>
+    <Modal title={title} onClose={actions.closeEdit} initialFocusRef={searchRef} fillBody>
       <div className={styles.picker}>
         <input
+          ref={searchRef}
           className={styles.search}
-          autoFocus
           value={query}
           placeholder={t('meals.search.placeholder')}
           aria-label={t('meals.search.placeholder')}

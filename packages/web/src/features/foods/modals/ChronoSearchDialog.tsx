@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ChronoFoodPrefill, ChronoProductSummary } from '@macronome/shared';
 import { Modal, modalStyles } from '../../../components/Modal/Modal';
 import { SearchField } from '../../../components/Form/SearchField';
 import { ApiError } from '../../../api/client';
+import { useKeyboardViewport } from '../../../lib/useKeyboardViewport';
 import { useChronoProduct, useChronoSearch } from '../useChronoSearch';
 import styles from '../foods.module.css';
 
@@ -87,6 +88,9 @@ export function ChronoSearchDialog({ onClose, onApplied }: ChronoSearchDialogPro
   const [q, setQ] = useState('');
   const search = useChronoSearch(q);
   const pick = useChronoProduct();
+  const searchRef = useRef<HTMLInputElement>(null);
+  // Keyboard-aware sheet (B-206): publishes --kb-inset while this dialog is open.
+  useKeyboardViewport();
 
   const choose = (id: string): void => {
     pick.mutate(id, {
@@ -106,13 +110,19 @@ export function ChronoSearchDialog({ onClose, onApplied }: ChronoSearchDialogPro
   const failed = search.isError ? search.error : pick.isError ? pick.error : null;
 
   return (
-    <Modal title={t('foods.chrono.title')} size="md" onClose={onClose}>
+    <Modal
+      title={t('foods.chrono.title')}
+      size="md"
+      onClose={onClose}
+      initialFocusRef={searchRef}
+      fillBody
+    >
       <div className={modalStyles.sub}>{t('foods.chrono.sub')}</div>
-      <div className={modalStyles.body}>
+      <div className={`${modalStyles.body} ${styles.chronoBody}`}>
         <div className={styles.chronoSearchRow}>
           <SearchField
+            ref={searchRef}
             value={q}
-            autoFocus
             placeholder={t('foods.chrono.placeholder')}
             onChange={(e) => setQ(e.target.value)}
           />

@@ -92,14 +92,17 @@
   .scrim.scrimSheet {
     padding: 0;
     align-items: flex-end;
-    bottom: calc(56px + env(safe-area-inset-bottom));
+    /* B-206: --kb-inset (from useKeyboardViewport) lifts the sheet above the on-screen keyboard;
+       0 when the keyboard is closed, so the resting geometry is unchanged. */
+    bottom: calc(56px + env(safe-area-inset-bottom) + var(--kb-inset, 0px));
   }
 
   .sheet {
     width: 100vw;
     max-width: 100vw;
-    /* Capped to the space above the bottom nav (the scrimSheet bottom offset). */
-    max-height: calc(90dvh - 56px);
+    /* Capped to the space above the bottom nav (the scrimSheet bottom offset), minus the keyboard
+       inset so the sheet stays within the visible viewport (B-206). */
+    max-height: calc(90dvh - 56px - var(--kb-inset, 0px));
     margin: 0;
     border-left: none;
     border-right: none;
@@ -109,6 +112,15 @@
        sheet itself needs no extra bottom inset. */
     padding-bottom: 0;
     animation: sheet-up 180ms ease-out;
+  }
+
+  /* fillBody (B-206): the panel becomes a flex column whose body owns the scroll — the search sheets
+     keep their input pinned at the top while the results scroll below it, instead of the whole sheet
+     scrolling and pushing the input behind the keyboard. Opt-in; other sheets keep `.modal` overflow. */
+  .modal.fill {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
 
   /* Keep the three-button builder footer on ONE row without clipping (owner decision,

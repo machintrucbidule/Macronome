@@ -82,7 +82,10 @@ centred `--font-num` input (`width 42px`).
 
 `position:relative`; input `height:var(--control-h-md)` (36px), left-padded 32px
 for an inset magnifier `svg` (`16px; --text-faint; left:10px; top:9px`).
-Placeholder notes accent-insensitivity ("insensible aux accents").
+Placeholder notes accent-insensitivity ("insensible aux accents"). The component
+**forwards its ref** to the inner `<input>` so a search overlay can hand it to the
+modal focus trap as the initial-focus target (see `modals.md` — search overlays
+auto-focus their input on open).
 
 ## Autocomplete dropdown (food/recipe search) `.ac`
 
@@ -103,8 +106,11 @@ box-shadow:var(--shadow); max-height:240–300px; overflow:auto; min-width:260�
   **empty** and **trailing** (last row) once the user types (B-159) — so Enter/Tab keep selecting the
   first food while searching (B-023). It is never keyboard-highlighted (mouse/tap only).
 - Keyboard: ↑/↓ move `.hi`, Enter selects, Esc closes; Tab navigates the grid.
-
-## Inline editable cells
+- **Auto-focus + mobile keyboard**: the input **self-focuses on mount** (with
+  `{ preventScroll: true }`, per `modals.md`), so the mobile keyboard opens immediately. On
+  mobile the input font is `--fs-13` (= 16px) to avoid iOS focus-zoom (spec §8). The `.ac` list
+  keeps its **own** `max-height`/`overflow:auto` scroll, so it stays usable with the keyboard
+  open (no sheet-height restructure needed — unlike the full-screen search sheets in `modals.md`).
 
 Day comment, food name (recipe header), Journal comment: transparent field that
 shows a `--border` on hover and `--focus` + `--bg-field` on focus — reads as

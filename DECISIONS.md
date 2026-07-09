@@ -4191,3 +4191,42 @@ colour" bullets: WCO height + `theme-color = --bg-elev` in WCO). **Code:**
 `packages/web/src/app/applySettings.ts` (`syncThemeColor` WCO branch),
 `packages/web/src/app/providers/ThemeProvider.tsx` (WCO re-sync listener). Not unit-testable (WCO +
 `env()` / live meta) → owner visual re-validation in the installed Edge window; full gate green.
+
+## B-206 — Mobile search popups: auto-focus + keyboard-aware layout (run #56) — RESOLVED (user, 2026-07-09)
+
+The three search overlays misbehaved on mobile: opening one did **not** focus the search field (the
+on-screen keyboard stayed closed), and with the keyboard open the field / first results were pushed
+**behind** it. Two root causes (owner-confirmed, per the backlog diagnosis):
+
+- **Auto-focus (bug).** The two `Modal`-based sheets (`FoodPickerSheet`, `ChronoSearchDialog`) rely on
+  `useFocusTrap`, which focuses the **first focusable in DOM order** — the header `×` (rendered before
+  the body) — overriding the input's `autoFocus`. The recipe-builder `IngredientSearch` (inline
+  `Autocomplete`, not a `Modal`) already `.focus()`-ed its input but the keyboard did not open in
+  practice. **Fix:** `useFocusTrap` gains an **optional `initialFocusRef`** (focused with
+  `{ preventScroll: true }`, reconciled with the existing preventScroll rule); `Modal` forwards it;
+  the two sheets pass a ref to their input; `SearchField` is `forwardRef`. `Autocomplete`'s self-focus
+  gains `{ preventScroll: true }` for animation consistency.
+- **Keyboard-aware layout (improvement).** No `visualViewport` usage; the bottom sheet's
+  `max-height: calc(90dvh - 56px)` is static (`dvh` does not shrink for the keyboard) and it is a
+  single scroll container. **Fix:** new `lib/useKeyboardViewport.ts` measures the keyboard's bottom
+  overlap and writes `--kb-inset` (0 when closed); the shared sheet CSS subtracts it (scrim bottom +
+  sheet max-height), so the sheet lifts above the keyboard and caps to the visible viewport. A new
+  `Modal` `fillBody` opt-in makes the search sheets' panel a flex column whose body owns the scroll —
+  input pinned at top, results scroll below. Both are scoped to the search sheets (hook mounted only
+  there; `--kb-inset` defaults 0 → all other modals byte-identical).
+
+**Decision (owner, this session):** also **align the stale modal size-scale doc** — `modals.md`
+documented `sm/md/lg/cook/confirm` but the code only ships `md/confirm/wide` (doc-only alignment, no
+app change; weigh-in/open-period → `confirm`, recipe builder → `wide`).
+
+**Contract impact:** `design/components/modals.md` (size scale → md/confirm/wide; new auto-focus
+initial-target rule + keyboard-aware search-sheet section; body size labels realigned),
+`design/components/forms-inputs.md` (Search-field forwards ref; Autocomplete auto-focus + mobile
+keyboard note), `specifications/features/mobile-responsive/spec.md` §8 (auto-focus + keyboard-aware
+bullets). **Code:** `components/Modal/useFocusTrap.ts` (`initialFocusRef`), `Modal.tsx`
+(`initialFocusRef` + `fillBody`), `Modal.module.css` (`--kb-inset`, `fillBody`), `Form/SearchField.tsx`
+(`forwardRef`), `Form/Autocomplete/Autocomplete.tsx` (preventScroll), `FoodPickerSheet.tsx` +
+`food-picker-sheet.module.css`, `ChronoSearchDialog.tsx` + `features/foods/foods.module.css`, new
+`lib/useKeyboardViewport.ts`. Tests: `useKeyboardViewport.test.ts` (mocked `visualViewport`), focus
+tests for both sheets (jsdom `document.activeElement`). Open-keyboard rendering is not jsdom-testable
+→ owner visual check on mobile / installed Edge; full gate green.

@@ -15,20 +15,28 @@ function focusable(panel: HTMLElement): HTMLElement[] {
   );
 }
 
-export function useFocusTrap(panelRef: RefObject<HTMLElement | null>): void {
+export function useFocusTrap(
+  panelRef: RefObject<HTMLElement | null>,
+  // Optional explicit initial-focus target (B-206). Search overlays pass their input so the
+  // trap lands focus on it — not on the header "×" (the first focusable in DOM order), which
+  // otherwise wins and leaves the mobile keyboard closed. Bypasses the offsetParent visibility
+  // filter below, so it also works in jsdom (where nothing has an offsetParent).
+  initialFocusRef?: RefObject<HTMLElement | null>,
+): void {
   useEffect(() => {
     const panel = panelRef.current;
     if (!panel) return;
 
     const previouslyFocused = document.activeElement as HTMLElement | null;
 
-    // Focus the first focusable control, falling back to the panel itself. `preventScroll`
-    // is essential: a bare .focus() makes the browser scroll the focused element into view,
-    // and for a modal that animates in (e.g. the mobile sheet's slide-up) the element is
-    // mid-transform/off-screen at that instant, so the scroll chases its transient position
-    // and fights the animation — the panel visibly overshoots then settles (most visible on
-    // mobile). preventScroll keeps focus without the scroll, so the entrance animation is clean.
-    const first = focusable(panel)[0];
+    // Focus the explicit initial target if given, else the first focusable control, falling back
+    // to the panel itself. `preventScroll` is essential: a bare .focus() makes the browser scroll
+    // the focused element into view, and for a modal that animates in (e.g. the mobile sheet's
+    // slide-up) the element is mid-transform/off-screen at that instant, so the scroll chases its
+    // transient position and fights the animation — the panel visibly overshoots then settles
+    // (most visible on mobile). preventScroll keeps focus without the scroll, so the entrance
+    // animation is clean.
+    const first = initialFocusRef?.current ?? focusable(panel)[0];
     (first ?? panel).focus({ preventScroll: true });
 
     const onKeyDown = (e: KeyboardEvent): void => {
@@ -57,5 +65,5 @@ export function useFocusTrap(panelRef: RefObject<HTMLElement | null>): void {
       panel.removeEventListener('keydown', onKeyDown);
       previouslyFocused?.focus?.();
     };
-  }, [panelRef]);
+  }, [panelRef, initialFocusRef]);
 }

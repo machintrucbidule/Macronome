@@ -183,7 +183,10 @@ export function Autocomplete({
   useEffect(() => {
     const el = inputRef.current;
     if (!el) return;
-    el.focus();
+    // preventScroll: the recipe-builder ingredient search opens inside an animating bottom sheet on
+    // mobile (B-206); a bare .focus() would scroll the mid-transform input into view and fight the
+    // slide-up. Matches the modal focus-trap rule (design/components/modals.md).
+    el.focus({ preventScroll: true });
     if (selectOnMount) el.select();
     else el.setSelectionRange(el.value.length, el.value.length); // caret at end (type-to-search)
   }, [selectOnMount]);
