@@ -17,22 +17,23 @@ function SumReadout({ selection }: { selection: MealSelection }) {
   if (selection.selected.size === 0)
     return <span className={styles.sumHint}>{t('meals.sum.empty')}</span>;
   const s = selection.sum;
+  // Order + styling mirror the meal lines / footer: grams (qté) · kcal (bold) · L/G/P colour-coded.
   return (
     <span className={styles.sumReadout}>
       <span className={styles.sumSigma}>Σ</span>
       <span>
-        {r0(s.kcal)} {t('meals.col.kcal')}
-      </span>
-      <span>
         {r0(s.grams)} {t('meals.sum.grams')}
       </span>
-      <span>
+      <span className={styles.sumKcal}>
+        {r0(s.kcal)} {t('meals.col.kcal')}
+      </span>
+      <span className={styles.sumFat}>
         {t('meals.col.fat')} {r0(s.fat)}
       </span>
-      <span>
+      <span className={styles.sumCarb}>
         {t('meals.col.carb')} {r0(s.carb)}
       </span>
-      <span>
+      <span className={styles.sumProt}>
         {t('meals.col.protein')} {r0(s.protein)}
       </span>
     </span>

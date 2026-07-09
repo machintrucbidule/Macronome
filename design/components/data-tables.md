@@ -201,9 +201,10 @@ controls keep their own actions (they stop the row-click). Eligible lines = fill
 (`[data-line-row]`), excluding empty rows and greyed qty-0 pantry scaffolds.
 
 The **sum readout** shows **centered** in the controls bar (in the `.ctrlSpacer`, between Proposition
-IA and the undo/redo group), only while selection mode is on: `Σ · <kcal> kcal · <g> g · L <fat> · G
-<carb> · P <protein>` in `--font-num`, each figure rounded per `00-conventions` (kcal + aggregate
-macro grams = integer, half-up). The sum is a **client-side ephemeral display aggregate** — a pure
+IA and the undo/redo group), only while selection mode is on. Its **order and styling mirror the meal
+lines / footer**: `Σ · <g> g · <kcal> kcal · L <fat> · G <carb> · P <protein>` in `--font-num` at
+`--fs-15`, with **kcal in bold** and the **L/G/P figures colour-coded** (`--c-fat`/`--c-carb`/
+`--c-prot`), each rounded per `00-conventions` (kcal + aggregate macro grams = integer, half-up). The sum is a **client-side ephemeral display aggregate** — a pure
 addition of the per-line `consumed` values the rows already hold; non-persisted, never authoritative
 (see `DECISIONS.md` B-207). A **selected meal footer** is highlighted the same blue `.selected` way
 over its `--bg-elev-2` background; its total figures are unchanged (only its selectable state is new).

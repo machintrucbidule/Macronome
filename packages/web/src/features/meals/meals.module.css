@@ -376,14 +376,15 @@
   justify-content: center;
   min-width: 0;
 }
-/* Selection-sum readout (B-207): centered in the controls row, shown only in selection mode. */
+/* Selection-sum readout (B-207): centered in the controls row, shown only in selection mode. Order
+   and styling mirror the meal lines / footer — grams (qté) · kcal (bold) · L/G/P colour-coded. */
 .sumReadout {
   display: flex;
   align-items: baseline;
-  gap: var(--sp-4);
+  gap: var(--sp-5);
   font-family: var(--font-num);
-  font-size: var(--fs-11);
-  color: var(--text-dim);
+  font-size: var(--fs-15);
+  color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -392,9 +393,21 @@
   color: var(--select);
   font-weight: 700;
 }
+.sumKcal {
+  font-weight: 700;
+}
+.sumFat {
+  color: var(--c-fat);
+}
+.sumCarb {
+  color: var(--c-carb);
+}
+.sumProt {
+  color: var(--c-prot);
+}
 .sumHint {
   font-family: var(--font-num);
-  font-size: var(--fs-11);
+  font-size: var(--fs-15);
   color: var(--text-faint);
 }
 /* Σ toggle (B-207): enters selection mode; distinct accent-filled pressed state when active. */
