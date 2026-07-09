@@ -829,6 +829,8 @@
     "configureLink": "Assistant IA",
     "archiveTitle": "Historique",
     "empty": "Aucun conseil pour l'instant. Clique sur « Générer des conseils IA ».",
+    "deleteTitle": "Supprimer ce conseil ?",
+    "deletePrompt": "Ce conseil archivé sera définitivement supprimé.",
     "errors": {
       "ai_not_configured": "IA non configurée.",
       "ai_unauthorized": "Le fournisseur a refusé la connexion (clé API ?).",
@@ -1153,6 +1155,8 @@
       "prompt": "Prompt (périmètre, en anglais)",
       "promptNote": "Le format de réponse est géré par l'application et n'est pas modifiable ici.",
       "reset": "Réinitialiser",
+      "avoidances": "Allergies / aliments non désirés",
+      "avoidancesNote": "Liste libre transmise à l'IA : elle évitera ces aliments, aussi bien dans les Conseils que dans les propositions de repas.",
       "save": "Enregistrer",
       "tasks": {
         "dish_photo_macros": "Photo → estimation des macros",

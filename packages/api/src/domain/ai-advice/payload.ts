@@ -21,6 +21,12 @@ import type {
 const ADVICE_JOURNAL_DAYS = 30;
 const r0 = (v: number | null | undefined): number | null => (v == null ? null : Math.round(v));
 
+/** A monthly adherence aggregate stamped with its year (B-215). `MonthlyStat` carries only
+ *  `month` (1–12); when the aggregator flattens the pivot over ALL logged years, same-numbered
+ *  months from different years would otherwise be indistinguishable to the coach. The year is
+ *  attached in the advice payload only — the stats-screen DTO is left untouched. */
+export type MonthlyStatDated = MonthlyStat & { year: number };
+
 /** One consumed meal food-line the coach can reason about (name + amount + macros). */
 export interface AdviceMealLine {
   name: string;
@@ -70,7 +76,7 @@ export interface AdvicePayload {
   };
   rolling: RollingWindow[];
   adherence: {
-    monthly: MonthlyStat[];
+    monthly: MonthlyStatDated[];
     key: KeyFigures | null;
     signals: Signal[];
     records: WeightRecords | null;
@@ -90,7 +96,7 @@ export interface AdvicePayloadInputs {
   trajectory: { date: string; value: number }[];
   periods: Period[];
   rolling: RollingWindow[];
-  adherenceMonthly: MonthlyStat[];
+  adherenceMonthly: MonthlyStatDated[];
   adherenceKey: KeyFigures | null;
   signals: Signal[];
   records: WeightRecords | null;

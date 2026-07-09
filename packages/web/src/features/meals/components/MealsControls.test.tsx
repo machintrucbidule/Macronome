@@ -86,6 +86,7 @@ function settings(aiConfigured: boolean): Settings {
             meal_suggestions: { model: 'gpt', prompt: 'p' },
             advice: { model: null, prompt: 'p' },
           },
+          avoidances: '',
         }
       : null,
   };

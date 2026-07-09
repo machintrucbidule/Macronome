@@ -85,6 +85,13 @@ carb_100g, rating, portions: [{ portion_id, label, grams }] }]`.
   (names + quantities only; §4 + Privacy §5).
 - **Precisions:** the free text (`note`).
 - **Constraints** (refine): `excluded_food_ids`, `pinned`, `avoid`.
+- **Avoidances** (`AVOID (user allergies/dislikes, free text)`): the user's persisted
+  `settings.ai.avoidances` list (B-216, `ai-connection.md §1`), when set — a **best-effort**
+  free-text instruction ("Never include any food matching these") appended after the context block
+  and **before** the format instruction. It is **omitted** when unset/whitespace-only. This
+  complements the deterministic candidate filtering (the pool already drops `rating = 0` and
+  substantial same-day foods); the free-text list is a soft steer, not a hard guarantee. The same
+  list also drives the advice use (`ai-advice.md §2.4`).
 
 ### 2.3 Hard-coded format instruction (verbatim, never stored)
 
@@ -135,8 +142,9 @@ The configured endpoint is **user-chosen and may be external** (Anthropic/OpenAI
 request sends the **minimum**: food names, per-100 g macros, ratings, portion labels + grams; the
 day-wide **remaining** numeric targets and entered totals (anonymous numbers); the **working day's
 own** already-eaten foods (names + consumed quantities, per meal — §2.2); an OK-day history sample
-(food names + quantities); the user's free-text precisions. It **never** sends: identity, weight or
-BMI history, food comments, or any date context beyond the working day.
+(food names + quantities); the user's free-text precisions; and — when set — the user's persisted
+**allergies / disliked-foods** free text (`settings.ai.avoidances`, §2.2, B-216). It **never** sends:
+identity, weight or BMI history, food comments, or any date context beyond the working day.
 
 ## 6. Response parsing & validation (pure function)
 

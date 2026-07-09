@@ -49,6 +49,10 @@ export const AiConnectionSchema = z.object({
     meal_suggestions: AiTaskSchema,
     advice: AiTaskSchema,
   }),
+  /** Free-text allergies / disliked foods (B-216). Connection-level (not per task): sent to BOTH
+   *  the advice and meal-suggestions models so neither proposes these foods. Optional; not a
+   *  secret (returned unredacted). */
+  avoidances: z.string().max(1000).optional(),
 });
 export type AiConnection = z.infer<typeof AiConnectionSchema>;
 
@@ -63,6 +67,8 @@ export const AiConnectionReadSchema = z.object({
     meal_suggestions: AiTaskReadSchema,
     advice: AiTaskReadSchema,
   }),
+  /** Allergies / disliked foods (B-216); returned as-is (not a secret), defaulting to `''`. */
+  avoidances: z.string(),
 });
 export type AiConnectionRead = z.infer<typeof AiConnectionReadSchema>;
 
@@ -84,6 +90,8 @@ export const AiConnectionPatchSchema = z.object({
     })
     .partial()
     .optional(),
+  /** Allergies / disliked foods (B-216); absent = keep, `''` = clear, else replace. */
+  avoidances: z.string().max(1000).optional(),
 });
 export type AiConnectionPatch = z.infer<typeof AiConnectionPatchSchema>;
 

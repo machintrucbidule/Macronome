@@ -3,7 +3,6 @@ import type {
   Cartouche,
   EngineReadout,
   JournalRow,
-  MonthlyStat,
   Profile,
   TargetVersion,
 } from '@macronome/shared';
@@ -15,6 +14,7 @@ import {
   windowStart,
   type AdvicePayload,
   type AdvicePayloadInputs,
+  type MonthlyStatDated,
 } from './payload.js';
 
 // B-202 neutral oracles (spec/logic/ai-advice.md §8): the pure payload shaping (30-day slice,
@@ -67,10 +67,12 @@ function jRow(date: string, kcal: number, L: number, G: number, P: number): Jour
   } as unknown as JournalRow;
 }
 
-const monthly: MonthlyStat[] = [
-  { month: 4 } as unknown as MonthlyStat,
-  { month: 5 } as unknown as MonthlyStat,
-  { month: 6 } as unknown as MonthlyStat,
+// Two June entries in different years (B-215): each monthly aggregate carries its year so the
+// all-history flatten never collapses same-numbered months across years.
+const monthly: MonthlyStatDated[] = [
+  { month: 4, year: 2025 } as unknown as MonthlyStatDated,
+  { month: 6, year: 2025 } as unknown as MonthlyStatDated,
+  { month: 6, year: 2026 } as unknown as MonthlyStatDated,
 ];
 
 function inputs(over: Partial<AdvicePayloadInputs> = {}): AdvicePayloadInputs {
@@ -154,13 +156,18 @@ describe('buildAdvicePayload', () => {
     expect(payload.weight_body.ema_last).toBe(79.9);
     expect(payload.weight_body.trajectory_last).toBe(79.5);
   });
+  it('keeps same-month/different-year monthly aggregates distinct via the year (B-215)', () => {
+    const june = payload.adherence.monthly.filter((m) => m.month === 6);
+    expect(june).toHaveLength(2);
+    expect(june.map((m) => m.year).sort()).toEqual([2025, 2026]);
+  });
   it('slices the journal to the 30-day window', () => {
     expect(payload.journal_30d.map((d) => d.date)).toEqual(['2026-06-15']);
   });
 });
 
 describe('buildAdviceMessages', () => {
-  it('orders scope → data → format → locale clause; language only in the clause', () => {
+  it('orders scope → data → analysis → format → locale clause; language only in the clause', () => {
     const [msg] = buildAdviceMessages('SCOPE_PROMPT', buildAdvicePayload(inputs()), 'fr');
     const text = (msg!.content[0] as { text: string }).text;
     expect(text.indexOf('SCOPE_PROMPT')).toBe(0);
@@ -169,6 +176,29 @@ describe('buildAdviceMessages', () => {
     expect(text.trimEnd().endsWith('Respond in French.')).toBe(true);
     // The scope prompt carries no language/format text (that lives in the clause + instruction).
     expect('SCOPE_PROMPT').not.toContain('French');
+  });
+  it('always instructs average-balance + deficiency-risk analysis with a no-micronutrient caveat (B-212)', () => {
+    const [msg] = buildAdviceMessages('SCOPE_PROMPT', buildAdvicePayload(inputs()), 'fr');
+    const text = (msg!.content[0] as { text: string }).text;
+    expect(text).toContain('balance over the average');
+    expect(text).toContain('deficiency RISKS');
+    expect(text).toContain('does not track micronutrients');
+    // The analysis instruction sits after the data and before the format instruction.
+    expect(text.indexOf('deficiency RISKS')).toBeGreaterThan(text.indexOf('TRACKING DATA'));
+    expect(text.indexOf('deficiency RISKS')).toBeLessThan(text.indexOf('Respond in Markdown only'));
+  });
+  it('injects the foods-to-avoid section only when avoidances are set (B-216)', () => {
+    const withAvoid = buildAdviceMessages(
+      'S',
+      buildAdvicePayload(inputs()),
+      'fr',
+      'peanuts, shellfish',
+    );
+    const t1 = (withAvoid[0]!.content[0] as { text: string }).text;
+    expect(t1).toContain('FOODS TO AVOID (user allergies/dislikes): peanuts, shellfish');
+    const without = buildAdviceMessages('S', buildAdvicePayload(inputs()), 'fr', '   ');
+    const t2 = (without[0]!.content[0] as { text: string }).text;
+    expect(t2).not.toContain('FOODS TO AVOID');
   });
   it('uses the English clause for locale en', () => {
     const [msg] = buildAdviceMessages('S', buildAdvicePayload(inputs()), 'en');

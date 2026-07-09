@@ -30,7 +30,9 @@ async function allHistoryAdherence(
   const years = [];
   for (let y = minYear; y <= maxYear; y++) years.push(y);
   const perYear = await Promise.all(years.map((y) => statsService.getAdherence(userId, y)));
-  const monthly = perYear.flatMap((a) => a.monthly);
+  // Stamp each monthly aggregate with its year (B-215): once flattened across years, a bare
+  // `month` (1–12) would collapse same-numbered months from different years into one.
+  const monthly = years.flatMap((y, i) => perYear[i]!.monthly.map((m) => ({ ...m, year: y })));
   const latest = perYear[perYear.length - 1]!; // maxYear — carries all-time key/records
   return { monthly, key: latest.key, signals: latest.signals, records: latest.records };
 }

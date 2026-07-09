@@ -36,6 +36,18 @@ function alreadyOnDayWire(d: DayMealFoods): Record<string, unknown> {
   return { meal_name: d.meal_name, foods: d.foods.map((x) => `${x.name} × ${x.qty}`) };
 }
 
+/** App-owned avoidances block from the user's persisted allergies/dislikes free text (B-216,
+ *  spec/logic/ai-meal-suggestions.md §2.2). Best-effort — the model must never propose a food
+ *  matching this list, on top of the deterministic candidate filtering. `''` when unset. */
+function avoidancesBlock(avoidances?: string): string {
+  const text = (avoidances ?? '').trim();
+  if (text === '') return '';
+  return (
+    `\n\nAVOID (user allergies/dislikes, free text)\n${text}\n` +
+    'Never include any food matching these, even if it would otherwise be a good fit.'
+  );
+}
+
 /** The refine constraints block (§2.2), or `''` when there is nothing to constrain. */
 function constraintsBlock(c: ChefContext['constraints']): string {
   if (!c) return '';
@@ -74,7 +86,13 @@ function contextBlock(ctx: ChefContext): string {
   )}`;
 }
 
-export function buildMealSuggestionsMessages(prompt: string, ctx: ChefContext): ChatMessage[] {
-  const text = `${prompt}\n\n${contextBlock(ctx)}\n\n${MEAL_SUGGESTIONS_FORMAT_INSTRUCTION}`;
+export function buildMealSuggestionsMessages(
+  prompt: string,
+  ctx: ChefContext,
+  avoidances?: string,
+): ChatMessage[] {
+  const text =
+    `${prompt}\n\n${contextBlock(ctx)}${avoidancesBlock(avoidances)}\n\n` +
+    `${MEAL_SUGGESTIONS_FORMAT_INSTRUCTION}`;
   return [{ role: 'user', content: [{ type: 'text', text }] }];
 }

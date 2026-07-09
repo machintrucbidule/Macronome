@@ -5,6 +5,7 @@ import { Banner } from '../../../components/Banner/Banner';
 import { useAiConnectionForm } from '../useAiConnectionForm';
 import { AiConnectionFields } from './AiConnectionFields';
 import { AiTaskBlock } from './AiTaskBlock';
+import { AiAvoidancesField } from './AiAvoidancesField';
 import { AiHelp } from './AiHelp';
 import styles from '../settings.module.css';
 
@@ -50,6 +51,10 @@ export function AiCard() {
             onPrompt={(prompt) => f.setTask(key, { prompt })}
           />
         ))}
+
+        {/* Allergies / disliked foods (B-216) — under the advice block (the last task), sent to
+            both the advice and meal-suggestions models. */}
+        <AiAvoidancesField value={f.avoidances} onChange={f.setAvoidances} />
 
         <AiHelp />
 

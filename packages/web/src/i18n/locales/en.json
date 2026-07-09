@@ -829,6 +829,8 @@
     "configureLink": "AI assistant",
     "archiveTitle": "History",
     "empty": "No advice yet. Click “Generate AI advice”.",
+    "deleteTitle": "Delete this advice?",
+    "deletePrompt": "This archived advice will be permanently deleted.",
     "errors": {
       "ai_not_configured": "AI not configured.",
       "ai_unauthorized": "The provider refused the connection (API key?).",
@@ -1153,6 +1155,8 @@
       "prompt": "Prompt (scope, English)",
       "promptNote": "The response format is handled by the app and is not editable here.",
       "reset": "Reset to default",
+      "avoidances": "Allergies / disliked foods",
+      "avoidancesNote": "Free-text list sent to the AI: it will avoid these foods, both in Advice and in meal suggestions.",
       "save": "Save",
       "tasks": {
         "dish_photo_macros": "Photo → macro estimate",

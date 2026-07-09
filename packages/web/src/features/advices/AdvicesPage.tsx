@@ -40,7 +40,11 @@ export function AdvicesPage() {
         {list.isLoading ? (
           <SkeletonRows />
         ) : (
-          <AdviceArchive advices={list.data?.data ?? []} onDelete={(id) => remove.mutate(id)} />
+          <AdviceArchive
+            advices={list.data?.data ?? []}
+            onDelete={(id) => remove.mutate(id)}
+            justGeneratedId={generate.data?.data.id ?? null}
+          />
         )}
       </div>
     </AppShell>

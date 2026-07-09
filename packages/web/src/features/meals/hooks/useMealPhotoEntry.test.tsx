@@ -62,6 +62,7 @@ const CONFIGURED = {
       meal_suggestions: { model: null, prompt: '' },
       advice: { model: null, prompt: '' },
     },
+    avoidances: '',
   },
 };
 const FOUND: DishPhotoMacros = {

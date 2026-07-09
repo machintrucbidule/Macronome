@@ -4363,3 +4363,60 @@ pure solver, not a temperature override.
 **Contract impact:** `spec/logic/ai-connection.md` §6b (request body drops `temperature`);
 `spec/logic/meal-solver.md` (determinism rationale reworded). **Code:** `packages/api/src/services/
 ai-provider.ts`.
+
+## B-215/B-212/B-213/B-214/B-216 — Conseils IA follow-ups (run #59) — RESOLVED (user, 2026-07-09)
+
+A single Conseils/AI batch bundling one data-correctness bug, three advice-UX/prompt improvements, and
+one owner-added field (an explicit override of the usual "bugs and improvements stay in separate
+batches"; all within one feature, within the file-size rule). Extends the B-202 advice contract.
+
+**Year in monthly aggregates (B-215, bug).** The advice payload's all-history monthly adherence pivot
+carried only `month` (1–12); the aggregator flattens `getAdherence(userId, year)` across every logged
+year, so same-numbered months from different years collapsed (repro: the coach read "111 kg in
+February" — February of the _previous_ year). **Fix (code conforms):** the year is attached in the
+**advice payload only** (a local `MonthlyStatDated = MonthlyStat & { year }`, stamped during the
+flatten in `services/advice-data.ts`); the stats-screen `MonthlyStat` DTO and the `/stats/adherence`
+API are **unchanged** (narrowest fix).
+
+**Average balance + deficiency-risk analysis (B-212, owner: always-applied).** The coach must judge
+balance over the **average** (not per meal) and flag deficiency **risks** — at the macro level and
+qualitatively from the food names it already receives (e.g. few omega-3/oily fish, few
+vegetables/fibre) — with an explicit caveat that it does **not** measure micronutrients (risk hints,
+not measured deficiencies). **Decision (owner, this session):** this guidance is **hard-coded and
+always appended** (`ADVICE_ANALYSIS_INSTRUCTION`, like the format instruction), **not** added to the
+editable default scope prompt — so it applies to the owner's stored config immediately, without a
+"Reset to default" (which would overwrite personalisation). No schema/data change; no micronutrient
+tracking.
+
+**Confirm before deleting an advice (B-213).** Deleting an archived advice (×) now opens the shared
+confirm modal first; `DELETE /ai/advice/:id` fires only on confirm (was an immediate delete).
+
+**Archive collapse defaults (B-214).** Archive cards are collapsible (house ▸/▾). After a generation
+the just-generated advice is expanded and all others collapsed; on a plain revisit all are collapsed
+(including the most recent). Also closes the pre-existing "collapsible for long ones" divergence.
+
+**Allergies / disliked foods field (B-216, owner-added; both uses).** A connection-level free-text
+`settings.ai.avoidances` (optional, ≤1000 chars, not a secret, no default), edited on the Assistant IA
+page under the _Conseils_ prompt. **Decision (owner, this session):** it steers **both** the advice and
+the meal-suggestions models (an allergy should never be proposed anywhere) — injected as an app-owned
+"FOODS TO AVOID" / "AVOID" section in each prompt (best-effort free text for meal suggestions, on top
+of the existing deterministic filters). Stored once at connection level (not duplicated per task);
+returned unredacted; `""` clears.
+
+**Contract impact:** `spec/logic/ai-advice.md` (§2 order, §2.2 `year`, §2.3 analysis instruction, §2.4
+avoidances, §3, §4, §8); `spec/logic/ai-connection.md` (§1/§2/§4/§5 `avoidances`);
+`spec/logic/ai-meal-suggestions.md` (§2.2 + §5 avoidances); `spec/schema/tables-catalog.md`
+(§settings.ai `avoidances`); `spec/api/weight-targets-stats-settings.md` (settings read/patch
+`avoidances`); `specifications/screens/conseils.md` (delete confirm + collapse defaults);
+`specifications/screens/ai-assistant.md` (avoidances field). **Code:** api
+`domain/ai-advice/{payload,format,assemble,index}.ts`, `services/advice-data.ts`, `services/ai.ts`,
+`domain/ai-meal-suggestions/assemble.ts`, `domain/ai-connection/{merge,redact}.ts`; shared
+`dto/settings.ts`; web `features/advices/{AdvicesPage.tsx, components/AdviceArchive.tsx,
+components/AdviceDeleteConfirm.tsx, advices.module.css}`, `features/settings/{useAiConnectionForm.ts,
+components/AiCard.tsx, components/AiAvoidancesField.tsx}`, i18n (`advices.deleteTitle/deletePrompt`,
+`settings.ai.avoidances/avoidancesNote`, fr+en). **Tests:** `ai-advice.test.ts` (year distinctness +
+analysis/avoidances in the assembled message), `ai-meal-suggestions.test.ts` (AVOID section),
+`ai-connection.test.ts` (avoidances schema/redact/merge), `AdvicesPage.test.tsx` (confirm-before-delete
+
+- collapse defaults), new `AiCard.test.tsx` (field renders + saved in PATCH). **Gate:** typecheck +
+  unit (632) + lint + check:i18n + integration (247) all green.

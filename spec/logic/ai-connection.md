@@ -15,10 +15,11 @@ the persisted shape is in
 `settings.ai` is `null` until configured, else:
 
 ```
-provider : "openai_compatible"            // enum; only value in v1
-base_url : string                          // absolute URL of the OpenAI-compatible endpoint
-api_key  : string                          // SECRET
-tasks    : { dish_photo_macros, meal_suggestions, advice }
+provider   : "openai_compatible"          // enum; only value in v1
+base_url   : string                        // absolute URL of the OpenAI-compatible endpoint
+api_key    : string                        // SECRET
+tasks      : { dish_photo_macros, meal_suggestions, advice }
+avoidances : string                        // optional free text; allergies / disliked foods (B-216)
 ```
 
 The three **tasks** are fixed (named, not user-addable). Each task is `{ model, prompt }`:
@@ -26,6 +27,12 @@ The three **tasks** are fixed (named, not user-addable). Each task is `{ model, 
 - `model` — the provider model id chosen for that task, or `null` when not yet picked.
   `dish_photo_macros` needs a vision-capable model; `meal_suggestions` and `advice` are text.
 - `prompt` — the **user-editable scope** of the request, in **English only** (see §3).
+
+`avoidances` (B-216) is a **connection-level** free-text list of allergies / disliked foods (not a
+task field, not a secret). It is **optional** (absent or `""` = none) and is **sent to both** the
+`advice` and `meal_suggestions` uses so neither proposes those foods
+(`ai-advice.md §2.4`, `ai-meal-suggestions.md §2.2`). It has **no default** and is **not** processed
+into structured data — it is passed to the model verbatim.
 
 ## 2. Validation
 
@@ -37,6 +44,8 @@ A config is **valid** when:
 - `api_key`, when present, is **non-empty** after trim. (Absence is handled by merge, §4.)
 - For each task: `prompt` is a **non-empty** string (an empty/blank prompt is replaced by the
   default, §3, never stored blank); `model` is either `null` or a non-empty string.
+- `avoidances`, when present, is a string of **at most 1000 characters** (B-216). It may be empty
+  (`""` clears it); it is **never** normalised to a default.
 
 `model` being `null` is **valid at config time** — a model is only _required_ when the
 corresponding AI use is later invoked (out of v1 scope). Validation is **local** (shape/format)
@@ -80,6 +89,8 @@ fields survive:
   secret.)
 - **`tasks`** — merged **per task and per field**: a patch touching only
   `tasks.advice.prompt` changes neither `tasks.advice.model` nor the other two tasks.
+- **`avoidances`** (B-216) — **absent** ⇒ keep the stored value; present (incl. `""`) ⇒ replace
+  (so `""` clears it). Not normalised to any default.
 
 ## 5. Redaction (read side)
 
@@ -88,6 +99,8 @@ Pure function `redact(ai) → readAi` strips the secret before the config leaves
 - Remove `api_key`.
 - Add `api_key_set: boolean` (true iff a non-empty key is stored).
 - `provider`, `base_url`, and **all `tasks`** (models + prompts) pass through unchanged.
+- `avoidances` (B-216) passes through **unredacted** (it is not a secret), defaulting to `""` when
+  the stored config has none — so the read shape always carries an `avoidances` string.
 
 `null` in → `null` out. The raw `api_key` is **never** serialised to a client and **never**
 logged.

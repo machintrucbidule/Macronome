@@ -176,15 +176,19 @@ export async function mealSuggestions(
   const candidates = pool.filter((f) => !excludedSet.has(f.food_id));
 
   const mealNameById = new Map(day.meals.map((m) => [m.id, m.slot_name]));
-  const messages = buildMealSuggestionsMessages(ai!.tasks.meal_suggestions.prompt, {
-    remaining: rem.remaining,
-    meals: body.meal_ids.map((id) => ({ meal_id: id, name: mealNameById.get(id) ?? '' })),
-    candidates,
-    history,
-    ...(alreadyOnDay.length > 0 ? { alreadyOnDay } : {}),
-    ...(body.note !== undefined ? { precisions: body.note } : {}),
-    ...(body.constraints !== undefined ? { constraints: body.constraints } : {}),
-  });
+  const messages = buildMealSuggestionsMessages(
+    ai!.tasks.meal_suggestions.prompt,
+    {
+      remaining: rem.remaining,
+      meals: body.meal_ids.map((id) => ({ meal_id: id, name: mealNameById.get(id) ?? '' })),
+      candidates,
+      history,
+      ...(alreadyOnDay.length > 0 ? { alreadyOnDay } : {}),
+      ...(body.note !== undefined ? { precisions: body.note } : {}),
+      ...(body.constraints !== undefined ? { constraints: body.constraints } : {}),
+    },
+    ai!.avoidances,
+  );
   const text = await aiProvider.chatCompletion(ai, model, messages);
 
   const poolMap = new Map(candidates.map((f) => [f.food_id, f]));
@@ -238,7 +242,7 @@ export async function generateAdvice(userId: string): Promise<Advice> {
   const locale = (await getSettings(userId))?.locale ?? 'fr';
   const today = new Date().toISOString().slice(0, 10);
   const payload = await buildAdviceData(userId, today);
-  const messages = buildAdviceMessages(ai!.tasks.advice.prompt, payload, locale);
+  const messages = buildAdviceMessages(ai!.tasks.advice.prompt, payload, locale, ai!.avoidances);
   const text = await aiProvider.chatCompletion(ai, model, messages);
 
   const parsed = parseAdvice(text);

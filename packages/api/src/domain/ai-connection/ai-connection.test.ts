@@ -47,6 +47,7 @@ test('§8.3 redaction strips the key and exposes api_key_set', () => {
     base_url: 'https://x/v1',
     api_key_set: true,
     tasks,
+    avoidances: '', // B-216: not a secret; '' when unset
   });
   expect(read).not.toHaveProperty('api_key');
   expect(read?.tasks).toBe(tasks); // unchanged, passed through
@@ -113,4 +114,28 @@ test('§8.7 default prompt is the English advice scope (locale-independent, B-20
   // Tone + data usage only; the format (Markdown) + language live in the app, not the prompt.
   expect(defaultTaskPrompt('advice')).toContain('supportive nutrition coach');
   expect(defaultTaskPrompt('advice')).toContain('never paternalistic');
+});
+
+test('§8.8 avoidances (B-216): validated, redacted unredacted, merge replaces/keeps/clears', () => {
+  const stored: AiConnection = {
+    provider: 'openai_compatible',
+    base_url: 'https://x/v1',
+    api_key: 'k',
+    tasks,
+    avoidances: 'peanuts',
+  };
+  // Schema accepts the field and enforces its length bound.
+  expect(AiConnectionSchema.safeParse(stored).success).toBe(true);
+  expect(AiConnectionSchema.safeParse({ ...stored, avoidances: 'x'.repeat(1001) }).success).toBe(
+    false,
+  );
+  // Redaction returns it as-is (not a secret); unset → ''.
+  expect(redact(stored)?.avoidances).toBe('peanuts');
+  expect(
+    redact({ provider: 'openai_compatible', base_url: 'https://x/v1', tasks })?.avoidances,
+  ).toBe('');
+  // Merge: absent keeps, a value replaces, '' clears.
+  expect(mergeAi(stored, { base_url: 'https://y' }).avoidances).toBe('peanuts');
+  expect(mergeAi(stored, { avoidances: 'shellfish' }).avoidances).toBe('shellfish');
+  expect(mergeAi(stored, { avoidances: '' }).avoidances).toBe('');
 });

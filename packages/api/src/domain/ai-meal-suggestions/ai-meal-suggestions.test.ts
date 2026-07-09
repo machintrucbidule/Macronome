@@ -96,6 +96,19 @@ test('§2.2 assemble renders the ALREADY ON THE DAY section (name × qty); omitt
   expect(textOf('Scope')).not.toContain('ALREADY ON THE DAY');
 });
 
+test('§2.2 assemble renders the AVOID section from avoidances (B-216); omitted when unset', () => {
+  const part = buildMealSuggestionsMessages('Scope', CTX, 'peanuts, shellfish')[0]?.content[0];
+  const text = part && part.type === 'text' ? part.text : '';
+  expect(text).toContain('AVOID (user allergies/dislikes, free text)');
+  expect(text).toContain('peanuts, shellfish');
+  // No avoidances (or whitespace-only) → no section, and the format instruction still closes.
+  expect(textOf('Scope')).not.toContain('AVOID (user allergies/dislikes');
+  const blank = buildMealSuggestionsMessages('Scope', CTX, '   ')[0]?.content[0];
+  const blankText = blank && blank.type === 'text' ? blank.text : '';
+  expect(blankText).not.toContain('AVOID (user allergies/dislikes');
+  expect(blankText.endsWith(MEAL_SUGGESTIONS_FORMAT_INSTRUCTION)).toBe(true);
+});
+
 // --- parse (spec §6 / §8) ------------------------------------------------------------------------
 
 const CLEAN_3 =

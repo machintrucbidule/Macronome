@@ -61,6 +61,7 @@ external-integration connections. Keys (all optional; service supplies defaults)
     "meal_suggestions": { "model": "…|null", "prompt": "…" }, // meals fitting the macro/calorie targets (text model)
     "advice": { "model": "…|null", "prompt": "…" }, // personalised nutrition advice (text model)
   },
+  "avoidances": "…", // OPTIONAL free text (≤1000 chars): allergies / disliked foods (B-216)
 }
 ```
 
@@ -69,6 +70,10 @@ external-integration connections. Keys (all optional; service supplies defaults)
   `spec/logic/ai-connection.md`). The **technical response-format instructions** (expected
   schema, SI units, constraints) are **not** stored here — they are hard-coded in the app and
   appended to the prompt at call time, so the return format is guaranteed.
+- `avoidances` (B-216) is a **connection-level** free-text list of allergies / disliked foods
+  (optional, `≤1000` chars, no default, `""` clears). It is **not a secret** — returned as-is by the
+  read DTO (defaulting to `""`) — and is sent to **both** the `advice` and `meal_suggestions` uses
+  so neither proposes those foods (`spec/logic/ai-advice.md §2.4`, `ai-meal-suggestions.md §2.2`).
 - `api_key` is **write-only across the API boundary**: persisted in this column but never
   serialised back to a client (the read DTO exposes `api_key_set: boolean` instead — see
   `spec/api/weight-targets-stats-settings.md`). Not encrypted at rest in v1 (self-hosted,

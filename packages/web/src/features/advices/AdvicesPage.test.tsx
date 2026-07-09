@@ -92,20 +92,6 @@ describe('AdvicesPage (B-202)', () => {
     expect(screen.getByText('Belle régularité')).toBeTruthy();
   });
 
-  it('deletes an archived advice per item', async () => {
-    const arch: Advice[] = [advice('a1', '## Un conseil')];
-    vi.spyOn(aiApi, 'listAdvice').mockImplementation(() => Promise.resolve({ data: [...arch] }));
-    vi.spyOn(aiApi, 'deleteAdvice').mockImplementation((id) => {
-      const i = arch.findIndex((x) => x.id === id);
-      if (i >= 0) arch.splice(i, 1);
-      return Promise.resolve();
-    });
-    renderPage('coach-x');
-    expect(await screen.findByRole('heading', { name: 'Un conseil' })).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: i18n.t('common.remove') }));
-    await waitFor(() => expect(screen.queryByRole('heading', { name: 'Un conseil' })).toBeNull());
-  });
-
   it('shows AiNotConfigured (message + link to Assistant IA) when advice has no model', async () => {
     vi.spyOn(aiApi, 'listAdvice').mockResolvedValue({ data: [] });
     renderPage(null);
@@ -122,5 +108,78 @@ describe('AdvicesPage (B-202)', () => {
     renderPage('coach-x');
     fireEvent.click(await screen.findByRole('button', { name: i18n.t('advices.generate') }));
     expect(await screen.findByText(i18n.t('advices.errors.ai_bad_response'))).toBeTruthy();
+  });
+});
+
+describe('AdvicesPage — delete confirm & archive collapse (B-213/B-214)', () => {
+  it('confirms before deleting an archived advice (B-213)', async () => {
+    const arch: Advice[] = [advice('a1', '## Un conseil')];
+    vi.spyOn(aiApi, 'listAdvice').mockImplementation(() => Promise.resolve({ data: [...arch] }));
+    vi.spyOn(aiApi, 'deleteAdvice').mockImplementation((id) => {
+      const i = arch.findIndex((x) => x.id === id);
+      if (i >= 0) arch.splice(i, 1);
+      return Promise.resolve();
+    });
+    renderPage('coach-x');
+    // The card renders collapsed; its × is visible. Clicking it asks to confirm — no instant delete.
+    fireEvent.click(await screen.findByRole('button', { name: i18n.t('common.remove') }));
+    expect(screen.getByText(i18n.t('advices.deletePrompt'))).toBeTruthy();
+    // Cancel → nothing deleted, dialog closes.
+    fireEvent.click(screen.getByRole('button', { name: i18n.t('common.cancel') }));
+    expect(aiApi.deleteAdvice).not.toHaveBeenCalled();
+    // × again, then the dialog's Delete → the DELETE fires and the archive empties.
+    fireEvent.click(screen.getByRole('button', { name: i18n.t('common.remove') }));
+    const dialog = screen.getByRole('dialog');
+    fireEvent.click(within(dialog).getByRole('button', { name: i18n.t('common.remove') }));
+    await waitFor(() => expect(aiApi.deleteAdvice).toHaveBeenCalledWith('a1'));
+    expect(await screen.findByText(i18n.t('advices.empty'))).toBeTruthy();
+  });
+
+  it('renders archive cards collapsed by default; a toggle expands one (B-214)', async () => {
+    const arch: Advice[] = [advice('a1', '## Premier'), advice('a2', '## Second')];
+    vi.spyOn(aiApi, 'listAdvice').mockResolvedValue({ data: arch });
+    renderPage('coach-x');
+    await waitFor(() =>
+      expect(screen.getAllByRole('button', { name: i18n.t('common.remove') })).toHaveLength(2),
+    );
+    // Both collapsed on a plain load → neither body Markdown is rendered.
+    expect(screen.queryByRole('heading', { name: 'Premier' })).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'Second' })).toBeNull();
+    // Toggle the first card (the header button carrying aria-expanded) → only it expands.
+    const cards = screen.getAllByRole('article');
+    fireEvent.click(within(cards[0]!).getByRole('button', { expanded: false }));
+    expect(await screen.findByRole('heading', { name: 'Premier' })).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: 'Second' })).toBeNull();
+  });
+
+  it('expands only the just-generated advice, keeping older ones collapsed (B-214)', async () => {
+    const arch: Advice[] = [advice('old', '## Ancien')];
+    vi.spyOn(aiApi, 'listAdvice').mockImplementation(() => Promise.resolve({ data: [...arch] }));
+    vi.spyOn(aiApi, 'generateAdvice').mockImplementation(() => {
+      const a = advice('fresh', '## Nouveau');
+      arch.unshift(a);
+      return Promise.resolve({ data: a });
+    });
+    renderPage('coach-x');
+    await waitFor(() =>
+      expect(screen.getAllByRole('button', { name: i18n.t('common.remove') })).toHaveLength(1),
+    );
+    expect(screen.queryByRole('heading', { name: 'Ancien' })).toBeNull(); // collapsed on load
+    fireEvent.click(screen.getByRole('button', { name: i18n.t('advices.generate') }));
+    // The freshly generated advice shows expanded; the older card stays collapsed.
+    expect(await screen.findByRole('heading', { name: 'Nouveau' })).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: 'Ancien' })).toBeNull();
+  });
+
+  it('expands then re-collapses via the same toggle (B-214)', async () => {
+    const arch: Advice[] = [advice('a1', '## Premier')];
+    vi.spyOn(aiApi, 'listAdvice').mockResolvedValue({ data: arch });
+    renderPage('coach-x');
+    const cards = await screen.findAllByRole('article');
+    const toggle = within(cards[0]!).getByRole('button', { expanded: false });
+    fireEvent.click(toggle);
+    expect(await screen.findByRole('heading', { name: 'Premier' })).toBeTruthy();
+    fireEvent.click(within(cards[0]!).getByRole('button', { expanded: true }));
+    await waitFor(() => expect(screen.queryByRole('heading', { name: 'Premier' })).toBeNull());
   });
 });

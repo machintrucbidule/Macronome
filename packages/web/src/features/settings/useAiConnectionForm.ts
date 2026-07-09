@@ -38,6 +38,7 @@ function buildPatch(
   apiKey: string,
   keyDirty: boolean,
   tasks: TaskDraft,
+  avoidances: string,
 ): AiConnectionPatch {
   const patch: AiConnectionPatch = {
     provider: 'openai_compatible',
@@ -47,6 +48,7 @@ function buildPatch(
       meal_suggestions: tasks.meal_suggestions,
       advice: tasks.advice,
     },
+    avoidances, // B-216: allergies / disliked foods ('' clears it)
   };
   if (keyDirty) patch.api_key = apiKey;
   return patch;
@@ -61,6 +63,7 @@ export function useAiConnectionForm() {
   const [apiKey, setApiKey] = useState('');
   const [keyDirty, setKeyDirty] = useState(false);
   const [tasks, setTasks] = useState<TaskDraft>(() => seedTasks(null));
+  const [avoidances, setAvoidances] = useState('');
   const [models, setModels] = useState<string[]>([]);
   const [baseUrlInvalid, setBaseUrlInvalid] = useState(false);
 
@@ -71,6 +74,7 @@ export function useAiConnectionForm() {
       seedKey === 'null' ? null : (JSON.parse(seedKey) as AiConnectionRead);
     setBaseUrl(parsed?.base_url ?? '');
     setTasks(seedTasks(parsed));
+    setAvoidances(parsed?.avoidances ?? '');
     setApiKey('');
     setKeyDirty(false);
     setBaseUrlInvalid(false);
@@ -90,7 +94,7 @@ export function useAiConnectionForm() {
   const persist = async (): Promise<boolean> => {
     setBaseUrlInvalid(false);
     try {
-      await save.mutateAsync({ ai: buildPatch(baseUrl, apiKey, keyDirty, tasks) });
+      await save.mutateAsync({ ai: buildPatch(baseUrl, apiKey, keyDirty, tasks, avoidances) });
       return true;
     } catch (err) {
       if (err instanceof ApiError && err.details?.['ai.base_url'] === 'invalid_url') {
@@ -127,6 +131,8 @@ export function useAiConnectionForm() {
     keyDirty,
     tasks,
     setTask,
+    avoidances,
+    setAvoidances,
     models,
     baseUrlInvalid,
     runFetchModels,

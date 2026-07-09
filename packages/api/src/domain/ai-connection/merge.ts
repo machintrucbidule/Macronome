@@ -57,5 +57,8 @@ export function mergeAi(stored: AiConnection | null, patch: AiConnectionPatch): 
   };
   const api_key = resolveApiKey(base.api_key, patch);
   if (api_key !== undefined) result.api_key = api_key;
+  // avoidances (B-216): absent ⇒ keep; else replace (incl. '' to clear).
+  const avoidances = patch.avoidances !== undefined ? patch.avoidances : base.avoidances;
+  if (avoidances !== undefined) result.avoidances = avoidances;
   return result;
 }

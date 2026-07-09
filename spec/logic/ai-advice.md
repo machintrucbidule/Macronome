@@ -37,14 +37,18 @@ part is assembled in this order:
 
 1. the configured `prompt` (scope, §2.1);
 2. a structured **context block** (§2.2): the aggregated data sections;
-3. the **hard-coded format instruction** (§2.3) — app-owned, never stored;
-4. a **language clause** resolved from `settings.locale` — `Respond in French.` (`fr`) or
+3. an **avoidances clause** (§2.4, B-216) — app-owned, only present when the user has set an
+   allergies / disliked-foods list; lists the foods the coach must never recommend;
+4. the **hard-coded analysis instruction** (§2.3, B-212) — app-owned, never stored: assess balance
+   over the average and flag deficiency _risks_ with a no-micronutrient caveat;
+5. the **hard-coded format instruction** (§2.3) — app-owned, never stored;
+6. a **language clause** resolved from `settings.locale` — `Respond in French.` (`fr`) or
    `Respond in English.` (`en`) — mirroring the dish-photo language clause (`ai-dish-photo-macros.md`
    §2). This is the **only** thing that sets the output language; the scope prompt says nothing about
    language, so editing the scope can never make the reply come back in the wrong language.
 
-The configured `prompt` is **never trusted to define the output shape or language**; the hard-coded
-format instruction + the locale clause always close the text part.
+The configured `prompt` is **never trusted to define the output shape, analysis, or language**; the
+hard-coded analysis + format instructions + the locale clause always close the text part.
 
 ### 2.1 Default scope prompt (English; user-editable in Settings)
 
@@ -79,8 +83,9 @@ weight_end, ema, delta, ecart_trajectoire, avg_intake, estimated_burn, empirical
 deficit_per_day, avg_activity, diet_flag }]`.
 - **Rolling intake** (`GET /stats/rolling`): `[{ window: 7|14|30|365, avg_kcal, ok_rate, vs_target }]`.
 - **Adherence & regularity** (`GET /stats/adherence`, **monthly over all history**): `monthly:[{
-month, ok_count, nok_count, nok_under_count, nok_over_count, ok_rate, avg_kcal_ok, avg_kcal_nok,
-avg_kcal_global, target_zone }]`; `key:{ year_ok_rate, overall_ok_rate, current_ok_streak,
+year, month, ok_count, nok_count, nok_under_count, nok_over_count, ok_rate, avg_kcal_ok, avg_kcal_nok,
+avg_kcal_global, target_zone }]` — each aggregate carries its **`year`** (B-215) so the all-history
+  pivot never collapses same-numbered months across years; `key:{ year_ok_rate, overall_ok_rate, current_ok_streak,
 best_month }`; `signals:[{ code, value, text }]`; `records:{ all:{high,low}, year:{high,low} }`.
 - **Recent journal (30 d)** (`journal.listAllLogged`, sliced to the last 30 days): `[{ date, kcal,
 fat, carb, protein, verdict, activity_level }]` (day-level).
@@ -102,6 +107,37 @@ This encodes the product decisions (B-202): **Markdown output** (rendered on the
 **non-paternalistic delivery**, and **no meta-preamble**. The format lives here — not in the editable
 scope — so it is guaranteed however the user rewrites their prompt.
 
+Alongside it, a second **hard-coded analysis instruction** (B-212, `ADVICE_ANALYSIS_INSTRUCTION`) is
+appended between the context block and the format instruction — also **app-owned, never stored**
+(owner decision: **always-applied**, not baked into the editable scope, so it holds regardless of how
+the user rewrites their prompt, and applies to the stored config without a "Reset to default"):
+
+```
+Assess balance over the average of the period, not meal by meal: judge whether the overall intake is
+balanced and flag deficiency RISKS — both at the macro level and qualitatively from the food names
+provided (for example, few omega-3 sources such as oily fish, or few vegetables and little fibre). Be
+explicit that these are risk hints inferred from food names and macros, not measured deficiencies:
+this app does not track micronutrients, so never claim a measured micronutrient shortfall.
+```
+
+This reasons from the **food names + macros already sent** (§2.2 `meals_30d`); it adds **no** data and
+**no** micronutrient tracking. The honesty caveat is mandatory: the app measures only kcal + macros.
+
+### 2.4 Avoidances clause (assembled, app-owned; only when the user set a list)
+
+When the user has set an **allergies / disliked-foods** free text (`settings.ai.avoidances`,
+`ai-connection.md §1`, B-216), a short app-owned clause is inserted **after the context block and
+before the analysis instruction**:
+
+```
+FOODS TO AVOID (user allergies/dislikes): <the user's free text>
+Never recommend, suggest, or build advice around these foods.
+```
+
+The clause is **omitted entirely** when `avoidances` is empty or whitespace-only. The same persisted
+list also steers the meal-suggestions use (`ai-meal-suggestions.md §2.2`). It is a per-user
+**preference**, not tracking data — it is **not** part of the archived `snapshot` (§6).
+
 ## 3. Payload assembly (pure, from read-service outputs)
 
 The aggregator is a **service** (it fetches rows via the existing read-services / repositories, then a
@@ -111,7 +147,10 @@ The aggregator is a **service** (it fetches rows via the existing read-services 
   (inclusive, oldest→newest). The slice is computed in the aggregator from the full history
   (`listAllLogged` / `readRange(userId, from, to)`); **no new read endpoint** is added.
 - **Monthly aggregates over ALL history.** The adherence section is the full `GET /stats/adherence`
-  monthly pivot across every logged month (not a window) — the long-term regularity picture.
+  monthly pivot across every logged month (not a window) — the long-term regularity picture. The
+  aggregator flattens the per-year pivots into one array and **stamps each entry with its `year`**
+  (B-215) as it does so, so two same-numbered months from different years stay distinct (the
+  stats-screen `MonthlyStat` DTO is unchanged; the year is added only in the advice payload).
 - **Missing pieces degrade gracefully.** No Target → the target/engine sections carry the available
   fields and mark the rest absent (advice still generates). Thin history → shorter journal/meals
   sections. The assembly never fabricates a figure; absent inputs are omitted, not zero-filled.
@@ -125,9 +164,10 @@ than the other two uses (the user is asking for advice _about themselves_): the 
 (age/sex/height), the metabolic engine numbers, current + past targets, the **weight/BMI/waist
 trend** and per-period intake/burn/activity, rolling averages, the monthly adherence pivot + signals +
 records, the 30-day day-level journal, and the 30-day **food-lines** (food names + consumed
-quantities + macros). It **never** sends: credentials, any other user's data, free-text food/day
-**comments**, raw photos, or the user's account identity beyond the anonymous figures above. This
-wider scope is a Conseils-specific decision (B-202), distinct from `ai-meal-suggestions.md §5`.
+quantities + macros), and — when set — the user's **allergies / disliked-foods** free text (§2.4,
+B-216). It **never** sends: credentials, any other user's data, free-text food/day **comments**, raw
+photos, or the user's account identity beyond the anonymous figures above. This wider scope is a
+Conseils-specific decision (B-202), distinct from `ai-meal-suggestions.md §5`.
 
 ## 5. Response parsing & validation (pure function)
 
@@ -162,14 +202,22 @@ tenant → 404).
 
 Neutral values (no personal data).
 
-1. **Prompt order.** `settings.locale = 'fr'` → the text part = `prompt` (scope) + context block
-   (§2.2) + the §2.3 format instruction + `Respond in French.`, in that order. `locale = 'en'` → the
-   closing clause is `Respond in English.` The scope prompt itself contains no language/format text.
+1. **Prompt order.** `settings.locale = 'fr'`, no avoidances set → the text part = `prompt` (scope) +
+   context block (§2.2) + the §2.3 **analysis instruction** + the §2.3 format instruction +
+   `Respond in French.`, in that order. `locale = 'en'` → the closing clause is `Respond in English.`
+   The scope prompt itself contains no language/format/analysis text. The analysis instruction always
+   contains "deficiency RISKS" and "does not track micronutrients", between the data and the format
+   instruction (B-212).
+   1b. **Avoidances present (B-216).** `settings.ai.avoidances = 'peanuts, shellfish'` → a
+   `FOODS TO AVOID (user allergies/dislikes): peanuts, shellfish` clause appears **after** the context
+   block and **before** the analysis instruction. Empty/whitespace-only avoidances → no such clause.
 2. **30-day slice.** History has logged days on `2026-05-01 … 2026-06-30`; "today" = `2026-06-30` →
    the journal & meals sections carry exactly `2026-06-01 … 2026-06-30` (30 days, oldest→newest);
    earlier days are excluded. A gap day (no log) simply has no entry.
 3. **Monthly over all history.** Adherence has 8 logged months → the context's `monthly` array has
-   **8** entries (all history), independent of the 30-day slice above.
+   **8** entries (all history), independent of the 30-day slice above. Each entry carries its `year`
+   (B-215): a June-2025 and a June-2026 aggregate are two distinct entries (`{year:2025,month:6}` and
+   `{year:2026,month:6}`), never collapsed into one.
 4. **Food-lines assembled.** A day with meal "Déjeuner" holding lines `Poulet 150 g` (248 kcal / 3 L /
    0 G / 46 P) and `Riz 100 g` → the meals section for that date lists
    `{ slot_name:'Déjeuner', lines:[{ name:'Poulet', quantity:150, unit:'g', kcal:248, fat:3, carb:0,

@@ -145,12 +145,16 @@ records:{all:{high,low}, year:{high,low}}}`.
         "dish_photo_macros": { "model": "…|null", "prompt": "…" },
         "meal_suggestions": { "model": "…|null", "prompt": "…" },
         "advice": { "model": "…|null", "prompt": "…" }
-      }
+      },
+      "avoidances": ""
     }
     ```
+    `avoidances` (B-216) is the allergies / disliked-foods free text — **not a secret**, so
+    returned as-is (defaulting to `""`). Always present on the read shape.
   - On **`PATCH`**, `ai` is a **partial** object merged onto the stored config (deep
     per-task merge; `api_key` absent = keep, `""`/`null` = clear, else replace — see
-    `ai-connection.md` §4). Validation is **local** (format only; Zod at the controller);
+    `ai-connection.md` §4). `avoidances` (`≤1000` chars): absent = keep, present (incl. `""`)
+    = replace/clear. Validation is **local** (format only; Zod at the controller);
     **no provider call** happens here. Bad URL → 422 (`base_url: invalid_url`).
   - **`integrations`** is the external-integration connections object (Home Assistant +
     BarclaudeGateway, B-180/B-181) — always present on read (both keys, `null` when not
