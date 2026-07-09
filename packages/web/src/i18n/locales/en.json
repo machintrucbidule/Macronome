@@ -1159,6 +1159,12 @@
         "meal_suggestions": "Meal suggestions",
         "advice": "Advice"
       },
+      "cost": {
+        "label": "Estimated cost / request",
+        "tokens": "≈ {{tokens}} tokens",
+        "asOf": "prices as of {{date}}",
+        "note": "Indicative — the real cost depends on the data sent (photo, foods, your whole log for Advice) and the reply length."
+      },
       "help": {
         "title": "How to connect Gemini (step by step)",
         "intro": "No technical knowledge needed — just follow these steps:",

@@ -4322,3 +4322,30 @@ tables-catalog.md` + `00-overview.md` + `indexes.md` (`advice` table + entity ma
 `packages/shared/src/constants/ai.ts` `DEFAULT_TASK_PROMPTS.advice` rewritten + `ai.test.ts`. Gate:
 typecheck + lint + shared `ai.test.ts` green (no runtime in this slice; conseils.\* i18n + backend land
 in Batches 2/3).
+
+## B-211 — Estimated per-request AI cost under each Assistant-IA prompt (run #57) — RESOLVED (user, 2026-07-09)
+
+Under each of the three AI task prompts (Assistant IA page) show an **estimated cost of one request**:
+a token estimate + the euro cost per model family. Helps gauge what enabling each AI use costs.
+
+**Decision (owner, this session).** (1) **Indicative** estimate — a hard-coded, tunable **typical token
+count per task** (no live token-count call). (2) Price **four model families**: **Gemini 2.5 Flash,
+Gemini 2.5 Pro, Claude Haiku 4.5, Claude Sonnet** (owner picked "both Gemini tiers"). (3) Prices are
+**hard-coded USD** (per 1M tokens) with a **"prix au <date>"** stamp and a rough **USD→EUR** rate,
+refreshed by hand. The UI states plainly it is an **estimate** — the real cost depends on the runtime
+payload attached (the photo, the food pool, the **whole tracking dataset** for advice) + the reply
+length; dish-photo image tokens also vary by provider.
+
+**Prices (per 1M tokens, USD, as of 2026-07-09):** Gemini 2.5 Flash 0.30/2.50 · Gemini 2.5 Pro
+1.25/10 · Claude Haiku 4.5 1.00/5.00 · Claude Sonnet 3.00/15.00. USD→EUR ≈ 0.92. **Token estimates
+(input/output):** dish_photo_macros 1300/60, meal_suggestions 2500/200, advice 8000/800. Cost =
+`in·price_in + out·price_out` (per Mtok) × EUR rate — all sub-cent to a few cents (advice ≈ €0.004 on
+Flash, ≈ €0.033 on Sonnet). This is a **display-only cost estimate** (CLAUDE.md rule 2 untouched — no
+nutrition figure computed).
+
+**Contract impact:** `design/components/ai-connection.md` (§Per-task blocks — the estimated-cost
+readout). **Code:** new `packages/shared/src/constants/ai-pricing.ts` (prices + EUR rate + as-of +
+per-task token estimates + pure `estimateTaskCostEur`) + `ai-pricing.test.ts` (neutral oracle) +
+`index.ts` export; `packages/web/src/features/settings/components/AiCostEstimate.tsx` +
+`AiTaskBlock.tsx` + `settings.module.css`; i18n `settings.ai.cost.*` (fr+en). Gate: typecheck + lint +
+check:i18n + shared unit green; owner visual check.

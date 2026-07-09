@@ -58,6 +58,15 @@ Three labelled blocks, one per task — **`dish_photo_macros`** ("Analyse photo 
   **"Réinitialiser"** ghost link restores `defaultTaskPrompt(<key>)`. The textarea content is
   **English, not translated** even though its label/help are localised; a faint note states the
   **response format is handled by the app** (not editable here).
+- **Estimated cost / request (B-211)** — a faint readout **under the prompt**: a **typical token
+  estimate** for one request of this task + the **euro cost** across four priced model families —
+  **Gemini 2.5 Flash, Gemini 2.5 Pro, Claude Haiku 4.5, Claude Sonnet** — shown for **all** tasks
+  regardless of the selected model (a comparison). Labelled an **estimate** with a **"prix au
+  <date>"** stamp (prices hard-coded, manually refreshed) and a caveat that the real cost depends on
+  the runtime data attached (the photo, the food pool, the whole tracking dataset for advice) + the
+  reply length. Prices/estimates + the pure euro calc live in `packages/shared/src/constants/
+ai-pricing.ts` (rule 2: the web renders the figure, never invents a nutrition value — this is a
+  display-only cost estimate).
 
 ## Help / disclosure
 

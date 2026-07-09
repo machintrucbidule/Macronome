@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { defaultTaskPrompt, type AiTaskKey } from '@macronome/shared';
+import { AiCostEstimate } from './AiCostEstimate';
 import styles from '../settings.module.css';
 
 // One per-task block of the Assistant IA card (design/components/ai-connection.md §Per-task
@@ -66,6 +67,7 @@ export function AiTaskBlock({
           onChange={(e) => onPrompt(e.target.value)}
         />
         <span className={styles.aiNote}>{t('settings.ai.promptNote')}</span>
+        <AiCostEstimate taskKey={taskKey} />
       </label>
     </div>
   );

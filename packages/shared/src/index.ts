@@ -35,6 +35,15 @@ export {
 export type { Rating } from './constants/rating.js';
 export { AI_TASK_KEYS, defaultTaskPrompt, isVisionModel } from './constants/ai.js';
 export type { AiTaskKey } from './constants/ai.js';
+export {
+  AI_PRICE_MODELS,
+  AI_PRICING_AS_OF,
+  USD_TO_EUR,
+  AI_MODEL_PRICES,
+  AI_TASK_TOKEN_ESTIMATES,
+  estimateTaskCostEur,
+} from './constants/ai-pricing.js';
+export type { AiPriceModel, TaskCostEstimate } from './constants/ai-pricing.js';
 export { ErrorCode } from './errors.js';
 export * from './dto/auth.js';
 export * from './dto/food.js';
