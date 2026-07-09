@@ -88,10 +88,14 @@ App keys: `SESSION_SECRET` — **auto-generated and persisted** on first boot wh
 (`config/session-secret.ts` → `appdata` volume, `/data/session_secret`), reused across
 restarts; set it only to manage it yourself. `COOKIE_SECURE` defaults **false** (login works behind
 your HTTPS proxy with no extra setup); to use `Secure` cookies set it `true` **and**
-`TRUSTED_PROXY` to the proxy's address/CIDR. `WEB_DIST` (SPA build path) is set inside the
-image, unset in dev. `LLM_ENDPOINT_URL` / `LLM_ENDPOINT_KEY` are reserved/unused. Secrets
-are never logged (see `security.md`). _`PUBLIC_BASE_URL` was removed — it was validated
-but never used._
+`TRUSTED_PROXY` to the proxy's address/CIDR (behind Docker + a tunnel, `uniquelocal`). `PUBLIC_ORIGIN`
+is an **optional** public HTTPS origin (e.g. `https://macronome.example.com`) used **only** by the
+Google Drive OAuth backup (§6c, B-217): when set, the app builds the OAuth callback URL from it
+directly instead of deriving it from proxy headers; unset ⇒ header derivation (zero-config preserved).
+`WEB_DIST` (SPA build path) is set inside the image, unset in dev. `LLM_ENDPOINT_URL` /
+`LLM_ENDPOINT_KEY` are reserved/unused. Secrets are never logged (see `security.md`). _(The old
+`PUBLIC_BASE_URL` was removed in ADR-0001; `PUBLIC_ORIGIN` is a distinct, origin-only, OAuth-scoped,
+optional var.)_
 
 ---
 
@@ -156,9 +160,16 @@ present an **exact HTTPS callback URL** that Google has registered. ADR-0001's d
 HTTP behind the operator's proxy, so **Connect only completes once the deployment is hardened**:
 
 - Front the app with **HTTPS** (your reverse proxy / tunnel terminates TLS, §2).
-- Set **`TRUSTED_PROXY`** to the proxy address/CIDR (§4) so the app derives the correct
-  `https://…` origin from `X-Forwarded-Proto`/`X-Forwarded-Host`. Without it Connect returns
-  `gdrive_insecure_context`.
+- **Give the app its public HTTPS origin.** The gate that produces `gdrive_insecure_context` is
+  **server-side** (`req.secure`); the callback URL shown in the card is **browser-derived**, so
+  seeing it in `https://` does **not** mean the server sees HTTPS. Two ways (B-217):
+  - **Recommended — set `PUBLIC_ORIGIN`** (§4) to the public origin, e.g.
+    `PUBLIC_ORIGIN=https://macronome.example.com`. The app then builds the redirect URI and passes
+    the gate from it directly, independent of proxy-header trust. Bulletproof behind any tunnel.
+  - **Or set `TRUSTED_PROXY`** so Express trusts the proxy's `X-Forwarded-Proto`. Behind Docker +
+    a tunnel (e.g. Cloudflare) the proxy connects from a private IP, so **`TRUSTED_PROXY=uniquelocal`**
+    is the simplest working value (the default `loopback` does **not** trust a container/tunnel peer,
+    which is why Connect returns `gdrive_insecure_context` out of the box).
 - Set the container **`TZ`** to the operator's zone if the default UTC is not desired — the
   daily "Heure" (default `03:00`) is interpreted in the process-local time (`backup-scheduler.md`).
 

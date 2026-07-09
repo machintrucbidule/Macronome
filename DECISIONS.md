@@ -4521,3 +4521,33 @@ persistence entirely. `SettingsCard` uses `useState(defaultOpen)`; **each page l
 default** (template + gdrive collapsed, others open) and toggling is **session-only**, not persisted. Scope
 = the Paramètres screen only. `useCollapsed.ts` deleted; `settings.md` §Layout updated; `SettingsCard.test`
 persistence case replaced by a "remount → default" case.
+
+## B-217 — Drive OAuth Connect behind a reverse proxy / tunnel (`PUBLIC_ORIGIN`) — RESOLVED (owner, 2026-07-09)
+
+**Bug (prod):** app served over local HTTP, exposed via a **Cloudflare tunnel** in HTTPS. Clicking
+**Connecter** returned `gdrive_insecure_context` even though the card showed an `https://…` callback
+URL. **Cause:** the shown URL is **browser-derived** (`window.location.origin`, `GoogleDriveHelp.tsx`),
+so it is always https; the server gate (`http/origin.ts`) checked `req.secure`, which is false because
+`TRUSTED_PROXY=loopback` (default) does not trust cloudflared (a non-loopback peer), so
+`X-Forwarded-Proto: https` is ignored → `req.protocol='http'`.
+
+**Decision (owner — option 1):** add an **optional `PUBLIC_ORIGIN`** env (absolute HTTPS origin, e.g.
+`https://macronome.example.com`). When set, the server uses it **verbatim** to build the OAuth
+`redirect_uri` **and** to validate the HTTPS gate — no dependence on trust-proxy header derivation nor
+on the proxy preserving `Host`. **Unset ⇒ current header derivation (zero-config preserved).** The
+HTTPS gate now checks the **resolved origin's scheme** (`deriveOrigin(req).startsWith('https://')`)
+rather than `req.secure`, so it is consistent with the URL actually built. Distinct from the
+ADR-0001-removed `PUBLIC_BASE_URL` (origin-only, OAuth-scoped, optional). **Immediate operator unblock
+on the current image:** `TRUSTED_PROXY=uniquelocal` (trusts the private-range tunnel peer).
+
+**Contract impact:** `docs/architecture/decisions/0004-drive-backup.md` (§3 amended),
+`spec/logic/integrations-connections.md §9.2`, `spec/api/integrations.md` (connect). **Code (api):**
+`config/env.ts` (`PUBLIC_ORIGIN`, `''`→undefined), `http/origin.ts` (`resolveOrigin` pure +
+`deriveOrigin`/`isHttpsOrigin`), `http/controllers/gdrive.ts` (`connect` uses `isHttpsOrigin` + a
+non-secret diagnostic `logger.warn`). **Web:** i18n `settings.gdrive.errors.gdrive_insecure_context`
+rewritten to name `PUBLIC_ORIGIN`/`TRUSTED_PROXY` and note the callback URL is browser-derived.
+**Config/docs:** `compose.yml`, `.env.example`, `docs/architecture/appendices/config-docker.md`,
+`docs/architecture/ops.md` §4/§6c. **Tests:** new `http/origin.test.ts` (pure `resolveOrigin`
+oracles); the existing `gdrive-backup.test.ts` connect cases are unchanged (behaviour identical when
+`PUBLIC_ORIGIN` is unset). **Gate:** typecheck + lint + check:i18n + check:schema + unit + integration
+green.

@@ -1273,7 +1273,7 @@
       },
       "errors": {
         "gdrive_not_configured": "Renseigne d'abord l'ID client et le secret client, puis enregistre.",
-        "gdrive_insecure_context": "La connexion nécessite HTTPS derrière un proxy de confiance. En HTTP simple, le flux Google ne peut pas aboutir.",
+        "gdrive_insecure_context": "Origine HTTPS requise côté serveur. Derrière un reverse proxy / tunnel (ex. Cloudflare), définis la variable PUBLIC_ORIGIN (ex. https://ton-domaine) — ou règle TRUSTED_PROXY (ex. uniquelocal) pour que l'app fasse confiance au proxy. L'URL de callback affichée ci-dessous est calculée par le navigateur : la voir en https ne suffit pas.",
         "gdrive_not_connected": "Connecte d'abord un compte Google Drive.",
         "gdrive_oauth_denied": "Autorisation refusée sur l'écran Google.",
         "gdrive_oauth_failed": "La connexion à Google a échoué. Réessaie.",

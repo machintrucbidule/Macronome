@@ -1,10 +1,12 @@
 import crypto from 'node:crypto';
 import type { Request, Response } from 'express';
 import { ErrorCode } from '@macronome/shared';
+import { env } from '../../config/env.js';
+import { logger } from '../../observability/logger.js';
 import * as connection from '../../services/gdrive-connection.js';
 import { runBackup } from '../../services/gdrive-backup.js';
 import { ApiError } from '../errors.js';
-import { assertHttpsOrigin, callbackUrl } from '../origin.js';
+import { callbackUrl, isHttpsOrigin } from '../origin.js';
 
 // THIN controllers for the Google Drive backup OAuth + actions (spec/api/integrations.md).
 // The config (client creds, scheduling) is edited via PATCH /settings; these only run the
@@ -18,7 +20,19 @@ const STATE_TTL_MS = 10 * 60 * 1000;
 
 /** POST /connect — start OAuth: HTTPS-gated, stash anti-forgery state, return the auth URL. */
 export async function connect(req: Request, res: Response): Promise<void> {
-  assertHttpsOrigin(req);
+  if (!isHttpsOrigin(req)) {
+    // Diagnostic for the common "behind a reverse proxy / tunnel" misconfig (B-217). No secrets.
+    logger.warn(
+      {
+        protocol: req.protocol,
+        secure: req.secure,
+        host: req.get('host'),
+        publicOriginSet: Boolean(env.PUBLIC_ORIGIN),
+      },
+      'gdrive connect refused: non-https origin (set PUBLIC_ORIGIN or TRUSTED_PROXY)',
+    );
+    throw new ApiError(409, ErrorCode.GdriveInsecureContext);
+  }
   const state = crypto.randomBytes(24).toString('hex');
   req.session.oauthState = { value: state, expiresAt: Date.now() + STATE_TTL_MS };
   const auth_url = await connection.connectUrl(userId(res), callbackUrl(req), state);

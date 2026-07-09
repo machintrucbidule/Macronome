@@ -16,6 +16,10 @@ services:
       # when unset (config/session-secret.ts). Set it only to manage it yourself.
       TRUSTED_PROXY: ${TRUSTED_PROXY:-loopback}
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      # Public HTTPS origin for the Google Drive OAuth callback when fronted by a reverse
+      # proxy / tunnel (e.g. https://macronome.example.com). Optional; leave empty unless you
+      # use the Drive backup behind a proxy (empty = unset). See ops.md §6c.
+      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-}
       NODE_ENV: production
     volumes:
       # Persists the auto-generated session secret (so logins survive restarts).

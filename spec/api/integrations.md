@@ -95,9 +95,9 @@ merge (above). All error codes: `integrations-connections.md §9.5`.
 
 - `POST /integrations/google-drive/connect` — starts the OAuth flow. Requires
   `client_id`/`client_secret` stored (`integrations-connections.md §9.2`) and an **HTTPS**
-  origin derived from the trusted-proxy headers. → 200 `{data: {auth_url}}` (the Google
-  consent URL the browser then visits). CSRF-protected.
-  Errors: `gdrive_not_configured` 409 · `gdrive_insecure_context` 409.
+  resolved origin — `PUBLIC_ORIGIN` when set, else derived from the trusted-proxy headers
+  (B-217). → 200 `{data: {auth_url}}` (the Google consent URL the browser then visits).
+  CSRF-protected. Errors: `gdrive_not_configured` 409 · `gdrive_insecure_context` 409.
 - `GET /integrations/google-drive/callback?code&state` — Google's redirect target (the
   exact URL the operator registered). Validates `state`, exchanges `code` → `refresh_token`
   (stored, server-written only), creates/finds the "Macronome Backups" folder (stores

@@ -43,12 +43,20 @@ kind today; a nightly job is greenfield infrastructure.
    quota (above). _Why not full-Drive scope + a folder picker?_ It needs Google's restricted-scope
    verification and grants far more than a backup requires.
 
-3. **App-derived HTTPS callback → an opt-in hardened posture.** The app derives its OAuth
-   `redirect_uri` from the request origin, honouring `X-Forwarded-Proto`/`Host` **only** from the
-   trusted proxy (`TRUSTED_PROXY`, same gate as the secure cookie). OAuth requires an exact,
-   Google-registered **HTTPS** URL, so **Connect only completes on a hardened deployment**
-   (HTTPS + trusted proxy). Attempting it over plain HTTP returns `gdrive_insecure_context`. This
+3. **HTTPS callback origin → an opt-in hardened posture.** The app builds its OAuth `redirect_uri`
+   (and validates the HTTPS gate) from a **public origin** resolved as: the explicit **`PUBLIC_ORIGIN`**
+   env when set, else derived from the request origin (`X-Forwarded-Proto`/`Host` honoured **only** from
+   the trusted proxy `TRUSTED_PROXY`, same gate as the secure cookie). OAuth requires an exact,
+   Google-registered **HTTPS** URL, so **Connect only completes on a hardened deployment** (HTTPS + a
+   declared origin). Over plain HTTP with no `PUBLIC_ORIGIN` it returns `gdrive_insecure_context`. This
    keeps ADR-0001's default deployment valid while gating the cloud handshake behind real TLS.
+
+   _Amendment (B-217): `PUBLIC_ORIGIN` added._ Header derivation alone was fragile behind a reverse
+   proxy / tunnel: it depends on `TRUSTED_PROXY` being set to trust a non-loopback peer **and** on the
+   proxy preserving `Host`, and the card's displayed callback URL is browser-derived (misleadingly
+   https). `PUBLIC_ORIGIN` lets the operator declare the exact public origin the app already shows;
+   it is **optional** (unset ⇒ header derivation, zero-config preserved), **origin-only** and
+   **OAuth-scoped** — deliberately distinct from the ADR-0001-removed `PUBLIC_BASE_URL`.
 
 4. **Publish the consent screen to Production (durable token).** Google expires refresh tokens
    after 7 days while the consent screen is in "Testing"; the operator publishes it to

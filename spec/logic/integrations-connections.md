@@ -320,14 +320,17 @@ owns the **connection**, the **OAuth handshake**, and the **Drive operations**.
 
 ### 9.2 OAuth handshake (Connect)
 
-The app **derives its own callback URL** from the incoming request — `scheme` +
-`Host` honouring `X-Forwarded-Proto` / `X-Forwarded-Host` **only from the trusted proxy**
-(same `TRUSTED_PROXY` gate as the secure cookie, `security.md`) — as
-`{scheme}://{host}/api/v1/integrations/google-drive/callback`. This exact URL is shown in
-the Settings guide for the operator to register in their Google OAuth client.
+The app resolves its **public origin** and uses it for the callback URL
+`{origin}/api/v1/integrations/google-drive/callback` (B-217): the explicit **`PUBLIC_ORIGIN`**
+env when set (robust behind a reverse proxy / tunnel), else the request origin — `scheme` +
+`Host` honouring `X-Forwarded-Proto` / `X-Forwarded-Host` **only from the trusted proxy** (same
+`TRUSTED_PROXY` gate as the secure cookie, `security.md`). The **same resolved origin** is used
+to build the redirect URI **and** to validate the HTTPS gate. Note the callback URL shown in the
+Settings card is browser-derived (`window.location.origin`), so it may read https even when the
+**server** cannot yet (unset `PUBLIC_ORIGIN` + untrusted proxy) — see `ops.md §6c`.
 
 1. **Start** (`POST …/connect`): requires `client_id` + `client_secret` stored, else
-   `gdrive_not_configured`; requires an **HTTPS** derived origin, else
+   `gdrive_not_configured`; requires the **resolved origin to be HTTPS**, else
    `gdrive_insecure_context` (enforces the hardened posture). The app builds the Google
    authorization URL with `scope=https://www.googleapis.com/auth/drive.file`,
    `access_type=offline`, `prompt=consent` (to always receive a refresh token),

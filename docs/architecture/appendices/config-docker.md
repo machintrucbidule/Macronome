@@ -21,6 +21,7 @@ services:
       # SESSION_SECRET auto-generated & persisted to the app volume on first boot if unset
       TRUSTED_PROXY: ${TRUSTED_PROXY:-loopback}
       COOKIE_SECURE: ${COOKIE_SECURE:-false} # set true only together with TRUSTED_PROXY
+      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-} # public HTTPS origin for the Drive OAuth callback behind a proxy (optional)
       NODE_ENV: production
     volumes: ['appdata:/data'] # persists the session secret
     depends_on:
@@ -81,7 +82,10 @@ CSP, nosniff, Referrer-Policy) via `helmet` (`http/middleware/securityHeaders.ts
 the proxy only needs to terminate TLS and forward. Login works out of the box
 (`COOKIE_SECURE=false`); to use `Secure` cookies, set `COOKIE_SECURE=true` **and**
 `TRUSTED_PROXY` to the proxy's address/CIDR (and have it send the usual `X-Forwarded-*`
-headers).
+headers). Behind Docker + a tunnel (e.g. Cloudflare) where the proxy's IP is on a private
+range, `TRUSTED_PROXY=uniquelocal` is the simplest value. For the **Google Drive OAuth
+backup**, set `PUBLIC_ORIGIN` to the public HTTPS origin (e.g. `https://macronome.example.com`)
+so the app builds the exact callback URL regardless of proxy-header trust (ops.md §6c, B-217).
 
 ---
 
@@ -103,7 +107,8 @@ The stack runs with no `.env`. Every key is a commented override:
 # --- app ---
 # SESSION_SECRET=             # leave unset: auto-generated & persisted on first boot
 # COOKIE_SECURE=false         # set true ONLY together with TRUSTED_PROXY
-# TRUSTED_PROXY=loopback      # your reverse proxy's address/CIDR when fronted
+# TRUSTED_PROXY=loopback      # your reverse proxy's address/CIDR when fronted (Docker+tunnel: uniquelocal)
+# PUBLIC_ORIGIN=              # public HTTPS origin for the Drive OAuth callback behind a proxy (optional)
 
 # --- reserved (unused in v1) ---
 # LLM_ENDPOINT_URL=

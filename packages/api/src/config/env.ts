@@ -9,6 +9,12 @@ const EnvSchema = z.object({
   // (config/session-secret.ts) to keep deployment zero-config (ADR-0001).
   SESSION_SECRET: z.string().min(16).optional(),
   TRUSTED_PROXY: z.string().min(1).default('loopback'),
+  // Optional explicit public origin (scheme+host) for the Google Drive OAuth callback (B-217).
+  // When set, the server builds the redirect_uri + validates the HTTPS gate from it directly —
+  // no dependence on trust-proxy header derivation. Empty string ⇒ treated as unset. This is
+  // origin-only and OAuth-scoped (distinct from the ADR-0001-removed PUBLIC_BASE_URL); zero-config
+  // is preserved when absent (ADR-0004).
+  PUBLIC_ORIGIN: z.preprocess((v) => (v === '' ? undefined : v), z.string().url().optional()),
   COOKIE_SECURE: z
     .enum(['true', 'false'])
     .default('false')
