@@ -95,8 +95,8 @@ P(q)  = 1.5·over  +  1.0·under  +  8·shP  +  8·shL  +  0.5·exG  +  0.05·(�
 2. Otherwise runs deterministic **coordinate descent** from a proportional-scaling seed (scale each
    food so the set's raw kcal ≈ midpoint of the remaining band), iterating to a local `argmin P`.
 
-`temperature: 0` on the LLM (provider default, `ai-connection.md`) + a pure solver ⇒ same inputs
-yield the same output.
+The LLM at the provider's default temperature (the app sends no `temperature` — see
+`ai-connection.md` §6b) + a pure solver ⇒ same inputs yield the same output.
 
 ## 3. Feasibility, fit, and gaps
 

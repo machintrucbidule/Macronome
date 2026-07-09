@@ -135,8 +135,11 @@ The second provider operation — **chat completion** — backs the AI _uses_. I
 all three tasks: `dish_photo_macros` (B-118), `meal_suggestions` (B-123), and `advice` (B-202):
 
 - Request: `POST {base_url}/chat/completions` with the auth headers (§6a) and a
-  body `{ model, messages, temperature }` where `model` is the **invoked task's** model
-  (`tasks.<task>.model`) and `temperature` is low (deterministic, e.g. `0`).
+  body `{ model, messages }` where `model` is the **invoked task's** model (`tasks.<task>.model`).
+  **No `temperature` is sent** — current models (e.g. Claude Sonnet 5 and other reasoning models)
+  reject a custom value (`400 "temperature is deprecated for this model"`), so the app relies on the
+  provider default. Determinism rests on the explicit format instructions (§ per task) + the pure
+  solver, not a temperature override.
 - `messages` is one `user` message whose `content` is **multimodal** — an ordered array mixing
   `{ "type":"text", "text": … }` parts and `{ "type":"image_url", "image_url": { "url": <data URL> } }`
   parts (OpenAI-compatible vision shape; Gemini's compatible endpoint accepts it). Text-only tasks

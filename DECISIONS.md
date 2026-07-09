@@ -4349,3 +4349,17 @@ per-task token estimates + pure `estimateTaskCostEur`) + `ai-pricing.test.ts` (n
 `index.ts` export; `packages/web/src/features/settings/components/AiCostEstimate.tsx` +
 `AiTaskBlock.tsx` + `settings.module.css`; i18n `settings.ai.cost.*` (fr+en). Gate: typecheck + lint +
 check:i18n + shared unit green; owner visual check.
+
+## AI chat completions send no `temperature` — RESOLVED (owner, 2026-07-09)
+
+**Decision:** the outbound provider request (`services/ai-provider.ts` `chatCompletion`) sends
+`{ model, messages }` only, **without a `temperature`** — previously `temperature: 0`. Current models
+(the owner runs **Claude Sonnet 5**; also other reasoning models) reject a custom temperature, replying
+`400 "temperature is deprecated for this model"`, which the app relayed as `502 ai_bad_response`
+("Réponse IA inexploitable"). Relying on the provider default fixes generation for all three AI uses.
+Determinism (meal-solver reproducibility) now rests on the explicit per-task format instructions + the
+pure solver, not a temperature override.
+
+**Contract impact:** `spec/logic/ai-connection.md` §6b (request body drops `temperature`);
+`spec/logic/meal-solver.md` (determinism rationale reworded). **Code:** `packages/api/src/services/
+ai-provider.ts`.

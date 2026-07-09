@@ -138,7 +138,9 @@ export async function chatCompletion(
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model, messages, temperature: 0 }),
+      // No `temperature`: current models (e.g. Claude Sonnet 5, reasoning models) reject a custom
+      // value ("temperature is deprecated for this model") — rely on the provider default.
+      body: JSON.stringify({ model, messages }),
     },
     CHAT_TIMEOUT_MS,
   );
