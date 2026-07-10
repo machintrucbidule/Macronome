@@ -2,10 +2,11 @@
 
 # Macronome
 
-Self-hosted, API-first **nutrition & weight tracker** that replaces a daily-use Excel
-workbook. Log what you eat, see your calories and macros against your own targets, track
-your weight trend toward a goal, and review your adherence over time — all on your own
-server, for a single owner.
+Self-hosted, API-first **multi-user nutrition & weight tracker** that replaces a daily-use
+Excel workbook. Log what you eat, see your calories and macros against your own targets,
+track your weight trend toward a goal, and review your adherence over time — all on your own
+server. An **admin owner** runs the instance and can invite additional accounts, each with
+fully **isolated** data; there is **no public sign-up**.
 
 ![Macronome — daily meal log](docs/img/preview.png)
 
@@ -23,7 +24,8 @@ Macronome turns the spreadsheet many people keep for dieting into a fast, dense 
 - **Understand your adherence** with rolling averages, an OK-rate heatmap, monthly
   charts, and plain-language signals.
 - **Optional AI assist** — connect your own OpenAI-compatible model (e.g. Gemini) to
-  estimate a dish's macros from a photo and suggest meals that fit your remaining targets.
+  estimate a dish's macros from a photo, suggest meals that fit your remaining targets, and
+  generate written advice from your own logged data.
 
 Two principles run through it:
 
@@ -34,7 +36,8 @@ Two principles run through it:
   never silently rewritten.
 
 Other essentials: **SI units** (grams internally), **French / English** UI, **light / dark**
-theme, and **single-owner** self-hosting (no public sign-up).
+theme, and **multi-user** self-hosting — an admin owner plus invited accounts, isolated per
+user, with no public sign-up.
 
 ---
 
@@ -58,6 +61,8 @@ log each food by name with a quantity and unit (g/ml/kg or a **named portion** l
 - **Custom foods** for one-off manual entries, and **macro cards** showing each macro vs its
   target band.
 - **Undo / redo** (Ctrl+Z / Ctrl+Y) for line edits — add/remove, quantity, unit, pin, reorder.
+- **Selected-line sum** (desktop): tick any subset of food lines and read a running total of
+  grams / kcal / macros, spreadsheet-status-bar style.
 - **AI assist (optional)**: estimate a dish's macros from a photo, or get **meal proposals**
   that fill the day's remaining target band (see _Assistant IA_).
 
@@ -112,6 +117,15 @@ A live, global list of recurring foods pinned per meal slot. Pinning adds the fo
 to today and future days and pre-fills new days; the same list is editable from both Settings
 and the Repas pin.
 
+### Contenants — reusable containers
+
+A per-user catalogue of named vessels with an **empty ("tare") weight** — a plate at 650 g, a
+bowl at 408 g. They feed the **leftover proration** on the daily log: when several foods share
+a plate, you enter the gross weight and pick a container, and Macronome subtracts its tare
+before distributing the leftover. A built-in **"Rien" (0 g)** is always available; the rest is
+yours to edit. Editing or deleting a container never rewrites past days — each logged leftover
+freezes the tare it used.
+
 ### Assistant IA — optional AI assistant
 
 Connect your own **OpenAI-compatible** endpoint (e.g. Google Gemini) from a dedicated page: a
@@ -125,14 +139,60 @@ provider's models**. Each AI task has its own **model** and an editable **prompt
   band**; proposals are aware of what you've already eaten, are **refinable** (pin and adjust
   quantities), and show a graceful "already on target" state when there's nothing to add.
 
+A shared **allergies / disliked-foods** field steers both the meal proposals and the advice
+(below) away from foods you avoid, and each task shows an **estimated per-request cost** across
+common models so there are no billing surprises.
+
 The whole feature is **opt-in**: Macronome works fully without it, and nothing leaves your
 server until you configure a connection.
 
+### Conseils IA — AI coaching
+
+A dedicated page turns your own data into **written advice**. On demand — one paid model call
+per press — a text model reads an anonymised digest of your picture (profile and metabolic
+figures, current and past targets, your weight / BMI / waist trend, rolling intake, monthly
+adherence over all history, and the last 30 days of journal and meals) and replies in **Markdown**,
+in your UI language. It judges balance **over your average, not meal by meal**, and flags
+qualitative **deficiency risks** inferred from food names (few oily-fish / omega-3 sources,
+little fibre…) — always with the honest caveat that Macronome tracks only calories and macros,
+**not micronutrients**. Every generation is **archived** as a collapsible card (delete behind a
+confirm). It reuses your AI connection with its own model and editable prompt. Advice deliberately
+sends more of your data than the other AI uses; it never sends credentials, other users' data, or
+your free-text comments.
+
+### Intégrations — local-network services
+
+Connect services from your own network. Their secrets stay **server-side** (the browser never
+talks to them directly), so they also work when you're away from home.
+
+- **Home Assistant** — import your latest smart-scale reading. Point Macronome at your Home
+  Assistant URL, a long-lived token, and the weight sensor's entity id; an **"Import from HA"**
+  button then pre-fills a weigh-in with the rounded measurement (SI, kg only).
+- **BarclaudeGateway** — a self-hosted gateway to a grocery product database (Chronodrive). Once
+  configured, a **product search** appears in the add-food modal and pre-fills a food's name and
+  per-100 g macros from a scanned product.
+
 ### Paramètres — settings
 
-Theme, language, and the default meal structure. The **Data** section exports your full content
-to a versioned JSON file, **imports** one back (a full replace/restore), or **wipes** all tracked
-data — credentials are never exported or wiped.
+Theme, language, and the default meal structure (meal slots and how many lines each meal shows).
+The **Data** section exports your full content to a versioned JSON file, **imports** one back (a
+full replace/restore), or **wipes** all tracked data — credentials are never exported or wiped.
+
+An optional **automatic Google Drive backup** uploads that same export to **your own** Drive:
+bring your own Google OAuth client, connect once, then set a retention window and a daily time —
+fired at **your** local time, within a minute of it — plus a manual "backup now". Note that the
+backup file is **not encrypted** and contains your stored secrets (Drive / AI / Home Assistant
+tokens) in clear, so keep that Drive folder private; connecting requires serving the app over
+HTTPS.
+
+### Utilisateurs — accounts (admin)
+
+Admins get a **Utilisateurs** page to manage accounts: each account's role and usage (created,
+last login, last activity), **invite** a new user with a single-use 7-day link (choosing their
+role), generate a **password-reset link**, promote / demote admins, or delete an account (which
+**wipes that account's data**). Safeguards keep at least one admin and stop you acting on your own
+row. There is **no open sign-up** — every account comes from the owner or an admin invite — and
+**admins never see another user's nutrition or weight data**, only account metadata.
 
 ### Compte / À propos
 
@@ -141,8 +201,11 @@ live server diagnostics (Node.js, uptime, OS, CPU, memory, database size).
 
 ### Setup & login
 
-On a fresh install a **first-run setup wizard** creates the single owner account (no public
-sign-up). Login is rate-limited with lockout backoff and keeps you signed in across restarts.
+On a fresh install a **first-run setup wizard** creates the owner (admin) account. After that,
+new accounts come only from an **admin invite link** — a one-time, 7-day link that opens the same
+wizard — so there is **no public sign-up**. Login is rate-limited with lockout backoff and keeps
+you signed in across restarts; password recovery is an **admin-generated reset link**, not a
+self-service "forgot password".
 
 ---
 
@@ -156,19 +219,18 @@ sign-up). Login is rate-limited with lockout backoff and keeps you signed in acr
   verdict drivers.
 - **SI units** everywhere, with consistent display rounding.
 - **i18n** (FR/EN) for UI strings; food/recipe/portion names stay as your data.
-- **Single-owner self-hosting**; you front it with your own reverse proxy / TLS.
+- **Multi-user self-hosting** — an admin owner plus isolated invited accounts, no public
+  sign-up; you front it with your own reverse proxy / TLS.
 
 ---
 
-## On your phone (install as an app)
+## Install as an app (phone & desktop)
 
-Macronome's UI is **mobile-responsive**, and it's an installable **PWA**: add it to your home
-screen and it launches full-screen (no browser bar), with the OS status bar following the in-app
-light/dark theme. New versions install silently and apply on the next launch.
+Macronome's UI is **responsive**, and it's an installable **PWA**: on a phone or a computer it
+launches in its own window (no browser bar), with the OS status bar / title bar following the
+in-app light/dark theme. New versions install silently and apply on the next launch.
 
-![Macronome on mobile](docs/img/preview_mobile.png)
-
-**Install it:**
+**On your phone:**
 
 - **Android / Chrome (Chromium):** open the app, then tap the **Install app** button in
   **Settings → Update**, or use the browser menu's **"Add to Home screen / Install app"**.
@@ -176,6 +238,14 @@ light/dark theme. New versions install silently and apply on the next launch.
 
 Once installed it runs like a native app. Two mobile extras: snap a **dish photo** for AI macro
 estimation, and light **haptic feedback** on key actions.
+
+![Macronome on mobile](docs/img/preview_mobile.png)
+
+**On your computer (Chrome / Edge):** open the app and click the **Install** icon in the address
+bar, or the browser menu → **"Install Macronome"**. It opens as a standalone desktop window with a
+native **right-click menu** and app **shortcuts** for quick navigation.
+
+![Macronome installed on the desktop](docs/img/preview_pc.png)
 
 ---
 
@@ -220,7 +290,9 @@ probe is `GET /api/v1/health`. To use `Secure` cookies behind your proxy, set
 `COOKIE_SECURE=true` **and** `TRUSTED_PROXY=<your proxy's address/CIDR>`.
 
 **Backups.** The only critical state is the `pgdata` volume — back it up (e.g. `pg_dump`) before
-upgrades.
+upgrades. At the data level, Macronome also offers an in-app **JSON export/import** and an optional
+**automatic Google Drive backup** (both in Settings) — convenient, but not a substitute for a
+volume/database backup.
 
 ### Configuration (all optional — defaults shown)
 

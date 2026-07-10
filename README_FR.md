@@ -2,10 +2,12 @@
 
 # Macronome
 
-**Suivi nutritionnel et de poids** auto-hébergé, API-first, qui remplace un classeur Excel
-utilisé au quotidien. Enregistre ce que tu manges, compare tes calories et tes macros à tes
-propres objectifs, suis la tendance de ton poids vers un objectif, et analyse ton assiduité dans
-le temps — le tout sur ton propre serveur, pour un utilisateur unique.
+**Suivi nutritionnel et de poids multi-utilisateur** auto-hébergé, API-first, qui remplace un
+classeur Excel utilisé au quotidien. Enregistre ce que tu manges, compare tes calories et tes
+macros à tes propres objectifs, suis la tendance de ton poids vers un objectif, et analyse ton
+assiduité dans le temps — le tout sur ton propre serveur. Un **administrateur propriétaire** gère
+l'instance et peut inviter des comptes supplémentaires, chacun avec des données **isolées** ; il
+n'y a **aucune inscription publique**.
 
 ![Macronome — journal des repas](docs/img/preview.png)
 
@@ -24,8 +26,8 @@ web rapide et dense :
 - **Comprends ton assiduité** avec des moyennes glissantes, une heatmap du taux d'OK, des
   graphiques mensuels et des signaux en langage clair.
 - **Assistance IA optionnelle** — connecte ton propre modèle compatible OpenAI (par ex. Gemini)
-  pour estimer les macros d'un plat à partir d'une photo et proposer des repas qui collent à tes
-  cibles restantes.
+  pour estimer les macros d'un plat à partir d'une photo, proposer des repas qui collent à tes
+  cibles restantes, et générer des conseils écrits à partir de tes propres données.
 
 Deux principes traversent l'application :
 
@@ -36,7 +38,8 @@ Deux principes traversent l'application :
   jours **futurs** — ton passé n'est jamais réécrit en silence.
 
 Autres essentiels : **unités SI** (grammes en interne), interface **français / anglais**, thème
-**clair / sombre**, et auto-hébergement **mono-utilisateur** (aucune inscription publique).
+**clair / sombre**, et auto-hébergement **multi-utilisateur** — un administrateur propriétaire
+plus des comptes invités, isolés par utilisateur, sans inscription publique.
 
 ---
 
@@ -64,6 +67,8 @@ nommée** comme « 1 œuf = 57 g »). Points clés :
   montrant chaque macro face à sa plage cible.
 - **Annuler / rétablir** (Ctrl+Z / Ctrl+Y) sur les éditions de lignes — ajout/suppression,
   quantité, unité, épingle, réordonnancement.
+- **Somme des lignes sélectionnées** (bureau) : coche un sous-ensemble de lignes d'aliments et lis
+  un total courant en grammes / kcal / macros, façon barre d'état d'un tableur.
 - **Assistance IA (optionnelle)** : estime les macros d'un plat depuis une photo, ou obtiens des
   **propositions de repas** qui complètent la plage cible restante du jour (voir _Assistant IA_).
 
@@ -121,6 +126,15 @@ Une liste vivante et globale d'aliments récurrents épinglés par repas. Éping
 la quantité 0) à aujourd'hui et aux jours futurs et pré-remplit les nouveaux jours ; la même liste
 est modifiable depuis les Paramètres comme depuis l'épingle de l'écran Repas.
 
+### Contenants — contenants réutilisables
+
+Un catalogue par utilisateur de récipients nommés avec un **poids à vide (« tare »)** — une
+assiette à 650 g, un bol à 408 g. Ils alimentent le **prorata des restes** du journal : quand
+plusieurs aliments partagent une assiette, tu saisis le poids brut et choisis un contenant, et
+Macronome soustrait sa tare avant de répartir le reste. Un **« Rien » (0 g)** intégré est toujours
+disponible ; le reste est à toi. Modifier ou supprimer un contenant ne réécrit jamais les jours
+passés — chaque reste enregistré fige la tare utilisée.
+
 ### Assistant IA — assistant IA optionnel
 
 Connecte ton propre point d'accès **compatible OpenAI** (par ex. Google Gemini) depuis une page
@@ -136,14 +150,65 @@ dédiée : une URL de base et une clé API (stockée en écriture seule, jamais 
   **affinables** (épingler et ajuster les quantités) et affichent un état « déjà dans la cible »
   quand il n'y a rien à ajouter.
 
+Un champ partagé **allergies / aliments non désirés** oriente à la fois les propositions de repas
+et les conseils (ci-dessous) à l'écart des aliments que tu évites, et chaque tâche affiche un
+**coût estimé par requête** sur les modèles courants, pour éviter les mauvaises surprises de
+facturation.
+
 Toute la fonctionnalité est **optionnelle** : Macronome fonctionne pleinement sans elle, et rien
 ne quitte ton serveur tant que tu n'as pas configuré de connexion.
 
+### Conseils IA — coaching IA
+
+Une page dédiée transforme tes propres données en **conseils écrits**. À la demande — un appel
+modèle payant par clic — un modèle de texte lit un condensé anonymisé de ta situation (profil et
+chiffres métaboliques, cibles actuelles et passées, ta tendance de poids / IMC / tour de taille,
+apports glissants, assiduité mensuelle sur tout l'historique, et les 30 derniers jours de journal
+et de repas) et répond en **Markdown**, dans la langue de l'interface. Il juge l'équilibre **sur ta
+moyenne, pas repas par repas**, et signale des **risques de carence** qualitatifs déduits des noms
+d'aliments (peu de sources d'oméga-3 / poisson gras, peu de fibres…) — toujours avec l'avertissement
+honnête que Macronome ne suit que les calories et les macros, **pas les micronutriments**. Chaque
+génération est **archivée** sous forme de carte repliable (suppression derrière une confirmation).
+Elle réutilise ta connexion IA avec son propre modèle et son prompt éditable. Les conseils envoient
+délibérément plus de tes données que les autres usages IA ; ils n'envoient jamais d'identifiants,
+les données d'autres utilisateurs, ni tes commentaires libres.
+
+### Intégrations — services du réseau local
+
+Connecte des services de ton propre réseau. Leurs secrets restent **côté serveur** (le navigateur
+ne leur parle jamais directement), ils fonctionnent donc aussi quand tu es loin de chez toi.
+
+- **Home Assistant** — importe ta dernière mesure de balance connectée. Indique à Macronome l'URL
+  de ton Home Assistant, un jeton longue durée et l'entity id du capteur de poids ; un bouton
+  **« Importer depuis HA »** pré-remplit alors une pesée avec la mesure arrondie (SI, kg uniquement).
+- **BarclaudeGateway** — une passerelle auto-hébergée vers une base de produits d'épicerie
+  (Chronodrive). Une fois configurée, une **recherche de produits** apparaît dans le modal d'ajout
+  d'aliment et pré-remplit le nom d'un aliment et ses macros pour 100 g depuis un produit scanné.
+
 ### Paramètres — paramètres
 
-Thème, langue et structure de journée par défaut. La section **Données** exporte tout ton contenu
-dans un fichier JSON versionné, en **réimporte** un (remplacement/restauration complet), ou
-**efface** toutes les données suivies — les identifiants ne sont jamais exportés ni effacés.
+Thème, langue et structure de journée par défaut (les repas et le nombre de lignes affichées par
+repas). La section **Données** exporte tout ton contenu dans un fichier JSON versionné, en
+**réimporte** un (remplacement/restauration complet), ou **efface** toutes les données suivies —
+les identifiants ne sont jamais exportés ni effacés.
+
+Une **sauvegarde Google Drive automatique** optionnelle envoie ce même export vers **ton propre**
+Drive : apporte ton propre client OAuth Google, connecte-toi une fois, puis définis une fenêtre de
+rétention et une heure quotidienne — déclenchée à **ton** heure locale, à moins d'une minute près —
+plus une sauvegarde manuelle « Sauvegarder maintenant ». Attention : le fichier de sauvegarde
+**n'est pas chiffré** et contient tes secrets stockés (jetons Drive / IA / Home Assistant) en clair,
+alors garde ce dossier Drive privé ; la connexion nécessite de servir l'app en HTTPS.
+
+### Utilisateurs — comptes (admin)
+
+Les administrateurs disposent d'une page **Utilisateurs** pour gérer les comptes : le rôle et
+l'usage de chaque compte (créé le, dernière connexion, dernière activité), **inviter** un nouvel
+utilisateur via un lien à usage unique valable 7 jours (en choisissant son rôle), générer un **lien
+de réinitialisation du mot de passe**, promouvoir / rétrograder des administrateurs, ou supprimer un
+compte (ce qui **efface les données de ce compte**). Des garde-fous conservent au moins un
+administrateur et t'empêchent d'agir sur ta propre ligne. Il n'y a **aucune inscription ouverte** —
+chaque compte vient du propriétaire ou d'une invitation admin — et **un administrateur ne voit
+jamais les données nutrition ou poids d'un autre utilisateur**, seulement les métadonnées du compte.
 
 ### Compte / À propos
 
@@ -154,8 +219,12 @@ taille de la base).
 ### Configuration initiale & connexion
 
 Sur une installation neuve, un **assistant de configuration au premier lancement** crée le compte
-propriétaire unique (aucune inscription publique). La connexion est limitée en débit avec
-temporisation de verrouillage et te garde connecté au fil des redémarrages.
+propriétaire (administrateur). Ensuite, les nouveaux comptes ne viennent que d'un **lien
+d'invitation admin** — un lien à usage unique valable 7 jours qui ouvre le même assistant — donc
+**aucune inscription publique**. La connexion est limitée en débit avec temporisation de
+verrouillage et te garde connecté au fil des redémarrages ; la récupération du mot de passe passe
+par un **lien de réinitialisation généré par un admin**, pas par un « mot de passe oublié » en
+libre-service.
 
 ---
 
@@ -170,20 +239,19 @@ temporisation de verrouillage et te garde connecté au fil des redémarrages.
 - **Unités SI** partout, avec un arrondi d'affichage cohérent.
 - **i18n** (FR/EN) pour les chaînes d'interface ; les noms d'aliments/recettes/portions restent tes
   données.
-- **Auto-hébergement mono-utilisateur** ; tu places ton propre reverse proxy / TLS devant.
+- **Auto-hébergement multi-utilisateur** — un administrateur propriétaire plus des comptes invités
+  isolés, sans inscription publique ; tu places ton propre reverse proxy / TLS devant.
 
 ---
 
-## Sur ton téléphone (installer comme une app)
+## Installer comme une app (mobile & bureau)
 
-L'interface de Macronome est **responsive mobile**, et c'est une **PWA** installable : ajoute-la à
-ton écran d'accueil et elle se lance en plein écran (sans barre du navigateur), la barre d'état du
-système suivant le thème clair/sombre de l'app. Les nouvelles versions s'installent en silence et
-s'appliquent au prochain lancement.
+L'interface de Macronome est **responsive**, et c'est une **PWA** installable : sur téléphone comme
+sur ordinateur, elle se lance dans sa propre fenêtre (sans barre du navigateur), la barre d'état /
+la barre de titre du système suivant le thème clair/sombre de l'app. Les nouvelles versions
+s'installent en silence et s'appliquent au prochain lancement.
 
-![Macronome sur mobile](docs/img/preview_mobile.png)
-
-**Installation :**
+**Sur ton téléphone :**
 
 - **Android / Chrome (Chromium) :** ouvre l'app, puis touche le bouton **Installer l'app** dans
   **Paramètres → Mise à jour**, ou utilise le menu du navigateur **« Ajouter à l'écran d'accueil /
@@ -192,6 +260,14 @@ s'appliquent au prochain lancement.
 
 Une fois installée, elle fonctionne comme une app native. Deux atouts mobiles : prends une **photo
 d'un plat** pour l'estimation IA des macros, et un léger **retour haptique** sur les actions clés.
+
+![Macronome sur mobile](docs/img/preview_mobile.png)
+
+**Sur ton ordinateur (Chrome / Edge) :** ouvre l'app et clique l'icône **Installer** dans la barre
+d'adresse, ou le menu du navigateur → **« Installer Macronome »**. Elle s'ouvre dans une fenêtre de
+bureau autonome, avec un **menu clic droit** natif et des **raccourcis** d'app pour naviguer vite.
+
+![Macronome installé sur ordinateur](docs/img/preview_pc.png)
 
 ---
 
@@ -236,7 +312,9 @@ de santé est `GET /api/v1/health`. Pour des cookies `Secure` derrière ton prox
 `COOKIE_SECURE=true` **et** `TRUSTED_PROXY=<adresse/CIDR de ton proxy>`.
 
 **Sauvegardes.** Le seul état critique est le volume `pgdata` — sauvegarde-le (par ex. `pg_dump`)
-avant les mises à jour.
+avant les mises à jour. Au niveau des données, Macronome propose aussi un **export/import JSON**
+in-app et une **sauvegarde Google Drive automatique** optionnelle (les deux dans les Paramètres) —
+pratiques, mais ils ne remplacent pas une sauvegarde du volume / de la base.
 
 ### Configuration (tout est optionnel — valeurs par défaut indiquées)
 
