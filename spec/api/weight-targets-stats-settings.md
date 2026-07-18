@@ -22,15 +22,21 @@ waist_delta,gap_to_goal,projection}, current_mode}`.
 - `PATCH /weight/:id` — edit (incl. `date`); re-derives adjacent periods. → 200.
 - `DELETE /weight/:id` → 204; re-derives adjacent periods.
 - `GET /weight/interval-days?start=YYYY-MM-DD&end=YYYY-MM-DD` — read-only per-day recap of a
-  period's interval (B-225). → 200 `{data:[{date, kcal:number|null, macros:{L,G,P}|null,
-comment:string|null}]}`, **one element per calendar day** of `[start,end]` with **both bounds
-  inclusive** (missing days filled as `{kcal:null, macros:null, comment:null}`), oldest first.
+  period's interval (B-225, enriched B-227). → 200
+  `{data:[{date, kcal:number|null, macros:{L,G,P}|null, comment:string|null,
+state:'ok'|'partiel'|'nok'|'none'}], summary:{day_count, logged_count, avg_kcal:number|null}}`.
+  `data` has **one element per calendar day** of `[start,end]` with **both bounds inclusive**
+  (missing days filled as `{kcal:null, macros:null, comment:null, state:'none'}`), oldest first.
   `kcal`/`macros` mirror the `GET /journal` per-day row (`days-meals-leftover.md §Journal`):
-  `macros` is `null` on a summary day, `comment` is the day's `day_log.comment`. `start > end`
-  or a malformed date → 422 `validation_error`. User-scoped (cross-tenant days never leak; an
-  interval with no data returns all-`null` days). The **inclusive** display range is intentionally
-  wider than the `(start,end]` stats span (`logic/weight-periods-trajectory.md §2/§2.1`) — display
-  only, affects no computation.
+  `macros` is `null` on a summary day, `comment` is the day's `day_log.comment`. **`state`** (B-227)
+  = the day's effective verdict (`autoVerdict` + override, same rule as the badge): `ok` / `nok` for a
+  detailed logged day, `partiel` for a **summary** (Partiel) day, `none` when not logged (no calorie
+  value — a gap or a comment-only day). **`summary`** (B-227): `day_count` = calendar days in the
+  range; `logged_count` = days carrying a calorie value; `avg_kcal` = mean kcal over the logged days
+  (server-computed, `null` when none). `start > end` or a malformed date → 422 `validation_error`.
+  User-scoped (cross-tenant days never leak; an interval with no data returns all-`none` days +
+  `avg_kcal:null`). The **inclusive** display range is intentionally wider than the `(start,end]`
+  stats span (`logic/weight-periods-trajectory.md §2/§2.1`) — display only, affects no computation.
 
 **Period** payload: `{start_date,end_date,days,weight_end,ema,delta,
 ecart_trajectoire,bmi,waist,avg_intake,estimated_burn,empirical_burn,

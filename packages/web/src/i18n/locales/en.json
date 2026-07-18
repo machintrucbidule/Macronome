@@ -788,7 +788,14 @@
     "intervalDays": {
       "open": "View days",
       "loading": "Loading days…",
-      "empty": "No days in this interval."
+      "days": "days",
+      "logged": "logged",
+      "avg": "avg",
+      "notLogged": "not logged",
+      "today": "Today",
+      "legendFat": "Fat",
+      "legendCarb": "Carbs",
+      "legendProt": "Protein"
     },
     "field": {
       "date": "Date",

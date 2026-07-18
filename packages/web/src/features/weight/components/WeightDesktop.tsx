@@ -61,7 +61,13 @@ export function WeightDesktop(props: WeightDesktopProps) {
         </div>
       )}
       {ctl.recap && (
-        <IntervalDaysModal start={ctl.recap.start} end={ctl.recap.end} onClose={ctl.closeRecap} />
+        <IntervalDaysModal
+          start={ctl.recap.start}
+          end={ctl.recap.end}
+          weightEnd={ctl.recap.weightEnd}
+          delta={ctl.recap.delta}
+          onClose={ctl.closeRecap}
+        />
       )}
     </>
   );

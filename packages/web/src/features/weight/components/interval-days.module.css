@@ -1,28 +1,85 @@
-/* Interval-days recap popup (B-225): a read-only list of every calendar day of a period's
-   interval, each row a button navigating to that day's Repas screen. Rendered inside the shared
-   Modal (desktop dialog / mobile bottom sheet). Layout only; semantic tokens (CLAUDE.md rule 6). */
+/* Interval-days recap popup (B-225, redesigned B-227): a read-only, Journal-consistent list of every
+   calendar day of a period's interval. Each day is a uniform-height card (comment slot always
+   reserved) with a verdict colour band, coloured L/G/P macros, and a readable date; clicking it
+   navigates to that day's Repas screen. Layout only; semantic tokens (CLAUDE.md rule 6). */
 
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  min-width: min(30rem, 82vw);
+}
+
+/* ---- Recap header ---- */
+.recap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--sp-2) var(--sp-4);
+  padding-bottom: var(--sp-3);
+  border-bottom: var(--bw) solid var(--border);
+}
+.recapFigures {
+  font-family: var(--font-num);
+  font-size: var(--fs-13);
+  color: var(--text-dim);
+}
+.recapFigures strong {
+  color: var(--text);
+  font-weight: var(--fw-bold);
+}
+.weight {
+  margin-left: auto;
+  font-family: var(--font-num);
+  font-size: var(--fs-13);
+  color: var(--text);
+  font-weight: var(--fw-bold);
+}
+.weightDelta {
+  margin-left: var(--sp-1);
+  font-weight: 400;
+}
+.legend {
+  display: flex;
+  gap: var(--sp-3);
+  font-family: var(--font-num);
+  font-size: var(--fs-11);
+  color: var(--text-faint);
+}
+.lFat {
+  color: var(--c-fat);
+}
+.lCarb {
+  color: var(--c-carb);
+}
+.lProt {
+  color: var(--c-prot);
+}
+
+/* ---- Day list ---- */
 .list {
   display: flex;
   flex-direction: column;
   gap: var(--sp-2);
-  min-width: min(28rem, 80vw);
+  overflow-y: auto;
 }
 .state {
   color: var(--text-dim);
   font-size: var(--fs-13);
-  padding: var(--sp-4);
+  padding: var(--sp-5);
   text-align: center;
 }
+
+/* One day card: 2 fixed rows (date/kcal · comment/macros) → uniform height, comment reserved. */
 .day {
-  appearance: none;
   display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: baseline;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
   column-gap: var(--sp-4);
   row-gap: 2px;
   width: 100%;
   text-align: left;
+  appearance: none;
   background: var(--bg-elev);
   border: var(--bw) solid var(--border);
   border-radius: var(--r-md);
@@ -30,36 +87,98 @@
   color: inherit;
   font: inherit;
   cursor: pointer;
+  box-shadow: inset 3px 0 0 var(--band, transparent);
 }
 .day:hover {
   border-color: var(--border-strong);
   background: var(--bg-elev-2);
 }
+.weekend {
+  background: color-mix(in srgb, var(--bg-elev-2) 60%, var(--bg-elev));
+}
+/* Verdict colour band (mirrors the Journal state band): ok / partiel / nok / not-logged. */
+.stOk {
+  --band: var(--ok);
+}
+.stPartiel {
+  --band: var(--accent);
+}
+.stNok {
+  --band: var(--nok);
+}
+.stNone {
+  --band: var(--none);
+}
+.stNone .date,
+.stNone .kcal {
+  color: var(--text-faint);
+}
+
 .date {
+  grid-column: 1;
+  grid-row: 1;
   font-family: var(--font-num);
   font-size: var(--fs-13);
   font-weight: var(--fw-bold);
-  white-space: nowrap;
+  min-width: 0;
 }
-.figures {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px var(--sp-4);
+.today {
+  margin-left: var(--sp-2);
+  font-size: var(--fs-10);
+  font-weight: var(--fw-bold);
+  color: var(--accent);
+  text-transform: uppercase;
+}
+.kcal {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
   font-family: var(--font-num);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+}
+.kcalNone {
+  color: var(--text-faint);
+  font-weight: 400;
+}
+
+/* Comment slot: always present (reserved height) → every card is the same height; truncate long. */
+.comment {
+  grid-column: 1;
+  grid-row: 2;
+  min-height: 1lh;
   font-size: var(--fs-12);
+  color: var(--text-dim);
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .macros {
-  color: var(--text-dim);
-}
-.arrow {
-  color: var(--text-faint);
-  font-size: var(--fs-13);
-}
-/* The comment spans the full row below the figures (full text, wraps — no truncation). */
-.comment {
-  grid-column: 1 / -1;
-  color: var(--text-dim);
+  grid-column: 2;
+  grid-row: 2;
+  justify-self: end;
+  display: flex;
+  gap: var(--sp-3);
+  font-family: var(--font-num);
   font-size: var(--fs-12);
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+.mFat {
+  color: var(--c-fat);
+}
+.mCarb {
+  color: var(--c-carb);
+}
+.mProt {
+  color: var(--c-prot);
+}
+.macrosNone {
+  grid-column: 2;
+  grid-row: 2;
+  justify-self: end;
+  font-family: var(--font-num);
+  font-size: var(--fs-12);
+  color: var(--text-faint);
 }

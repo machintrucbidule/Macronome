@@ -788,7 +788,14 @@
     "intervalDays": {
       "open": "Voir les jours",
       "loading": "Chargement des jours…",
-      "empty": "Aucun jour dans cet intervalle."
+      "days": "jours",
+      "logged": "saisis",
+      "avg": "moy.",
+      "notLogged": "non saisi",
+      "today": "Aujourd'hui",
+      "legendFat": "Lipides",
+      "legendCarb": "Glucides",
+      "legendProt": "Protéines"
     },
     "field": {
       "date": "Date",

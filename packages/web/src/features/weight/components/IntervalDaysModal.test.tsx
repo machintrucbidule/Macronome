@@ -1,11 +1,13 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render } from '@testing-library/react';
 import type { IntervalDaysResponse } from '@macronome/shared';
-import '../../../i18n/config';
+import i18n from '../../../i18n/config';
+import styles from './interval-days.module.css';
 
-// B-225: the interval-days recap popup lists every day of the period's interval and, on a day
-// click, navigates to that day's Repas screen (/day/:date). We mock the data hook + router so the
-// test stays a pure render/interaction check (the endpoint is covered by an api integration test).
+// B-227: the redesigned interval-days popup lists every day with a readable date, coloured macros,
+// a per-day verdict band and a reserved (uniform-height) comment slot; a recap header shows the
+// average + the interval's weight change; a day click navigates to /day/:date. Data is mocked so
+// this stays a render/interaction check (the endpoint is covered by an api integration test).
 const navigateMock = vi.fn();
 vi.mock('react-router-dom', () => ({ useNavigate: () => navigateMock }));
 
@@ -16,43 +18,84 @@ vi.mock('../useWeight', () => ({
 
 import { IntervalDaysModal } from './IntervalDaysModal';
 
+beforeEach(async () => {
+  await i18n.changeLanguage('fr');
+});
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
 });
 
+// Dates in 2020 so `isToday` is deterministically false; 2020-01-06 is a Monday (not a weekend).
 const response = (): IntervalDaysResponse => ({
   data: [
-    { date: '2026-01-01', kcal: 2000, macros: { L: 70, G: 200, P: 120 }, comment: 'trop de sel' },
-    { date: '2026-01-02', kcal: null, macros: null, comment: null },
+    {
+      date: '2020-01-06',
+      kcal: 2000,
+      macros: { L: 70, G: 200, P: 120 },
+      comment: 'trop de sel',
+      state: 'ok',
+    },
+    { date: '2020-01-07', kcal: null, macros: null, comment: null, state: 'none' },
   ],
+  summary: { day_count: 2, logged_count: 1, avg_kcal: 2000 },
 });
 
-describe('IntervalDaysModal (B-225)', () => {
-  it('lists every day of the interval, with the comment when present', () => {
-    intervalDaysMock.mockReturnValue({ data: response(), isLoading: false });
-    const { getByText } = render(
-      <IntervalDaysModal start="2026-01-01" end="2026-01-02" onClose={vi.fn()} />,
-    );
-    expect(getByText('2026-01-01')).toBeTruthy();
-    expect(getByText('2026-01-02')).toBeTruthy();
-    expect(getByText('trop de sel')).toBeTruthy(); // full comment shown
+function renderModal(onClose = vi.fn()) {
+  intervalDaysMock.mockReturnValue({ data: response(), isLoading: false });
+  const utils = render(
+    <IntervalDaysModal
+      start="2020-01-06"
+      end="2020-01-07"
+      weightEnd={79.2}
+      delta={-0.8}
+      onClose={onClose}
+    />,
+  );
+  return { ...utils, onClose };
+}
+
+// The shared Modal portals its content to <body>, so query document.body (not the render container).
+describe('IntervalDaysModal (B-227)', () => {
+  it('renders human-readable dates (weekday + month), not the raw ISO string', () => {
+    const { getByText } = renderModal();
+    expect(getByText(/6 janvier 2020/)).toBeTruthy();
+    expect(document.body.textContent).not.toContain('2020-01-06');
+  });
+
+  it('colour-codes the macros with the L/G/P classes', () => {
+    renderModal();
+    expect(document.body.querySelector(`.${styles.mFat}`)?.textContent).toContain('70');
+    expect(document.body.querySelector(`.${styles.mCarb}`)?.textContent).toContain('200');
+    expect(document.body.querySelector(`.${styles.mProt}`)?.textContent).toContain('120');
+  });
+
+  it('reserves the comment slot on EVERY day so cards keep a uniform height', () => {
+    renderModal();
+    // Two days, one with a comment and one without → still two comment elements (the empty one
+    // reserves the same height). This is the fix for the uneven-card-height complaint.
+    expect(document.body.querySelectorAll(`.${styles.comment}`)).toHaveLength(2);
+  });
+
+  it('applies the per-day verdict state band (ok vs none)', () => {
+    renderModal();
+    expect(document.body.querySelector(`.${styles.stOk}`)).not.toBeNull();
+    expect(document.body.querySelector(`.${styles.stNone}`)).not.toBeNull();
+  });
+
+  it('shows the recap header: average kcal and the interval weight change', () => {
+    renderModal();
+    expect(document.body.textContent).toContain('moy.');
+    expect(document.body.textContent).toContain('2000');
+    // start = weight_end − Δ = 79.2 − (−0.8) = 80.0 → "80,0 → 79,2 kg"
+    expect(document.body.textContent).toContain('80,0');
+    expect(document.body.textContent).toContain('79,2');
   });
 
   it('navigates to the day and closes on a day click', () => {
-    intervalDaysMock.mockReturnValue({ data: response(), isLoading: false });
-    const onClose = vi.fn();
-    const { getByText } = render(
-      <IntervalDaysModal start="2026-01-01" end="2026-01-02" onClose={onClose} />,
-    );
-    fireEvent.click(getByText('2026-01-02'));
+    const { getAllByRole, onClose } = renderModal();
+    fireEvent.click(getAllByRole('button')[0] as HTMLElement);
+    expect(navigateMock).toHaveBeenCalledWith('/day/2020-01-06');
     expect(onClose).toHaveBeenCalledTimes(1);
-    expect(navigateMock).toHaveBeenCalledWith('/day/2026-01-02');
-  });
-
-  it('passes the interval bounds to the data hook', () => {
-    intervalDaysMock.mockReturnValue({ data: undefined, isLoading: true });
-    render(<IntervalDaysModal start="2026-03-01" end="2026-03-10" onClose={vi.fn()} />);
-    expect(intervalDaysMock).toHaveBeenCalledWith('2026-03-01', '2026-03-10');
   });
 });

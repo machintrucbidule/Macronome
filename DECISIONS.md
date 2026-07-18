@@ -4763,3 +4763,47 @@ wraps; short numeric rows unaffected). `ChartTooltip` is unchanged (already rend
 **Tests:** api integration (`comment` on `HeatmapCell` for a logged **and** a grey commented day,
 null when absent, user-scoped) + web `Heatmap.test.tsx` (`cellTip` adds the comment row, incl. a
 grey commented cell). **Gate:** unit + integration + typecheck + lint green.
+
+## B-227 — Weight interval-days popup: redesign (per-day verdict, recap header, readable dates, coloured macros, uniform cards) — RESOLVED (owner, 2026-07-18)
+
+**Decision.** The B-225 interval-days recap popup was shipped too plainly (uncoloured macros,
+uneven card heights when a day had no comment, ISO-format dates). Owner-directed rework into a
+polished, Journal-consistent screen. Changes:
+
+- **Uniform-height day cards** — the comment slot is **always reserved**, so a day with no comment is
+  the same height as one with (this was the owner's actual complaint, not long comments; a too-long
+  comment is truncated to one line with the full text on hover).
+- **Readable dates** — each row shows « Samedi 18 juillet 2026 » (weekday + day + month + year); the
+  popup title is a compact readable range.
+- **Colour-coded macros** L/G/P via the app tokens `--c-fat`/`--c-carb`/`--c-prot` (as the Journal),
+  right-aligned tabular numerals.
+- **Per-day verdict colour band** — `state` = `ok` (green `--ok`) / `partiel` (yellow `--accent`, a
+  summary/Partiel day) / `nok` (red `--nok`) / `none` (grey `--none`, not logged); mirrors the
+  Journal's state band.
+- **Recap header** — `N jours · M saisis · moy. K kcal` (server-computed average) + the interval's
+  **weight change** `80,0 → 79,2 kg (−0,8)` on a closed period (web-only, from the `Period` DTO;
+  omitted on the open interval).
+- **Extras** — pinned column header + macro-colour legend; not-logged days read « non saisi » (muted,
+  same height); weekends subtly tinted; today marked « Aujourd'hui »; each day card a button →
+  `/day/:date`.
+
+**Contract impact (API enriched — renders ≠ computes):** `spec/api/weight-targets-stats-settings.md`
+— `GET /weight/interval-days` now returns per-day **`state`** and a **`summary`**
+`{day_count, logged_count, avg_kcal}` (server-computed verdict + average). `design/components/modals.md`
+
+- `specifications/screens/weight.md` — the redesigned popup. `packages/shared/src/dto/weight.ts` —
+  `IntervalDayState`, `IntervalDay.state`, `IntervalDaysSummary`, `IntervalDaysResponse.summary`.
+  **Code:** `packages/api/src/services/weight-interval-days.ts` computes `state` (reusing
+  `autoVerdict`/`effectiveVerdict` + the day's frozen snapshot band, as `journal.ts:toRow`) and the
+  summary; web `features/weight/format.ts` (`formatDayLong`/`formatDayCompact`),
+  `useWeightController.ts` (recap target carries `weight_end`/`delta`), new
+  `components/IntervalDaysHeader.tsx` + `IntervalDayRow.tsx`, rewritten `IntervalDaysModal.tsx` +
+  `interval-days.module.css`, `fr.json`/`en.json`. **Tests:** api integration (state per day +
+  summary, user-scoped) + web component (formatted date, coloured macros, reserved comment slot →
+  uniform height, state band, recap header, `/day/:date` navigation). **Gate:** typecheck + lint
+  (max-warnings=0) + check:i18n + check:schema + unit + integration green.
+
+**Backlog hygiene (same session, separate `chore(prompts)` commit).** Hardened
+`prompts/20-develop-from-backlog.md` (+ mirror in `10-triage-backlog.md`): `BACKLOG.md` keeps only
+outstanding work + **one overwritten pointer** (last shipped item + next id) and must **never**
+accumulate a history of finished items/batches (that lives only in `BACKLOG_ARCHIVE.md`).

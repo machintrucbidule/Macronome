@@ -10,10 +10,14 @@ export type WeighInModalTarget =
   | { kind: 'open' } // the open interval (B-176): a reduced note + régime editor, no weigh-in
   | null;
 
-/** The interval-days recap popup target (B-225): the clicked period's inclusive [start,end]. */
+/** The interval-days recap popup target (B-225): the clicked period's inclusive [start,end], plus
+ *  its end weight + Δ (B-227) so the popup header can show the interval's weight change — both null
+ *  on the open interval (no closing weight). */
 export interface RecapTarget {
   start: string;
   end: string;
+  weightEnd: number | null;
+  delta: number | null;
 }
 
 export interface WeightController {
@@ -48,7 +52,13 @@ export function useWeightController(): WeightController {
     openOpenPeriod: () => setModal({ kind: 'open' }),
     closeModal: () => setModal(null),
     recap,
-    openRecap: (period) => setRecap({ start: period.start_date, end: period.end_date }),
+    openRecap: (period) =>
+      setRecap({
+        start: period.start_date,
+        end: period.end_date,
+        weightEnd: period.weight_end,
+        delta: period.delta,
+      }),
     closeRecap: () => setRecap(null),
   };
 }

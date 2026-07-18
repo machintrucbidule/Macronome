@@ -131,16 +131,30 @@ export interface GetWeightResponse {
   current_mode: DietFlag | null;
 }
 
-/** One calendar day of a period's interval recap (B-225). `kcal`/`macros` mirror the Journal
- *  row: `macros` is null on a summary day; all three are null on a day with no `day_log` row. */
+/** A day's adherence state in the interval recap (B-227): the effective verdict for a detailed
+ *  logged day (`ok`/`nok`), `partiel` for a summary (Partiel) day, `none` when not logged. */
+export type IntervalDayState = 'ok' | 'partiel' | 'nok' | 'none';
+
+/** One calendar day of a period's interval recap (B-225, enriched B-227). `kcal`/`macros` mirror
+ *  the Journal row: `macros` is null on a summary day; all three are null on a day with no
+ *  `day_log` row. `state` drives the per-day verdict colour band. */
 export interface IntervalDay {
   date: string;
   kcal: number | null;
   macros: { L: number; G: number; P: number } | null;
   comment: string | null;
+  state: IntervalDayState;
+}
+
+/** Interval-wide recap figures (B-227), server-computed (renders ≠ computes). */
+export interface IntervalDaysSummary {
+  day_count: number;
+  logged_count: number;
+  avg_kcal: number | null;
 }
 
 /** GET /weight/interval-days — every calendar day of `[start,end]` inclusive, oldest first. */
 export interface IntervalDaysResponse {
   data: IntervalDay[];
+  summary: IntervalDaysSummary;
 }

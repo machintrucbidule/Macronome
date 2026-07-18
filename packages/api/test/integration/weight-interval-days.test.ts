@@ -81,22 +81,32 @@ describe('GET /weight/interval-days (B-225)', () => {
       '2026-02-04',
       '2026-02-05',
     ]);
-    // Detailed day: kcal + macros + comment.
+    // Detailed day: kcal + macros + comment; 1000 kcal < 1900 min → NOK (B-227 state).
     expect(days[0]).toEqual({
       date: '2026-02-01',
       kcal: 1000,
       macros: { L: 50, G: 100, P: 25 },
       comment: 'leg day',
+      state: 'nok',
     });
-    // Gap day: all null.
-    expect(days[1]).toEqual({ date: '2026-02-02', kcal: null, macros: null, comment: null });
-    // Summary day: kcal + comment, macros null.
+    // Gap day: all null, not logged.
+    expect(days[1]).toEqual({
+      date: '2026-02-02',
+      kcal: null,
+      macros: null,
+      comment: null,
+      state: 'none',
+    });
+    // Summary day: kcal + comment, macros null, state 'partiel' (B-227).
     expect(days[2]).toEqual({
       date: '2026-02-03',
       kcal: 1800,
       macros: null,
       comment: 'eyeballed',
+      state: 'partiel',
     });
+    // Interval summary (B-227): 5 calendar days, 2 logged, avg = (1000+1800)/2 = 1400.
+    expect(res.body.summary).toEqual({ day_count: 5, logged_count: 2, avg_kcal: 1400 });
   });
 
   it('is user-scoped — another tenant sees only empty days over the same range', async () => {

@@ -29,6 +29,39 @@ export const orDash = (n: number | null, fmt: (v: number) => string): string =>
 
 export { DASH };
 
+// Date formatting for the interval-days popup (B-227). Parse at local noon so the YYYY-MM-DD label
+// never shifts a day across time zones (the Journal's parseIso pattern).
+const atNoon = (date: string): Date => {
+  const [y, m, d] = date.split('-').map(Number);
+  return new Date(y!, (m ?? 1) - 1, d ?? 1, 12);
+};
+
+/** A full readable day with weekday, capitalized: "Samedi 18 juillet 2026". */
+export function formatDayLong(date: string, locale: string): string {
+  const s = atNoon(date).toLocaleDateString(locale, {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/** A compact readable day for the popup title range: "18 juil. 2026". */
+export function formatDayCompact(date: string, locale: string): string {
+  return atNoon(date).toLocaleDateString(locale, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
+/** Monday-first weekday index (0 = Mon … 6 = Sun) → weekend flag, for tinting Sat/Sun rows. */
+export function isWeekend(date: string): boolean {
+  const dow = atNoon(date).getDay(); // 0 = Sun … 6 = Sat
+  return dow === 0 || dow === 6;
+}
+
 /** BMI category → i18n key suffix (weight.bmi.<category>). */
 export const bmiCategoryKey = (c: BmiCategory): string => `weight.bmi.${c}`;
 

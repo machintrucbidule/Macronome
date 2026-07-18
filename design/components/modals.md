@@ -190,17 +190,33 @@ It has **no closing weigh-in**, so only the period-level fields are editable:
   row's entry point to the interval-days recap popup (see below), since it has no read-only
   detail sheet.
 
-## Interval-days recap popup (Poids, B-225)
+## Interval-days recap popup (Poids, B-225, redesigned B-227)
 
 `md` size — a **read-only** popup listing every calendar day of a period's interval
 `[start_date, end_date]` (both bounds inclusive), opened from the desktop 📋 button column or, on
 mobile, from the period detail sheet / open-period modal "Voir les jours" action. Reuses the shared
 `Modal` (desktop dialog / mobile bottom-sheet via `useIsMobile()` — already listed as "Poids period
-detail" in the overlay taxonomy §0.2). Title reads as the interval ("start → end"). Content is one
-**day row** per calendar day — date + calories + macros (L·G·P, when available) + comment (when
-available); days with no data show an em dash. Each day row is a **button**; clicking it navigates
-to that day's Repas screen (`/day/:date`) and closes the popup. **No edit control, no mutation.**
-States: loading (skeleton/placeholder) · loaded (list) · empty-interval (all days dashed).
+detail" in the overlay taxonomy §0.2). **No edit control, no mutation.**
+
+- **Title** — the interval as a readable **compact date range** (`18 juil. 2026 → …`), not the raw
+  ISO strings.
+- **Recap header** (B-227) — a summary strip under the title: **`N jours · M saisis · moy. K kcal`**
+  and, for a closed period, the interval's **weight change** `80,0 → 79,2 kg (−0,8)` (the web already
+  holds `weight_end`/`Δ` from the `Period`; omitted on the open interval). `avg_kcal` is server-computed.
+- **Column header** — a pinned header row labelling the columns (Date · kcal · **L·G·P** with the
+  macro-colour legend shown once).
+- **Day rows** — one card per calendar day, all of **uniform height** (the comment slot is **always
+  reserved**, so a day with no comment is the same height as one with — B-227). Each card shows: the
+  **readable date with weekday** (`Samedi 18 juillet 2026`, `formatDayLong`); the **calories**
+  (prominent, verdict-tinted); the **macros L·G·P colour-coded** via `--c-fat`/`--c-carb`/`--c-prot`
+  (same tokens as the Journal), right-aligned `tabular-nums`; the **comment** truncated to one line
+  (`…`, full text on `title`). A **left colour band keyed to the day's `state`** — `ok` `--ok` /
+  `partiel` `--accent` / `nok` `--nok` / `none` `--none` (mirrors the Journal's state band). A
+  **not-logged day** shows "non saisi" (muted) but keeps the full card height. **Weekend** rows
+  (Sat/Sun) get a subtle tint; **today**'s row is marked "Aujourd'hui".
+- **Interaction** — each day card is a **button**; clicking it navigates to that day's Repas screen
+  (`/day/:date`) and closes the popup.
+- **States** — loading (placeholder) · loaded (list) · empty-interval (all days "non saisi").
 
 ## Cook-mode modal (Repas) — full-screen touch takeover
 
