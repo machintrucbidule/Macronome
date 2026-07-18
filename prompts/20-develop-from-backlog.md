@@ -24,7 +24,9 @@ The **unit of work is the batch, not the item** — a batch bundles several rela
 2. **Implement** within the conventions in `CLAUDE.md` (modularity rules, the hard per-file line limit, the split rules).
 3. **Approved contract changes only:** amend the contract (spec/logic, schema, api, design, or screen spec), **record it in `DECISIONS.md`** (what changed and why), and make the code and tests reflect it. **Never change a contract, spec, or architecture document without my prior approval.** If you discover mid-batch that you need one, **stop and ask.**
 4. **Verify:** the batch's acceptance tests **plus the full existing test suite** plus typecheck plus lint must all be green — **no regressions.** Add tests **where they add value**: correctness and behavioural fixes get a test that fails before and passes after (improvements: a test encoding the new behaviour); **trivial cosmetic/copy items need no dedicated test** (verify visually + lint). The full suite stays green regardless.
-5. **Privacy check → commit (one commit per batch, bundling its items) → archive the completed items.** Confirm `git status` shows the personal/local files untracked; commit with a **descriptive English message that lists the item IDs and a short description of what changed** — e.g. `B-006, B-009: stepper spacing on .num + Cibles macro rounding`. **Never use a placeholder, empty, or single-character message (no `@`, no `wip`, no `.`).** Then **move the completed items out of `BACKLOG.md` into `BACKLOG_ARCHIVE.md`** — append each with a one-line resolution note (what changed, where, and any `DECISIONS.md`/contract reference) — and **delete them from `BACKLOG.md`**. `BACKLOG.md` must end up holding **only outstanding work**; never let done items accumulate in it. (This clean separation is the resume mechanism: the next session simply takes the next item left in `BACKLOG.md`.) Synced tests use the **neutral oracles**; real-value and migration tests stay **local-only**. Never stage, commit, or push `specifications/`, `.env`, real-value/migration tests, or DB dumps. Push to `origin` only when I approve. `BACKLOG_ARCHIVE.md` follows the same privacy/location rule as `BACKLOG.md`.
+5. **Privacy check → commit (one commit per batch, bundling its items) → archive the completed items.** Confirm `git status` shows the personal/local files untracked; commit with a **descriptive English message that lists the item IDs and a short description of what changed** — e.g. `B-006, B-009: stepper spacing on .num + Cibles macro rounding`. **Never use a placeholder, empty, or single-character message (no `@`, no `wip`, no `.`).** Then **move the completed items out of `BACKLOG.md` into `BACKLOG_ARCHIVE.md`** — append each with a one-line resolution note (what changed, where, and any `DECISIONS.md`/contract reference) — and **delete them from `BACKLOG.md`**. `BACKLOG.md` must end up holding **only outstanding work** (plus the single pointer below); never let done items accumulate in it. (This clean separation is the resume mechanism: the next session simply takes the next item left in `BACKLOG.md`.)
+   - **⛔ Never grow a history in `BACKLOG.md`.** The file may keep **one single, overwritten pointer** — the **last shipped item** + the **next id** (e.g. a one-line `Last shipped: **B-227** · Next id: **B-228**.`) — plus the outstanding/next work. It must contain **no accumulating history of finished work**: no chain of `Prior:` lines, no growing list of shipped item or batch IDs, no commit hashes, no per-run notes, no "done batches … live in the archive" enumerations. Each batch **overwrites** the last-shipped pointer (it does **not** push the previous one down into a list). **All** history of completed work lives **only** in `BACKLOG_ARCHIVE.md`. Net effect: after archiving, `BACKLOG.md` is **no larger** than before the batch (minus the items you removed) — it must not grow batch after batch. If you find any `Status`/`Prior`/history section, **delete it down to the single pointer.**
+   - Synced tests use the **neutral oracles**; real-value and migration tests stay **local-only**. Never stage, commit, or push `specifications/`, `.env`, real-value/migration tests, or DB dumps. Push to `origin` only when I approve. `BACKLOG_ARCHIVE.md` follows the same privacy/location rule as `BACKLOG.md`.
 6. **Stop and report.** Do not begin the next batch until I explicitly tell you to.
 
 ## Resolving an item — never change the UX on your own
@@ -46,6 +48,16 @@ When you need a decision, **never ask implementation-level questions** (e.g. "sh
 ## When in doubt
 
 If you are blocked, uncertain, or tempted to exceed the current batch's scope, **ask rather than guess.** Keep changes small and reviewable; do not touch code outside the current batch without asking.
+
+## The BACKLOG.md invariant (non-negotiable)
+
+`BACKLOG.md` holds **only**: (1) the outstanding/next work, and (2) **one single, overwritten
+pointer** line — the **last shipped item** + the **next id** (e.g. `Last shipped: **B-227** ·
+Next id: **B-228**.`). Nothing else. **No accumulating history:** no `Prior:` chain, no growing list
+of shipped item/batch IDs, no commit hashes, no run notes, no "done batches … live in the archive"
+lists. Every finished item's history lives **only** in `BACKLOG_ARCHIVE.md`. When you archive a batch,
+you **overwrite** the single pointer and **delete** the archived items — the file must **not grow**
+from one batch to the next. This is a hard rule I have repeated many times: keep the backlog clean.
 
 ## Start
 
