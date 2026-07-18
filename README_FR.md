@@ -86,7 +86,9 @@ note). Le graphique superpose les points réels, une **tendance lissée par EMA*
 cible** et la ligne d'objectif. Les cartes affichent le poids actuel et son Δ, l'**IMC** avec sa
 catégorie, l'écart à l'objectif et une **date d'atteinte projetée**. Un tableau par période
 détaille l'apport moyen, la dépense estimée et empirique, et le déficit quotidien entre deux
-pesées. Exporte toutes les pesées en **CSV**.
+pesées ; chaque période ouvre aussi un **récap des jours** — chaque jour de l'intervalle de pesée
+avec ses calories, ses macros colorées, son verdict et son commentaire, et un clic pour sauter
+directement à ce jour. Exporte toutes les pesées en **CSV**.
 
 ### Aliments — base d'aliments
 

@@ -79,7 +79,9 @@ Record weigh-ins (weight, optional waist, a "in diet / maintenance" flag, a note
 overlays real points, an **EMA-smoothed trend**, a **target trajectory**, and the goal line.
 Stat cards show current weight and Δ, **BMI** with category, gap to goal, and a **projected
 goal date**. A per-period table breaks down average intake, estimated and empirical burn, and
-the daily deficit between weigh-ins. Export every weigh-in to **CSV**.
+the daily deficit between weigh-ins; each period also opens a **days recap** — every calendar day
+of that weigh-in interval with its calories, colour-coded macros, per-day verdict and comment, one
+click to jump straight to that day. Export every weigh-in to **CSV**.
 
 ### Aliments — food database
 
