@@ -10,7 +10,7 @@ import {
   type ResolvedSnapshot,
 } from '../domain/day-verdict/index.js';
 import { computeDayTotals } from './day-assembler.js';
-import { isFuture, todayString } from './day-context.js';
+import { eachDate, isFuture, todayString } from './day-context.js';
 import { burnGapFor, loadBurnContext, type BurnContext } from './journal-burn.js';
 
 // Journal service (spec/api/days-meals-leftover.md §Journal). The history view returns the
@@ -77,18 +77,6 @@ function emptyRow(date: string): JournalRow {
     state: 'red',
     editable_kcal: true,
   };
-}
-
-/** Calendar dates from `start` to `end` inclusive (YYYY-MM-DD), oldest first. */
-function eachDate(start: string, end: string): string[] {
-  const out: string[] = [];
-  const d = new Date(`${start}T00:00:00.000Z`);
-  const last = new Date(`${end}T00:00:00.000Z`);
-  while (d <= last) {
-    out.push(d.toISOString().slice(0, 10));
-    d.setUTCDate(d.getUTCDate() + 1);
-  }
-  return out;
 }
 
 const isLogged = (r: JournalRow, today: string): boolean =>

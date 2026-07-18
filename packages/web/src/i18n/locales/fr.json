@@ -785,6 +785,11 @@
       "daysShort": "{{count}} j",
       "edit": "Modifier la pesée"
     },
+    "intervalDays": {
+      "open": "Voir les jours",
+      "loading": "Chargement des jours…",
+      "empty": "Aucun jour dans cet intervalle."
+    },
     "field": {
       "date": "Date",
       "weight": "Poids",

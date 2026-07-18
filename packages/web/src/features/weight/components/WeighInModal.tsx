@@ -18,6 +18,8 @@ interface WeighInModalProps {
   openNote?: string | null;
   /** Most recent weigh-in (B-179): the add modal pre-fills weight/waist from it. */
   lastWeighIn?: WeighIn | null;
+  /** Open-interval only (B-225): opens the interval-days recap for the open period. */
+  onRecap?: () => void;
   onClose: () => void;
 }
 
@@ -49,11 +51,45 @@ function ConflictConfirm(props: {
   );
 }
 
+// The modal footer's left slot: delete (edit mode), "Voir les jours" (open mode, B-225), or
+// nothing. Kept at module scope so WeighInModal stays within the complexity cap.
+function ModalLeftAction({
+  initial,
+  isOpen,
+  pending,
+  onDelete,
+  onRecap,
+}: {
+  initial: boolean;
+  isOpen: boolean;
+  pending: boolean;
+  onDelete: () => void;
+  onRecap: (() => void) | undefined;
+}) {
+  const { t } = useTranslation();
+  if (initial) {
+    return (
+      <Button variant="danger" disabled={pending} onClick={onDelete}>
+        {t('common.remove')}
+      </Button>
+    );
+  }
+  if (isOpen && onRecap) {
+    return (
+      <Button variant="ghost" onClick={onRecap}>
+        {t('weight.intervalDays.open')}
+      </Button>
+    );
+  }
+  return <span />;
+}
+
 export function WeighInModal({
   target,
   defaultFlag,
   openNote,
   lastWeighIn,
+  onRecap,
   onClose,
 }: WeighInModalProps) {
   const { t } = useTranslation();
@@ -105,13 +141,13 @@ export function WeighInModal({
         addMode={target.kind === 'add'}
       />
       <div className={styles.modalActions}>
-        {a.initial ? (
-          <Button variant="danger" disabled={a.pending} onClick={() => void a.del()}>
-            {t('common.remove')}
-          </Button>
-        ) : (
-          <span />
-        )}
+        <ModalLeftAction
+          initial={!!a.initial}
+          isOpen={a.isOpen}
+          pending={a.pending}
+          onDelete={() => void a.del()}
+          onRecap={onRecap}
+        />
         <div className={styles.modalActionsRight}>
           <Button variant="ghost" onClick={onClose}>
             {t('common.cancel')}

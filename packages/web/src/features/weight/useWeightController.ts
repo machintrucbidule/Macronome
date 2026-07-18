@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { WeighIn, WeightRange } from '@macronome/shared';
+import type { Period, WeighIn, WeightRange } from '@macronome/shared';
 
 // UI state for the Poids screen (kept out of the data hook). The chart range, the waist
 // overlay toggle, and the entry/edit modal target live here. The screen-local current mode
@@ -9,6 +9,12 @@ export type WeighInModalTarget =
   | { kind: 'edit'; weighIn: WeighIn }
   | { kind: 'open' } // the open interval (B-176): a reduced note + régime editor, no weigh-in
   | null;
+
+/** The interval-days recap popup target (B-225): the clicked period's inclusive [start,end]. */
+export interface RecapTarget {
+  start: string;
+  end: string;
+}
 
 export interface WeightController {
   range: WeightRange;
@@ -20,12 +26,16 @@ export interface WeightController {
   openEdit: (weighIn: WeighIn) => void;
   openOpenPeriod: () => void;
   closeModal: () => void;
+  recap: RecapTarget | null;
+  openRecap: (period: Period) => void;
+  closeRecap: () => void;
 }
 
 export function useWeightController(): WeightController {
   const [range, setRange] = useState<WeightRange>('all');
   const [showWaist, setShowWaist] = useState(false);
   const [modal, setModal] = useState<WeighInModalTarget>(null);
+  const [recap, setRecap] = useState<RecapTarget | null>(null);
 
   return {
     range,
@@ -37,5 +47,8 @@ export function useWeightController(): WeightController {
     openEdit: (weighIn) => setModal({ kind: 'edit', weighIn }),
     openOpenPeriod: () => setModal({ kind: 'open' }),
     closeModal: () => setModal(null),
+    recap,
+    openRecap: (period) => setRecap({ start: period.start_date, end: period.end_date }),
+    closeRecap: () => setRecap(null),
   };
 }

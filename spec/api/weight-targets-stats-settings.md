@@ -21,6 +21,16 @@ waist_delta,gap_to_goal,projection}, current_mode}`.
   with `{existing_id}`; client confirms then `PATCH` to replace. → 201.
 - `PATCH /weight/:id` — edit (incl. `date`); re-derives adjacent periods. → 200.
 - `DELETE /weight/:id` → 204; re-derives adjacent periods.
+- `GET /weight/interval-days?start=YYYY-MM-DD&end=YYYY-MM-DD` — read-only per-day recap of a
+  period's interval (B-225). → 200 `{data:[{date, kcal:number|null, macros:{L,G,P}|null,
+comment:string|null}]}`, **one element per calendar day** of `[start,end]` with **both bounds
+  inclusive** (missing days filled as `{kcal:null, macros:null, comment:null}`), oldest first.
+  `kcal`/`macros` mirror the `GET /journal` per-day row (`days-meals-leftover.md §Journal`):
+  `macros` is `null` on a summary day, `comment` is the day's `day_log.comment`. `start > end`
+  or a malformed date → 422 `validation_error`. User-scoped (cross-tenant days never leak; an
+  interval with no data returns all-`null` days). The **inclusive** display range is intentionally
+  wider than the `(start,end]` stats span (`logic/weight-periods-trajectory.md §2/§2.1`) — display
+  only, affects no computation.
 
 **Period** payload: `{start_date,end_date,days,weight_end,ema,delta,
 ecart_trajectoire,bmi,waist,avg_intake,estimated_burn,empirical_burn,

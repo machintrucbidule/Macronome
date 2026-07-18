@@ -11,6 +11,14 @@ export function useWeight(range: WeightRange) {
   return useQuery({ queryKey: [WEIGHT_KEY, range], queryFn: () => weightApi.get(range) });
 }
 
+/** Read-only per-day recap of a period's interval [start,end] inclusive (B-225). */
+export function useIntervalDays(start: string, end: string) {
+  return useQuery({
+    queryKey: [WEIGHT_KEY, 'interval-days', start, end],
+    queryFn: () => weightApi.intervalDays(start, end),
+  });
+}
+
 export function useWeightMutations() {
   const qc = useQueryClient();
   const invalidate = (): void => {

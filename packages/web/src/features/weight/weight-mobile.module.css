@@ -150,3 +150,22 @@
   font-weight: var(--fw-bold);
   cursor: pointer;
 }
+/* Secondary "Voir les jours" action (B-225): a neutral outline button above the primary edit. */
+.recapBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: var(--tap);
+  background: var(--bg-elev-2);
+  color: var(--text);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-md);
+  font-family: var(--font-body);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-bold);
+  cursor: pointer;
+}
+.recapBtn:hover {
+  border-color: var(--border-strong);
+}

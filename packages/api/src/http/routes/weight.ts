@@ -9,6 +9,7 @@ const router = Router();
 
 router.use(requireAuth);
 router.get('/', asyncHandler(weight.get));
+router.get('/interval-days', asyncHandler(weight.intervalDays));
 router.post('/', asyncHandler(weight.create));
 router.patch('/:id', asyncHandler(weight.patch));
 router.delete('/:id', asyncHandler(weight.remove));

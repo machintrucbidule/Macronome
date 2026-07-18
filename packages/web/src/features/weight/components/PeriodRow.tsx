@@ -20,7 +20,15 @@ const LEVEL_CLASS: Record<ActivityLevel, string | undefined> = {
 const toneClass = (tone: Tone): string =>
   (tone === 'pos' ? styles.pos : tone === 'neg' ? styles.neg : '') ?? '';
 
-export function PeriodRow({ period, onClick }: { period: Period; onClick: () => void }) {
+export function PeriodRow({
+  period,
+  onClick,
+  onRecap,
+}: {
+  period: Period;
+  onClick: () => void;
+  onRecap: () => void;
+}) {
   const { t } = useTranslation();
   // The open interval (B-176) dashes the end-weight figures and ends at "today".
   const arrow = period.delta === null ? null : deltaArrow(period.delta);
@@ -28,6 +36,21 @@ export function PeriodRow({ period, onClick }: { period: Period; onClick: () => 
   return (
     <tr className={styles.periodRow} data-period={period.end_date} onClick={onClick}>
       <td>{`${period.start_date} → ${end}`}</td>
+      <td className={styles.recapCell}>
+        {/* Interval-days recap button (B-225): stopPropagation so it never opens the row's edit. */}
+        <button
+          type="button"
+          className={styles.recapBtn}
+          title={t('weight.intervalDays.open')}
+          aria-label={t('weight.intervalDays.open')}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRecap();
+          }}
+        >
+          📋
+        </button>
+      </td>
       <td className={styles.num}>{period.days}</td>
       <td className={styles.num}>{orDash(period.weight_end, kg1)}</td>
       <td className={styles.num}>{orDash(period.ema, kg1)}</td>

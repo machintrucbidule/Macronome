@@ -7,6 +7,7 @@ import styles from '../weight.module.css';
 // header columns mirror the contract's Period payload. Scrolls horizontally ≤900px.
 const COLS = [
   'period',
+  'recap', // B-225: the 📋 interval-days button column (empty header), between période & durée
   'days',
   'weight',
   'trend',
@@ -48,9 +49,17 @@ interface PeriodTableProps {
   onRowClick: (endDate: string) => void;
   /** Click on the open lead row → opens the reduced "open period" modal. */
   onOpenClick?: () => void;
+  /** Click the 📋 button on a row → opens that period's interval-days recap popup (B-225). */
+  onRecap: (period: Period) => void;
 }
 
-export function PeriodTable({ periods, openPeriod, onRowClick, onOpenClick }: PeriodTableProps) {
+export function PeriodTable({
+  periods,
+  openPeriod,
+  onRowClick,
+  onOpenClick,
+  onRecap,
+}: PeriodTableProps) {
   const { t } = useTranslation();
   return (
     <div className={styles.tableWrap}>
@@ -62,15 +71,26 @@ export function PeriodTable({ periods, openPeriod, onRowClick, onOpenClick }: Pe
                 key={c}
                 className={`${styles.colHead} ${NUM_COLS.has(c) ? styles.colHeadNum : ''}`}
               >
-                {t(`weight.col.${c}`)}
+                {c === 'recap' ? '' : t(`weight.col.${c}`)}
               </th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {openPeriod && onOpenClick && <PeriodRow period={openPeriod} onClick={onOpenClick} />}
+          {openPeriod && onOpenClick && (
+            <PeriodRow
+              period={openPeriod}
+              onClick={onOpenClick}
+              onRecap={() => onRecap(openPeriod)}
+            />
+          )}
           {periods.map((p) => (
-            <PeriodRow key={p.end_date} period={p} onClick={() => onRowClick(p.end_date)} />
+            <PeriodRow
+              key={p.end_date}
+              period={p}
+              onClick={() => onRowClick(p.end_date)}
+              onRecap={() => onRecap(p)}
+            />
           ))}
         </tbody>
       </table>

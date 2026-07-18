@@ -149,6 +149,26 @@
   font-family: var(--font-num);
 }
 
+/* Interval-days recap button column (B-225): a narrow, non-numeric icon-button cell. */
+.recapCell {
+  text-align: center;
+  width: 1%;
+  white-space: nowrap;
+}
+.recapBtn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 0 var(--sp-2);
+  font-size: var(--fs-12);
+  line-height: 1;
+  opacity: 0.6;
+}
+.recapBtn:hover {
+  opacity: 1;
+}
+
 /* Period-table colour coding (WV-1 / B-115) — server-fact-driven, existing tokens only. */
 /* Trend tone on Δ / écart / déficit cells: lower value is "good". */
 .pos {

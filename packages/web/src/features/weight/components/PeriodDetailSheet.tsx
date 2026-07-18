@@ -53,9 +53,11 @@ interface PeriodDetailSheetProps {
   period: Period;
   onClose: () => void;
   onEdit: () => void;
+  /** Open the interval-days recap popup for this period (B-225). */
+  onRecap: () => void;
 }
 
-export function PeriodDetailSheet({ period, onClose, onEdit }: PeriodDetailSheetProps) {
+export function PeriodDetailSheet({ period, onClose, onEdit, onRecap }: PeriodDetailSheetProps) {
   const { t } = useTranslation();
   const p = period;
   const title = `${p.start_date} → ${p.end_date}`;
@@ -115,6 +117,9 @@ export function PeriodDetailSheet({ period, onClose, onEdit }: PeriodDetailSheet
           </div>
         </div>
 
+        <button type="button" className={styles.recapBtn} onClick={onRecap}>
+          {t('weight.intervalDays.open')}
+        </button>
         <button type="button" className={styles.editBtn} onClick={onEdit}>
           {t('weight.detail.edit')}
         </button>

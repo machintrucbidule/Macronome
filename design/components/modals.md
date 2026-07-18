@@ -186,6 +186,21 @@ It has **no closing weigh-in**, so only the period-level fields are editable:
 - The standard **"+ Pesée"** (add) modal is unchanged in shape but **pre-fills** its note from
   `open_period_note` and its diet flag from `current_mode`; creating that closing weigh-in
   transfers the note and clears `open_period_note`.
+- The open-period modal also carries a **"Voir les jours"** action (B-225) — the open-interval
+  row's entry point to the interval-days recap popup (see below), since it has no read-only
+  detail sheet.
+
+## Interval-days recap popup (Poids, B-225)
+
+`md` size — a **read-only** popup listing every calendar day of a period's interval
+`[start_date, end_date]` (both bounds inclusive), opened from the desktop 📋 button column or, on
+mobile, from the period detail sheet / open-period modal "Voir les jours" action. Reuses the shared
+`Modal` (desktop dialog / mobile bottom-sheet via `useIsMobile()` — already listed as "Poids period
+detail" in the overlay taxonomy §0.2). Title reads as the interval ("start → end"). Content is one
+**day row** per calendar day — date + calories + macros (L·G·P, when available) + comment (when
+available); days with no data show an em dash. Each day row is a **button**; clicking it navigates
+to that day's Repas screen (`/day/:date`) and closes the popup. **No edit control, no mutation.**
+States: loading (skeleton/placeholder) · loaded (list) · empty-interval (all days dashed).
 
 ## Cook-mode modal (Repas) — full-screen touch takeover
 

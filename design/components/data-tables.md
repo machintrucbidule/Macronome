@@ -130,6 +130,12 @@ transparent)`, where `--act-color` is set per level by the **same B-085/B-101 pa
 - **Régime badge** (régime): a pill with **two distinct neutral tints** (no good/bad
   sense) — `.flagDiet` (En régime) = accent soft bg + accent border; `.flagMaint`
   (Maintien) = `--bg-elev-2` bg + `--text-dim` text + `--border`.
+- **Interval-days button** (Poids, B-225): a narrow non-numeric column inserted **between
+  période and durée**, holding a small **icon button** (📋, `--fs-12`, muted `--text-dim`,
+  brightening on hover) with an **empty column header** and an accessible label « Voir les
+  jours de l'intervalle ». Clicking it opens the read-only interval-days recap popup
+  (`modals.md §Interval-days recap`); the button `stopPropagation`s so it never triggers the
+  row's edit-on-click. Present on every row incl. the open-interval lead row. **No new token.**
 
 ### Open-interval lead row (Poids, B-176)
 
@@ -311,8 +317,11 @@ renders the **exact existing** table component, untouched. The card components a
   (Poids / Énergie / Contexte — none dropped), reusing the same `format`/`period-style`
   helpers as the table. The sheet carries a **"Modifier la pesée"** action opening the
   weigh-in form **full-screen** (`Modal mobile="fullscreen"`) — the phone equivalent of the
-  desktop row's direct click-to-edit, resolved to the period's ending weigh-in. The desktop
-  `PeriodTable`/`PeriodRow` are **not edited** (render-switch picks the mobile list ≤560px).
+  desktop row's direct click-to-edit, resolved to the period's ending weigh-in. The sheet also
+  carries a **"Voir les jours"** action (B-225) opening the read-only interval-days recap popup —
+  the phone entry point for the desktop 📋 button column (for the open-interval lead row, which has
+  no detail sheet, the same action lives in its open-period modal). The desktop
+  `PeriodTable`/`PeriodRow` gain the 📋 column but keep the render-switch (mobile list ≤560px).
 
 ### Shared mobile list chrome (`components/ListChrome/*`)
 

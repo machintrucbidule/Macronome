@@ -785,6 +785,11 @@
       "daysShort": "{{count}} d",
       "edit": "Edit weigh-in"
     },
+    "intervalDays": {
+      "open": "View days",
+      "loading": "Loading days…",
+      "empty": "No days in this interval."
+    },
     "field": {
       "date": "Date",
       "weight": "Weight",

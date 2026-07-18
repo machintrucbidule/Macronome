@@ -21,6 +21,12 @@ export const WeightRangeQuerySchema = z.object({
 });
 export type WeightRangeQuery = z.infer<typeof WeightRangeQuerySchema>;
 
+/** GET /weight/interval-days — a period's inclusive [start,end] date range (B-225). */
+export const IntervalDaysQuerySchema = z
+  .object({ start: dateString, end: dateString })
+  .refine((q) => q.start <= q.end, { message: 'invalid_range' });
+export type IntervalDaysQuery = z.infer<typeof IntervalDaysQuerySchema>;
+
 // --- Request schemas -------------------------------------------------------
 
 const weighInFields = {
@@ -123,4 +129,18 @@ export interface GetWeightResponse {
   cartouche: Cartouche;
   /** Persisted Régime/Maintien mode; defaults to the latest period's diet flag (M7). */
   current_mode: DietFlag | null;
+}
+
+/** One calendar day of a period's interval recap (B-225). `kcal`/`macros` mirror the Journal
+ *  row: `macros` is null on a summary day; all three are null on a day with no `day_log` row. */
+export interface IntervalDay {
+  date: string;
+  kcal: number | null;
+  macros: { L: number; G: number; P: number } | null;
+  comment: string | null;
+}
+
+/** GET /weight/interval-days — every calendar day of `[start,end]` inclusive, oldest first. */
+export interface IntervalDaysResponse {
+  data: IntervalDay[];
 }

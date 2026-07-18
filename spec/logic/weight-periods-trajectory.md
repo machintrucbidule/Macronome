@@ -40,6 +40,11 @@ on read alongside the closed periods (B-176).
   interval (the table is unchanged). It can exist even with a **single** weigh-in.
 - **Span** `(last_weigh_in.date, today]`; `start_date = last_weigh_in.date`,
   `end_date = today`, `days = today − last_weigh_in.date` (≥ 1).
+  > **Note (B-225, display-only).** The read-only _interval-days recap popup_ (the 📋 button on
+  > each period row, `screens/weight.md`) lists days over the **inclusive** range
+  > `[start_date, end_date]` — a **display** convention, deliberately wider than this `(prev, end]`
+  > stats span. It changes **no** figure defined here; `avg_intake` and the burns keep using the
+  > half-open span above.
 - **Computable figures** (same definitions as §2, over the open span): `avg_intake`,
   `period_activity_multiplier` (mean over the span's logged days), `deficit_per_day`, and
   `estimated_burn_per_day = BMR(**last_weigh_in.weight**) × period_activity_multiplier` — there

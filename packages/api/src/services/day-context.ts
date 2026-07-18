@@ -25,6 +25,18 @@ export function isFuture(date: string): boolean {
   return date > todayString();
 }
 
+/** Calendar dates from `start` to `end` inclusive (YYYY-MM-DD), oldest first. */
+export function eachDate(start: string, end: string): string[] {
+  const out: string[] = [];
+  const d = new Date(`${start}T00:00:00.000Z`);
+  const last = new Date(`${end}T00:00:00.000Z`);
+  while (d <= last) {
+    out.push(d.toISOString().slice(0, 10));
+    d.setUTCDate(d.getUTCDate() + 1);
+  }
+  return out;
+}
+
 export interface DayContext {
   profile: ProfileRow;
   weightKg: number | null;

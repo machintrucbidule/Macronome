@@ -4697,3 +4697,41 @@ of `is_pinned`) and `food-line.module.css` (rename `.pinned` → `.used`, same
 untouched). **Tests:** `FoodLine.test.tsx` — liseré present iff quantity > 0 (referenced
 `served_quantity>0` and custom `served_grams>0`), absent on a pinned qty-0 placeholder. **Gate:**
 unit + typecheck + lint green.
+
+## B-225 — Weight: read-only interval-days recap popup (button column + /day navigation) — RESOLVED (owner, 2026-07-18)
+
+**Decision.** Each Poids period row (incl. the synthetic open-interval lead row) gains a small
+icon button (📋) inserted **between the _période_ and _durée_ columns**. It opens a **read-only
+popup** (shared `Modal`: desktop dialog / mobile bottom-sheet) listing **every calendar day of the
+interval `[start_date, end_date]`, both bounds inclusive**, with each day's calories, macros (when
+available) and comment (when available); days with no data show an em dash. **Clicking a day
+navigates to that day in the Repas screen (`/day/:date`)** and closes the popup. Net-new,
+**read-only**, no schema change. On **mobile** the recap opens from the period **detail sheet**
+(a "Voir les jours" action) and, for the open-interval row, from its **open-period modal** — the
+compact list rows are not restructured. Desktop button is icon-only with an empty column header
+and an accessible label. Owner-chosen presentation this run.
+
+**Inclusive `[start,end]` vs `(start,end]`.** The popup's **display** range is inclusive on both
+ends (the two dates in the _période_ column), so the previous weigh-in's own day appears in two
+neighbouring recaps. This is display-only and intentionally differs from the stats convention
+`(start_date, end_date]` used for avg_intake / empirical burn — it affects **no** computation.
+
+**Contract impact:** `specifications/screens/weight.md` (period-table column list + new
+"Interval-days recap popup" subsection + inclusive-vs-`(]` note), `spec/api/weight-targets-stats-settings.md`
+(new `GET /weight/interval-days?start=&end=` returning `{data:[{date,kcal|null,macros|null,comment|null}]}`,
+user-scoped, inclusive, 422 on bad range), `design/components/data-tables.md` (WV-1 button column +
+S8 "Voir les jours" action), `design/components/modals.md` (new "Interval-days recap popup"
+subsection + open-period modal action), `spec/logic/weight-periods-trajectory.md §2.1`
+(display-only inclusive-range note). No domain-logic figure changes.
+
+**Code (renders ≠ computes — API returns the recap, web displays):** shared `dto/weight.ts`
+(`IntervalDaysQuerySchema`, `IntervalDay`, `IntervalDaysResponse`); api route/controller in
+`http/routes/weight.ts` + `http/controllers/weight.ts`, new `services/weight-interval-days.ts`
+reusing `dayReadRepo.readRange` + `computeDayTotals` and a shared calendar-day enumerator
+(`eachDate` extracted from `services/journal.ts`); web `api/weight.ts` client, `useWeightController.ts`
+recap state, new `components/IntervalDaysModal.tsx`, `PeriodTable.tsx`/`PeriodRow.tsx` (📋 column,
+`stopPropagation`), `WeightDesktop.tsx`/`WeightMobile.tsx`/`PeriodDetailSheet.tsx`/`WeighInModal.tsx`
+wiring, `fr.json`/`en.json` labels. **Tests:** api integration (all days inclusive, macros null on
+summary, comment present, gaps null, user-scoped, 422/401) + web component (popup lists days, day
+click → `/day/:date`; 📋 button opens recap without triggering the row edit). **Gate:** unit +
+integration + typecheck + lint green.

@@ -76,6 +76,11 @@ export function WeightPage() {
           defaultFlag={mode ?? 'in_diet'}
           openNote={query.data?.open_period?.note ?? null}
           lastWeighIn={lastWeighInOf(query.data)}
+          onRecap={() => {
+            const op = query.data?.open_period;
+            ctl.closeModal();
+            if (op) ctl.openRecap(op);
+          }}
           onClose={ctl.closeModal}
         />
       )}

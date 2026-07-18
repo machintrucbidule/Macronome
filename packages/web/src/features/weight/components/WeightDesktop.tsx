@@ -7,6 +7,7 @@ import { PeriodTable } from './PeriodTable';
 import { WeightHeader } from './WeightHeader';
 import { WeightOverview } from './WeightOverview';
 import { WeighInDeleteConfirm } from './WeighInDeleteConfirm';
+import { IntervalDaysModal } from './IntervalDaysModal';
 import { useWeightContextMenu } from './useWeightContextMenu';
 import type { WeightController } from '../useWeightController';
 import styles from '../weight.module.css';
@@ -52,11 +53,15 @@ export function WeightDesktop(props: WeightDesktopProps) {
                 if (w) ctl.openEdit(w);
               }}
               onOpenClick={ctl.openOpenPeriod}
+              onRecap={ctl.openRecap}
             />
           ) : (
             <EmptyState>{t('weight.single')}</EmptyState>
           )}
         </div>
+      )}
+      {ctl.recap && (
+        <IntervalDaysModal start={ctl.recap.start} end={ctl.recap.end} onClose={ctl.closeRecap} />
       )}
     </>
   );

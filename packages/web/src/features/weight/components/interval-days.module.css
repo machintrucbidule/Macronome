@@ -1,0 +1,65 @@
+/* Interval-days recap popup (B-225): a read-only list of every calendar day of a period's
+   interval, each row a button navigating to that day's Repas screen. Rendered inside the shared
+   Modal (desktop dialog / mobile bottom sheet). Layout only; semantic tokens (CLAUDE.md rule 6). */
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: min(28rem, 80vw);
+}
+.state {
+  color: var(--text-dim);
+  font-size: var(--fs-13);
+  padding: var(--sp-4);
+  text-align: center;
+}
+.day {
+  appearance: none;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: baseline;
+  column-gap: var(--sp-4);
+  row-gap: 2px;
+  width: 100%;
+  text-align: left;
+  background: var(--bg-elev);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-md);
+  padding: var(--sp-3) var(--sp-4);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.day:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-elev-2);
+}
+.date {
+  font-family: var(--font-num);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-bold);
+  white-space: nowrap;
+}
+.figures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px var(--sp-4);
+  font-family: var(--font-num);
+  font-size: var(--fs-12);
+}
+.macros {
+  color: var(--text-dim);
+}
+.arrow {
+  color: var(--text-faint);
+  font-size: var(--fs-13);
+}
+/* The comment spans the full row below the figures (full text, wraps — no truncation). */
+.comment {
+  grid-column: 1 / -1;
+  color: var(--text-dim);
+  font-size: var(--fs-12);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

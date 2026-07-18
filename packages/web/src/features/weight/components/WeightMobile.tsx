@@ -8,6 +8,7 @@ import { Fab } from '../../../app/Fab';
 import { FlagToggle } from './FlagToggle';
 import { PeriodList } from './PeriodList';
 import { PeriodDetailSheet } from './PeriodDetailSheet';
+import { IntervalDaysModal } from './IntervalDaysModal';
 import { WeightOverview } from './WeightOverview';
 import type { WeightController } from '../useWeightController';
 import wstyles from '../weight.module.css';
@@ -86,7 +87,15 @@ export function WeightMobile(props: WeightMobileProps) {
             setDetailDate(null);
             if (w) ctl.openEdit(w);
           }}
+          onRecap={() => {
+            setDetailDate(null);
+            ctl.openRecap(detailPeriod);
+          }}
         />
+      )}
+
+      {ctl.recap && (
+        <IntervalDaysModal start={ctl.recap.start} end={ctl.recap.end} onClose={ctl.closeRecap} />
       )}
     </>
   );

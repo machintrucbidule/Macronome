@@ -2,10 +2,12 @@ import type { Request, Response } from 'express';
 import {
   CreateWeighInSchema,
   ErrorCode,
+  IntervalDaysQuerySchema,
   PatchWeighInSchema,
   WeightRangeQuerySchema,
 } from '@macronome/shared';
 import * as weightService from '../../services/weight.js';
+import { intervalDays as intervalDaysService } from '../../services/weight-interval-days.js';
 import { ApiError, zodDetails } from '../errors.js';
 
 // THIN controllers (api-CLAUDE.md): validate query/body → call the service → serialise.
@@ -19,6 +21,13 @@ export async function get(req: Request, res: Response): Promise<void> {
   const parsed = WeightRangeQuerySchema.safeParse(req.query);
   if (!parsed.success) throw new ApiError(422, ErrorCode.ValidationError, zodDetails(parsed.error));
   res.status(200).json(await weightService.get(userId(res), parsed.data.range));
+}
+
+/** GET /weight/interval-days?start=&end= — read-only per-day recap of an interval (200). */
+export async function intervalDays(req: Request, res: Response): Promise<void> {
+  const parsed = IntervalDaysQuerySchema.safeParse(req.query);
+  if (!parsed.success) throw new ApiError(422, ErrorCode.ValidationError, zodDetails(parsed.error));
+  res.status(200).json(await intervalDaysService(userId(res), parsed.data.start, parsed.data.end));
 }
 
 /** POST /weight — add a weigh-in (201; 409 weigh_in_date_occupied on an occupied date). */
