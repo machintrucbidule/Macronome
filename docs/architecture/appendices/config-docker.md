@@ -19,8 +19,8 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-macronome}:${POSTGRES_PASSWORD:-macronome}@postgres:5432/${POSTGRES_DB:-macronome}
       # SESSION_SECRET auto-generated & persisted to the app volume on first boot if unset
-      TRUSTED_PROXY: ${TRUSTED_PROXY:-loopback}
-      COOKIE_SECURE: ${COOKIE_SECURE:-false} # set true only together with TRUSTED_PROXY
+      TRUSTED_PROXY: ${TRUSTED_PROXY:-loopback, uniquelocal} # trusts loopback + private/container ranges
+      COOKIE_SECURE: ${COOKIE_SECURE:-false} # safe to set true behind an HTTPS proxy (TRUSTED_PROXY covers it)
       PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-} # public HTTPS origin for the Drive OAuth callback behind a proxy (optional)
       NODE_ENV: production
     volumes: ['appdata:/data'] # persists the session secret
@@ -80,10 +80,13 @@ No proxy ships in the stack (ADR-0001). Point any frontal at the single exposed 
 it serves both the SPA and `/api/v1`. The app emits its own security headers (HSTS,
 CSP, nosniff, Referrer-Policy) via `helmet` (`http/middleware/securityHeaders.ts`), so
 the proxy only needs to terminate TLS and forward. Login works out of the box
-(`COOKIE_SECURE=false`); to use `Secure` cookies, set `COOKIE_SECURE=true` **and**
-`TRUSTED_PROXY` to the proxy's address/CIDR (and have it send the usual `X-Forwarded-*`
-headers). Behind Docker + a tunnel (e.g. Cloudflare) where the proxy's IP is on a private
-range, `TRUSTED_PROXY=uniquelocal` is the simplest value. For the **Google Drive OAuth
+(`COOKIE_SECURE=false`); to use `Secure` cookies, set `COOKIE_SECURE=true` (have the proxy
+send the usual `X-Forwarded-*` headers). The default `TRUSTED_PROXY=loopback, uniquelocal`
+already trusts a proxy on loopback **or** a private/container range (a Docker sidecar such as
+NPM/Traefik/cloudflared), so `Secure` cookies and real-client-IP rate-limiting work without
+extra config. Narrow it to `loopback` (same-host only) or a specific CIDR to tighten — note the
+default trusts any peer on a private range, which on a directly-published port lets a same-LAN
+peer forge `X-Forwarded-*` (see `security.md` §3). For the **Google Drive OAuth
 backup**, set `PUBLIC_ORIGIN` to the public HTTPS origin (e.g. `https://macronome.example.com`)
 so the app builds the exact callback URL regardless of proxy-header trust (ops.md §6c, B-217).
 
@@ -106,8 +109,8 @@ The stack runs with no `.env`. Every key is a commented override:
 
 # --- app ---
 # SESSION_SECRET=             # leave unset: auto-generated & persisted on first boot
-# COOKIE_SECURE=false         # set true ONLY together with TRUSTED_PROXY
-# TRUSTED_PROXY=loopback      # your reverse proxy's address/CIDR when fronted (Docker+tunnel: uniquelocal)
+# COOKIE_SECURE=false         # safe to set true behind an HTTPS proxy (TRUSTED_PROXY must cover it)
+# TRUSTED_PROXY=loopback, uniquelocal  # peers trusted for X-Forwarded-* (default: loopback + private ranges)
 # PUBLIC_ORIGIN=              # public HTTPS origin for the Drive OAuth callback behind a proxy (optional)
 
 # --- reserved (unused in v1) ---

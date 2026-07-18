@@ -287,7 +287,8 @@ npm run create-user -w @macronome/api -- \
 **Reverse proxy / TLS.** The app serves plain HTTP on its port — front it with your own reverse
 proxy (Nginx Proxy Manager, Traefik, Caddy, Cloudflare Tunnel…) that terminates TLS. The health
 probe is `GET /api/v1/health`. To use `Secure` cookies behind your proxy, set
-`COOKIE_SECURE=true` **and** `TRUSTED_PROXY=<your proxy's address/CIDR>`.
+`COOKIE_SECURE=true` — the default `TRUSTED_PROXY` already trusts a same-host or
+Docker-sidecar proxy, so no extra setup is needed (narrow `TRUSTED_PROXY` to tighten).
 
 **Backups.** The only critical state is the `pgdata` volume — back it up (e.g. `pg_dump`) before
 upgrades. At the data level, Macronome also offers an in-app **JSON export/import** and an optional
@@ -298,16 +299,16 @@ volume/database backup.
 
 Copy [`.env.example`](.env.example) to `.env` and uncomment only what you want to override.
 
-| Variable            | Default            | Purpose                                                              |
-| ------------------- | ------------------ | -------------------------------------------------------------------- |
-| `MACRONOME_TAG`     | `latest`           | Image tag to deploy (`latest` or `vX.Y.Z`).                          |
-| `APP_PORT`          | `3000`             | Host port mapped to the app.                                         |
-| `POSTGRES_DB`       | `macronome`        | Database name.                                                       |
-| `POSTGRES_USER`     | `macronome`        | Database user.                                                       |
-| `POSTGRES_PASSWORD` | `macronome`        | Database password (Postgres is internal-only, not exposed).          |
-| `SESSION_SECRET`    | _(auto-generated)_ | Cookie signing key; generated & persisted on first boot if unset.    |
-| `COOKIE_SECURE`     | `false`            | Mark session cookies `Secure` (set with `TRUSTED_PROXY`).            |
-| `TRUSTED_PROXY`     | `loopback`         | Your reverse proxy's address/CIDR (real client IP + Secure cookies). |
+| Variable            | Default                 | Purpose                                                                                                     |
+| ------------------- | ----------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `MACRONOME_TAG`     | `latest`                | Image tag to deploy (`latest` or `vX.Y.Z`).                                                                 |
+| `APP_PORT`          | `3000`                  | Host port mapped to the app.                                                                                |
+| `POSTGRES_DB`       | `macronome`             | Database name.                                                                                              |
+| `POSTGRES_USER`     | `macronome`             | Database user.                                                                                              |
+| `POSTGRES_PASSWORD` | `macronome`             | Database password (Postgres is internal-only, not exposed).                                                 |
+| `SESSION_SECRET`    | _(auto-generated)_      | Cookie signing key; generated & persisted on first boot if unset.                                           |
+| `COOKIE_SECURE`     | `false`                 | Mark session cookies `Secure` (safe behind an HTTPS proxy).                                                 |
+| `TRUSTED_PROXY`     | `loopback, uniquelocal` | Peers trusted for `X-Forwarded-*` (real client IP + Secure cookies); default covers a Docker sidecar proxy. |
 
 ---
 

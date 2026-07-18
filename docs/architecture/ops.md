@@ -25,10 +25,13 @@ compose.yml
 - **No bundled proxy.** The single port is fronted by the operator's own reverse proxy
   / tunnel / load balancer (TLS there), or exposed directly. Nothing in the app assumes
   a specific frontal.
-- **Trusted proxy.** When fronted, set `TRUSTED_PROXY` to the proxy's address/CIDR so
-  the real client IP (for login rate-limiting) and the `secure` cookie are read from
-  forwarded headers **only when they come from the known proxy** — see `security.md`.
-  The Docker default `loopback` does **not** trust a separate proxy container.
+- **Trusted proxy.** `TRUSTED_PROXY` sets which peers Express believes for `X-Forwarded-*`
+  (so the real client IP for login rate-limiting and the `secure`-cookie/HTTPS detection are
+  read from forwarded headers **only** from a trusted peer — see `security.md` §3). The
+  default `loopback, uniquelocal` trusts loopback **and** private/container ranges, so a
+  Docker sidecar proxy / tunnel is trusted out of the box. Narrow to `loopback` (same-host
+  only) or a specific CIDR to tighten (the default trusts any private-range peer, which on a
+  directly-published port lets a same-LAN peer forge the headers).
 
 ---
 
@@ -87,8 +90,9 @@ named volumes (`pgdata`, `appdata`) — no host path to configure.
 App keys: `SESSION_SECRET` — **auto-generated and persisted** on first boot when unset
 (`config/session-secret.ts` → `appdata` volume, `/data/session_secret`), reused across
 restarts; set it only to manage it yourself. `COOKIE_SECURE` defaults **false** (login works behind
-your HTTPS proxy with no extra setup); to use `Secure` cookies set it `true` **and**
-`TRUSTED_PROXY` to the proxy's address/CIDR (behind Docker + a tunnel, `uniquelocal`). `PUBLIC_ORIGIN`
+your HTTPS proxy with no extra setup); it is **safe to set `true`** behind an HTTPS proxy, since the
+default `TRUSTED_PROXY` (`loopback, uniquelocal`) already trusts a same-host or Docker-sidecar proxy
+(narrow it to `loopback` or a CIDR to tighten — see §4). `PUBLIC_ORIGIN`
 is an **optional** public HTTPS origin (e.g. `https://macronome.example.com`) used **only** by the
 Google Drive OAuth backup (§6c, B-217): when set, the app builds the OAuth callback URL from it
 directly instead of deriving it from proxy headers; unset ⇒ header derivation (zero-config preserved).
@@ -166,10 +170,10 @@ HTTP behind the operator's proxy, so **Connect only completes once the deploymen
   - **Recommended — set `PUBLIC_ORIGIN`** (§4) to the public origin, e.g.
     `PUBLIC_ORIGIN=https://macronome.example.com`. The app then builds the redirect URI and passes
     the gate from it directly, independent of proxy-header trust. Bulletproof behind any tunnel.
-  - **Or set `TRUSTED_PROXY`** so Express trusts the proxy's `X-Forwarded-Proto`. Behind Docker +
-    a tunnel (e.g. Cloudflare) the proxy connects from a private IP, so **`TRUSTED_PROXY=uniquelocal`**
-    is the simplest working value (the default `loopback` does **not** trust a container/tunnel peer,
-    which is why Connect returns `gdrive_insecure_context` out of the box).
+  - **Or rely on `TRUSTED_PROXY`** so Express trusts the proxy's `X-Forwarded-Proto`. The default
+    `loopback, uniquelocal` already trusts a Docker sidecar / tunnel peer (a private IP), so the
+    server sees HTTPS and Connect completes — unless you have narrowed `TRUSTED_PROXY` to `loopback`
+    or a CIDR that excludes the proxy, in which case set `PUBLIC_ORIGIN` (above) or widen it.
 - Set the container **`TZ`** to the operator's zone if the default UTC is not desired — the
   daily "Heure" (default `03:00`) is interpreted in the process-local time (`backup-scheduler.md`).
 

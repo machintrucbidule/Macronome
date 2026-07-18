@@ -309,7 +309,8 @@ npm run create-user -w @macronome/api -- \
 **Reverse proxy / TLS.** L'application sert du HTTP en clair sur son port — place ton propre reverse
 proxy devant (Nginx Proxy Manager, Traefik, Caddy, Cloudflare Tunnel…) qui termine le TLS. La sonde
 de santé est `GET /api/v1/health`. Pour des cookies `Secure` derrière ton proxy, définis
-`COOKIE_SECURE=true` **et** `TRUSTED_PROXY=<adresse/CIDR de ton proxy>`.
+`COOKIE_SECURE=true` — le `TRUSTED_PROXY` par défaut fait déjà confiance à un proxy sur le
+même hôte ou en conteneur Docker, donc aucune config en plus (restreins `TRUSTED_PROXY` pour durcir).
 
 **Sauvegardes.** Le seul état critique est le volume `pgdata` — sauvegarde-le (par ex. `pg_dump`)
 avant les mises à jour. Au niveau des données, Macronome propose aussi un **export/import JSON**
@@ -320,16 +321,16 @@ pratiques, mais ils ne remplacent pas une sauvegarde du volume / de la base.
 
 Copie [`.env.example`](.env.example) vers `.env` et ne décommente que ce que tu veux surcharger.
 
-| Variable            | Défaut          | Rôle                                                                        |
-| ------------------- | --------------- | --------------------------------------------------------------------------- |
-| `MACRONOME_TAG`     | `latest`        | Tag d'image à déployer (`latest` ou `vX.Y.Z`).                              |
-| `APP_PORT`          | `3000`          | Port hôte mappé sur l'application.                                          |
-| `POSTGRES_DB`       | `macronome`     | Nom de la base.                                                             |
-| `POSTGRES_USER`     | `macronome`     | Utilisateur de la base.                                                     |
-| `POSTGRES_PASSWORD` | `macronome`     | Mot de passe (Postgres est interne, non exposé).                            |
-| `SESSION_SECRET`    | _(auto-généré)_ | Clé de signature des cookies ; générée et persistée au 1er boot si absente. |
-| `COOKIE_SECURE`     | `false`         | Marque les cookies de session `Secure` (à utiliser avec `TRUSTED_PROXY`).   |
-| `TRUSTED_PROXY`     | `loopback`      | Adresse/CIDR de ton reverse proxy (IP client réelle + cookies Secure).      |
+| Variable            | Défaut                  | Rôle                                                                                                                      |
+| ------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `MACRONOME_TAG`     | `latest`                | Tag d'image à déployer (`latest` ou `vX.Y.Z`).                                                                            |
+| `APP_PORT`          | `3000`                  | Port hôte mappé sur l'application.                                                                                        |
+| `POSTGRES_DB`       | `macronome`             | Nom de la base.                                                                                                           |
+| `POSTGRES_USER`     | `macronome`             | Utilisateur de la base.                                                                                                   |
+| `POSTGRES_PASSWORD` | `macronome`             | Mot de passe (Postgres est interne, non exposé).                                                                          |
+| `SESSION_SECRET`    | _(auto-généré)_         | Clé de signature des cookies ; générée et persistée au 1er boot si absente.                                               |
+| `COOKIE_SECURE`     | `false`                 | Marque les cookies de session `Secure` (sûr derrière un proxy HTTPS).                                                     |
+| `TRUSTED_PROXY`     | `loopback, uniquelocal` | Pairs de confiance pour `X-Forwarded-*` (IP client réelle + cookies Secure) ; le défaut couvre un proxy conteneur Docker. |
 
 ---
 

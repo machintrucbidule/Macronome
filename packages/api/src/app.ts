@@ -3,6 +3,7 @@ import { pinoHttp } from 'pino-http';
 import { env } from './config/env.js';
 import { csrf } from './http/middleware/csrf.js';
 import { errorHandler } from './http/middleware/errorHandler.js';
+import { secureCookieWarn } from './http/middleware/secure-cookie-warn.js';
 import { securityHeaders } from './http/middleware/securityHeaders.js';
 import { sessionMiddleware } from './http/middleware/session.js';
 import { tenantContext } from './http/middleware/tenant.js';
@@ -41,6 +42,8 @@ export function createApp(): Express {
   applyTrustProxy(app);
   app.use(securityHeaders());
   app.use(pinoHttp({ logger }));
+  // Warn once if Secure cookies are requested but requests arrive insecure (untrusted proxy).
+  app.use(secureCookieWarn);
   // 25 MB body cap so a full data import (IMP-1) fits; ordinary payloads are tiny.
   app.use(express.json({ limit: '25mb' }));
   app.use(sessionMiddleware);

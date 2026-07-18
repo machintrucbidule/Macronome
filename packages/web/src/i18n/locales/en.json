@@ -29,6 +29,8 @@
     "password": "Password",
     "submit": "Sign in",
     "error": "Incorrect username or password.",
+    "errorTechnical": "A technical problem is preventing sign-in. Please try again.",
+    "errorNetwork": "Can't reach the server. Check your connection and try again.",
     "tagline": "Nutrition journal & body tracking",
     "staySignedIn": "Stay signed in on this device",
     "lockout": "Too many attempts. Try again in",

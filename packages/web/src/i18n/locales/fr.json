@@ -29,6 +29,8 @@
     "password": "Mot de passe",
     "submit": "Se connecter",
     "error": "Identifiant ou mot de passe incorrect.",
+    "errorTechnical": "Un problème technique empêche la connexion. Réessaie.",
+    "errorNetwork": "Serveur injoignable. Vérifie ta connexion et réessaie.",
     "tagline": "Journal nutritionnel & suivi corporel",
     "staySignedIn": "Rester connecté sur cet appareil",
     "lockout": "Trop de tentatives. Réessayez dans",

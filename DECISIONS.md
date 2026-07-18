@@ -4629,3 +4629,48 @@ mentions) is refreshed to "~60 s". No `isBackupDue`/rotation/DTO/schema change. 
 `services/scheduler.ts` (constant + comment). **Tests:** none added (a poll-frequency constant,
 not domain logic; the interval-independent oracles already cover the due decision). **Gate:**
 unit + typecheck + lint green.
+
+---
+
+## B-222 / B-223 — Login fails with `COOKIE_SECURE=true` behind a container proxy; misleading error — RESOLVED (owner, 2026-07-18)
+
+**Bug (prod, B-222).** After a reboot the owner could not log in ("Identifiant ou mot de passe
+incorrect."); only setting `COOKIE_SECURE=false` fixed it (`SESSION_SECRET` was a red herring).
+**Cause (same family as B-217):** browser → Cloudflare → `cloudflared` sidecar → app, so the app's
+immediate peer is the Docker bridge (`192.168.192.1`), a **non-loopback** IP. With the default
+`TRUSTED_PROXY=loopback`, Express ignores `X-Forwarded-Proto: https` → `req.secure=false`. With
+`COOKIE_SECURE=true`, express-session **refuses to emit the Secure `macronome.sid`** over a
+connection it deems insecure → no session persists → the session-bound CSRF token
+(`csrf.ts`) regenerates every request → `POST /auth/login` is rejected **403 `csrf_invalid`**
+before the password is checked (logs show only `macronome.csrf; Secure` in `Set-Cookie`, and
+`/auth/login → 403`). The same default also silently broke **security.md §3** (rate-limit keyed on
+the proxy IP, not the real client). B-217 documented `uniquelocal` as an operator unblock but left
+the default unchanged; login hitting the same wall made the default itself the fix.
+
+**Decision (owner — change the default).** `TRUSTED_PROXY` default `loopback` → **`loopback,
+uniquelocal`**: trust loopback **and** the private/container ranges so a Docker-sidecar proxy /
+tunnel is trusted out of the box (Secure cookies + real-client-IP keying + the Drive OAuth HTTPS
+gate all work with zero config). **Accepted trade-off:** on a directly-published port a same-LAN
+peer becomes a trusted private-range peer able to forge `X-Forwarded-*`; low risk for a single-user
+self-host, and narrowable to `loopback`/an exact CIDR. Added a **one-shot startup guard**
+(`secure-cookie-warn.ts`) that logs an actionable warning when `COOKIE_SECURE=true` but a request
+is seen insecure.
+
+**Improvement (UX, B-223).** The web collapsed every non-429 login failure into the credentials
+message, so a 403 CSRF read as a wrong password. Now the `error` state carries a **kind**
+(`credentials` / `technical` / `network`) — a genuine 401 keeps the non-enumerating copy (and
+`aria-invalid` fields); 403/5xx/unexpected show a technical message; a `fetch` failure shows an
+unreachable-server message. Pure `classifyLoginError` drives it.
+
+**Contract impact:** `docs/architecture/security.md §3` (default + LAN caveat recorded);
+`design/components/states.md §Login` (two new error variants). No API/schema/domain-logic change
+(the server already returns distinct `invalid_credentials`/`csrf_invalid` codes). **Code (api):**
+`config/env.ts` (default), `http/middleware/trustProxy.ts` (simplified), new
+`http/middleware/secure-cookie-warn.ts` + wired in `app.ts`. **Web:** `features/login/useLogin.ts`
+(`classifyLoginError` + `errorKind`), `LoginPage.tsx`, i18n `login.errorTechnical`/`errorNetwork`
+(fr + en). **Config/docs:** `compose.yml`, `.env.example`, `docs/architecture/appendices/config-docker.md`,
+`docs/architecture/ops.md` §4/§6c, `README.md` + `README_FR.md`. **Tests:** `trustProxy.test.ts`
+(private-range hop trusted under the new default, not under `loopback`), `secure-cookie-warn.test.ts`
+(warns once), `features/login/useLogin.test.ts` (error mapping). **Gate:** unit + typecheck + lint
+
+- integration green.

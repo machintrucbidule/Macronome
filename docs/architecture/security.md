@@ -40,9 +40,19 @@ Choices favour boring, proven mechanisms over novelty.
 - The client renders these as the lockout/countdown and generic-error states already
   designed (`design/components/states.md`).
 - **Real client IP**: rate-limit keys on the forwarded client IP, trusted **only**
-  from the configured proxy (`TRUSTED_PROXY`). Without this, an attacker spoofs
+  from the peers named by `TRUSTED_PROXY`. Without this, an attacker spoofs
   `X-Forwarded-For` to dodge lockout. This is the one frontal-related security item
   and it is generic (works behind any reverse proxy / tunnel).
+  - The **default** is `loopback, uniquelocal` — it trusts loopback **and** the
+    private/container ranges (`10/8`, `172.16/12`, `192.168/16`, `fc00::/7`), so a
+    Docker-sidecar proxy / tunnel is trusted out of the box (this is what makes
+    `COOKIE_SECURE=true` and real-client-IP keying work without extra config, and it also
+    ungates the Drive OAuth HTTPS check — §4/ops.md §6c). **Trade-off:** since the app port
+    is typically published on the host, a peer on the same LAN can reach it directly and
+    would then be a trusted private-range peer able to forge `X-Forwarded-*` (spoof the
+    client IP to dodge lockout, or claim HTTPS). Low risk for a single-user self-host;
+    tighten by narrowing `TRUSTED_PROXY` to `loopback` (same-host proxy only) or to the
+    proxy's exact CIDR when the port is exposed to an untrusted network.
 
 ## 4. Cookies & CSRF
 

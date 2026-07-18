@@ -14,7 +14,13 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-macronome}:${POSTGRES_PASSWORD:-macronome}@postgres:5432/${POSTGRES_DB:-macronome}
       # SESSION_SECRET is auto-generated and persisted to the app volume on first boot
       # when unset (config/session-secret.ts). Set it only to manage it yourself.
-      TRUSTED_PROXY: ${TRUSTED_PROXY:-loopback}
+      # Peers Express trusts for X-Forwarded-* (real client IP + HTTPS detection). The default
+      # trusts loopback + private/container ranges, so a sidecar proxy / tunnel (cloudflared,
+      # NPM, Traefik) is trusted out of the box — required for COOKIE_SECURE=true. Set to
+      # `loopback` to trust only same-host proxies, or a specific CIDR to tighten.
+      TRUSTED_PROXY: ${TRUSTED_PROXY:-loopback, uniquelocal}
+      # false = login works over plain HTTP. Safe to set `true` behind an HTTPS reverse proxy /
+      # tunnel (needs TRUSTED_PROXY above to cover that proxy, which the default does).
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
       # Public HTTPS origin for the Google Drive OAuth callback when fronted by a reverse
       # proxy / tunnel (e.g. https://macronome.example.com). Optional; leave empty unless you

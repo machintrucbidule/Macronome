@@ -4,8 +4,10 @@ Cross-screen state patterns. Domain behaviour is owned by 2b / `screens/*.md`;
 this file fixes only their **visual** treatment.
 
 ## Empty states
+
 Calm, centred-or-inline message in `--text-dim`, with the relevant primary CTA
 where one exists. No illustration.
+
 - **Aliments** — no foods / no search match → empty-state line; the count chip
   reads `0 affichés`.
 - **Recettes** — no recipes → empty list + "+ Ajouter une recette".
@@ -22,36 +24,50 @@ where one exists. No illustration.
   no match → empty body.
 
 ## Loading states (skeletons, not spinners)
+
 Prefer skeleton placeholders that preserve layout; avoid full-screen spinners
 inside the app (the spinner is reserved for the login submit).
+
 - **Repas**: skeleton totals row + skeleton meal columns.
 - **Aliments / tables**: skeleton rows (greyed bars at row height).
 - Skeleton fill: a low-contrast block on `--bg-elev-2`; keep motion subtle or
   static. Show data progressively as it arrives rather than blocking the view.
 
 ## Error (non-blocking, in-app)
+
 Load/save failure on Repas/Aliments → non-blocking banner (see
 `toasts-warnings.md` D); the list renders from cache and edits buffer locally.
 Never a blocking modal for transient I/O errors.
 
-## Login — error & lockout  (pre-auth surface)
+## Login — error & lockout (pre-auth surface)
+
 The login card carries two server-driven alert variants + a success flash.
 Driven by a `data-state` on the body: `idle | loading | error | lockout | success`.
+
 - **idle**: default; username prefilled and focused on a fresh device.
 - **loading**: submit shows the inline spinner, label hidden; inputs locked.
 - **error (invalid credentials)**: red alert banner `err-creds` (generic, non-
   enumerating copy: "Identifiant ou mot de passe incorrect."); **both** fields
-  get `aria-invalid` (nok border + ring).
+  get `aria-invalid` (nok border + ring). Shown only for a genuine bad-credentials
+  rejection (API **401 `invalid_credentials`**).
+- **error (technical)**: same red alert, distinct copy for a non-credentials server
+  failure — a CSRF/session error or any unexpected status (**403 `csrf_invalid`**,
+  4xx/5xx). Copy names a technical problem, not bad credentials, so a proxy/cookie
+  misconfiguration is not disguised as a wrong password (root cause of the
+  `COOKIE_SECURE`/trust-proxy trap). Fields are **not** marked `aria-invalid`.
+- **error (network)**: same red alert, distinct copy for an unreachable server (the
+  request never got an HTTP response — a `fetch` failure). Fields not `aria-invalid`.
 - **lockout**: alert `err-lock` with a **live countdown** (`.count`, `--font-num;
-  --nok; --fw-bold`); **submit hidden**; fields + "rester connecté" disabled
+--nok; --fw-bold`); **submit hidden**; fields + "rester connecté" disabled
   (`opacity:.4–.5; pointer-events:none`) until the timer elapses, then returns to
   idle.
 - **success**: form body hidden; a `.success` flash (ok ring + check, redirect
   hint "→ JOURNAL DU JOUR") animates in (`rise`).
-Copy avoids gendered/agreement forms so FR↔EN translation stays clean.
-(The bottom demo state-switcher in the mockup is **not** part of the product.)
+  Copy avoids gendered/agreement forms so FR↔EN translation stays clean.
+  (The bottom demo state-switcher in the mockup is **not** part of the product.)
 
 ## Disabled / inert
+
 - Disabled buttons: see `buttons.md` (filled → desaturate/dim; ghost → reduced
   affordance, `cursor:not-allowed`).
 - Inert feature blocks (e.g. Settings "Assistant IA — bientôt"): wrap in `.soon`

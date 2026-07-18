@@ -8,7 +8,15 @@ const EnvSchema = z.object({
   // Optional: when unset, a secret is auto-generated and persisted on first boot
   // (config/session-secret.ts) to keep deployment zero-config (ADR-0001).
   SESSION_SECRET: z.string().min(16).optional(),
-  TRUSTED_PROXY: z.string().min(1).default('loopback'),
+  // Which peers Express believes for `X-Forwarded-*` (real client IP + `req.secure`).
+  // Default trusts loopback + all private/container ranges (`uniquelocal`: 10/8, 172.16/12,
+  // 192.168/16, fc00::/7) so a sidecar reverse proxy / tunnel (e.g. cloudflared on the Docker
+  // bridge) is trusted out of the box — required for `COOKIE_SECURE=true` and for keying login
+  // rate-limiting on the real client IP (security.md §3). Trade-off: since the app port is
+  // published, a same-LAN peer could forge these headers; tighten to the exact proxy CIDR if
+  // that matters. Override with any Express `trust proxy` value (a CIDR/list, a preset, or a
+  // hop count). Set to `loopback` to trust only same-host proxies.
+  TRUSTED_PROXY: z.string().min(1).default('loopback, uniquelocal'),
   // Optional explicit public origin (scheme+host) for the Google Drive OAuth callback (B-217).
   // When set, the server builds the redirect_uri + validates the HTTPS gate from it directly —
   // no dependence on trust-proxy header derivation. Empty string ⇒ treated as unset. This is

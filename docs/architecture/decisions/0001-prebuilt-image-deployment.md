@@ -71,10 +71,11 @@ target ops model is the opposite — a single published image pulled by Portaine
 - Deploy = `docker compose up -d` (or Portainer "deploy stack") with **no env to set**;
   images are pulled, the API runs `prisma migrate deploy` on start, then serves UI + API.
   No repo, no Node, no host-side web build on the target.
-- **Hardening (opt-in):** to mark session cookies `Secure`, set `COOKIE_SECURE=true`
-  **and** `TRUSTED_PROXY` to the front proxy's address/CIDR (so the `secure` cookie and
-  login rate-limit see the real client — the Docker default `loopback` does not trust a
-  proxy container). Documented in `ops.md` §4.
+- **Hardening (opt-in):** to mark session cookies `Secure`, set `COOKIE_SECURE=true`. The
+  default `TRUSTED_PROXY=loopback, uniquelocal` already trusts a same-host **or** Docker-sidecar
+  proxy (private/container ranges), so the `secure` cookie and login rate-limit see the real
+  client with no extra config; narrow `TRUSTED_PROXY` to `loopback`/an exact CIDR to tighten
+  (B-222). Documented in `ops.md` §4.
 - The SPA build dir is provided to the API via `WEB_DIST` (set in the image); when
   unset (dev), static serving is inert and Vite serves the SPA.
 - Data lives in two Docker-managed named volumes: `pgdata` (the database) and `appdata`
