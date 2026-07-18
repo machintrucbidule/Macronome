@@ -28,6 +28,8 @@ export interface LightDay {
   /** The day's own activity level — feeds the per-day estimated burn for the heatmap/monthly
    * NOK split (B-167). Always set (schema default 'sedentary'). */
   activityLevel: string;
+  /** The day's comment, surfaced in the heatmap cell tooltip (B-226); null when absent. */
+  comment: string | null;
   snapshot: { cal_min: number; cal_max: number };
   entries: LightEntry[];
   groups: LightGroup[];
@@ -55,6 +57,7 @@ async function fetchParts(userId: string, range?: DateRange) {
       summaryKcal: true,
       verdictOverride: true,
       activityLevel: true,
+      comment: true,
       targetSnapshot: true,
     },
     orderBy: [{ date: 'asc' }],
@@ -117,6 +120,7 @@ function stitch(parts: Awaited<ReturnType<typeof fetchParts>>): LightDay[] {
     summaryKcal: d.summaryKcal === null ? null : num(d.summaryKcal),
     verdictOverride: d.verdictOverride,
     activityLevel: d.activityLevel,
+    comment: d.comment,
     snapshot: d.targetSnapshot as unknown as { cal_min: number; cal_max: number },
     entries: entriesByDay.get(d.id) ?? [],
     groups: groupsByDay.get(d.id) ?? [],

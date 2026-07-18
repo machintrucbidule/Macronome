@@ -180,12 +180,24 @@ test('monthEndDate returns the last calendar day of the month (CZ-1/B-141)', () 
 test('heatmap fills every calendar date of the year, none/null where not logged (§3)', () => {
   const cells = heatmap([d('2025-01-02', 1600, 'OK'), d('2025-12-31', 1700, 'NOK')], 2025);
   expect(cells).toHaveLength(365);
-  // Not-logged cell: grey status + null kcal.
-  expect(cells[0]).toEqual({ date: '2025-01-01', status: 'none', kcal: null });
+  // Not-logged cell: grey status + null kcal + null comment (B-226).
+  expect(cells[0]).toEqual({ date: '2025-01-01', status: 'none', kcal: null, comment: null });
   // Logged cells carry the day's status + its calorie value (feeds the tooltip).
-  expect(cells[1]).toEqual({ date: '2025-01-02', status: 'OK', kcal: 1600 });
+  expect(cells[1]).toEqual({ date: '2025-01-02', status: 'OK', kcal: 1600, comment: null });
   // A NOK day with no burn figure (burnGap null) → surplus/unknown bucket → NOK_over (B-167).
-  expect(cells[364]).toEqual({ date: '2025-12-31', status: 'NOK_over', kcal: 1700 });
+  expect(cells[364]).toEqual({ date: '2025-12-31', status: 'NOK_over', kcal: 1700, comment: null });
+});
+
+test('heatmap attaches the day comment (map) to logged AND grey cells, null otherwise (B-226)', () => {
+  const comments = new Map<string, string | null>([
+    ['2025-01-02', 'cheat meal'], // a logged (coloured) day
+    ['2025-01-03', 'sick, ate nothing'], // a grey not-logged day that still carries a comment
+  ]);
+  const cells = heatmap([d('2025-01-02', 1600, 'OK')], 2025, comments);
+  const byDate = Object.fromEntries(cells.map((c) => [c.date, c.comment]));
+  expect(byDate['2025-01-02']).toBe('cheat meal'); // coloured cell
+  expect(byDate['2025-01-03']).toBe('sick, ate nothing'); // grey cell still gets its comment
+  expect(byDate['2025-01-01']).toBeNull(); // no comment for this date → null
 });
 
 test('heatmap NOK sub-tone: deficit → NOK_under, surplus/unknown → NOK_over (§3, B-167)', () => {

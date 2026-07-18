@@ -32,6 +32,35 @@ function seedSummaryDay(userId: string, date: string, kcal: number): Promise<unk
   });
 }
 
+/** A summary (logged) day carrying a comment (B-226). */
+function seedCommentedSummary(userId: string, date: string, kcal: number, comment: string) {
+  const auto = kcal >= SNAPSHOT.cal_min && kcal <= SNAPSHOT.cal_max ? 'OK' : 'NOK';
+  return prisma.dayLog.create({
+    data: {
+      userId,
+      date: new Date(`${date}T00:00:00.000Z`),
+      kind: 'summary',
+      summaryKcal: kcal,
+      verdictAuto: auto,
+      comment,
+      targetSnapshot: SNAPSHOT,
+    },
+  });
+}
+
+/** A day_log row with a comment but no calories → not logged (grey cell) yet still commented. */
+function seedGreyCommentDay(userId: string, date: string, comment: string) {
+  return prisma.dayLog.create({
+    data: {
+      userId,
+      date: new Date(`${date}T00:00:00.000Z`),
+      kind: 'detailed',
+      comment,
+      targetSnapshot: SNAPSHOT,
+    },
+  });
+}
+
 /** A YYYY-MM-DD date offset from today in whole UTC days (matches the service's todayString). */
 function isoOffset(days: number): string {
   const d = new Date();
@@ -104,6 +133,28 @@ describe('stats — adherence', () => {
     expect(may).toMatchObject({ ok_count: 1, nok_count: 2, nok_under_count: 0, nok_over_count: 2 });
     expect(res.body.key.overall_ok_rate).toBe(0.6);
     expect(res.body.key.current_ok_streak).toBe(2); // 06-02 OK, 06-01 OK, then 05-30 NOK breaks
+  });
+
+  it('carries the day comment on logged AND grey not-logged cells, null when absent, user-scoped (B-226)', async () => {
+    const { agent, userId } = await authedAgent(app, 'alice');
+    await seedTarget(userId, '2026-01-01', SNAPSHOT.cal_min, SNAPSHOT.cal_max);
+    await seedCommentedSummary(userId, '2026-04-10', 1600, 'cheat meal'); // logged + comment
+    await seedSummaryDay(userId, '2026-04-11', 1600); // logged, no comment
+    await seedGreyCommentDay(userId, '2026-04-12', 'malade, rien mangé'); // grey + comment
+
+    const res = await agent.get('/api/v1/stats/adherence?year=2026');
+    expect(res.status).toBe(200);
+    const heatmap = res.body.heatmap as { date: string; status: string; comment: string | null }[];
+    const cell = (date: string) => heatmap.find((c) => c.date === date)!;
+    expect(cell('2026-04-10')).toMatchObject({ status: 'OK', comment: 'cheat meal' });
+    expect(cell('2026-04-11').comment).toBeNull(); // logged, no comment → null
+    expect(cell('2026-04-12')).toMatchObject({ status: 'none', comment: 'malade, rien mangé' });
+
+    // User-scoped: another tenant never sees Alice's comments.
+    const bob = await authedAgent(app, 'bob');
+    const bobRes = await bob.agent.get('/api/v1/stats/adherence?year=2026');
+    const bobHeat = bobRes.body.heatmap as { comment: string | null }[];
+    expect(bobHeat.every((c) => c.comment === null)).toBe(true);
   });
 });
 

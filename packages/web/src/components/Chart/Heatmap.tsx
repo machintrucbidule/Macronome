@@ -25,11 +25,13 @@ function mondayIndex(date: string): number {
   return (new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2])).getDay() + 6) % 7;
 }
 
-/** Styled-tooltip content for a cell: full date title + kcal (when logged) + status line. */
+/** Styled-tooltip content for a cell: full date title + kcal (when logged) + status line, plus
+ *  the day's comment as a final line when it has one (B-226; full text, incl. grey cells). */
 export function cellTip(cell: HeatmapCell, t: (k: string) => string, lang: string): TipContent {
   const rows: string[] = [];
   if (cell.kcal !== null) rows.push(`${Math.round(cell.kcal)} kcal`);
   rows.push(t(`stats.status.${cell.status}`));
+  if (cell.comment) rows.push(cell.comment);
   return { title: formatDate(cell.date, lang), rows };
 }
 

@@ -43,11 +43,15 @@ export interface RollingResponse {
 export type HeatmapStatus = 'OK' | 'NOK_under' | 'NOK_over' | 'none';
 
 /** One calendar cell of the selected year. `none` = not logged (grey, never NOK).
- * `kcal` = that day's calorie value for logged cells, `null` when `status:'none'`. */
+ * `kcal` = that day's calorie value for logged cells, `null` when `status:'none'`.
+ * `comment` = the day's comment when it carries one (shown in the cell tooltip, full text,
+ * incl. on grey not-logged days — B-226), `null` otherwise. Display-only: it changes no
+ * status/colour/figure. */
 export interface HeatmapCell {
   date: string;
   status: HeatmapStatus;
   kcal: number | null;
+  comment: string | null;
 }
 
 /** Per-month pivot over the selected year's logged days (only months with data).

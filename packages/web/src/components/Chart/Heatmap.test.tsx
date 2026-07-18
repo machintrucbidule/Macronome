@@ -16,6 +16,7 @@ const cell = (over: Partial<HeatmapCell>): HeatmapCell => ({
   date: '2026-01-05',
   status: 'OK',
   kcal: 1600,
+  comment: null,
   ...over,
 });
 
@@ -29,6 +30,21 @@ describe('Heatmap', () => {
   it('omits the kcal line on a non-logged cell, keeping the status line', () => {
     const tip = cellTip(cell({ kcal: null, status: 'none' }), (k) => k, 'fr');
     expect(tip.rows).toEqual(['stats.status.none']);
+  });
+
+  it('appends the day comment as a final line when present (B-226)', () => {
+    const tip = cellTip(cell({ comment: 'trop de sel' }), (k) => k, 'fr');
+    expect(tip.rows).toEqual(['1600 kcal', 'stats.status.OK', 'trop de sel']);
+  });
+
+  it('shows the comment on a grey not-logged cell too (B-226)', () => {
+    const tip = cellTip(cell({ kcal: null, status: 'none', comment: 'malade' }), (k) => k, 'fr');
+    expect(tip.rows).toEqual(['stats.status.none', 'malade']);
+  });
+
+  it('adds no comment line when the cell has none', () => {
+    const tip = cellTip(cell({ comment: null }), (k) => k, 'fr');
+    expect(tip.rows).toEqual(['1600 kcal', 'stats.status.OK']);
   });
 
   it('colours a NOK_under cell orange (.warn) and a NOK_over cell red (.nok) (B-167)', () => {

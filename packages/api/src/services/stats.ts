@@ -105,8 +105,11 @@ export async function getAdherence(userId: string, year: number): Promise<Adhere
     days.filter((d) => d.date.startsWith(`${year}-`)),
     burnCtx,
   ).filter((s) => s.date <= today);
+  // Comment per calendar day for the heatmap cell tooltip (B-226) — over ALL day_log rows
+  // (logged AND not-logged), so a grey commented day still surfaces its comment. Display-only.
+  const commentByDate = new Map(days.map((d) => [d.date, d.comment] as const));
   return {
-    heatmap: heatmap(yearLogged, year),
+    heatmap: heatmap(yearLogged, year, commentByDate),
     monthly: monthlyPivot(yearLogged, bands, year),
     key: {
       year_ok_rate: okRate(yearLogged),

@@ -23,7 +23,8 @@ tokens** (never baked hex) — critical for the trend line (see theming.md).
     / `3 (10%) jours NOK (déficit)` / `12 (39%) jours NOK (surplus)` (percentages over the month's
     logged days); avg-kcal bars `Moyenne des jours OK : 1800
 kcal` / `… NOK : 1950 kcal` / `Moyenne globale : 1875 kcal` (OK/NOK lines omitted when the
-    month has no such day); heatmap `1600 kcal` (when logged) + status (`OK`/`NOK`/`non saisi`).
+    month has no such day); heatmap `1600 kcal` (when logged) + status (`OK`/`NOK`/`non saisi`) + the day's **comment** as a final line when it has one (B-226; full text, **wraps** — the
+    only tooltip line allowed to span multiple lines; present on grey not-logged commented days too).
   - **Caret** — a small triangle on the card edge pointing at the hovered point, matching
     the card fill + `--border`; on the **bottom** edge by default (card above the point),
     moved to the **top** edge when the card flips below, and kept aligned with the anchor
@@ -77,7 +78,7 @@ surplus / dépense inconnue), `var(--none)` (non saisi). The NOK cell splits ora
 day's expenditure (B-167, same rule as the verdict badge B-166; `status` = `NOK_under` →
 `--warn`, `NOK_over` → `--nok`). Weekday labels (every other) + month labels in `.axislbl`.
 Hovering a cell surfaces the shared styled tooltip (§Shared primitives — full date + kcal +
-status), not a native `<title>`. Legend: OK / NOK déficit / NOK surplus / Non saisi swatches
+status + the day's comment when present, B-226), not a native `<title>`. Legend: OK / NOK déficit / NOK surplus / Non saisi swatches
 (11px, `rx:2`).
 Key figures `.keyfigs`: inline `.kf` blocks (label `--fs-10` + value
 `--font-num; --fw-bold; --fs-18`).

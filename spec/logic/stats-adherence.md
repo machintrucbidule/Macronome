@@ -50,6 +50,11 @@ One cell per calendar date in the selected year: green = effective OK,
 colour normally. A **future date (> today) is grey** (not logged) even if a plan
 exists for it — it only takes its colour once its date has arrived (§1, B-016).
 
+**Cell tooltip comment (B-226, display-only).** The cell's hover tooltip shows the day's
+`comment` when it carries one — full text — **including on grey not-logged days** that hold a
+comment. This is presentation only: it changes **no** cell colour/status and **no** figure
+(the not-logged/grey rule above is untouched).
+
 **NOK sub-tone (B-167).** A NOK cell splits by the day's expenditure, mirroring the
 Repas/Journal badge (B-166): **orange** when the day is still in a real deficit
 (`day_kcal ≤ estimated_burn`) and **red** when in a surplus (`day_kcal > estimated_burn`)

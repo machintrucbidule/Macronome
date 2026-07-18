@@ -4735,3 +4735,31 @@ wiring, `fr.json`/`en.json` labels. **Tests:** api integration (all days inclusi
 summary, comment present, gaps null, user-scoped, 422/401) + web component (popup lists days, day
 click → `/day/:date`; 📋 button opens recap without triggering the row edit). **Gate:** unit +
 integration + typecheck + lint green.
+
+## B-226 — Stats heatmap: show the day's comment in the cell hover tooltip — RESOLVED (owner, 2026-07-18)
+
+**Decision.** Hovering a heatmap cell already shows a styled tooltip (date · status · kcal). It now
+also shows the **day's comment** when present — **full text, not truncated** — including on grey
+"not-logged" days that carry a comment (a day can hold a comment with no calories → classed
+not-logged → grey). Show it on **every** commented day; the colour/adherence rule is **unchanged**
+(a grey day stays grey, it just gains a tooltip line).
+
+**Contract impact:** `packages/shared/src/dto/stats.ts` (`HeatmapCell.comment: string | null`),
+`spec/api/weight-targets-stats-settings.md` (heatmap DTO shape + tooltip note `(date · status ·
+kcal · comment)`), `specifications/screens/stats.md` (cell tooltip content + fixed the stale
+"native tooltip" wording — it is the styled `ChartTooltip`), `design/components/charts.md` (heatmap
+tooltip content + the comment line, the only tooltip line allowed to wrap),
+`spec/logic/stats-adherence.md §3` (display-only note). No schema change; read-only; no figure/colour
+change.
+
+**Code (renders ≠ computes — API returns the comment, web displays):** api
+`data/repositories/day-stat.repo.ts` (`comment: true` in the select + `LightDay.comment` + threaded
+in `stitch`), `services/stats.ts` (`getAdherence` builds a date→comment map over **all** `day_log`
+rows incl. not-logged and passes it to the heatmap), `domain/stats/heatmap.ts` (optional
+`commentByDate` param → attaches `comment` to **every** cell, coloured and grey). Web
+`components/Chart/Heatmap.tsx` (`cellTip` pushes the comment row when present) and
+`components/Chart/Chart.module.css` (`.tipRow` wraps + `.tooltip` `max-width` so a long comment
+wraps; short numeric rows unaffected). `ChartTooltip` is unchanged (already renders arbitrary rows).
+**Tests:** api integration (`comment` on `HeatmapCell` for a logged **and** a grey commented day,
+null when absent, user-scoped) + web `Heatmap.test.tsx` (`cellTip` adds the comment row, incl. a
+grey commented cell). **Gate:** unit + integration + typecheck + lint green.

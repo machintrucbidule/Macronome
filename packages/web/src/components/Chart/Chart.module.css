@@ -33,6 +33,9 @@
 .tooltip {
   position: fixed;
   pointer-events: none;
+  /* Cap the width so a long heatmap comment (B-226) wraps instead of stretching the card; short
+     numeric rows stay well under this, so the other chart tooltips look unchanged. */
+  max-width: 16rem;
   background: var(--bg-elev-2);
   border: var(--bw) solid var(--border);
   border-radius: var(--r-md);
@@ -55,7 +58,9 @@
   margin-top: 2px;
   color: var(--text-dim);
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+  /* Wrap long content (a full heatmap comment, B-226); short numeric rows never reach the cap. */
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 /* caret: an outline triangle (::before, --border) with the fill triangle (::after,

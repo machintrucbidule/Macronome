@@ -103,7 +103,7 @@ target_weight_kg,rate_kg_per_week,effective_from,until}]}`. `until` = the day be
   band — so long windows are not falsely alarmist when the target changed (B-100; field shape
   unchanged). `null` when no logged day in the window carried a band.
 - `GET /stats/adherence?year=YYYY` — → 200
-  `{heatmap:[{date,status:'OK'|'NOK_under'|'NOK_over'|'none',kcal:number|null}],
+  `{heatmap:[{date,status:'OK'|'NOK_under'|'NOK_over'|'none',kcal:number|null,comment:string|null}],
 monthly:[{month,ok_count,nok_count,nok_under_count,nok_over_count,ok_rate,avg_kcal_ok,avg_kcal_nok,avg_kcal_global,target_zone:{cal_min,cal_max}|null}],
 key:{year_ok_rate,overall_ok_rate,current_ok_streak,best_month},
 target_zone:{cal_min,cal_max}, signals:[{code,value,text}],
@@ -124,8 +124,10 @@ records:{all:{high,low}, year:{high,low}}}`.
   across target changes (`spec/logic/stats-adherence.md` §5). The top-level `target_zone`
   stays the band in effect **today** (rolling cards / signals), unchanged.
   Heatmap `kcal` = that day's calorie value for logged cells, `null` when
-  `status:'none'` (not logged) — feeds the cell tooltip `(date · status · kcal)`
-  per `specifications/screens/stats.md`.
+  `status:'none'` (not logged). Heatmap `comment` = the day's `day_log.comment` when it carries
+  one (B-226), `null` otherwise — present on **every** commented day incl. grey not-logged ones;
+  it feeds the cell tooltip `(date · status · kcal · comment)` per `specifications/screens/stats.md`
+  and changes no status/figure.
   `records` = **weight records** (B-197): `all` = highest/lowest weigh-in over **all** the
   user's data, `year` = highest/lowest of the **selected** `year`. Each of `high`/`low` is
   `{weight_kg:number, date:'YYYY-MM-DD'} | null` (`null` when the scope has no weigh-in). On a
