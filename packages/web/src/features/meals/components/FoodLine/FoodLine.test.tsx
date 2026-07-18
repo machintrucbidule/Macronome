@@ -135,6 +135,58 @@ describe('FoodLine muted quantity-0 line (B-107, pin-conditional B-198)', () => 
   });
 });
 
+describe('FoodLine used-line liseré (B-224)', () => {
+  const zeroConsumed = { grams: 0, quantity: 0, kcal: 0, fat: 0, carb: 0, protein: 0 };
+
+  function customEntry(grams: number | null): MealEntry {
+    return {
+      ...entry(),
+      kind: 'custom',
+      food_id: null,
+      custom_name: 'Plat maison',
+      served_quantity: 0,
+      served_grams: grams,
+    };
+  }
+
+  it('adds the liseré to a referenced line with quantity > 0', () => {
+    const { container } = renderLine(entry());
+    expect(container.querySelector(`.${styles.used}`)).not.toBeNull();
+  });
+
+  it('does NOT add the liseré to a pinned qty-0 line (but keeps the pin)', () => {
+    const { container } = renderLine({
+      ...entry(),
+      served_quantity: 0,
+      is_pinned: true,
+      consumed: zeroConsumed,
+    });
+    expect(container.querySelector(`.${styles.used}`)).toBeNull();
+    // pin + delete buttons still present
+    expect(container.querySelectorAll('button')).toHaveLength(2);
+  });
+
+  it('does NOT add the liseré to a normal qty-0 line', () => {
+    const { container } = renderLine({
+      ...entry(),
+      served_quantity: 0,
+      is_pinned: false,
+      consumed: zeroConsumed,
+    });
+    expect(container.querySelector(`.${styles.used}`)).toBeNull();
+  });
+
+  it('adds the liseré to a custom line with served grams > 0', () => {
+    const { container } = renderLine(customEntry(150));
+    expect(container.querySelector(`.${styles.used}`)).not.toBeNull();
+  });
+
+  it('does NOT add the liseré to a custom line with no served grams', () => {
+    const { container } = renderLine(customEntry(null));
+    expect(container.querySelector(`.${styles.used}`)).toBeNull();
+  });
+});
+
 describe('FoodLine empty "+ Aliment" line (B-105)', () => {
   it('is a keyboard tab stop and type-to-search adds a food on its row', () => {
     const { container, startEdit } = renderLine(null);

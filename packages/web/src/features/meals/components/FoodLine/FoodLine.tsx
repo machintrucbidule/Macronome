@@ -38,7 +38,7 @@ const dropProps = (row: number, dnd: LineDnd) => ({
  *  (the desktop selection-mode cursor cue) is derived here so EntryRow stays within the caps. */
 function entryRowClass(flags: {
   isZero: boolean;
-  isPinned: boolean;
+  isUsed: boolean;
   isDragging: boolean;
   isGrabbed: boolean;
   isSelected: boolean;
@@ -50,7 +50,7 @@ function entryRowClass(flags: {
   return [
     styles.line,
     flags.isZero && styles.zero,
-    flags.isPinned && styles.pinned,
+    flags.isUsed && styles.used,
     flags.isDragging && styles.dragging,
     flags.isGrabbed && styles.grabbed,
     flags.isSelected && styles.selected,
@@ -58,6 +58,13 @@ function entryRowClass(flags: {
   ]
     .filter(Boolean)
     .join(' ');
+}
+
+// The amber left-border (liseré) marks a *used* line: one carrying an entered quantity > 0,
+// regardless of pin state or kind (B-224). Keys on the entered qty, NOT the leftover-adjusted
+// `consumed` (B-047) — a line fully allocated to a leftover container still counts as used.
+function isUsedEntry(entry: MealEntry, isCustom: boolean): boolean {
+  return isCustom ? (entry.served_grams ?? 0) > 0 : entry.served_quantity > 0;
 }
 
 // Desktop selection-sum row click (B-207), kept at module scope so EntryRow stays within the
@@ -197,9 +204,7 @@ function EntryRow({
   // is not muted.
   const isZero = !isCustom && entry.served_quantity === 0 && entry.is_pinned;
   const c = entry.consumed;
-  // A pinned line is a garde-manger food: accent left-border + filled pin. Pantry is food-based,
-  // so the pin only shows on referenced lines (custom lines have no food_id; see PinCell).
-  const showPin = !isCustom;
+  const showPin = !isCustom; // pin only on referenced lines: pantry is food-based (see PinCell)
   const openEdit = (initialQuery?: string): void =>
     isCustom
       ? actions.openCustom(mealId, mealIndex, entry.id)
@@ -215,7 +220,7 @@ function EntryRow({
     <div
       className={entryRowClass({
         isZero,
-        isPinned: entry.is_pinned,
+        isUsed: isUsedEntry(entry, isCustom), // amber liseré on used (qty>0) lines (B-224)
         isDragging: dnd.dragId === entry.id,
         isGrabbed: touch.grabbedId === entry.id,
         isSelected: selection.isSelected(entry.id),

@@ -193,12 +193,12 @@
   filter: none;
 }
 
-/* Pinned (garde-manger) line: accent left-border via inset shadow (no layout shift). */
-.pinned {
+/* Used line (quantity > 0): amber accent left-border via inset shadow, no layout shift (B-224). */
+.used {
   box-shadow: inset 2px 0 0 var(--accent);
 }
 /* Selection-sum (B-207): a full-row blue `--select` tint, NO left edge — so it composes with
-   `.pinned`'s amber left-border (a line both pinned and selected shows both). Desktop-only feature,
+   `.used`'s amber left-border (a line both used and selected shows both). Desktop-only feature,
    but the rule is harmless at any width (only set when the controller selection holds this line).
    `.selected:hover` keeps the tint over the plain `.line:hover` grey. */
 .selected {

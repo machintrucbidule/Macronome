@@ -4674,3 +4674,26 @@ unreachable-server message. Pure `classifyLoginError` drives it.
 (warns once), `features/login/useLogin.test.ts` (error mapping). **Gate:** unit + typecheck + lint
 
 - integration green.
+
+## B-224 — Repas: amber left-border (liseré) moves from _pinned_ to _used_ lines — RESOLVED (owner, 2026-07-18)
+
+**Decision.** The amber accent left-border on Repas food lines previously marked **pinned**
+(garde-manger) lines. The owner finds it redundant with the 📌 icon and wants it to mark the lines
+that actually **carry a quantity** instead. Now **any line with quantity > 0** (a _used_ / consumed
+line) shows the liseré, **regardless of pin state or kind** (referenced or custom); pin state no
+longer drives the liseré. "Used" keys on the **entered** quantity (`served_quantity`/`served_grams`
+
+> 0), **not** the leftover-adjusted `consumed` (B-047): a line whose whole quantity goes to a
+> leftover container still counts as used. A qty-0 line (pinned scaffold or normal) has no liseré.
+
+**Contract impact:** `specifications/screens/meals.md` — the Pantry-pin bullet drops "accent
+left-border" (keeps the filled 📌 + qty-0 grey-out); a new **Used-line accent left-border** clause
+added; the Σ-selection Highlight clause reworded (blue tint distinct from the amber **used-line**
+border, not the "pinned" one). No API/schema/domain-logic change (pure UI styling from existing DTO
+fields). **Code (web only, "renders never computes" respected):**
+`features/meals/components/FoodLine/FoodLine.tsx` (derive `isUsed`, drive the class off it instead
+of `is_pinned`) and `food-line.module.css` (rename `.pinned` → `.used`, same
+`box-shadow: inset 2px 0 0 var(--accent)`; `.grabbed` mobile-drag inset and `.selected` tint
+untouched). **Tests:** `FoodLine.test.tsx` — liseré present iff quantity > 0 (referenced
+`served_quantity>0` and custom `served_grams>0`), absent on a pinned qty-0 placeholder. **Gate:**
+unit + typecheck + lint green.
