@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { dataFilePath, resolveDataDir } from './data-dir.js';
 
 // The session secret signs session cookies. To keep deployment zero-config (ADR-0001),
 // it is auto-generated and persisted on first boot when SESSION_SECRET is not provided:
@@ -14,8 +14,8 @@ const MIN_LEN = 16;
 export function resolveSessionSecret(): string {
   const provided = process.env.SESSION_SECRET;
   if (provided && provided.length >= MIN_LEN) return provided;
-  const dir = process.env.MACRONOME_DATA_DIR ?? '/data';
-  const path = join(dir, SECRET_FILE);
+  const dir = resolveDataDir();
+  const path = dataFilePath(SECRET_FILE);
   if (existsSync(path)) return readFileSync(path, 'utf8').trim();
   const secret = randomBytes(48).toString('base64url');
   mkdirSync(dir, { recursive: true });

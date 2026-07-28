@@ -49,6 +49,9 @@ test-results/
 # --- local-only perf report (references personal data) ---
 /PERF_REPORT.md
 
+# --- integration-test app data dir (auth black box scratch, see vitest.integration.config.ts) ---
+/packages/api/test/.tmp-data/
+
 # --- misc ---
 .DS_Store
 *.log

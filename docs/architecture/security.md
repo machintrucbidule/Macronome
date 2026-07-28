@@ -45,8 +45,8 @@ Choices favour boring, proven mechanisms over novelty.
   and it is generic (works behind any reverse proxy / tunnel).
   - The **default** is `loopback, uniquelocal` — it trusts loopback **and** the
     private/container ranges (`10/8`, `172.16/12`, `192.168/16`, `fc00::/7`), so a
-    Docker-sidecar proxy / tunnel is trusted out of the box (this is what makes
-    `COOKIE_SECURE=true` and real-client-IP keying work without extra config, and it also
+    Docker-sidecar proxy / tunnel is trusted out of the box (this is what makes the derived
+    `Secure` cookie and real-client-IP keying work without extra config, and it also
     ungates the Drive OAuth HTTPS check — §4/ops.md §6c). **Trade-off:** since the app port
     is typically published on the host, a peer on the same LAN can reach it directly and
     would then be a trusted private-range peer able to forge `X-Forwarded-*` (spoof the
@@ -56,8 +56,22 @@ Choices favour boring, proven mechanisms over novelty.
 
 ## 4. Cookies & CSRF
 
-- Session cookie: **HttpOnly, Secure (prod), SameSite=Lax**, scoped path. `Secure`
-  is env-gated (`COOKIE_SECURE`) so local HTTP dev still works.
+- Session cookie: **HttpOnly, SameSite=Lax**, scoped path. `Secure` is **derived per
+  request** from a three-state `COOKIE_SECURE` (B-232), applied identically to the session
+  and CSRF cookies:
+  - `auto` (**default**) — `Secure` when the request is seen as HTTPS (`req.secure`, i.e.
+    trust-proxy derived from `X-Forwarded-Proto` per the `TRUSTED_PROXY` list above), else
+    not. Hardening switches itself on behind a trusted HTTPS proxy, and local HTTP dev keeps
+    working with no configuration.
+  - `true` — force `Secure` unconditionally. **This can lock the operator out**: when the
+    request is not seen as HTTPS, express-session _refuses to emit the cookie at all_ and
+    every login fails as a misleading 403 CSRF (B-222). A throttled server warning fires
+    whenever this combination is observed.
+  - `false` — never `Secure`. Kept deliberately as the operator's unblocking lever.
+- `PUBLIC_ORIGIN` deliberately does **not** force `Secure`, even when it is an https URL:
+  express-session gates _emission_ on the request being seen as HTTPS, which a declared
+  origin cannot influence — so honouring it there would recreate the B-222 lockout rather
+  than prevent it.
 - **CSRF protection on all state-changing requests** (POST/PATCH/DELETE): a
   double-submit token (a non-HttpOnly CSRF cookie + a matching header the SPA sends).
   SameSite=Lax is the first line; the token is defence-in-depth. The web `api/client.ts`
@@ -93,6 +107,17 @@ Choices favour boring, proven mechanisms over novelty.
   built (it is inert in v1).
 - Logging: structured logs scrub credentials, session ids, and the password/LLM
   fields. Error responses never include stack traces in prod.
+- **Authentication black box** (`/data/auth_failures.jsonl`, B-231): one JSON line per failed
+  authentication attempt, written to the app data volume so the evidence survives the
+  container recreation that "fixing" such an outage requires. It records only the transport
+  facts needed to name a cookie/proxy misconfiguration — `req.secure`, `X-Forwarded-Proto`,
+  the TCP peer, Express's own trust-proxy verdict, the `COOKIE_SECURE`/`TRUSTED_PROXY`
+  settings, whether a session was found, whether a `Set-Cookie` was emitted, the route,
+  status and error code — plus the **names** of the cookies involved. It must never contain a
+  cookie value, a session id, a username, or any password material, and it is bounded
+  (500 records + one archived generation). The `ref` returned in the error envelope points at
+  a record; the record contains nothing the operator could not already read from their own
+  proxy configuration.
 
 ## 8. Dependency hygiene
 

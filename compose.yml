@@ -16,19 +16,24 @@ services:
       # when unset (config/session-secret.ts). Set it only to manage it yourself.
       # Peers Express trusts for X-Forwarded-* (real client IP + HTTPS detection). The default
       # trusts loopback + private/container ranges, so a sidecar proxy / tunnel (cloudflared,
-      # NPM, Traefik) is trusted out of the box — required for COOKIE_SECURE=true. Set to
-      # `loopback` to trust only same-host proxies, or a specific CIDR to tighten.
+      # NPM, Traefik) is trusted out of the box — this is what lets COOKIE_SECURE=auto detect
+      # HTTPS. Set to `loopback` to trust only same-host proxies, or a CIDR to tighten.
       TRUSTED_PROXY: ${TRUSTED_PROXY:-loopback, uniquelocal}
-      # false = login works over plain HTTP. Safe to set `true` behind an HTTPS reverse proxy /
-      # tunnel (needs TRUSTED_PROXY above to cover that proxy, which the default does).
-      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      # auto (default) = cookies are marked Secure only when the request is seen as HTTPS, so
+      # hardening turns itself on behind your HTTPS proxy and plain HTTP keeps working. Leave
+      # it alone. `true` forces Secure and BREAKS EVERY LOGIN if TRUSTED_PROXY does not cover
+      # your proxy (the cookie is then never emitted). `false` disables Secure entirely — the
+      # lever to pull if logins ever fail in a way you suspect is cookie-related. See ops.md §4.
+      COOKIE_SECURE: ${COOKIE_SECURE:-auto}
       # Public HTTPS origin for the Google Drive OAuth callback when fronted by a reverse
       # proxy / tunnel (e.g. https://macronome.example.com). Optional; leave empty unless you
       # use the Drive backup behind a proxy (empty = unset). See ops.md §6c.
       PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-}
       NODE_ENV: production
     volumes:
-      # Persists the auto-generated session secret (so logins survive restarts).
+      # Persists the auto-generated session secret (so logins survive restarts) and the
+      # authentication black box (/data/auth_failures.jsonl — the record of failed logins
+      # that survives recreating this container; see ops.md §6b).
       - 'appdata:/data'
     depends_on:
       postgres:

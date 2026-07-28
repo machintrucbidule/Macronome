@@ -59,6 +59,14 @@ target ops model is the opposite — a single published image pulled by Portaine
    `COOKIE_SECURE` defaults to **false** so login works out of the box behind the
    operator's HTTPS proxy; the stricter posture (Secure cookies) is opt-in.
 
+   > **Amendment (B-232, 2026-07-28).** `COOKIE_SECURE` is now a **three-state** setting
+   > defaulting to **`auto`**: `Secure` is derived per request from whether the server sees the
+   > request as HTTPS, so the stricter posture is no longer opt-in — it switches itself on
+   > behind a trusted HTTPS proxy while plain-HTTP access keeps working. `true` (force) and
+   > `false` (never) remain available, `false` being the operator's unblocking lever. Zero-config
+   > is preserved and in fact strengthened: the hardening no longer requires a decision, and no
+   > value of this variable is needed to make login work. See `security.md` §4, `ops.md` §4.
+
    _Why not go further?_ Postgres stays a separate service because it is a client-server
    DB (unlike Uptime Kuma's embedded SQLite); switching to SQLite is rejected — search
    depends on Postgres-only `unaccent` / `pg_trgm` / GIN-trigram features in the schema
@@ -71,15 +79,16 @@ target ops model is the opposite — a single published image pulled by Portaine
 - Deploy = `docker compose up -d` (or Portainer "deploy stack") with **no env to set**;
   images are pulled, the API runs `prisma migrate deploy` on start, then serves UI + API.
   No repo, no Node, no host-side web build on the target.
-- **Hardening (opt-in):** to mark session cookies `Secure`, set `COOKIE_SECURE=true`. The
-  default `TRUSTED_PROXY=loopback, uniquelocal` already trusts a same-host **or** Docker-sidecar
-  proxy (private/container ranges), so the `secure` cookie and login rate-limit see the real
-  client with no extra config; narrow `TRUSTED_PROXY` to `loopback`/an exact CIDR to tighten
-  (B-222). Documented in `ops.md` §4.
+- **Hardening (automatic since B-232):** session and CSRF cookies are marked `Secure` whenever
+  the request is seen as HTTPS, with no variable to set. The default
+  `TRUSTED_PROXY=loopback, uniquelocal` already trusts a same-host **or** Docker-sidecar proxy
+  (private/container ranges), so that detection and the login rate-limit see the real client
+  with no extra config; narrow `TRUSTED_PROXY` to `loopback`/an exact CIDR to tighten (B-222).
+  Documented in `ops.md` §4.
 - The SPA build dir is provided to the API via `WEB_DIST` (set in the image); when
   unset (dev), static serving is inert and Vite serves the SPA.
 - Data lives in two Docker-managed named volumes: `pgdata` (the database) and `appdata`
-  (the session secret). Reset = remove the volume(s) (Portainer → Volumes, or
+  (the session secret + the authentication black box, B-231). Reset = remove the volume(s) (Portainer → Volumes, or
   `docker compose down -v`); see the ops runbook (`ops.md`).
 - Removed/obsolete: `Caddyfile`, the `proxy` service + its `caddy_data` volume, the
   host-side web build, the `PUBLIC_BASE_URL` env (unused), the `DATA_PATH` host path, and

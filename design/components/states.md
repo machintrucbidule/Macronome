@@ -41,22 +41,38 @@ Never a blocking modal for transient I/O errors.
 
 ## Login — error & lockout (pre-auth surface)
 
-The login card carries two server-driven alert variants + a success flash.
+The login card carries server-driven alert variants + a success flash.
 Driven by a `data-state` on the body: `idle | loading | error | lockout | success`.
 
 - **idle**: default; username prefilled and focused on a fresh device.
 - **loading**: submit shows the inline spinner, label hidden; inputs locked.
-- **error (invalid credentials)**: red alert banner `err-creds` (generic, non-
-  enumerating copy: "Identifiant ou mot de passe incorrect."); **both** fields
-  get `aria-invalid` (nok border + ring). Shown only for a genuine bad-credentials
-  rejection (API **401 `invalid_credentials`**).
-- **error (technical)**: same red alert, distinct copy for a non-credentials server
-  failure — a CSRF/session error or any unexpected status (**403 `csrf_invalid`**,
-  4xx/5xx). Copy names a technical problem, not bad credentials, so a proxy/cookie
-  misconfiguration is not disguised as a wrong password (root cause of the
-  `COOKIE_SECURE`/trust-proxy trap). Fields are **not** marked `aria-invalid`.
-- **error (network)**: same red alert, distinct copy for an unreachable server (the
-  request never got an HTTP response — a `fetch` failure). Fields not `aria-invalid`.
+- **error**: one red alert banner whose **copy is chosen by an error kind** (B-231). The kind
+  is derived from the response status **and** the contract error code — never from the status
+  alone, so a cookie/proxy misconfiguration can never read as a wrong password. Only the
+  credentials kind marks the fields `aria-invalid`; the others are not the user's input's
+  fault. The five kinds:
+  - **credentials** — API **401 `invalid_credentials`**. Generic, non-enumerating copy
+    ("Identifiant ou mot de passe incorrect."); **both** fields get `aria-invalid` (nok
+    border + ring). **No diagnostic code** (a typo is not an incident).
+  - **session** — **403 `csrf_invalid`**: the session could not be established because the
+    server did not accept the cookie. Copy is **actionable and names the settings to check**
+    (`COOKIE_SECURE`, `TRUSTED_PROXY`) — this is the `COOKIE_SECURE`/trust-proxy trap, and
+    naming it is the point. Carries the diagnostic code.
+  - **database** — **503 `database_unavailable`**: the database is temporarily unreachable.
+    Copy says to wait and retry, and implies **no** configuration change. Carries the code.
+  - **application** — any other 4xx/5xx that returned a contract envelope. Copy names an
+    internal server error and points at the code. Carries the code.
+  - **unreachable** — no usable response at all: a `fetch` failure, a proxy **502/503/504**,
+    or a body that is not the contract envelope (an HTML error page). Copy covers "unreachable
+    **or still starting**". **No diagnostic code** — none could have been written.
+- **error — diagnostic code** (the `session` / `database` / `application` kinds): below the
+  message, a small labelled row with the code (`XXXX-XXXX`) in `--font-num` inside a dashed
+  field-toned chip, `user-select:all`, plus a ghost "Copier" button that confirms with
+  "Copié". The chip is the primary affordance and the button is **progressive enhancement**:
+  a plain-HTTP self-hosted instance is not a secure context, so `navigator.clipboard` may not
+  exist — selecting the code by hand must always work. The button is `type="button"` (it lives
+  inside the login `<form>`). The code identifies the server-side black-box record
+  (`ops.md` §6b) so the operator can quote it instead of hunting logs.
 - **lockout**: alert `err-lock` with a **live countdown** (`.count`, `--font-num;
 --nok; --fw-bold`); **submit hidden**; fields + "rester connecté" disabled
   (`opacity:.4–.5; pointer-events:none`) until the timer elapses, then returns to

@@ -8,6 +8,10 @@ import { prisma } from '../../src/data/prisma.js';
 // testing.md §2). Runs against the compose.test.yml Postgres (npm run db:dev).
 const app = createApp();
 
+// The optional diagnostic ref on authentication-route failures (B-231). Details in
+// test/integration/auth-blackbox.test.ts.
+const REF_SHAPE = /^[0-9A-HJKMNP-TV-Z]{4}-[0-9A-HJKMNP-TV-Z]{4}$/;
+
 function getCookie(res: request.Response, name: string): string | undefined {
   const raw = res.headers['set-cookie'] as unknown as string[] | undefined;
   if (!raw) return undefined;
@@ -58,30 +62,34 @@ afterAll(async () => {
   await prisma.$disconnect();
 });
 
-describe('auth', () => {
-  it('returns 401 invalid_credentials for a wrong password', async () => {
-    await seedUser('alice', 'correct-horse');
+// Rejection must be non-enumerating (security.md §3): the wrong-password and unknown-user answers
+// have to be indistinguishable. Since B-231 the envelope also carries an opaque per-request
+// diagnostic ref, so both cases pin the key SET (nothing else leaked in) plus the code.
+describe('auth — credential rejection', () => {
+  async function expectGenericRejection(username: string, password: string): Promise<void> {
     const { agent, csrf } = await csrfAgent();
     const res = await agent
       .post('/api/v1/auth/login')
       .set('x-csrf-token', csrf)
-      .send({ username: 'alice', password: 'wrong' });
+      .send({ username, password });
 
     expect(res.status).toBe(401);
-    expect(res.body).toEqual({ error: { code: 'invalid_credentials' } });
+    expect(Object.keys(res.body.error).sort()).toEqual(['code', 'ref']);
+    expect(res.body.error.code).toBe('invalid_credentials');
+    expect(res.body.error.ref).toMatch(REF_SHAPE);
+  }
+
+  it('returns 401 invalid_credentials for a wrong password', async () => {
+    await seedUser('alice', 'correct-horse');
+    await expectGenericRejection('alice', 'wrong');
   });
 
   it('returns the same 401 body for an unknown user (non-enumerating)', async () => {
-    const { agent, csrf } = await csrfAgent();
-    const res = await agent
-      .post('/api/v1/auth/login')
-      .set('x-csrf-token', csrf)
-      .send({ username: 'ghost', password: 'whatever' });
-
-    expect(res.status).toBe(401);
-    expect(res.body).toEqual({ error: { code: 'invalid_credentials' } });
+    await expectGenericRejection('ghost', 'whatever');
   });
+});
 
+describe('auth', () => {
   it('logs in, sets a session cookie, and returns the user from /session', async () => {
     await seedUser('alice', 'correct-horse');
     const { agent, csrf } = await csrfAgent();
@@ -274,7 +282,8 @@ describe('auth setup (first-run)', () => {
     const res = await agent.post('/api/v1/auth/setup').set('x-csrf-token', csrf).send(VALID_SETUP);
 
     expect(res.status).toBe(409);
-    expect(res.body).toEqual({ error: { code: 'setup_already_completed' } });
+    expect(Object.keys(res.body.error).sort()).toEqual(['code', 'ref']);
+    expect(res.body.error.code).toBe('setup_already_completed');
     expect(await prisma.appUser.count()).toBe(1);
   });
 

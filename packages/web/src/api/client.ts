@@ -5,12 +5,19 @@ import { PUBLIC_PATHS } from '../app/public-paths';
 // resource module under api/. The web app reads computed values; it never computes.
 const BASE = '/api/v1';
 
+// Code used when the response carried no contract envelope at all — an HTML error page from a
+// reverse proxy, an empty body, a dev-server page. Named because classifying a login failure has to
+// distinguish "the server answered something we cannot read" from "the server rejected us" (B-231).
+export const UNKNOWN_ERROR_CODE = 'error';
+
 export class ApiError extends Error {
   constructor(
     readonly status: number,
     readonly code: string,
     readonly details?: Record<string, string>,
     readonly retryAfterS?: number,
+    /** Opaque diagnostic code identifying the server-side black-box record (B-231). */
+    readonly ref?: string,
   ) {
     super(code);
     this.name = 'ApiError';
@@ -76,10 +83,21 @@ function raiseError(res: Response, data: unknown, path: string): never {
   if (res.status === 401) handleUnauthorized(path);
   const err = (
     data as {
-      error?: { code?: string; details?: Record<string, string>; retry_after_s?: number };
+      error?: {
+        code?: string;
+        details?: Record<string, string>;
+        retry_after_s?: number;
+        ref?: string;
+      };
     } | null
   )?.error;
-  throw new ApiError(res.status, err?.code ?? 'error', err?.details, err?.retry_after_s);
+  throw new ApiError(
+    res.status,
+    err?.code ?? UNKNOWN_ERROR_CODE,
+    err?.details,
+    err?.retry_after_s,
+    err?.ref,
+  );
 }
 
 export const api = {

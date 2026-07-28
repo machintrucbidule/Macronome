@@ -20,10 +20,10 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-macronome}:${POSTGRES_PASSWORD:-macronome}@postgres:5432/${POSTGRES_DB:-macronome}
       # SESSION_SECRET auto-generated & persisted to the app volume on first boot if unset
       TRUSTED_PROXY: ${TRUSTED_PROXY:-loopback, uniquelocal} # trusts loopback + private/container ranges
-      COOKIE_SECURE: ${COOKIE_SECURE:-false} # safe to set true behind an HTTPS proxy (TRUSTED_PROXY covers it)
+      COOKIE_SECURE: ${COOKIE_SECURE:-auto} # auto = Secure only when the request is seen as HTTPS
       PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-} # public HTTPS origin for the Drive OAuth callback behind a proxy (optional)
       NODE_ENV: production
-    volumes: ['appdata:/data'] # persists the session secret
+    volumes: ['appdata:/data'] # persists the session secret + the auth black box
     depends_on:
       postgres: { condition: service_healthy }
     # image entrypoint runs `prisma migrate deploy` then starts the server
@@ -79,9 +79,10 @@ them on `migrate deploy` in the test setup.
 No proxy ships in the stack (ADR-0001). Point any frontal at the single exposed port;
 it serves both the SPA and `/api/v1`. The app emits its own security headers (HSTS,
 CSP, nosniff, Referrer-Policy) via `helmet` (`http/middleware/securityHeaders.ts`), so
-the proxy only needs to terminate TLS and forward. Login works out of the box
-(`COOKIE_SECURE=false`); to use `Secure` cookies, set `COOKIE_SECURE=true` (have the proxy
-send the usual `X-Forwarded-*` headers). The default `TRUSTED_PROXY=loopback, uniquelocal`
+the proxy only needs to terminate TLS and forward. Login works out of the box: with the
+default `COOKIE_SECURE=auto`, cookies are marked `Secure` exactly when the request is seen as
+HTTPS (have the proxy send the usual `X-Forwarded-*` headers) — no setting to flip, and
+`false` remains available to disable `Secure` outright. The default `TRUSTED_PROXY=loopback, uniquelocal`
 already trusts a proxy on loopback **or** a private/container range (a Docker sidecar such as
 NPM/Traefik/cloudflared), so `Secure` cookies and real-client-IP rate-limiting work without
 extra config. Narrow it to `loopback` (same-host only) or a specific CIDR to tighten — note the
@@ -109,7 +110,8 @@ The stack runs with no `.env`. Every key is a commented override:
 
 # --- app ---
 # SESSION_SECRET=             # leave unset: auto-generated & persisted on first boot
-# COOKIE_SECURE=false         # safe to set true behind an HTTPS proxy (TRUSTED_PROXY must cover it)
+# MACRONOME_DATA_DIR=/data    # app data dir (session secret + auth black box); leave unset
+# COOKIE_SECURE=auto          # auto | true (forces, can lock you out) | false (disables)
 # TRUSTED_PROXY=loopback, uniquelocal  # peers trusted for X-Forwarded-* (default: loopback + private ranges)
 # PUBLIC_ORIGIN=              # public HTTPS origin for the Drive OAuth callback behind a proxy (optional)
 

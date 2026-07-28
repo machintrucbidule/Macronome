@@ -296,7 +296,7 @@ docker compose up -d
 
 Cela télécharge `ghcr.io/machintrucbidule/macronome:latest` et démarre deux services — l'application
 et `postgres:17` — avec les données sur des volumes nommés gérés par Docker (`pgdata` pour la base,
-`appdata` pour le secret de session auto-généré). L'application écoute sur le **port 3000** (port
+`appdata` pour le secret de session auto-généré et la boîte noire d'authentification). L'application écoute sur le **port 3000** (port
 hôte défini par `APP_PORT`). Le point d'entrée du conteneur exécute `prisma migrate deploy` puis
 démarre le serveur. Dans **Portainer**, colle le même fichier comme stack et « deploy ».
 
@@ -310,9 +310,16 @@ npm run create-user -w @macronome/api -- \
 
 **Reverse proxy / TLS.** L'application sert du HTTP en clair sur son port — place ton propre reverse
 proxy devant (Nginx Proxy Manager, Traefik, Caddy, Cloudflare Tunnel…) qui termine le TLS. La sonde
-de santé est `GET /api/v1/health`. Pour des cookies `Secure` derrière ton proxy, définis
-`COOKIE_SECURE=true` — le `TRUSTED_PROXY` par défaut fait déjà confiance à un proxy sur le
-même hôte ou en conteneur Docker, donc aucune config en plus (restreins `TRUSTED_PROXY` pour durcir).
+de santé est `GET /api/v1/health`. Les cookies sont marqués `Secure` automatiquement dès que la
+requête est vue en HTTPS — rien à configurer, puisque le `TRUSTED_PROXY` par défaut fait déjà
+confiance à un proxy sur le même hôte ou en conteneur Docker (restreins `TRUSTED_PROXY` pour durcir).
+
+**Si une connexion échoue un jour sans que tu saches pourquoi.** Chaque tentative en échec ajoute
+une ligne à `/data/auth_failures.jsonl` sur le volume `appdata`, qui consigne ce que le serveur a
+réellement vu (HTTPS ou non, quels cookies sont arrivés, si le cookie a été émis) — et elle survit
+à la recréation du conteneur. L'écran de connexion affiche un code de diagnostic court désignant la
+ligne correspondante. Lis le fichier avec
+`docker run --rm -v macronome_appdata:/data alpine tail -n 20 /data/auth_failures.jsonl`.
 
 **Sauvegardes.** Le seul état critique est le volume `pgdata` — sauvegarde-le (par ex. `pg_dump`)
 avant les mises à jour. Au niveau des données, Macronome propose aussi un **export/import JSON**
@@ -323,16 +330,16 @@ pratiques, mais ils ne remplacent pas une sauvegarde du volume / de la base.
 
 Copie [`.env.example`](.env.example) vers `.env` et ne décommente que ce que tu veux surcharger.
 
-| Variable            | Défaut                  | Rôle                                                                                                                      |
-| ------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `MACRONOME_TAG`     | `latest`                | Tag d'image à déployer (`latest` ou `vX.Y.Z`).                                                                            |
-| `APP_PORT`          | `3000`                  | Port hôte mappé sur l'application.                                                                                        |
-| `POSTGRES_DB`       | `macronome`             | Nom de la base.                                                                                                           |
-| `POSTGRES_USER`     | `macronome`             | Utilisateur de la base.                                                                                                   |
-| `POSTGRES_PASSWORD` | `macronome`             | Mot de passe (Postgres est interne, non exposé).                                                                          |
-| `SESSION_SECRET`    | _(auto-généré)_         | Clé de signature des cookies ; générée et persistée au 1er boot si absente.                                               |
-| `COOKIE_SECURE`     | `false`                 | Marque les cookies de session `Secure` (sûr derrière un proxy HTTPS).                                                     |
-| `TRUSTED_PROXY`     | `loopback, uniquelocal` | Pairs de confiance pour `X-Forwarded-*` (IP client réelle + cookies Secure) ; le défaut couvre un proxy conteneur Docker. |
+| Variable            | Défaut                  | Rôle                                                                                                                                                                                     |
+| ------------------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MACRONOME_TAG`     | `latest`                | Tag d'image à déployer (`latest` ou `vX.Y.Z`).                                                                                                                                           |
+| `APP_PORT`          | `3000`                  | Port hôte mappé sur l'application.                                                                                                                                                       |
+| `POSTGRES_DB`       | `macronome`             | Nom de la base.                                                                                                                                                                          |
+| `POSTGRES_USER`     | `macronome`             | Utilisateur de la base.                                                                                                                                                                  |
+| `POSTGRES_PASSWORD` | `macronome`             | Mot de passe (Postgres est interne, non exposé).                                                                                                                                         |
+| `SESSION_SECRET`    | _(auto-généré)_         | Clé de signature des cookies ; générée et persistée au 1er boot si absente.                                                                                                              |
+| `COOKIE_SECURE`     | `auto`                  | `auto` marque les cookies `Secure` seulement quand la requête est vue en HTTPS ; `true` le force (casse la connexion si `TRUSTED_PROXY` ne couvre pas ton proxy) ; `false` le désactive. |
+| `TRUSTED_PROXY`     | `loopback, uniquelocal` | Pairs de confiance pour `X-Forwarded-*` (IP client réelle + cookies Secure) ; le défaut couvre un proxy conteneur Docker.                                                                |
 
 ---
 

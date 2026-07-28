@@ -274,7 +274,7 @@ docker compose up -d
 
 This pulls `ghcr.io/machintrucbidule/macronome:latest` and starts two services — the app and
 `postgres:17` — with data on Docker-managed named volumes (`pgdata` for the database, `appdata`
-for the auto-generated session secret). The app listens on **port 3000** (host port set by
+for the auto-generated session secret and the authentication black box). The app listens on **port 3000** (host port set by
 `APP_PORT`). The container entrypoint runs `prisma migrate deploy` and then starts the server.
 In **Portainer**, paste the same file as a stack and "deploy".
 
@@ -288,9 +288,16 @@ npm run create-user -w @macronome/api -- \
 
 **Reverse proxy / TLS.** The app serves plain HTTP on its port — front it with your own reverse
 proxy (Nginx Proxy Manager, Traefik, Caddy, Cloudflare Tunnel…) that terminates TLS. The health
-probe is `GET /api/v1/health`. To use `Secure` cookies behind your proxy, set
-`COOKIE_SECURE=true` — the default `TRUSTED_PROXY` already trusts a same-host or
-Docker-sidecar proxy, so no extra setup is needed (narrow `TRUSTED_PROXY` to tighten).
+probe is `GET /api/v1/health`. Cookies are marked `Secure` automatically once the request is seen
+as HTTPS — nothing to configure, since the default `TRUSTED_PROXY` already trusts a same-host or
+Docker-sidecar proxy (narrow `TRUSTED_PROXY` to tighten).
+
+**If a login ever fails and you don't know why.** Every failed attempt appends one line to
+`/data/auth_failures.jsonl` on the `appdata` volume, recording what the server actually saw
+(HTTPS or not, which cookies arrived, whether the cookie was emitted) — and it survives
+recreating the container. The login screen shows a short diagnostic code pointing at the matching
+line. Read the file with
+`docker run --rm -v macronome_appdata:/data alpine tail -n 20 /data/auth_failures.jsonl`.
 
 **Backups.** The only critical state is the `pgdata` volume — back it up (e.g. `pg_dump`) before
 upgrades. At the data level, Macronome also offers an in-app **JSON export/import** and an optional
@@ -301,16 +308,16 @@ volume/database backup.
 
 Copy [`.env.example`](.env.example) to `.env` and uncomment only what you want to override.
 
-| Variable            | Default                 | Purpose                                                                                                     |
-| ------------------- | ----------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `MACRONOME_TAG`     | `latest`                | Image tag to deploy (`latest` or `vX.Y.Z`).                                                                 |
-| `APP_PORT`          | `3000`                  | Host port mapped to the app.                                                                                |
-| `POSTGRES_DB`       | `macronome`             | Database name.                                                                                              |
-| `POSTGRES_USER`     | `macronome`             | Database user.                                                                                              |
-| `POSTGRES_PASSWORD` | `macronome`             | Database password (Postgres is internal-only, not exposed).                                                 |
-| `SESSION_SECRET`    | _(auto-generated)_      | Cookie signing key; generated & persisted on first boot if unset.                                           |
-| `COOKIE_SECURE`     | `false`                 | Mark session cookies `Secure` (safe behind an HTTPS proxy).                                                 |
-| `TRUSTED_PROXY`     | `loopback, uniquelocal` | Peers trusted for `X-Forwarded-*` (real client IP + Secure cookies); default covers a Docker sidecar proxy. |
+| Variable            | Default                 | Purpose                                                                                                                                                          |
+| ------------------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MACRONOME_TAG`     | `latest`                | Image tag to deploy (`latest` or `vX.Y.Z`).                                                                                                                      |
+| `APP_PORT`          | `3000`                  | Host port mapped to the app.                                                                                                                                     |
+| `POSTGRES_DB`       | `macronome`             | Database name.                                                                                                                                                   |
+| `POSTGRES_USER`     | `macronome`             | Database user.                                                                                                                                                   |
+| `POSTGRES_PASSWORD` | `macronome`             | Database password (Postgres is internal-only, not exposed).                                                                                                      |
+| `SESSION_SECRET`    | _(auto-generated)_      | Cookie signing key; generated & persisted on first boot if unset.                                                                                                |
+| `COOKIE_SECURE`     | `auto`                  | `auto` marks cookies `Secure` only when the request is seen as HTTPS; `true` forces it (breaks login if `TRUSTED_PROXY` misses your proxy); `false` disables it. |
+| `TRUSTED_PROXY`     | `loopback, uniquelocal` | Peers trusted for `X-Forwarded-*` (real client IP + Secure cookies); default covers a Docker sidecar proxy.                                                      |
 
 ---
 

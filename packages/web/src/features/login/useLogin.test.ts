@@ -3,8 +3,7 @@ import { act, renderHook } from '@testing-library/react';
 import { createElement, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
-import { ApiError } from '../../api/client';
-import { classifyLoginError, safeNext, useLogin } from './useLogin';
+import { safeNext, useLogin } from './useLogin';
 
 // B-219: after login the user is returned to the ?next= route (the originally-requested
 // protected page), falling back to / for an absent/unsafe target. `safeNext` is the pure
@@ -21,27 +20,7 @@ const { loginMock } = vi.hoisted(() => ({
 }));
 vi.mock('../../api/auth', () => ({ authApi: { login: loginMock } }));
 
-// The login error → banner mapping (states.md §Login). 429/lockout is handled separately by the
-// hook (countdown), so it is not classified here. The key case: a 403 CSRF (the symptom of the
-// COOKIE_SECURE/trust-proxy trap) must NOT read as bad credentials.
-describe('classifyLoginError', () => {
-  it('401 invalid_credentials → credentials', () => {
-    expect(classifyLoginError(new ApiError(401, 'invalid_credentials'))).toBe('credentials');
-  });
-
-  it('403 csrf_invalid → technical (not credentials)', () => {
-    expect(classifyLoginError(new ApiError(403, 'csrf_invalid'))).toBe('technical');
-  });
-
-  it('5xx server error → technical', () => {
-    expect(classifyLoginError(new ApiError(500, 'error'))).toBe('technical');
-  });
-
-  it('a non-ApiError (fetch/network failure) → network', () => {
-    expect(classifyLoginError(new TypeError('Failed to fetch'))).toBe('network');
-  });
-});
-
+// The failure classification lives in classify-login-error.test.ts.
 describe('safeNext (B-219)', () => {
   it('accepts a same-origin app path', () => {
     expect(safeNext('/weight')).toBe('/weight');

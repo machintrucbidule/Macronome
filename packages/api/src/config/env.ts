@@ -23,10 +23,16 @@ const EnvSchema = z.object({
   // origin-only and OAuth-scoped (distinct from the ADR-0001-removed PUBLIC_BASE_URL); zero-config
   // is preserved when absent (ADR-0004).
   PUBLIC_ORIGIN: z.preprocess((v) => (v === '' ? undefined : v), z.string().url().optional()),
-  COOKIE_SECURE: z
-    .enum(['true', 'false'])
-    .default('false')
-    .transform((v) => v === 'true'),
+  // How the `Secure` attribute of the session and CSRF cookies is decided (B-232, security.md §4):
+  //   auto  (default) — Secure iff the request is seen as HTTPS (`req.secure`, trust-proxy derived).
+  //                     Hardening turns itself on behind a trusted HTTPS proxy; plain HTTP still
+  //                     works. This is the only mode that cannot refuse to emit the cookie.
+  //   true            — force Secure. Locks the operator out when the request is NOT seen as HTTPS:
+  //                     express-session then emits no cookie at all and login fails as a misleading
+  //                     403 CSRF (B-222). A throttled warning fires when that combination is seen.
+  //   false           — never Secure. Kept deliberately as the operator's unblocking lever.
+  // Stays a string (not a boolean) because the three states are not a flag.
+  COOKIE_SECURE: z.enum(['auto', 'true', 'false']).default('auto'),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   // Absolute path to the built SPA (packages/web/dist) the API serves in prod.
   // Set in the Docker image; absent in dev where Vite serves the SPA (ADR-0001).

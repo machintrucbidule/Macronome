@@ -4807,3 +4807,121 @@ polished, Journal-consistent screen. Changes:
 `prompts/20-develop-from-backlog.md` (+ mirror in `10-triage-backlog.md`): `BACKLOG.md` keeps only
 outstanding work + **one overwritten pointer** (last shipped item + next id) and must **never**
 accumulate a history of finished items/batches (that lives only in `BACKLOG_ARCHIVE.md`).
+
+---
+
+## B-231 / B-232 — Authentication observability: black box, actionable login errors, per-request `Secure` — RESOLVED (owner, 2026-07-28)
+
+**Problem.** Twice, after an unclean host reboot, the owner could not log in: the login screen said
+only "Un problème technique empêche la connexion." Both times `COOKIE_SECURE` was changed blind and
+the app worked again afterwards. Triage eliminated four hypotheses on evidence — including the
+B-222/B-223 mechanism, whose fix is intact — and concluded that **the defect to correct is the
+absence of any durable trace**: the only records that could name the failure are the application
+logs of the incident window, destroyed by the very act that "repairs" it (recreating the container).
+
+**Root cause: still undetermined — deliberately.** This batch instruments; it does not guess. A
+fifth hypothesis is now eliminated: `compose.yml` declares `depends_on: postgres: condition:
+service_healthy`, so the app container only starts once Postgres is healthy — its connection pool
+was fresh against a working database, and it could not have survived the host crash holding dead
+connections. Combined with 37 minutes of failure while Postgres had been ready since 07:52, that
+**rules out "database unavailable / poisoned pool"** as the explanation. One mechanism was also
+investigated and found unreachable, recorded so it is not re-derived: a disconnected store leaving
+`req.session` undefined cannot happen here, because `connect-pg-simple` never emits `disconnect`.
+
+**Correction of the B-232 risk analysis (important).** The backlog asserted that deriving `Secure`
+"can only ever remove a condition under which the server refuses to set the cookie". That is false
+for the `PUBLIC_ORIGIN` branch: `express-session` gates cookie _emission_ on the request being seen
+as HTTPS (`index.js:242`), which a declared origin cannot influence — so marking `Secure` from
+`PUBLIC_ORIGIN` while the proxy is untrusted would have **recreated the B-222 lockout**.
+`PUBLIC_ORIGIN` is therefore deliberately excluded from the cookie decision.
+
+**Decisions (owner, this run).**
+
+1. **Black box in the data volume.** One JSON line per **failed genuine authentication attempt**
+   (`POST /auth/login`, `/setup`, `/register`, `/reset-password`, `/password` — never the routine
+   "am I signed in?" probe) appended to `/data/auth_failures.jsonl` on the `appdata` volume, same
+   durability and `0600` mode as the session secret. Fields: timestamp, diagnostic ref, canonical
+   route, method, status, error code, `req.secure`, `X-Forwarded-Proto`, TCP peer, **Express's own
+   compiled trust-proxy verdict**, `TRUSTED_PROXY`, `COOKIE_SECURE`, the **names** of the cookies
+   received, whether a session was found, whether a `Set-Cookie` was emitted (+ names). Never a
+   cookie value, session id, username or password material (`security.md` §7). Bounded to 500
+   records plus **one** archived generation. Written from `res.on('finish')`, never blocking, never
+   throwing into the request path.
+2. **Actionable login copy + a copyable diagnostic code.** `classifyLoginError` goes from 3 to
+   **5** kinds and now reads the error **code**, not the status alone: credentials (401) / session
+   (403 `csrf_invalid`, copy names `COOKIE_SECURE` + `TRUSTED_PROXY`) / database (503
+   `database_unavailable`) / application (other 4xx-5xx with an envelope) / unreachable (`fetch`
+   failure, 502-504, non-envelope body). The three technical kinds show the ref as a selectable
+   chip with a progressive-enhancement copy button (`navigator.clipboard` is absent on a
+   plain-HTTP host — same reasoning as `TokenLinkField`). Credentials never shows a code; unreachable
+   cannot have one.
+3. **One-shot latch removed** from `secure-cookie-warn.ts` (a module-level flag could be consumed
+   by an unrelated early request and then never fire again), replaced by a re-arming 10-minute
+   throttle that reports how many occurrences it suppressed.
+4. **Hardening, explicitly NOT the fix for B-231** (kept at the owner's request after the diagnosis
+   was retracted): a database-connectivity failure returns **503 `database_unavailable`** instead of
+   a generic 500, and a session-store failure no longer costs the SPA — for `/api/*` it is the same
+   503, for a document request the app is served without a session, so the login screen can render
+   its message instead of the browser showing raw JSON.
+5. **`COOKIE_SECURE` becomes three-state**, default **`auto`**: `auto` = `Secure` iff the request is
+   seen as HTTPS (trust-proxy derived); `true` = force (can lock the operator out — the B-222 trap,
+   now warned about); `false` = never, **kept as the unblocking lever** the owner used twice. Applied
+   to both the session and CSRF cookies. Two mechanisms are required and were verified in the
+   dependency's source: the function form of the `cookie` option for **new** sessions
+   (`index.js:161`), and mutating `req.session.cookie.secure` for **loaded** sessions, whose cookie
+   attributes are restored frozen from the store (this is also why mixed `true`/`false` rows across
+   a day were normal, not an anomaly). `hash()` skips the `cookie` key, so that mutation writes
+   nothing to the store.
+
+**Contract impact.** `spec/api/00-conventions.md` — optional `error.ref` (authentication routes
+only, opaque to clients) + `database_unavailable` → 503, mirrored in `packages/shared/src/errors.ts`.
+`docs/architecture/security.md` §4 (three-state derivation + why `PUBLIC_ORIGIN` is excluded), §3
+(wording), §7 (the black box and what it must never contain). `docs/architecture/ops.md` §4
+(`COOKIE_SECURE` rewritten — the old "safe to set `true` behind an HTTPS proxy" is **deleted**, it
+was falsified twice in practice — plus `MACRONOME_DATA_DIR`), §6b (a runbook section with the three
+read commands, including reading the volume with no container running), §1/§6 (volume contents).
+`design/components/states.md` §Login — five error kinds + the diagnostic-code chip.
+`specifications/screens/login.md` — error states and component inventory synced (they were stale
+since B-223). `docs/architecture/decisions/0001-prebuilt-image-deployment.md` — amendment note
+(hardening is no longer opt-in). `compose.yml`, `.env.example`,
+`docs/architecture/appendices/config-docker.md`, `README.md` + `README_FR.md` (mirrored) — new
+default and the black-box read command.
+
+**Code.** `packages/api`: new `config/data-dir.ts` (single lazy authority for the app data dir, now
+also used by `config/session-secret.ts`), `http/cookie-secure.ts` (`deriveCookieSecure`, pure),
+`http/diagnostics.ts` (the only place a `ref` enters a body), `types/express-locals.d.ts`,
+`observability/warn-throttle.ts`, `observability/db-unavailable.ts`,
+`observability/auth-blackbox/*` (`routes`, `cookie-names`, `session-found`, `ref`, `record`,
+`retention` pure + `store` as the fs shell), and middleware `auth-diagnostics.ts`,
+`session-diagnostics.ts`, `session-cookie-secure.ts`, `session-guard.ts`. Modified: `app.ts`
+(mount order — `authDiagnostics` deliberately before the body parser and the session),
+`config/env.ts`, `middleware/session.ts` (function-form `cookie` + `sessionCookieOptions`),
+`middleware/csrf.ts` (derived `secure` + a no-session guard), `middleware/errorHandler.ts`,
+`middleware/rateLimit.ts`, `middleware/secure-cookie-warn.ts`, `controllers/auth.ts`
+(`clearCookie` mirrors the derived attributes). `packages/shared`: `errors.ts`. `packages/web`:
+`api/client.ts` (`ApiError.ref`, `UNKNOWN_ERROR_CODE`), new
+`features/login/classify-login-error.ts` + `features/login/LoginAlert.tsx`, modified `useLogin.ts`
+(returns `failure`), `LoginPage.tsx`, `LoginPage.module.css`, `i18n/locales/{fr,en}.json`.
+
+**Tests.** API unit: the canonical-route gate, cookie-name extraction (asserting no `=` and no value
+fragment survives), the session-found trichotomy, the ref alphabet/shape, the record's **exact
+ordered key set** (the guard that no field can be added to a disk-written record in silence), the
+retention bounds, the store's rotation/one-generation/never-throws behaviour, the three-state
+`deriveCookieSecure` truth table (including that `PUBLIC_ORIGIN` is not an input),
+`isDatabaseUnavailable` over real Prisma/pg shapes, and the throttle **re-arming** (the direct
+regression test for the removed latch). API integration: new `auth-blackbox.test.ts` (one record per
+failed login with the documented fields; **no username, password, CSRF token, session id or session
+secret in the file**; envelope `ref` equals the record's; CSRF 403 and the rate-limiter's 429 both
+recorded with a ref; successful logins and the routine session probe recorded not at all; bounded)
+and `cookie-secure.test.ts` / `cookie-secure-off.test.ts` (no `Secure` over plain HTTP — the B-222
+guard; `Secure` on both cookies behind an `X-Forwarded-Proto: https` hop; a session created over HTTP
+**upgraded** to `Secure` on a later HTTPS request, the case express-session's own `secure:'auto'`
+cannot handle; and `false` disabling `Secure` even over HTTPS). Web unit: the five classification
+classes plus the app-503-vs-gateway-503 distinction, and the banner's per-kind copy, the chip's
+presence only for technical kinds, its `type="button"`, and its behaviour with no clipboard API.
+Harness note: `helpers.ts` gained `cookieHeader`/`getSetCookie`, and the Drive tests now carry cookies
+explicitly on their HTTPS-simulating requests — supertest's jar refuses to store a `Secure` cookie
+over the test's plain-HTTP socket, which a real browser behind a real proxy does not.
+
+**Gate:** prisma generate → lint (0 warnings) → typecheck → check:i18n → check:schema → 808 unit →
+276 integration, all green.

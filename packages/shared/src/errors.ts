@@ -15,6 +15,8 @@ export enum ErrorCode {
   Forbidden = 'forbidden',
   Conflict = 'conflict',
   Internal = 'internal_error',
+  /** 503 — the database is unreachable; the request is retryable, it is not a bug (B-231). */
+  DatabaseUnavailable = 'database_unavailable',
 
   // domain conflicts (introduced in later milestones)
   GrossBelowTare = 'gross_below_tare',

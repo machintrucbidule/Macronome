@@ -14,7 +14,8 @@ build-from-source). See `decisions/0001-prebuilt-image-deployment.md`.
 compose.yml
 ├─ macronome  (Node/TS)    :<APP_PORT>  → serves the SPA build AND /api/v1;
 │                                          runs migrate on start, then listens
-│                                          (named volume: appdata → session secret)
+│                                          (named volume: appdata → session secret,
+│                                           authentication black box)
 └─ postgres   (PostgreSQL) internal     → named volume: pgdata  ← only critical state
 ```
 
@@ -89,10 +90,17 @@ named volumes (`pgdata`, `appdata`) — no host path to configure.
 
 App keys: `SESSION_SECRET` — **auto-generated and persisted** on first boot when unset
 (`config/session-secret.ts` → `appdata` volume, `/data/session_secret`), reused across
-restarts; set it only to manage it yourself. `COOKIE_SECURE` defaults **false** (login works behind
-your HTTPS proxy with no extra setup); it is **safe to set `true`** behind an HTTPS proxy, since the
-default `TRUSTED_PROXY` (`loopback, uniquelocal`) already trusts a same-host or Docker-sidecar proxy
-(narrow it to `loopback` or a CIDR to tighten — see §4). `PUBLIC_ORIGIN`
+restarts; set it only to manage it yourself. `COOKIE_SECURE` has **three** values and defaults to
+**`auto`** (B-232): `auto` marks cookies `Secure` only when the request is seen as HTTPS (derived
+from `X-Forwarded-Proto` per `TRUSTED_PROXY`, whose default `loopback, uniquelocal` already covers a
+same-host or Docker-sidecar proxy), so hardening switches itself on behind your HTTPS proxy and
+plain-HTTP access keeps working — **leave it alone**. `true` forces `Secure` unconditionally and is
+**not** recommended: if `TRUSTED_PROXY` does not cover your proxy, the cookie is never emitted and
+every login fails as a misleading technical error (this is the B-222 trap; a throttled warning fires
+in the logs when it happens). `false` disables `Secure` entirely — the **unblocking lever** to reach
+for if logins ever fail in a way you suspect is cookie-related. `MACRONOME_DATA_DIR` (default
+`/data`) relocates the app data dir — the session secret and the authentication black box
+(`auth_failures.jsonl`, §6b) — and normally stays unset. `PUBLIC_ORIGIN`
 is an **optional** public HTTPS origin (e.g. `https://macronome.example.com`) used **only** by the
 Google Drive OAuth backup (§6c, B-217): when set, the app builds the OAuth callback URL from it
 directly instead of deriving it from proxy headers; unset ⇒ header derivation (zero-config preserved).
@@ -129,9 +137,10 @@ Guaranteed by design:
 
 - **All critical state is in one Postgres database, one named volume** (`pgdata`).
   No critical local disk state to coordinate. Therefore a single logical dump is a
-  complete backup. The only other persisted file is the auto-generated session secret
-  (the `appdata` volume, `/data/session_secret`); it is **not critical** — if lost it is
-  regenerated and users simply re-login.
+  complete backup. The only other persisted files are on the `appdata` volume: the
+  auto-generated session secret (`/data/session_secret`) — **not critical**, if lost it is
+  regenerated and users simply re-login — and the authentication black box
+  (`/data/auth_failures*.jsonl`, §6b), diagnostic only and safe to delete.
 - **Standard tools work, no app-specific tooling:**
   - backup: `pg_dump` (custom or plain format), e.g.
     `docker compose exec postgres pg_dump -U <user> -Fc <db> > macronome-YYYYMMDD.dump`
@@ -228,6 +237,36 @@ shown prefixed by the stack name (e.g. `macronome_pgdata`, `macronome_appdata`).
 
 - Backup: `docker compose exec postgres pg_dump -U macronome -Fc macronome > macronome-YYYYMMDD.dump`
 - Restore: `docker compose exec -T postgres pg_restore -U macronome -d macronome --clean --if-exists < macronome-YYYYMMDD.dump`
+
+**Diagnose a login failure (the authentication black box, B-231).**
+
+Every failed authentication attempt appends one JSON line to `/data/auth_failures.jsonl` on
+the `appdata` volume: what the server actually saw (HTTPS or not, which proxy peer, whether it
+was trusted, which cookies arrived, whether a `Set-Cookie` was emitted, the route, status and
+error code) and the `COOKIE_SECURE` / `TRUSTED_PROXY` in force. It holds no cookie value, no
+session id, no username and no password material. Bounded to 500 records plus one archived
+generation (`auth_failures.1.jsonl`).
+
+The login screen shows a short **diagnostic code** (`XXXX-XXXX`) for technical failures; look
+it up here. Read it three ways:
+
+```sh
+# 1. Container running — the last 20 attempts.
+docker compose exec macronome tail -n 20 /data/auth_failures.jsonl
+
+# 2. Look up one diagnostic code across both generations.
+docker compose exec macronome sh -c \
+  'cat /data/auth_failures.1.jsonl /data/auth_failures.jsonl 2>/dev/null' | grep XXXX-XXXX
+
+# 3. Container gone, recreated, or refusing to start — read the volume directly.
+#    This is the whole point: the evidence survives the redeploy that "fixes" the outage.
+docker run --rm -v macronome_appdata:/data alpine tail -n 20 /data/auth_failures.jsonl
+```
+
+Reading a record: `req_secure:false` with `cookie_secure:"true"` and an empty `set_cookies`
+is the B-222 trap (the server refused to emit a `Secure` cookie over a connection it sees as
+plain HTTP) → set `COOKIE_SECURE` back to `auto`, or widen `TRUSTED_PROXY`.
+`error_code:"database_unavailable"` means the database was unreachable — wait, change nothing.
 
 ---
 

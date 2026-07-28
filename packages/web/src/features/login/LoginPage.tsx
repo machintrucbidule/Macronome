@@ -2,48 +2,15 @@ import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import { AuthTopBar } from '../../app/AuthTopBar';
-import { useLogin, type LoginErrorKind, type LoginState } from './useLogin';
+import { StateAlert } from './LoginAlert';
+import { useLogin } from './useLogin';
 import styles from './LoginPage.module.css';
 
 // Pre-auth login surface (design/components/states.md §Login). A single card whose
 // data-state (idle|loading|error|lockout|success) is driven entirely by the server via
 // useLogin; CSS reveals the matching banner / countdown / success flash. The web renders,
 // never decides. Shared pre-auth top-bar (language + theme) per theming.md.
-
-// The `error` state carries a kind (states.md §Login): credentials → the generic non-enumerating
-// copy; technical → a server/CSRF problem; network → an unreachable server. Distinct copy keeps a
-// proxy/cookie misconfig from reading as a wrong password.
-const ERROR_KEY: Record<LoginErrorKind, string> = {
-  credentials: 'login.error',
-  technical: 'login.errorTechnical',
-  network: 'login.errorNetwork',
-};
-
-function StateAlert({
-  state,
-  errorKind,
-  lockSeconds,
-}: {
-  state: LoginState;
-  errorKind: LoginErrorKind;
-  lockSeconds: number;
-}) {
-  const { t } = useTranslation();
-  if (state === 'error')
-    return (
-      <div className={styles.alert} role="alert">
-        {t(ERROR_KEY[errorKind])}
-      </div>
-    );
-  if (state === 'lockout')
-    return (
-      <div className={styles.alert} role="alert">
-        {t('login.lockout')} <span className={styles.count}>{lockSeconds}</span>&nbsp;
-        {t('login.seconds')}.
-      </div>
-    );
-  return null;
-}
+// The error banner and its diagnostic-code chip live in LoginAlert.tsx.
 
 // Arriving from a completed password reset (B-194) — one-shot success banner.
 function ResetDoneNote() {
@@ -73,7 +40,7 @@ function SuccessFlash() {
 
 export function LoginPage() {
   const { t } = useTranslation();
-  const { state, errorKind, lockSeconds, submit } = useLogin();
+  const { state, failure, lockSeconds, submit } = useLogin();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [stay, setStay] = useState(true);
@@ -81,7 +48,7 @@ export function LoginPage() {
   const locked = state === 'lockout';
   // Mark the fields invalid only for a genuine bad-credentials rejection, not a technical/network
   // error (which is not the user's input's fault).
-  const invalid = state === 'error' && errorKind === 'credentials';
+  const invalid = state === 'error' && failure.kind === 'credentials';
 
   function onSubmit(e: FormEvent): void {
     e.preventDefault();
@@ -103,7 +70,7 @@ export function LoginPage() {
           <div className={styles.tagline}>{t('login.tagline')}</div>
 
           {state === 'idle' && <ResetDoneNote />}
-          <StateAlert state={state} errorKind={errorKind} lockSeconds={lockSeconds} />
+          <StateAlert state={state} failure={failure} lockSeconds={lockSeconds} />
 
           <label className={styles.field}>
             <span className={styles.label}>{t('login.username')}</span>

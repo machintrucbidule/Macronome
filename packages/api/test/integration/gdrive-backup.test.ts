@@ -1,3 +1,4 @@
+import request from 'supertest';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createApp } from '../../src/app.js';
 import { prisma } from '../../src/data/prisma.js';
@@ -53,12 +54,20 @@ function stubGoogle(listFiles: Files = []): ReturnType<typeof vi.fn> {
   return fn;
 }
 
-/** POST /connect over a simulated HTTPS origin (trusted-proxy header). */
+// The Drive flow only runs over HTTPS (ADR-0004), simulated here with the trusted-proxy header.
+// These requests deliberately bypass the agent and carry `a.cookies` themselves: since B-232 the
+// response marks the session cookie `Secure`, which the agent's jar would then withhold from every
+// later plain-HTTP request in the same test. A real browser on a real HTTPS proxy keeps sending it —
+// that is what the explicit header models, and keeping it out of the jar keeps the two hops honest.
+function httpsReq(a: Authed, method: 'get' | 'post', url: string) {
+  return request(app)[method](url).set('Cookie', a.cookies).set('X-Forwarded-Proto', 'https');
+}
+
 function connectReq(a: Authed) {
-  return a.agent
-    .post('/api/v1/integrations/google-drive/connect')
-    .set('x-csrf-token', a.csrf)
-    .set('X-Forwarded-Proto', 'https');
+  return httpsReq(a, 'post', '/api/v1/integrations/google-drive/connect').set(
+    'x-csrf-token',
+    a.csrf,
+  );
 }
 
 /** Drive an account through configure → connect → callback so it is connected. */
@@ -68,9 +77,11 @@ async function connectDrive(a: Authed): Promise<void> {
   const connect = await connectReq(a);
   expect(connect.status).toBe(200);
   const state = new URL(connect.body.data.auth_url as string).searchParams.get('state') ?? '';
-  const cb = await a.agent
-    .get(`/api/v1/integrations/google-drive/callback?code=fakecode&state=${state}`)
-    .set('X-Forwarded-Proto', 'https');
+  const cb = await httpsReq(
+    a,
+    'get',
+    `/api/v1/integrations/google-drive/callback?code=fakecode&state=${state}`,
+  );
   expect(cb.status).toBe(302);
   expect(cb.headers.location).toBe('/parametres?gdrive=connected');
 }
@@ -194,9 +205,11 @@ describe('google_drive callback + status + disconnect (B-208)', () => {
     await csrfPatch(a.agent, a.csrf, '/api/v1/settings', { integrations: { google_drive: CREDS } });
     stubGoogle();
     await connectReq(a); // establishes a session state
-    const cb = await a.agent
-      .get('/api/v1/integrations/google-drive/callback?code=x&state=wrong-state')
-      .set('X-Forwarded-Proto', 'https');
+    const cb = await httpsReq(
+      a,
+      'get',
+      '/api/v1/integrations/google-drive/callback?code=x&state=wrong-state',
+    );
     expect(cb.status).toBe(302);
     expect(cb.headers.location).toBe('/parametres?gdrive_error=gdrive_oauth_failed');
     const status = await a.agent.get('/api/v1/integrations/google-drive/status');

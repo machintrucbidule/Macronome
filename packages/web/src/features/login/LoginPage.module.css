@@ -230,6 +230,57 @@
   line-height: 1.4;
 }
 
+/* Error banner carrying a diagnostic code (B-231): an additive modifier, so the credentials and
+   lockout banners stay pixel-identical. */
+.alertWithRef {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.refRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.refLabel {
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* Selectable by design: on a plain-HTTP host there is no clipboard API, so manual selection is the
+   affordance that always works and the copy button below is the enhancement. */
+.refCode {
+  font-family: var(--font-num);
+  font-size: 13.5px;
+  letter-spacing: 0.08em;
+  color: var(--text);
+  background: var(--bg-elev-2);
+  border: 1px dashed color-mix(in srgb, var(--nok) 45%, transparent);
+  border-radius: var(--r-sm);
+  padding: 2px 8px;
+  user-select: all;
+  cursor: pointer;
+}
+
+.refCopy {
+  font-size: 11px;
+  color: var(--text-dim);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 3px 9px;
+  cursor: pointer;
+}
+
+.refCopy:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
 .count {
   font-family: var(--font-num);
   color: var(--nok);
@@ -276,6 +327,14 @@
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--text-faint);
+}
+
+@media (max-width: 560px) {
+  /* Tap target for the copy control on a phone (--tap rises to 44px at this breakpoint). */
+  .refCopy {
+    min-height: var(--tap);
+    padding: 3px 12px;
+  }
 }
 
 @media (max-width: 420px) {

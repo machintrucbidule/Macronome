@@ -12,6 +12,7 @@ import * as accountTokensService from '../../services/account-tokens.js';
 import * as authService from '../../services/auth.js';
 import * as setupService from '../../services/setup.js';
 import { ApiError, zodDetails } from '../errors.js';
+import { sessionCookieOptions } from '../middleware/session.js';
 
 // THIN controllers: Zod-parse the request → call a service → serialise. No maths,
 // no SQL (docs/architecture/context-files/api-CLAUDE.md).
@@ -112,7 +113,9 @@ export async function session(req: Request, res: Response): Promise<void> {
 
 export async function logout(req: Request, res: Response): Promise<void> {
   await new Promise<void>((resolve) => req.session.destroy(() => resolve()));
-  res.clearCookie('macronome.sid');
+  // Mirror the attributes the cookie was set with, now that `Secure` is derived per request
+  // (B-232) — a clear whose attributes don't match may not remove the cookie.
+  res.clearCookie('macronome.sid', sessionCookieOptions(req.secure === true));
   res.status(204).end();
 }
 

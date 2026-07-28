@@ -1,11 +1,15 @@
 import express, { type Express } from 'express';
 import { pinoHttp } from 'pino-http';
 import { env } from './config/env.js';
+import { authDiagnostics } from './http/middleware/auth-diagnostics.js';
 import { csrf } from './http/middleware/csrf.js';
 import { errorHandler } from './http/middleware/errorHandler.js';
 import { secureCookieWarn } from './http/middleware/secure-cookie-warn.js';
 import { securityHeaders } from './http/middleware/securityHeaders.js';
 import { sessionMiddleware } from './http/middleware/session.js';
+import { applySessionCookieSecure } from './http/middleware/session-cookie-secure.js';
+import { sessionDiagnostics } from './http/middleware/session-diagnostics.js';
+import { withSessionGuard } from './http/middleware/session-guard.js';
 import { tenantContext } from './http/middleware/tenant.js';
 import { applyTrustProxy } from './http/middleware/trustProxy.js';
 import { serveSpa } from './http/spa.js';
@@ -42,11 +46,22 @@ export function createApp(): Express {
   applyTrustProxy(app);
   app.use(securityHeaders());
   app.use(pinoHttp({ logger }));
-  // Warn once if Secure cookies are requested but requests arrive insecure (untrusted proxy).
+  // Authentication black box (B-231). Deliberately BEFORE the body parser and the session: its
+  // response listener must already be registered when the failure comes from upstream of the routes
+  // (body parse, session store, database) — that is the outage class which twice left no trace.
+  app.use(authDiagnostics);
+  // Warn if Secure cookies are forced but requests arrive insecure (untrusted proxy).
   app.use(secureCookieWarn);
   // 25 MB body cap so a full data import (IMP-1) fits; ordinary payloads are tiny.
   app.use(express.json({ limit: '25mb' }));
-  app.use(sessionMiddleware);
+  // Wrapped so a store outage yields a typed 503 for the API and still serves the SPA (B-231).
+  app.use(withSessionGuard(sessionMiddleware));
+  // Read the "was the session found?" verdict before csrf mints into a fresh session and before a
+  // controller regenerates the id (B-231).
+  app.use(sessionDiagnostics);
+  // Correct `Secure` on sessions loaded from the store, whose cookie attributes come back frozen
+  // from the stored row (B-232). Before csrf so the CSRF response carries the same attribute.
+  app.use(applySessionCookieSecure);
   app.use(csrf);
   app.use(tenantContext);
 

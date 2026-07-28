@@ -5,6 +5,9 @@ import { authApi } from '../../api/auth';
 import { ApiError, markLoginSuccess } from '../../api/client';
 import { PUBLIC_PATHS } from '../../app/public-paths';
 import { SESSION_KEY } from '../../app/useSession';
+import { classifyLoginError, type LoginFailure } from './classify-login-error';
+
+export type { LoginErrorKind, LoginFailure } from './classify-login-error';
 
 // Login submission + the server-driven state machine (design/components/states.md §Login).
 // The API owns the verdicts: 401 invalid_credentials → error, 429 locked_out + retry_after_s
@@ -12,20 +15,6 @@ import { SESSION_KEY } from '../../app/useSession';
 // to the page they originally requested (?next=, set by RequireAuth / the client's 401
 // handler), falling back to / (login.md; B-219). The web only renders these.
 export type LoginState = 'idle' | 'loading' | 'error' | 'lockout' | 'success';
-
-// Which error banner the `error` state shows (states.md §Login): a genuine bad-credentials
-// rejection vs a technical/session failure vs an unreachable server — so a proxy/cookie
-// misconfiguration (which surfaces as a 403 CSRF) is not disguised as a wrong password.
-export type LoginErrorKind = 'credentials' | 'technical' | 'network';
-
-// Classify a NON-lockout login failure for the message shown. Pure (unit-tested). 429/lockout
-// is handled by the caller (it drives the countdown). A missing HTTP response — a `fetch`
-// rejection (not an ApiError) — is a network error; a 401 is bad credentials; anything else
-// with a response (403 CSRF, 5xx, unexpected) is a technical failure.
-export function classifyLoginError(err: unknown): LoginErrorKind {
-  if (err instanceof ApiError) return err.status === 401 ? 'credentials' : 'technical';
-  return 'network';
-}
 
 const REDIRECT_DELAY_MS = 900;
 
@@ -44,7 +33,7 @@ export function useLogin() {
   const location = useLocation();
   const queryClient = useQueryClient();
   const [state, setState] = useState<LoginState>('idle');
-  const [errorKind, setErrorKind] = useState<LoginErrorKind>('credentials');
+  const [failure, setFailure] = useState<LoginFailure>({ kind: 'credentials' });
   const [lockSeconds, setLockSeconds] = useState(0);
   const tick = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -84,7 +73,7 @@ export function useLogin() {
           setLockSeconds(err.retryAfterS ?? 0);
           setState('lockout');
         } else {
-          setErrorKind(classifyLoginError(err));
+          setFailure(classifyLoginError(err));
           setState('error');
         }
       }
@@ -92,5 +81,5 @@ export function useLogin() {
     [navigate, queryClient, location.search],
   );
 
-  return { state, errorKind, lockSeconds, submit };
+  return { state, failure, lockSeconds, submit };
 }

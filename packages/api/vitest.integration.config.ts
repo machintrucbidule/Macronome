@@ -10,7 +10,11 @@ const TEST_ENV = {
   SESSION_SECRET: 'integration-test-session-secret-0123456789',
   TRUSTED_PROXY: 'loopback',
   PUBLIC_BASE_URL: 'http://localhost:5173',
-  COOKIE_SECURE: 'false',
+  // The production default, so the per-request derivation is what the suite exercises (B-232).
+  COOKIE_SECURE: 'auto',
+  // Keep the authentication black box (B-231) inside the package: without this it would try to
+  // create /data, which is not writable on the CI runner nor sane on a Windows dev box.
+  MACRONOME_DATA_DIR: fileURLToPath(new URL('./test/.tmp-data', import.meta.url)),
   NODE_ENV: 'test',
 };
 

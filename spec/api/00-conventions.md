@@ -65,9 +65,21 @@ avoid existence leaks).
 
 ```json
 {
-  "error": { "code": "string_snake", "message": "human readable", "details": { "field": "reason" } }
+  "error": {
+    "code": "string_snake",
+    "message": "human readable",
+    "details": { "field": "reason" },
+    "ref": "XXXX-XXXX"
+  }
 }
 ```
+
+`ref` is **optional** and diagnostic only: a short code identifying the server-side
+authentication black-box record for this failure (`ops.md` §4/§6b, B-231). It is emitted
+**only** on failures of the authentication-attempt routes (`POST /auth/login`, `/auth/setup`,
+`/auth/register`, `/auth/reset-password`, `/auth/password`) so the operator can quote it
+instead of hunting logs. Clients must not parse or branch on it — it is opaque text to be
+displayed and copied.
 
 Validation failures → **422** with per-field `details`.
 Domain blocks (e.g. leftover incoherent) → **409** with a `code` the client maps
@@ -79,11 +91,16 @@ The macro-label parser (`POST /foods/parse-label`, PM-1/B-114) returns **422**
 `{error:{code}}` for structurally-impossible input: `reconstituted_label`,
 `no_reference`, `unparseable` (see `foods-recipes.md` + `logic/macro-label-parser.md`).
 
+A lost database connection is **not** a bug and must not read as one: any request that fails
+because the database is unreachable returns **503** `database_unavailable` instead of a generic
+500, so the client can say "temporarily unavailable, retry" rather than "technical problem"
+(B-231 hardening).
+
 ## Status codes
 
 200 OK · 201 Created · 204 No Content · 400 malformed · 401 unauth ·
 403 forbidden (rare) · 404 not found / cross-tenant · 409 domain conflict ·
-422 validation · 429 rate-limited · 500 server.
+422 validation · 429 rate-limited · 500 server · 503 database unavailable.
 
 ## List behaviour
 
