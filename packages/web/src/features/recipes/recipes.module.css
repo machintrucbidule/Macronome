@@ -120,10 +120,17 @@
   }
 }
 
+/* B-228: no `overflow: hidden` here. It used to round the corners, but it also CLIPPED the two
+   absolutely-positioned popovers whose containing block sits inside this box — the ingredient
+   `.ac` autocomplete list and the `.unitMenu` on the last row. A z-index cannot escape an overflow
+   clip. Desktop hid the defect by accident (`.builderGrid` is `1fr 280px` with `.yield`
+   `align-self:start`, so this box stretches to the grid row and has spare room below the search
+   row); at ≤780px the grid stacks, the box becomes content-height, and the list was cut to a few
+   pixels. Same family as B-103 — but unlike B-103 the clip WAS load-bearing, hence the radius on
+   `.ingHead` below. */
 .ingBlock {
   border: var(--bw) solid var(--border);
   border-radius: var(--r-md);
-  overflow: hidden;
 }
 .ingHead {
   display: flex;
@@ -135,6 +142,9 @@
   color: var(--text-faint);
   padding: 8px 11px;
   background: var(--bg-elev-2);
+  /* Own top corners, inset by the parent border, now that the parent no longer clips. This is the
+     only child that needs them: `.ingLine`, `.ingSearchRow` and `.addIng` have no background. */
+  border-radius: calc(var(--r-md) - var(--bw)) calc(var(--r-md) - var(--bw)) 0 0;
 }
 .ingEmpty {
   padding: 10px 11px;

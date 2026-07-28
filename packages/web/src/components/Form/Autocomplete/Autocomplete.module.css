@@ -24,7 +24,9 @@
   left: 0;
   top: 30px;
   z-index: var(--z-autocomplete);
-  min-width: 280px;
+  /* B-228: never wider than the host cell, so the list cannot overflow horizontally on a 360px
+     sheet (the recipe builder's ingredient row is padded, leaving well under 280px). */
+  min-width: min(280px, 100%);
   max-height: 300px;
   overflow: auto;
   background: var(--bg-elev-2);
@@ -105,4 +107,28 @@
 }
 .customOpt:hover {
   background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+/* B-230: this stylesheet hard-codes its type sizes, so the responsive type layer
+   (styles/tokens.css §Responsive type layer) never reached it and iOS focus-zoomed the search input
+   on every phone. Referencing the tokens HERE, mobile-only, fixes that while leaving the desktop
+   values byte-identical: the 12.5px name size is what forms-inputs.md specifies (`--fs-12.5`) and
+   what NORMALIZATION_LOG.md records as accepted debt, and no token equals it. Three screens share
+   this component (recipe builder, the daily-log cell, the pantry picker) — none of them changes on
+   desktop. */
+@media (max-width: 560px) {
+  .input {
+    font-size: var(--fs-13); /* 16px — at or above the iOS focus-zoom floor */
+  }
+  .nm {
+    font-size: var(--fs-12); /* 14px — result rows, not just the field (owner's ask) */
+  }
+  .tag {
+    font-size: var(--fs-9); /* 12px */
+  }
+  /* The `top` above is a hard-coded 30px, which a 16px input (≈31px tall) would sit under: the list
+     would cover the field it completes. Anchor it to the input's real height instead. */
+  .ac {
+    top: calc(100% + 2px);
+  }
 }
