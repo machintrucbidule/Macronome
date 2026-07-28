@@ -1,5 +1,7 @@
-/* Mobile-only food picker body (rendered inside a bottom-sheet Modal). All rules
-   only ever apply on the phone breakpoint (the component mounts only when useIsMobile()). */
+/* Shared picker-sheet body (rendered inside a bottom-sheet Modal — design/components/modals.md
+   §The shared picker sheet). All rules only ever apply on the phone breakpoint, because the
+   component is mounted only when useIsMobile() is true.
+   Moved verbatim from features/meals/.../food-picker-sheet.module.css (MOB-1), plus .disabled. */
 .picker {
   display: flex;
   flex-direction: column;
@@ -55,6 +57,12 @@
 /* Current food (when replacing a line): accent left-border, like the pinned line. */
 .cur {
   box-shadow: inset 3px 0 0 var(--accent);
+}
+/* A choice that would be rejected — e.g. a recipe that would create a cycle (recipe.md). Dimming
+   is the whole affordance: there is no hover on a touch screen, so no tooltip. */
+.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 .name {
   overflow: hidden;

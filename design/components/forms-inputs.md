@@ -106,11 +106,20 @@ box-shadow:var(--shadow); max-height:240–300px; overflow:auto; min-width:260�
   **empty** and **trailing** (last row) once the user types (B-159) — so Enter/Tab keep selecting the
   first food while searching (B-023). It is never keyboard-highlighted (mouse/tap only).
 - Keyboard: ↑/↓ move `.hi`, Enter selects, Esc closes; Tab navigates the grid.
-- **Auto-focus + mobile keyboard**: the input **self-focuses on mount** (with
-  `{ preventScroll: true }`, per `modals.md`), so the mobile keyboard opens immediately. On
-  mobile the input font is `--fs-13` (= 16px) to avoid iOS focus-zoom (spec §8). The `.ac` list
-  keeps its **own** `max-height`/`overflow:auto` scroll, so it stays usable with the keyboard
-  open (no sheet-height restructure needed — unlike the full-screen search sheets in `modals.md`).
+- **Auto-focus**: the input **self-focuses on mount** (with `{ preventScroll: true }`, per
+  `modals.md`), so the keyboard opens immediately where one exists.
+- **≤560px: this dropdown is not used.** The three search hosts — the Repas food picker, the
+  recipe-builder ingredient picker and the Paramètres garde-manger picker — render the shared
+  **picker sheet** instead (`modals.md` §Overlay taxonomy / §Keyboard-aware search sheets): a
+  pinned search field with large tappable rows, which a dropdown anchored to a dense cell cannot
+  be. The `.ac` spec above therefore describes the **desktop and tablet** presentation only
+  (≥561px, where it is byte-identical). Everything the dropdown does that the user can perceive —
+  the current-item marker, the `recette` / `portion` tags, disabled entries, the empty label and
+  the leading/trailing custom option (B-159) — has a counterpart in the sheet, so the two
+  presentations stay behaviourally in parity.
+  - The autocomplete input itself still honours `--fs-13` (= 16px) at ≤560px to avoid iOS
+    focus-zoom (spec §8), because a phone in **landscape** exceeds 560px and keeps the dropdown
+    (B-230).
 
 Day comment, food name (recipe header), Journal comment: transparent field that
 shows a `--border` on hover and `--focus` + `--bg-field` on focus — reads as

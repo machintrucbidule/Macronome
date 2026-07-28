@@ -39,13 +39,13 @@ On mobile (≤560px) **every modal is a bottom sheet** — a single overlay lang
 sheet is the default mobile rendering of `Modal`; there is no per-modal choice. Cibles is a
 **page** (not a popup), so it is not in this table.
 
-| Overlay          | Used for                                                                                                                                                                                                                                            | Basis                                 |
-| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
-| **Bottom sheet** | **Every modal**: big forms (recipe builder, food, weigh-in), short editors / menus (Journal day, food-line, Repas picker, Poids period detail, account menu, Trier, Filtres) **and** confirmations (delete meal, clear day, archive, typed-confirm) | `Modal` (default mobile presentation) |
+| Overlay          | Used for                                                                                                                                                                                                                                                                                                                                    | Basis                                 |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| **Bottom sheet** | **Every modal**: big forms (recipe builder, food, weigh-in), short editors / menus (Journal day, food-line, Poids period detail, account menu, Trier, Filtres), the three **picker sheets** (Repas food, recipe-builder ingredient, Paramètres garde-manger — MOB-1) **and** confirmations (delete meal, clear day, archive, typed-confirm) | `Modal` (default mobile presentation) |
 
 Desktop (≥561px) keeps every modal's centered `size` dialog unchanged. The `fullscreen` and
-centered-on-mobile variants were retired in MS-1. See `modals.md` for the sheet CSS and
-`bottom-nav.md` for the shell pieces.
+centered-on-mobile variants were retired in MS-1. See `modals.md` for the sheet CSS, the shared
+picker sheet and the nested-overlay rules, and `bottom-nav.md` for the shell pieces.
 
 ## Mobile horizontal-overflow safety net (S3)
 

@@ -1,28 +1,27 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal } from '../../../../components/Modal/Modal';
+import { SearchSheet, type SearchSheetItem } from '../../../../components/SearchSheet';
 import { useMeals } from '../../MealsContext';
 import { useFoodSearch } from '../../hooks/useFoodLookup';
 import type { EditTarget } from '../../hooks/mealActions';
-import { useKeyboardViewport } from '../../../../lib/useKeyboardViewport';
-import styles from './food-picker-sheet.module.css';
 
-// Mobile-only food picker (spec §5.3 / overlay taxonomy §0.2). Replaces the inline autocomplete on
-// phones: a search field + a tappable result list (foods ∪ recipes via the same `/search/loggable`),
-// shown as a bottom sheet (owner refinement 2026-06-11 — same anchor as the other meal sheets). A
-// pick routes through `actions.pickFood` (add/replace), "+ Valeurs manuelles" → `actions.openCustom`;
-// both close the editing state, unmounting this sheet. Rendered from MealsOverlays only when
-// `useIsMobile()` — desktop keeps the inline picker untouched. Search-only by owner decision (no
-// "recents": the app has no recently-logged source).
+// Mobile-only food picker (spec §5.3). Replaces the inline autocomplete on phones: a search field +
+// a tappable result list (foods ∪ recipes via `/search/loggable`), shown as a bottom sheet (owner
+// refinement 2026-06-11 — same anchor as the other meal sheets). A pick routes through
+// `actions.pickFood` (add/replace), "+ Valeurs manuelles" → `actions.openCustom`; both close the
+// editing state, unmounting this sheet. Rendered from MealsOverlays only when `useIsMobile()` —
+// desktop keeps the inline picker untouched. Search-only by owner decision (no "recents": the app
+// has no recently-logged source).
+//
+// Since MOB-1 this is a thin adapter over the shared `SearchSheet`, which the recipe-builder and
+// garde-manger pickers also host: it keeps the meals-specific parts (the context, the `EditTarget`
+// plumbing, the `meals.*` wording) and the sheet owns the presentation. Behaviour here is unchanged.
 export function FoodPickerSheet({ target }: { target: EditTarget }) {
   const { t } = useTranslation();
   const { actions, day } = useMeals();
   const [query, setQuery] = useState(target.initialQuery ?? '');
   const search = useFoodSearch(query, true);
   const results = search.data?.data ?? [];
-  const searchRef = useRef<HTMLInputElement>(null);
-  // Keyboard-aware sheet (B-206): publishes --kb-inset while this sheet is open.
-  useKeyboardViewport();
 
   // Outline the line's current food when replacing (parity with the inline picker's `currentId`).
   const currentFoodId = useMemo(() => {
@@ -31,22 +30,15 @@ export function FoodPickerSheet({ target }: { target: EditTarget }) {
     return e?.food_id ?? null;
   }, [target.entryId, day]);
 
-  const title = target.entryId ? t('meals.picker.titleReplace') : t('meals.picker.titleAdd');
-
-  // B-159: the custom option leads the list when the field is empty (the common "new line" case)
-  // and trails it once the user types. Empty = trimmed query (parity with the inline Autocomplete).
-  const customFirst = query.trim() === '';
-  const customBtn = (
-    <button
-      type="button"
-      className={styles.custom}
-      onClick={() =>
-        actions.openCustom(target.mealId, target.mealIndex, target.entryId, target.orderIndex)
-      }
-    >
-      {t('meals.search.custom')}
-    </button>
-  );
+  const items: SearchSheetItem[] = results.map((r) => ({
+    id: r.id,
+    name: r.name,
+    ...(r.kind === 'recipe'
+      ? { tag: t('meals.tag.recipe') }
+      : r.named_portions.length
+        ? { tag: t('meals.tag.portion') }
+        : {}),
+  }));
 
   const pick = (id: string): void =>
     void actions.pickFood(
@@ -61,37 +53,20 @@ export function FoodPickerSheet({ target }: { target: EditTarget }) {
     );
 
   return (
-    <Modal title={title} onClose={actions.closeEdit} initialFocusRef={searchRef} fillBody>
-      <div className={styles.picker}>
-        <input
-          ref={searchRef}
-          className={styles.search}
-          value={query}
-          placeholder={t('meals.search.placeholder')}
-          aria-label={t('meals.search.placeholder')}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-        <div className={styles.results}>
-          {customFirst && customBtn}
-          {results.map((r) => (
-            <button
-              key={r.id}
-              type="button"
-              className={`${styles.row} ${r.id === currentFoodId ? styles.cur : ''}`}
-              onClick={() => pick(r.id)}
-            >
-              <span className={styles.name}>{r.name}</span>
-              {r.kind === 'recipe' ? (
-                <span className={styles.tag}>{t('meals.tag.recipe')}</span>
-              ) : r.named_portions.length ? (
-                <span className={styles.tag}>{t('meals.tag.portion')}</span>
-              ) : null}
-            </button>
-          ))}
-          {results.length === 0 && <div className={styles.empty}>{t('meals.search.empty')}</div>}
-          {!customFirst && customBtn}
-        </div>
-      </div>
-    </Modal>
+    <SearchSheet
+      title={target.entryId ? t('meals.picker.titleReplace') : t('meals.picker.titleAdd')}
+      placeholder={t('meals.search.placeholder')}
+      emptyLabel={t('meals.search.empty')}
+      query={query}
+      onQueryChange={setQuery}
+      items={items}
+      currentId={currentFoodId}
+      customLabel={t('meals.search.custom')}
+      onCustom={() =>
+        actions.openCustom(target.mealId, target.mealIndex, target.entryId, target.orderIndex)
+      }
+      onPick={pick}
+      onClose={actions.closeEdit}
+    />
   );
 }

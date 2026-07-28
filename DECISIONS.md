@@ -4925,3 +4925,90 @@ over the test's plain-HTTP socket, which a real browser behind a real proxy does
 
 **Gate:** prisma generate → lint (0 warnings) → typecheck → check:i18n → check:schema → 808 unit →
 276 integration, all green.
+
+---
+
+## MOB-1 / B-229 — One shared picker sheet for all three food/recipe pickers on phones — RESOLVED (owner, 2026-07-28)
+
+**Problem.** Repas got a bottom-sheet food picker in slice S9 — pinned search, large tappable rows,
+keyboard-aware — but two screens kept the mouse-era inline `Autocomplete` dropdown on phones: the
+recipe-builder ingredient picker and the Paramètres garde-manger picker. On the recipe builder the
+dropdown was barely usable (see B-228: it was even being clipped until this session).
+
+**Decision (owner).** At ≤560px both adopt the same sheet as Repas; desktop and tablet keep the
+inline dropdown unchanged. And — owner choice this run — **share the implementation** rather than
+copy it: the Repas sheet is extracted into one presentational component and Repas becomes a thin
+adapter over it, so a future fix cannot land on one screen and miss the others. The alternative
+(leave Repas untouched, write a second sheet) was rejected despite being risk-free, because two
+near-identical pickers would inevitably drift.
+
+**Mechanism.** New `components/SearchSheet/` — presentational and **data-source agnostic**: each host
+passes its own query, mapped items and wording, which is what lets one component serve three screens
+that do not even share an endpoint (Repas and the recipe builder use `/search/loggable`; the pantry
+uses `/foods?sort=usage&dir=desc`, foods only). Built on the existing primitives (`Modal` with
+`fillBody` + `initialFocusRef`, `useKeyboardViewport`); the CSS module moved **verbatim**. Hosts mount
+it only behind `useIsMobile()`.
+
+**One capability added: disabled rows.** The Repas sheet had none, but `recipe.md` prescribes that a
+recipe which would create a cycle is shown **disabled** — without it a phone user could pick it and
+be refused on save. Rendered dimmed and non-tappable, with **no tooltip** (there is no hover on a
+touch screen). Inert for Repas, which never passes a disabled item.
+
+**The trap this design avoids.** `IngredientSearch` and `PantryEditor` both close their picker on a
+document `mousedown` outside their own subtree (B-049 / B-095). The sheet is portalled to `<body>`,
+so it is not their descendant: mounting both would cancel the edit on the first tap **inside** the
+sheet. Each host therefore renders the inline dropdown **or** the sheet, never both — the pattern
+already used in Repas (`FoodLine`: `if (editing && !isMobile)`) — and `PantryEditor`'s outside-click
+effect early-returns on mobile.
+
+**Nested overlays — the rule was missing and is now written.** On phones the recipe builder is itself
+a sheet (S6 + MS-1) and must stay mounted behind the picker or its draft would be lost, so this is a
+sheet over a sheet. One already shipped (the "Parser macro" sub-dialog over the Aliment modal) but no
+contract text ever covered the nested case. Verified in the code, not assumed, and recorded in
+`design/components/modals.md`: both scrims portal to `<body>` and share `--z-scrim`, so **mount order
+decides**; Escape reaches only the top-most (mount-order stack); each focus trap binds its Tab
+handler to **its own panel**, so the traps never fight and focus is restored to the opener on close;
+there is **no** scroll-lock to stack; the scrims **compound** visually, which is accepted (already the
+rendering of the existing sub-dialog) and reads correctly as depth. The doc also states the preference
+for a hand-off (close-then-open) wherever the overlay beneath owns no state worth keeping.
+
+**Contract impact.** `design/components/forms-inputs.md` §Autocomplete — the bullet asserting the
+dropdown "keeps its **own** scroll … no sheet-height restructure needed" said the **opposite** of this
+change and is replaced: the `.ac` spec is now explicitly the **desktop/tablet** presentation, with the
+parity list of what the sheet reproduces (current marker, tags, disabled, empty, B-159 custom
+ordering); the stale post-MS-1 "full-screen search sheets" phrasing is fixed, and the ≤560px
+`--fs-13` input rule is kept with its reason (landscape exceeds 560px — B-230).
+`design/components/modals.md` — §Search overlays reworded (it classified `IngredientSearch` as "not a
+`Modal`", now true only ≥561px), a new **§The shared picker sheet** describing rows/disabled/empty/
+custom/closing, the new **§Nested overlays**, and the taxonomy row naming the three picker sheets.
+`design/components/mobile.md` — the duplicate taxonomy row kept in sync.
+`specifications/screens/recipe.md` — inventory + §Interactions + a **new ≤560px** responsive rule (the
+section stopped at ≤780px and the S6 mobile work had never been back-written).
+`specifications/screens/settings.md` — the picker's "closes on an outside click" is now marked
+desktop-only, plus a ≤560px responsive rule; this is the screen's **first** mobile-specific
+behaviour. `specifications/features/mobile-responsive/spec.md` — its pre-MS-1 three-row taxonomy is
+marked superseded, and the clause deferring Paramètres mobile refinements notes this partial take-up.
+**No DB/schema/API/DTO/token change.**
+
+**Code.** New `packages/web/src/components/SearchSheet/{SearchSheet.tsx, search-sheet.module.css,
+index.ts}`, `features/recipes/modals/IngredientPickerSheet.tsx`,
+`features/settings/components/PantryPickerSheet.tsx`. Modified:
+`features/meals/components/FoodPickerSheet/FoodPickerSheet.tsx` (adapter — **keeps its name**, so the
+prose in `meals.md` / `data-tables.md` stays accurate; its own CSS module deleted),
+`features/recipes/modals/IngredientBlock.tsx` (`useIsMobile()` gate + a local
+`MobileIngredientPicker` that owns the add-vs-replace choice),
+`features/settings/components/PantryEditor.tsx`, `i18n/locales/{fr,en}.json` (three keys:
+`recipes.builder.pickerTitleAdd` / `pickerTitleReplace`, `settings.pantry.pickerTitle`).
+
+**Tests.** New `SearchSheet.test.tsx` (initial focus on the search field; the picked id is reported;
+**a disabled row reports nothing**; empty label; no custom row when the host offers none; and the
+B-159 leading/trailing custom order including a whitespace-only query). New
+`IngredientPickerSheet.test.tsx` (the **full** `LoggableItem` is returned, not just an id, because the
+caller needs its portions; the edited recipe's own item is disabled and unpickable; recipe tag;
+add-vs-replace title + pre-fill; no custom option). `IngredientBlock.test.tsx` and
+`PantryEditor.test.tsx` each gained a mobile block (`useIsMobile` mocked true) asserting the sheet
+mounts and the inline dropdown does **not**, that the pantry sheet actually pins, that it ignores an
+outside `mousedown`, and — explicitly — that no sheet mounts on desktop. `FoodPickerSheet.test.tsx`
+kept unchanged as the Repas non-regression guard. **Gate:** lint (0 warnings) + typecheck +
+check:i18n + 827 unit + 276 integration + web build green, with the full suite also run at the
+extraction step alone to prove the Repas refactor before any host was added.

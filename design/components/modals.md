@@ -86,16 +86,17 @@ the desktop width (unchanged ≥561px); it has no effect on the mobile sheet (wh
 > jumps when tabbing a tall sheet. _(Diagnosed via the S3 account sheet — the sheet variant's first
 > consumer; the variant was dormant in S2. The animation itself was never the problem.)_
 
-> **Search overlays auto-focus their input (initial-focus target).** A search overlay — the Repas
-> food picker (`FoodPickerSheet`), the Chronodrive search (`ChronoSearchDialog`), the recipe-builder
-> ingredient search (`IngredientSearch`) — must land focus on its **search input** on open so the
-> mobile keyboard opens, **not** on the header `×`. The focus trap otherwise focuses the first
-> focusable in DOM order, and the Close button is rendered before the body — so it wins and the
-> keyboard never opens. `Modal` therefore accepts an **optional `initialFocusRef`**: the overlay
-> passes a ref to its input and the trap focuses that ref instead (still with
-> `{ preventScroll: true }`, per the rule above). Overlays that pass no ref keep the default
-> (first-focusable) behaviour. The inline `IngredientSearch` (an `Autocomplete`, not a `Modal`)
-> self-focuses its input with the same `preventScroll`.
+> **Search overlays auto-focus their input (initial-focus target).** A search overlay — the shared
+> **picker sheet** (`SearchSheet`, hosted by the Repas food picker, the recipe-builder ingredient
+> picker and the Paramètres garde-manger picker) and the Chronodrive search (`ChronoSearchDialog`)
+> — must land focus on its **search input** on open so the mobile keyboard opens, **not** on the
+> header `×`. The focus trap otherwise focuses the first focusable in DOM order, and the Close
+> button is rendered before the body — so it wins and the keyboard never opens. `Modal` therefore
+> accepts an **optional `initialFocusRef`**: the overlay passes a ref to its input and the trap
+> focuses that ref instead (still with `{ preventScroll: true }`, per the rule above). Overlays
+> that pass no ref keep the default (first-focusable) behaviour. The **desktop** inline
+> `Autocomplete` (`IngredientSearch`, `InlineFoodSearch`, the pantry picker — ≥561px only) is not a
+> `Modal`; it self-focuses its input with the same `preventScroll`.
 
 ### Keyboard-aware search sheets (mobile)
 
@@ -113,15 +114,60 @@ results never sit behind it:
   in their own region** below it (instead of the whole sheet scrolling and pushing the input
   off-screen). Keyboard closed → identical to the standard sheet.
 
+#### The shared picker sheet `SearchSheet` (MOB-1)
+
+One presentational component backs **all three** food/recipe pickers at ≤560px (Repas, the
+recipe-builder ingredient block, the Paramètres garde-manger). It is a keyboard-aware search sheet
+per the two rules above, and it owns no data: each host passes the query, the mapped items and the
+labels, so the three keep their own data sources and wording while behaving identically.
+
+- **Rows**: one tappable row per item (`--tap` minimum height), name (ellipsised) + an optional
+  inline tag (`recette` / `portion`). The **current** item carries an inset accent bar — the sheet's
+  equivalent of the dropdown's `.cur` outline.
+- **Disabled rows** are rendered dimmed and **not tappable** — the sheet's equivalent of the
+  dropdown's `.disabled` (a recipe that would create a cycle, `recipe.md`). No tooltip: there is no
+  hover on a touch screen, so the affordance is the dimming alone.
+- **Empty**: the host's own "no results" label, in `--text-faint`.
+- **Custom option**, when the host offers one (Repas only): the same **leading when the trimmed
+  query is empty, trailing once the user types** rule as the dropdown (B-159), so the two
+  presentations cannot diverge. Hosts that pass none render no such row (the recipe builder allows
+  no custom-inline ingredients; the pantry has never had one).
+- **Closing**: the header `×`, a tap on the scrim, or Escape. Note this **replaces the dropdown's
+  outside-click-to-cancel** on phones (B-049 / B-095): the sheet is portalled to `<body>`, so an
+  outside-click listener bound to the host's own subtree would fire on the first tap _inside_ the
+  sheet. Hosts therefore mount the inline dropdown **or** the sheet, never both.
+
 ### Overlay taxonomy (one interaction language across screens)
 
-| Overlay          | Used for                                                                                                                                                                                                                                                                          | Basis                                 |
-| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
-| **Bottom sheet** | **Every modal on mobile** — big forms (recipe builder, food, weigh-in), short editors / menus (Journal day, Repas food-line/picker/custom/AI/day+meal menus, Poids period detail, account, Trier, Filtres) **and** confirmations (delete meal, clear day, archive, typed-confirm) | `Modal` (default mobile presentation) |
+| Overlay          | Used for                                                                                                                                                                                                                                                                                                                                                                         | Basis                                 |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| **Bottom sheet** | **Every modal on mobile** — big forms (recipe builder, food, weigh-in), short editors / menus (Journal day, Repas food-line/custom/AI/day+meal menus, Poids period detail, account, Trier, Filtres), the three **picker sheets** (Repas food, recipe-builder ingredient, Paramètres garde-manger — MOB-1) **and** confirmations (delete meal, clear day, archive, typed-confirm) | `Modal` (default mobile presentation) |
 
 > On desktop (≥561px) every modal keeps its centered `size` dialog unchanged. The bottom sheet is
 > the **only** ≤560px presentation — there is no centered-on-mobile or full-screen variant (MS-1).
 > The cook-mode modal (below) is a separate full-screen touch takeover, not a `Modal`.
+
+### Nested overlays (a sheet opened from inside a sheet)
+
+An overlay may open **over** another one. Two ship: the "Parser macro" paste sub-dialog over the
+Aliment add/edit modal (PM-1/B-114), and the ingredient picker sheet over the recipe-builder sheet
+(MOB-1) — the builder must stay mounted behind it or its draft would be lost. The rules, all
+satisfied by the shared `Modal` with no per-overlay work:
+
+- **Stacking** — both scrims portal to `<body>` and share `z-index: var(--z-scrim)`, so **mount
+  order decides**: the overlay opened last is appended last and paints on top. There is no second
+  z-index layer and none is needed; do not invent one.
+- **Escape** — a mount-order stack means Escape closes only the **top-most** overlay. The one
+  beneath stays open.
+- **Focus** — each focus trap binds its Tab handler to **its own panel**, not to the document, so
+  the two traps never fight: Tab cycles inside the top overlay only. On close, the trap restores
+  focus to whatever was focused before it opened, i.e. back into the overlay beneath.
+- **Scrim tone** — the scrims **compound** (each `rgba(0,0,0,.5)`), so the page reads darker behind
+  two overlays than behind one. Accepted: it is already the rendering of the paste sub-dialog, and
+  the extra dimming correctly signals depth.
+- **Prefer a hand-off when the state allows it.** Nesting is for the case where the overlay beneath
+  owns state that must survive (the recipe draft). Where it does not, close first and then open —
+  the Repas line editor's "change the food" does exactly that, so the two never stack.
 
 ## Leftover-proration modal (Repas)
 

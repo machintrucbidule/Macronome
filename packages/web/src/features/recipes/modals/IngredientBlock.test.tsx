@@ -8,7 +8,16 @@ import type { IngredientDraft } from './draft';
 
 // B-034: an already-added ingredient's name must reopen the picker to change it (parity with
 // the daily-log inline edit). Before the fix the name was an inert <span>.
-afterEach(() => cleanup());
+//
+// The cases below exercise the DESKTOP branch: jsdom's matchMedia always reports no match, so
+// useIsMobile() is false unless a case mocks it (see the MOB-1 block at the bottom).
+const { isMobile } = vi.hoisted(() => ({ isMobile: { value: false } }));
+vi.mock('../../../lib/useIsMobile', () => ({ useIsMobile: () => isMobile.value }));
+
+afterEach(() => {
+  cleanup();
+  isMobile.value = false;
+});
 
 const draft: IngredientDraft = {
   refType: 'food',
@@ -55,6 +64,40 @@ describe('IngredientBlock — change picker pre-fill & outside-click (B-049)', (
     fireEvent.mouseDown(document.body);
     expect(screen.queryByRole('combobox')).toBeNull();
     expect(onChange).not.toHaveBeenCalled();
+  });
+});
+
+// MOB-1: at ≤560px the inline dropdown is replaced by the shared picker sheet. The two must never
+// be mounted together — the inline picker closes on a document mousedown outside its own subtree,
+// and the sheet is portalled to <body>, so a tap inside it would cancel the edit.
+describe('IngredientBlock — picker sheet on phones (MOB-1)', () => {
+  it('opens the sheet, not the inline dropdown, when adding', () => {
+    isMobile.value = true;
+    renderBlock([]);
+    fireEvent.click(screen.getByRole('button', { name: /Ajouter un ingrédient/ }));
+
+    expect(screen.getByRole('dialog')).toBeTruthy();
+    expect(screen.getByText('Ajouter un ingrédient')).toBeTruthy();
+    expect(screen.queryByRole('combobox')).toBeNull();
+  });
+
+  it('opens the sheet on an existing line and keeps the line visible', () => {
+    isMobile.value = true;
+    renderBlock([draft]);
+    fireEvent.click(screen.getByText('Flour'));
+
+    expect(screen.getByRole('dialog')).toBeTruthy();
+    expect(screen.getByText("Remplacer l'ingrédient")).toBeTruthy();
+    expect(screen.queryByRole('combobox')).toBeNull();
+    // The row is not swapped out for a search row on mobile — the sheet overlays it.
+    expect(screen.getByText('Flour')).toBeTruthy();
+  });
+
+  it('does not mount the sheet on desktop', () => {
+    renderBlock([draft]);
+    fireEvent.click(screen.getByText('Flour'));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.getByRole('combobox')).toBeTruthy();
   });
 });
 

@@ -227,6 +227,8 @@
       "recipeTag": "recette",
       "searchEmpty": "Aucun aliment ni recette trouvé",
       "searchPlaceholder": "Rechercher un aliment ou une recette…",
+      "pickerTitleAdd": "Ajouter un ingrédient",
+      "pickerTitleReplace": "Remplacer l'ingrédient",
       "quantity": "Quantité",
       "yieldTitle": "Rendement & portions",
       "batch": "Poids du lot",
@@ -1151,6 +1153,7 @@
       "add": "+ Aliment",
       "searchPlaceholder": "Rechercher un aliment…",
       "searchEmpty": "Aucun aliment trouvé",
+      "pickerTitle": "Ajouter au garde-manger",
       "duplicate": "Cet aliment est déjà épinglé sur ce repas.",
       "unit": "Unité de pré-remplissage",
       "portion": "portion"

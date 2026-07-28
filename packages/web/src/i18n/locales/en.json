@@ -227,6 +227,8 @@
       "recipeTag": "recipe",
       "searchEmpty": "No food or recipe found",
       "searchPlaceholder": "Search a food or recipe…",
+      "pickerTitleAdd": "Add an ingredient",
+      "pickerTitleReplace": "Replace the ingredient",
       "quantity": "Quantity",
       "yieldTitle": "Yield & servings",
       "batch": "Batch weight",
@@ -1151,6 +1153,7 @@
       "add": "+ Food",
       "searchPlaceholder": "Search a food…",
       "searchEmpty": "No food found",
+      "pickerTitle": "Add to the pantry",
       "duplicate": "This food is already pinned on this meal.",
       "unit": "Prefill unit",
       "portion": "portion"

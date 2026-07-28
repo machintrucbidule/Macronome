@@ -3,15 +3,23 @@ import { useTranslation } from 'react-i18next';
 import type { EntryUnit, PantryItem } from '@macronome/shared';
 import { ApiError } from '../../../api/client';
 import { Autocomplete } from '../../../components/Form/Autocomplete/Autocomplete';
+import { useIsMobile } from '../../../lib/useIsMobile';
 import { usePantryMutations } from '../usePantry';
 import { useFoodSearch } from '../useFoodPicker';
 import { PantryFoodChip } from './PantryFoodChip';
+import { PantryPickerSheet } from './PantryPickerSheet';
 import styles from '../settings.module.css';
 
 // Per-meal garde-manger editor (screens/settings.md): pinned foods as removable chips (each
-// with a prefill-unit chip/menu, GM-2/B-094) + an inline food picker to add one. Same
-// pantry_item data as the Repas 📌; edits affect future-day prefill only. A duplicate pin
-// surfaces the contract's 409 message. The picker closes on an outside click (B-095, B-049 pattern).
+// with a prefill-unit chip/menu, GM-2/B-094) + a food picker to add one. Same pantry_item data as
+// the Repas 📌; edits affect future-day prefill only. A duplicate pin surfaces the contract's 409
+// message.
+//
+// The picker is the inline dropdown on desktop, closing on an outside click (B-095, B-049 pattern),
+// and the shared picker sheet at ≤560px (MOB-1) — this screen's first mobile-specific behaviour.
+// Exactly one of the two is ever mounted: the outside-click listener is bound to this card's
+// subtree, and the sheet is portalled to <body>, so together they would dismiss on the first tap
+// inside the sheet.
 interface Props {
   mealSlotName: string;
   items: PantryItem[];
@@ -20,6 +28,7 @@ interface Props {
 export function PantryEditor({ mealSlotName, items }: Props) {
   const { t } = useTranslation();
   const { create, update, remove } = usePantryMutations();
+  const isMobile = useIsMobile();
   const [picking, setPicking] = useState(false);
   const [q, setQ] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -27,15 +36,16 @@ export function PantryEditor({ mealSlotName, items }: Props) {
   const pickerRef = useRef<HTMLDivElement>(null);
 
   // B-095: clicking outside the food picker closes it (no food added), mirroring the Repas
-  // InlineFoodSearch / recipes IngredientSearch outside-click (B-049).
+  // InlineFoodSearch / recipes IngredientSearch outside-click (B-049). Not on mobile: the sheet is
+  // portalled outside this card, so this listener would fire on the first tap inside it.
   useEffect(() => {
-    if (!picking) return;
+    if (!picking || isMobile) return;
     const onDown = (e: MouseEvent): void => {
       if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) setPicking(false);
     };
     document.addEventListener('mousedown', onDown);
     return () => document.removeEventListener('mousedown', onDown);
-  }, [picking]);
+  }, [picking, isMobile]);
 
   const pinnedIds = new Set(items.map((i) => i.food_id));
   const options = (search.data?.data ?? [])
@@ -75,7 +85,7 @@ export function PantryEditor({ mealSlotName, items }: Props) {
           </button>
         )}
       </div>
-      {picking && (
+      {picking && !isMobile && (
         <div className={styles.picker} ref={pickerRef}>
           <Autocomplete
             query={q}
@@ -87,6 +97,15 @@ export function PantryEditor({ mealSlotName, items }: Props) {
             onClose={() => setPicking(false)}
           />
         </div>
+      )}
+      {picking && isMobile && (
+        <PantryPickerSheet
+          query={q}
+          onQueryChange={setQ}
+          items={options}
+          onPick={(foodId) => void add(foodId)}
+          onClose={() => setPicking(false)}
+        />
       )}
       {error && <div className={styles.error}>{error}</div>}
     </div>

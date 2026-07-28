@@ -26,9 +26,14 @@ vi.mock('../usePantry', () => ({
 vi.mock('../useFoodPicker', () => ({ useFoodSearch: () => mocks.search }));
 vi.mock('../../meals/hooks/useFoodLookup', () => ({ useFood: () => mocks.food }));
 
+// Desktop by default (as jsdom reports); the MOB-1 block below flips it.
+const { isMobile } = vi.hoisted(() => ({ isMobile: { value: false } }));
+vi.mock('../../../lib/useIsMobile', () => ({ useIsMobile: () => isMobile.value }));
+
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  isMobile.value = false;
 });
 
 const item: PantryItem = {
@@ -82,5 +87,40 @@ describe('PantryEditor — food picker outside-click (B-095)', () => {
     fireEvent.mouseDown(document.body);
     expect(screen.queryByRole('combobox')).toBeNull();
     expect(mocks.create.mutateAsync).not.toHaveBeenCalled();
+  });
+});
+
+// MOB-1: at ≤560px the picker is the shared sheet. The outside-click listener above must be off
+// there — the sheet is portalled outside this card, so it would dismiss on the first tap inside.
+describe('PantryEditor — picker sheet on phones (MOB-1)', () => {
+  it('opens the sheet instead of the inline dropdown', () => {
+    isMobile.value = true;
+    renderEditor([]);
+    fireEvent.click(screen.getByRole('button', { name: '+ Aliment' }));
+
+    expect(screen.getByRole('dialog')).toBeTruthy();
+    expect(screen.getByText('Ajouter au garde-manger')).toBeTruthy();
+    expect(screen.queryByRole('combobox')).toBeNull();
+  });
+
+  it('pins the tapped food', () => {
+    isMobile.value = true;
+    renderEditor([]);
+    fireEvent.click(screen.getByRole('button', { name: '+ Aliment' }));
+
+    fireEvent.click(screen.getByRole('button', { name: /Banane/ }));
+    expect(mocks.create.mutateAsync).toHaveBeenCalledWith({
+      meal_slot_name: 'Petit déjeuner',
+      food_id: 'f9',
+    });
+  });
+
+  it('does not close on an outside mousedown (the sheet has its own close paths)', () => {
+    isMobile.value = true;
+    renderEditor([]);
+    fireEvent.click(screen.getByRole('button', { name: '+ Aliment' }));
+
+    fireEvent.mouseDown(document.body);
+    expect(screen.getByRole('dialog')).toBeTruthy();
   });
 });
