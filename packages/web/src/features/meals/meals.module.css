@@ -515,6 +515,11 @@
 }
 .scroller {
   display: flex;
+  /* Careful (documented B-233): `overflow-y: visible` next to `overflow-x: auto` does NOT mean
+     "don't clip vertically" — CSS Overflow 3 computes it to `auto`, so this box clips and scrolls on
+     both axes (the hidden scrollbar below is why that is invisible). It is therefore the clipping
+     ancestor the autocomplete's drop-up measures against, which is the behaviour we want; don't
+     "fix" this pair without checking what depends on it. */
   overflow-x: auto;
   overflow-y: visible;
   scrollbar-width: none;

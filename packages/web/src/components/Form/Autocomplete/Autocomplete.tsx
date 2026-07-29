@@ -1,4 +1,5 @@
-import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useId, useRef, useState, type KeyboardEvent, type RefObject } from 'react';
+import { useMenuPlacement } from '../../../lib/useMenuPlacement';
 import { highlightMatch } from './highlight';
 import styles from './Autocomplete.module.css';
 
@@ -50,6 +51,10 @@ interface ListProps {
   onPick: (item: AutocompleteItem) => void;
   onHover: (i: number) => void;
   onCustom: (() => void) | undefined;
+  /** Measured by useMenuPlacement in the parent (it needs the rendered height). */
+  listRef: RefObject<HTMLDivElement>;
+  /** Open above the field instead of below (B-233). */
+  dropUp: boolean;
 }
 
 function AutocompleteList({
@@ -63,6 +68,8 @@ function AutocompleteList({
   onPick,
   onHover,
   onCustom,
+  listRef,
+  dropUp,
 }: ListProps) {
   // The custom option is mouse-only (never keyboard-highlighted). B-159: it leads the list when the
   // query is empty (the common "new line" case) and trails it once the user types, so Enter/Tab keep
@@ -81,7 +88,12 @@ function AutocompleteList({
     ) : null;
   const customFirst = query.trim() === '';
   return (
-    <div className={styles.ac} id={listId} role="listbox">
+    <div
+      ref={listRef}
+      className={dropUp ? `${styles.ac} ${styles.up}` : styles.ac}
+      id={listId}
+      role="listbox"
+    >
       {customFirst && customNode}
       {items.map((item, i) => (
         <div
@@ -177,8 +189,19 @@ export function Autocomplete({
   // without an explicit ↑/↓. `activeIndex` clamps `hi` to the (async) item list.
   const [hi, setHi] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
   const listId = useId();
   const activeIndex = items.length === 0 ? -1 : Math.min(Math.max(hi, 0), items.length - 1);
+
+  // B-233: open the list upward when there is no room below it inside the nearest clipping ancestor
+  // (the Repas meal-table frame, a modal panel, else the viewport) — otherwise a line near the bottom
+  // of the page opened a list that could only be reached by scrolling. The shared hook already does
+  // the measuring for the badge dropdowns; `open` is a constant here because the list is always
+  // rendered (the host mounts/unmounts this component), and `items.length` makes it re-measure when
+  // async results change the list's height. Only `dropUp` is consumed: the list is left-aligned and
+  // its horizontal spill is already handled by `min-width: min(280px, 100%)` (B-228).
+  const { dropUp } = useMenuPlacement(true, wrapRef, listRef, items.length);
 
   useEffect(() => {
     const el = inputRef.current;
@@ -205,7 +228,7 @@ export function Autocomplete({
     });
 
   return (
-    <div className={styles.wrap}>
+    <div ref={wrapRef} className={styles.wrap}>
       <input
         ref={inputRef}
         className={styles.input}
@@ -233,6 +256,8 @@ export function Autocomplete({
         onPick={onPick}
         onHover={setHi}
         onCustom={onCustom}
+        listRef={listRef}
+        dropUp={dropUp}
       />
     </div>
   );

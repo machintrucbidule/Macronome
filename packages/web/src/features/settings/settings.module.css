@@ -33,8 +33,13 @@
 }
 /* B-103: the garde-manger card hosts absolutely-positioned popovers (unit menu to the left,
    food search below) that must escape the card edges. overflow:hidden here is not load-bearing
-   (children are inset, no full-bleed background at the rounded corners), so let them overflow —
-   mirrors the Repas scroller's overflow-y:visible. Scoped so other settings cards keep clipping. */
+   (children are inset, no full-bleed background at the rounded corners), so let them overflow.
+   Scoped so other settings cards keep clipping.
+   B-233 correction: this used to claim it "mirrors the Repas scroller's overflow-y:visible" — it does
+   not. That scroller declares `overflow-x:auto; overflow-y:visible`, and a `visible` alongside an
+   `auto` on the other axis **computes to `auto`** (CSS Overflow 3), so the meal table does clip
+   vertically. This card genuinely does not — which is why the autocomplete's drop-up measures against
+   the viewport here and against the table frame on Repas. The rule itself stands on its own reasoning. */
 .card.flow {
   overflow: visible;
 }

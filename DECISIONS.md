@@ -5012,3 +5012,72 @@ outside `mousedown`, and — explicitly — that no sheet mounts on desktop. `Fo
 kept unchanged as the Repas non-regression guard. **Gate:** lint (0 warnings) + typecheck +
 check:i18n + 827 unit + 276 integration + web build green, with the full suite also run at the
 extraction step alone to prove the Repas refactor before any host was added.
+
+---
+
+## AC-1 / B-233 — The autocomplete list flips above the field when there is no room below — RESOLVED (owner, 2026-07-29)
+
+**Problem.** On desktop Repas, picking a food on a line near the bottom of the page opened the
+suggestion list downward: the table grew and the list could only be reached by scrolling.
+
+**Decision (owner).** When there is not enough room below the field and more room above, the list
+opens **upward**. It stays **inside the meal-table frame** (no portal / free-floating variant) and
+**keeps its current `max-height`** — no shrink-to-fit on short windows. Applies **everywhere the
+shared picker appears** (Repas, recipe builder, garde-manger), with no per-screen opt-out.
+
+**Mechanism — nothing new was written.** `lib/useMenuPlacement.ts` already computes exactly this
+verdict (`roomBelow < height + gap + margin && roomAbove > roomBelow`) against the nearest
+**computed** clipping ancestor, with capture-phase `scroll` + `resize` re-measurement; it was built
+for B-121/B-168 and serves `SelectMenu` and `VerdictBadge`. `Autocomplete` becomes a **third caller**:
+a `wrapRef` on `.wrap`, a `listRef` threaded into the in-file `AutocompleteList` (which owns the `.ac`
+element), `open = true` (the list is always rendered — the host mounts/unmounts the component) and
+`count = items.length` so it re-measures when async results change the height. **Only `dropUp` is
+consumed, `left` is ignored**: the list is left-aligned and its horizontal spill is already handled by
+B-228's `min-width: min(280px, 100%)`. The hook itself is untouched, so both existing consumers are
+unaffected — `VerdictBadge` still deliberately does not flip.
+
+CSS mirrors `SelectMenu.module.css`: `.ac.up { top: auto; bottom: calc(100% + 2px) }`. `top: auto`
+must be explicit — `.ac.up` (0-2-0) outranks both the base `top: 30px` and the ≤560px
+`top: calc(100% + 2px)`, but without clearing it the list would keep its top anchor. `max-height`
+stays on `.ac`, so the list only ever flips, it never shrinks.
+
+**Three hosts, three reference boxes — by design.** The hook measures against the nearest clipping
+ancestor, so Repas flips at the meal-table frame while the garde-manger (whose `.card.flow` is
+genuinely non-clipping, B-103) flips only at the viewport bottom. Same rule, different boxes.
+
+**A false belief corrected in two comments (no behaviour change).** `.scroller` in
+`meals.module.css` declares `overflow-x: auto; overflow-y: visible` — a pair that **does not exist**:
+per CSS Overflow 3, a `visible` alongside an `auto` on the other axis **computes to `auto`**. The
+desktop meal table therefore does clip and scroll vertically (its scrollbar is hidden by
+`scrollbar-width: none`, which is why nobody noticed), and that is both what swallowed the bottom of
+the list and — usefully — what makes `clipBox()` find the table without any CSS change. The
+`settings.module.css` `.card.flow` comment justified itself by "mirrors the Repas scroller's
+`overflow-y:visible`", which this disproves; it is rewritten, and a warning was added at the
+`.scroller` declaration so the next reader does not re-derive the same wrong conclusion. The
+declaration itself is **not** changed (that would alter the table's scrolling), and the `.unitMenu`
+popovers — exposed to the same clipping with no placement logic — are deliberately left as a separate
+future item.
+
+**Contract impact.** `design/components/forms-inputs.md` §Autocomplete dropdown documented the list's
+appearance but said nothing about vertical placement; one bullet added, in the vocabulary already used
+by `rating-stars.md` / `charts.md` ("flips/clamps to stay inside", "clipping ancestor"), stating the
+flip, that it stays inside the box, and that the `max-height` is kept. No DB/schema/API/DTO/token
+change.
+
+**Code.** `packages/web/src/components/Form/Autocomplete/Autocomplete.tsx` (two refs, the hook call,
+`listRef` + `dropUp` on `ListProps`, class composition on the `.ac` element — previously a bare
+string) and `Autocomplete.module.css` (`.ac.up`). Comments only:
+`features/meals/meals.module.css`, `features/settings/settings.module.css`.
+
+**Tests.** New `Autocomplete.placement.test.tsx` — the repo's **first** test to simulate layout, so the
+install is documented in the file: jsdom lays nothing out, and the hook reads the wrap's
+`getBoundingClientRect` plus the list's `offsetHeight` (not its rect), both stubbed on
+`HTMLElement.prototype` keyed by class because the measurement happens in the initial layout effect;
+CSS modules are not applied under vitest, so `clipBox()` falls through to the viewport and there is a
+single reference box. Cases: flips when a 300px list has 70px below it; stays down when the field is
+high; **does not** flip a short list under a low field (proving the measured height decides, not the
+field's position); and re-measures when results arrive and grow the list (proving `count` does its
+job). `Autocomplete.test.tsx` (B-023/B-159/B-105) passes **unmodified** — with jsdom's defaults the
+verdict is `false`, so the existing rendering is unchanged. **Gate:** lint (0 warnings) + typecheck +
+check:i18n + 831 unit + 276 integration + web build green; the compiled CSS was checked for the
+compound `.ac.up` selector.

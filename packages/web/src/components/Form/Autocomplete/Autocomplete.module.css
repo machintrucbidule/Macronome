@@ -35,6 +35,16 @@
   box-shadow: var(--shadow);
 }
 
+/* B-233: flip above the field when there is no room below, set by useMenuPlacement — a food line near
+   the bottom of the Repas table otherwise opened a list reachable only by scrolling. Mirrors
+   SelectMenu's `.menu.up`. `top: auto` must be explicit: this rule (0-2-0) outranks both the base
+   `top` above and the ≤560px override below, but without clearing it the list would keep its top
+   anchor. `max-height` stays untouched — the list never shrinks to fit, it only flips. */
+.ac.up {
+  top: auto;
+  bottom: calc(100% + 2px);
+}
+
 .item {
   display: grid;
   grid-template-columns: 1fr auto;

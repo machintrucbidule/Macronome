@@ -93,6 +93,12 @@ auto-focus their input on open).
 border:1px solid var(--border-strong); border-radius:var(--r-md);
 box-shadow:var(--shadow); max-height:240–300px; overflow:auto; min-width:260–280px`.
 
+- **Vertical placement** (B-233): the list opens **below** the field by default and **flips above**
+  it when there is no room below and more room above — measured against the nearest **clipping
+  ancestor** (the Repas meal-table frame, a modal panel, else the viewport), so it is never cut off
+  at a box's bottom edge. It **stays inside** that box (no portal / free-floating variant) and
+  **keeps its `max-height`** — it never shrinks to fit a short window, so the flip is the only
+  adaptation. Same hook as the badge dropdowns' flip (`rating-stars.md`).
 - **item** `.item`: grid `1fr auto`; name (`--fs-12.5`) + meta (`--font-num;
 --fs-10; --text-faint`, e.g. `121 kcal /100g`). Match highlight `em` →
   `color:var(--accent); font-style:normal`.
