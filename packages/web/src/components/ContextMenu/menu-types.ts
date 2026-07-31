@@ -6,6 +6,10 @@ export interface CtxItem {
   label: string;
   /** Destructive tone (Supprimer / Archiver). */
   danger?: boolean;
+  /** Inert rather than absent (B-249): muted, not clickable, not keyboard-activatable. Use it
+   *  where removing the item would shift its neighbours' positions between two states of the
+   *  same row (design/components/context-menu.md §Anatomy). */
+  disabled?: boolean;
   /** Draw a divider above this item (used where a zone prefixes the generic block). */
   separator?: boolean;
   onSelect?: () => void;

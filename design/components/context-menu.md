@@ -21,6 +21,12 @@ standalone`) **and** the desktop layout (>560px). Browser tabs and mobile keep t
   tone for destructive items (Supprimer / Archiver), and at most **one** submenu
   level ("Déplacer vers ▸", "Aller à ▸") opening on hover/focus beside the parent
   (flips left near the viewport edge).
+- **Disabled item state (B-249).** An item may be **inert** rather than absent, so a
+  list's item positions never shift between two states of the same row. It renders
+  muted (`opacity:.45`), takes no hover fill, shows the default cursor, and is
+  **neither clickable nor keyboard-activatable** (a real `disabled` control, so it is
+  skipped by Tab and fires no action). Use it only where the entry's absence would
+  move its neighbours; otherwise omit the item.
 - Tokens: panel like the `SelectMenu` dropdown (elevated background + `--border` +
   shadow); item hover per the popmenu recipe; danger items `--danger`-family. No raw
   hex; ≥ 32px item height (mouse-first surface).
@@ -39,11 +45,16 @@ standalone`) **and** the desktop layout (>560px). Browser tabs and mobile keep t
 ## Zones (owner-approved action lists)
 
 - **Repas food line** (desktop grid): _Modifier la quantité_ (focuses the qty cell) ·
-  _Changer l'aliment_ (opens the picker; a custom line shows _Modifier_ → custom
-  modal) · _Déplacer vers ▸_ (the day's **other** meals; same move capability as the
-  drag, B-187) · _Épingler/Désépingler_ (referenced lines only) · _Supprimer_
-  (danger). Garde-manger scaffold pre-fill lines (not yet persisted): _Changer
-  l'aliment_ only. **Empty row**: _Ajouter un aliment ici_ (opens the picker on that
+  **_Remettre à zéro_** (B-249 — sets the served quantity to 0, **keeping the line**,
+  its food, its unit and its pin; quantity 0 is already a designed state, `.zero`
+  mutes the row) · _Changer l'aliment_ (opens the picker; a custom line shows
+  _Modifier_ → custom modal) · _Déplacer vers ▸_ (the day's **other** meals; same move
+  capability as the drag, B-187) · _Épingler/Désépingler_ (referenced lines only) ·
+  _Supprimer_ (danger). _Remettre à zéro_ is present on every **persisted** line and
+  rendered **disabled** when the quantity is already 0, so the item positions never
+  shift. **No confirmation:** line edits go through the undo/redo stack (UR-1/B-133),
+  so a mis-click is undoable — the absence is deliberate. Garde-manger scaffold
+  pre-fill lines (not yet persisted): _Changer l'aliment_ only. **Empty row**: _Ajouter un aliment ici_ (opens the picker on that
   row) · _Valeurs manuelles_, then the generic entries.
 - **Poids period row** (closed periods): _Modifier_ (opens the ending weigh-in's
   sheet) · _Supprimer_ (danger — a dedicated styled confirm, then deletes).

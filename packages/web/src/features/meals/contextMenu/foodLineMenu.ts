@@ -4,10 +4,10 @@ import type { CtxItem, CtxZoneResult } from '../../../components/ContextMenu/men
 // Pure item builder for the Repas food-line context menu (B-195,
 // design/components/context-menu.md). Mirrors the line's existing affordances — every
 // onSelect calls an existing meal action; nothing is computed here. Owner-approved lists:
-// referenced persisted → qty · change food · move ▸ · pin/unpin · delete; custom persisted
-// → edit · move ▸ · delete; scaffold pre-fill (empty id — nothing persisted to move/pin/
-// delete, and the qty focus is id-keyed) → change food only; empty row → add here ·
-// manual values, then the generic block.
+// referenced persisted → qty · zero qty · change food · move ▸ · pin/unpin · delete; custom
+// persisted → edit · zero qty · move ▸ · delete; scaffold pre-fill (empty id — nothing
+// persisted to move/pin/delete/zero, and the qty focus is id-keyed) → change food only; empty
+// row → add here · manual values, then the generic block.
 
 export interface FoodLineMenuCtx {
   mealId: string;
@@ -19,11 +19,34 @@ export interface FoodLineMenuCtx {
   t: (key: string) => string;
   actions: {
     focusQty: (entryId: string) => void;
+    /** Same call the qty cell and the mobile sheet make; used here to zero the line (B-249). */
+    setQty: (
+      mealId: string,
+      mealIndex: number,
+      entry: MealEntry,
+      qty: number,
+      unit: MealEntry['unit'],
+      portionId?: string | null,
+    ) => unknown;
     startEdit: (mealId: string, mealIndex: number, entryId: string | null, row?: number) => void;
     openCustom: (mealId: string, mealIndex: number, entryId: string | null, row?: number) => void;
     togglePin: (mealId: string, id: string, pinned: boolean) => unknown;
     deleteEntry: (mealId: string, id: string) => unknown;
     moveEntry: (sourceMealId: string, entryId: string, targetMealId: string) => unknown;
+  };
+}
+
+/** "Remettre a zero" (B-249): zero the served quantity, keeping the line, its food, its unit and
+ *  its pin - quantity 0 is already a designed state (`.zero` mutes the row, B-107). Rendered
+ *  disabled rather than dropped when already 0, so the items below never shift. No confirmation:
+ *  line edits are undoable (UR-1/B-133). */
+function zeroQtyItem(c: FoodLineMenuCtx, entry: MealEntry): CtxItem {
+  return {
+    key: 'zeroQty',
+    label: c.t('contextMenu.zeroQty'),
+    disabled: entry.served_quantity === 0,
+    onSelect: () =>
+      void c.actions.setQty(c.mealId, c.mealIndex, entry, 0, entry.unit, entry.portion_id),
   };
 }
 
@@ -62,6 +85,7 @@ export function buildFoodLineItems(c: FoodLineMenuCtx): CtxZoneResult {
       };
   if (!entry.id) return { items: [changeFood] };
 
+  const zeroQty = zeroQtyItem(c, entry);
   const others = meals.filter((m) => m.id !== mealId);
   const moveTo: CtxItem[] =
     others.length === 0
@@ -78,13 +102,14 @@ export function buildFoodLineItems(c: FoodLineMenuCtx): CtxZoneResult {
           },
         ];
   const head: CtxItem[] = isCustom
-    ? [changeFood, ...moveTo]
+    ? [changeFood, zeroQty, ...moveTo]
     : [
         {
           key: 'qty',
           label: t('contextMenu.editQty'),
           onSelect: () => actions.focusQty(entry.id),
         },
+        zeroQty,
         changeFood,
         ...moveTo,
         {

@@ -11,6 +11,10 @@ function Item({ item, onClose }: { item: CtxItem; onClose: () => void }) {
     <button
       type="button"
       role="menuitem"
+      // A real `disabled` control (B-249): no click, no Tab stop, no action — so an item can be
+      // shown inert instead of removed, keeping the list's positions stable.
+      disabled={item.disabled}
+      aria-disabled={item.disabled}
       className={`${css.item} ${item.danger ? css.danger : ''} ${item.separator ? css.sep : ''}`}
       onClick={() => {
         onClose();

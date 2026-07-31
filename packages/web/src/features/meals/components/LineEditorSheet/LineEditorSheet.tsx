@@ -131,6 +131,28 @@ function ReferencedControls({ entry, target }: { entry: MealEntry; target: LineS
   return (
     <>
       <QtyRow entry={entry} target={target} />
+      {/* Remettre à zéro (B-249): the sheet's twin of the desktop context-menu entry — zero the
+          quantity while keeping the line, its unit, its portion and its pin. Disabled rather than
+          hidden at 0, so the rows below never shift. Persisted lines only, like pin/delete. */}
+      {entry.id && (
+        <button
+          type="button"
+          className={styles.action}
+          disabled={entry.served_quantity === 0}
+          onClick={() =>
+            void actions.setQty(
+              target.mealId,
+              target.mealIndex,
+              entry,
+              0,
+              entry.unit,
+              entry.portion_id,
+            )
+          }
+        >
+          {t('meals.lineSheet.zeroQty')}
+        </button>
+      )}
       {entry.id && <MoveRow entry={entry} target={target} />}
       {entry.id && (
         <button

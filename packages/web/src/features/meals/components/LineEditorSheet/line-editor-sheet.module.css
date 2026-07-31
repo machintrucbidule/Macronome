@@ -101,8 +101,14 @@
   font-size: var(--fs-13);
   cursor: pointer;
 }
-.action:active {
+.action:active:not(:disabled) {
   background: var(--bg-elev-2);
+}
+/* Inert action (B-249, e.g. "Remettre à zéro" on a line already at 0): shown so the rows keep
+   their positions, but visibly not actionable — mirrors the context menu's disabled item. */
+.action:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 .danger {
   color: var(--nok);

@@ -27,8 +27,13 @@
   padding: 6px var(--sp-5);
   cursor: pointer;
 }
-.item:hover {
+.item:hover:not(:disabled) {
   background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+/* Inert item (B-249): shown so the list's positions never shift, but visibly not actionable. */
+.item:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 
 .danger {

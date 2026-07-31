@@ -41,11 +41,11 @@ const DAY = {
   ],
 } as unknown as DayDetail;
 
-function renderSheet(target: LineSheetTarget) {
+function renderSheet(target: LineSheetTarget, day: DayDetail = DAY) {
   const moveEntry = vi.fn().mockResolvedValue(undefined);
   const closeLineSheet = vi.fn();
   const ctrl = {
-    day: DAY,
+    day,
     actions: {
       moveEntry,
       closeLineSheet,
@@ -62,7 +62,7 @@ function renderSheet(target: LineSheetTarget) {
       <LineEditorSheet target={target} />
     </MealsProvider>,
   );
-  return { moveEntry, closeLineSheet };
+  return { moveEntry, closeLineSheet, setQty: ctrl.actions.setQty };
 }
 
 const label = (): string => i18n.t('meals.lineSheet.moveToMeal');
@@ -116,5 +116,46 @@ describe('LineEditorSheet — move to meal (B-188)', () => {
       </MealsProvider>,
     );
     expect(screen.queryByRole('button', { name: label() })).toBeNull();
+  });
+});
+
+// B-249 — "Remettre à zéro" in the sheet: the mobile twin of the context-menu entry. Zeroes the
+// quantity while keeping the line; disabled (not hidden) when already 0, so the rows below stay put.
+describe('LineEditorSheet — remettre à zéro (B-249)', () => {
+  const zeroLabel = (): string => i18n.t('meals.lineSheet.zeroQty');
+  const target = { mealId: 'm1', mealIndex: 0, entryId: 'e1', orderIndex: 0 };
+
+  const dayWithQty = (qty: number): DayDetail =>
+    ({
+      meals: [
+        {
+          id: 'm1',
+          slot_name: 'Déjeuner',
+          order_index: 0,
+          entries: [{ ...entry('e1'), served_quantity: qty }],
+        },
+        { id: 'm2', slot_name: 'Dîner', order_index: 1, entries: [] },
+      ],
+    }) as unknown as DayDetail;
+
+  it('zeroes the quantity, keeping the line’s unit and portion', () => {
+    const { setQty } = renderSheet(target, dayWithQty(100));
+    fireEvent.click(screen.getByRole('button', { name: zeroLabel() }));
+    expect(setQty).toHaveBeenCalledWith(
+      'm1',
+      0,
+      expect.objectContaining({ id: 'e1' }),
+      0,
+      'g',
+      null,
+    );
+  });
+
+  it('is present but disabled when the line is already at 0', () => {
+    const { setQty } = renderSheet(target, dayWithQty(0));
+    const button = screen.getByRole('button', { name: zeroLabel() });
+    expect(button).toHaveProperty('disabled', true);
+    fireEvent.click(button);
+    expect(setQty).not.toHaveBeenCalled();
   });
 });

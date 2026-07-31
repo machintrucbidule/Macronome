@@ -12,6 +12,7 @@ const meals = [
 
 const makeActions = () => ({
   focusQty: vi.fn(),
+  setQty: vi.fn(),
   startEdit: vi.fn(),
   openCustom: vi.fn(),
   togglePin: vi.fn(),
@@ -20,7 +21,16 @@ const makeActions = () => ({
 });
 
 const entry = (over: Partial<MealEntry>): MealEntry =>
-  ({ id: 'e1', kind: 'referenced', is_pinned: false, order_index: 2, ...over }) as MealEntry;
+  ({
+    id: 'e1',
+    kind: 'referenced',
+    is_pinned: false,
+    order_index: 2,
+    served_quantity: 120,
+    unit: 'g',
+    portion_id: null,
+    ...over,
+  }) as MealEntry;
 
 const build = (e: MealEntry | null, actions = makeActions()) => ({
   actions,
@@ -36,10 +46,11 @@ const build = (e: MealEntry | null, actions = makeActions()) => ({
 });
 
 describe('buildFoodLineItems (B-195)', () => {
-  it('referenced persisted line → qty · change food · move ▸ · pin · delete', () => {
+  it('referenced persisted line → qty · zero qty · change food · move ▸ · pin · delete', () => {
     const { result, actions } = build(entry({}));
     expect(result.items.map((i) => i.key)).toEqual([
       'qty',
+      'zeroQty',
       'changeFood',
       'moveTo',
       'pin',
@@ -66,9 +77,9 @@ describe('buildFoodLineItems (B-195)', () => {
     );
   });
 
-  it('custom persisted line → edit · move ▸ · delete (no pin, no qty)', () => {
+  it('custom persisted line → edit · zero qty · move ▸ · delete (no pin, no qty focus)', () => {
     const { result, actions } = build(entry({ kind: 'custom' }));
-    expect(result.items.map((i) => i.key)).toEqual(['edit', 'moveTo', 'delete']);
+    expect(result.items.map((i) => i.key)).toEqual(['edit', 'zeroQty', 'moveTo', 'delete']);
     result.items.find((i) => i.key === 'edit')?.onSelect?.();
     expect(actions.openCustom).toHaveBeenCalledWith('m1', 0, 'e1');
   });
@@ -102,5 +113,43 @@ describe('buildFoodLineItems (B-195)', () => {
       actions,
     });
     expect(result.items.some((i) => i.key === 'moveTo')).toBe(false);
+  });
+});
+
+// B-249 — "Remettre à zéro": zero the served quantity from the menu that already gathers the
+// line's actions, keeping the line itself. Shown disabled (never dropped) when already 0, so the
+// items below never shift.
+describe('buildFoodLineItems — remettre à zéro (B-249)', () => {
+  it('zeroes the quantity, keeping the unit, the portion and the line', () => {
+    const { result, actions } = build(entry({ unit: 'portion', portion_id: 'p1' }));
+    const item = result.items.find((i) => i.key === 'zeroQty');
+    expect(item?.disabled).toBeFalsy();
+
+    item?.onSelect?.();
+    expect(actions.setQty).toHaveBeenCalledWith(
+      'm1',
+      0,
+      expect.objectContaining({ id: 'e1', unit: 'portion', portion_id: 'p1' }),
+      0,
+      'portion',
+      'p1',
+    );
+    // Nothing destructive was wired to it.
+    expect(actions.deleteEntry).not.toHaveBeenCalled();
+    expect(actions.togglePin).not.toHaveBeenCalled();
+  });
+
+  it('is disabled — not removed — when the line is already at 0', () => {
+    const { result } = build(entry({ served_quantity: 0 }));
+    const keys = result.items.map((i) => i.key);
+    expect(keys).toContain('zeroQty');
+    // The position is unchanged between the two states: that is the point of disabling it.
+    expect(keys).toEqual(['qty', 'zeroQty', 'changeFood', 'moveTo', 'pin', 'delete']);
+    expect(result.items.find((i) => i.key === 'zeroQty')?.disabled).toBe(true);
+  });
+
+  it('is absent where nothing is persisted (scaffold pre-fill line, empty row)', () => {
+    expect(build(entry({ id: '' })).result.items.map((i) => i.key)).not.toContain('zeroQty');
+    expect(build(null).result.items.map((i) => i.key)).not.toContain('zeroQty');
   });
 });

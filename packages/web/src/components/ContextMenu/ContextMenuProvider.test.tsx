@@ -14,16 +14,16 @@ const mocks = vi.hoisted(() => ({ standalone: true, mobile: false }));
 vi.mock('../../lib/useIsStandalone', () => ({ useIsStandalone: () => mocks.standalone }));
 vi.mock('../../lib/useIsMobile', () => ({ useIsMobile: () => mocks.mobile }));
 
-function Zone({ onPick }: { onPick: () => void }) {
+function Zone({ onPick, disabled = false }: { onPick: () => void; disabled?: boolean }) {
   useContextMenuZone((target) =>
     target.closest('[data-zone-row]')
-      ? { items: [{ key: 'z', label: 'Zone action', onSelect: onPick }] }
+      ? { items: [{ key: 'z', label: 'Zone action', disabled, onSelect: onPick }] }
       : null,
   );
   return <div data-zone-row="">row</div>;
 }
 
-function renderApp(zonePick = vi.fn()) {
+function renderApp(zonePick = vi.fn(), disabled = false) {
   const qc = new QueryClient();
   render(
     <QueryClientProvider client={qc}>
@@ -31,7 +31,7 @@ function renderApp(zonePick = vi.fn()) {
         <ContextMenuProvider>
           <div data-testid="plain">plain</div>
           <textarea data-testid="field" />
-          <Zone onPick={zonePick} />
+          <Zone onPick={zonePick} disabled={disabled} />
         </ContextMenuProvider>
       </MemoryRouter>
     </QueryClientProvider>,
@@ -95,5 +95,30 @@ describe('ContextMenuProvider (B-195)', () => {
     expect(screen.getByRole('menu')).toBeTruthy();
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(screen.queryByRole('menu')).toBeNull();
+  });
+});
+
+// B-249: an item may be shown INERT instead of removed, so a list's positions never shift
+// between two states of the same row (design/components/context-menu.md §Anatomy).
+describe('ContextMenu — disabled item (B-249)', () => {
+  it('renders the item as a real disabled control and never fires its action', () => {
+    const onPick = renderApp(vi.fn(), true);
+    fireEvent.contextMenu(screen.getByText('row'));
+
+    const item = screen.getByRole('menuitem', { name: 'Zone action' });
+    expect(item).toHaveProperty('disabled', true);
+    expect(item.getAttribute('aria-disabled')).toBe('true');
+
+    fireEvent.click(item);
+    expect(onPick).not.toHaveBeenCalled();
+    // Still open: a dead click must not dismiss the menu either.
+    expect(screen.queryByRole('menuitem', { name: 'Zone action' })).not.toBeNull();
+  });
+
+  it('an enabled item stays clickable', () => {
+    const onPick = renderApp(vi.fn(), false);
+    fireEvent.contextMenu(screen.getByText('row'));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Zone action' }));
+    expect(onPick).toHaveBeenCalledTimes(1);
   });
 });

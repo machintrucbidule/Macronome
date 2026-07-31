@@ -5408,3 +5408,56 @@ Partiel day. Web (`MealColumn.test.tsx`, 5 new): one-click copy on an empty meal
 garde-manger placeholder still counting as empty, confirm-then-copy on a filled meal, cancel copies
 nothing, and the mobile ⋯ sheet row firing the same action. **Gate:** lint + typecheck +
 check:schema + check:i18n (1087 keys) + 856 unit + 286 integration + **e2e 24/24** green.
+
+---
+
+## QZ-1 / B-249 — « Remettre à zéro » a line's quantity, from the menus that already exist — RESOLVED (owner, 2026-07-31)
+
+**Need.** Zero a line's quantity **without deleting the line** and **without adding a control to the
+row** (already carrying the pin, the delete and the macro cells). Until now: click the quantity
+field and type "0".
+
+**Why it was cheap.** Two facts, both verified in the code: **quantity 0 is already a designed
+state** (`.zero` mutes the whole row, B-107; a garde-manger scaffold line _is_ "pinned, qty 0"), and
+**two menus already gather the line's actions** — the desktop context menu (`foodLineMenu.ts`,
+B-195) and the mobile line-editor sheet. One entry in each costs **zero row width**. The action is
+`setQty(..., 0, entry.unit, entry.portion_id)`, the exact call both surfaces already make: **no
+endpoint, no new action, no domain change**.
+
+**Decision (owner).** A **« Remettre à zéro »** entry setting the served quantity to 0 while keeping
+the line, its food, its unit, its portion and its pin. Desktop: in the right-click line menu, beside
+« Modifier la quantité ». Mobile: in the line sheet, beside the quantity row. Present on every
+**persisted** line (referenced **and** custom) and rendered **disabled when already 0**, so the
+items below never shift. **No confirmation** — line edits go through the undo/redo stack
+(UR-1/B-133), so a mis-click is undoable; the absence is deliberate, not an oversight.
+
+**The real cost — a shared primitive gained a state.** `CtxItem` had `danger`, `separator`,
+`children` and `onSelect` but **no disabled flag**, and nothing in `ContextMenu*` rendered one.
+Added `disabled?: boolean`, honoured as a **real `disabled` button** (not clickable, not a Tab stop,
+`aria-disabled`) with a muted style and the hover fill gated on `:not(:disabled)`. The mobile sheet's
+`.action` got the same treatment. Documented in `design/components/context-menu.md` §Anatomy with the
+rule that bounds it: use it **only** where removing the item would shift its neighbours.
+
+**Known coverage gap, accepted by the owner:** the context menu exists **only in the installed
+window** (`ContextMenuProvider`: `standalone && !isMobile`), so in a browser tab the quantity is
+still typed by hand. Chosen over an in-field affordance (a ✕ inside the 54px quantity cell would
+overlap the value). **Rejected at triage, recorded so they are not re-proposed:** double-click on the
+quantity (hijacks text selection, and invisible) and "an emptied field means 0" (a hidden rule with
+an accidental-erase risk).
+
+**Contract impact.** `design/components/context-menu.md` (the disabled item state + the entry in the
+food-line zone) and `specifications/screens/meals.md` (the entry in the menu list + a paragraph
+covering both surfaces and the browser-tab gap). No API, schema or DTO change.
+
+**Tests.** `foodLineMenu.test.ts`: the entry's position in both persisted lists, `disabled: true` at
+quantity 0 **with the list shape unchanged** (the point of disabling rather than dropping), absent on
+a scaffold pre-fill line and on an empty row, and selecting it calls `setQty` with 0 while the unit
+and portion travel through untouched (and nothing destructive fires).
+`ContextMenuProvider.test.tsx`: a disabled item renders a disabled control, fires no action and does
+not dismiss the menu, while an enabled one still works. `LineEditorSheet.test.tsx`: the sheet button
+zeroes the quantity and is inert at 0. **Gate:** lint + typecheck + check:schema + check:i18n (1089
+keys) + 863 unit + 286 integration + e2e 24/24 green.
+
+**Process note.** Part of this batch was written while plan mode was still active — the owner's
+"exécute" does not lift it; only approving the plan does. Flagged, then the plan was submitted and
+approved before finishing.
