@@ -959,7 +959,12 @@
   "menu": {
     "account": "My account",
     "about": "About",
-    "logout": "Log out"
+    "logout": "Log out",
+    "group": {
+      "account": "Account",
+      "data": "My data",
+      "config": "Configuration"
+    }
   },
   "notFound": {
     "title": "Page not found",

@@ -5195,3 +5195,58 @@ the stashed baseline): `login.spec.ts:49`, `settings.spec.ts:54`, `advices.spec.
 `weight.spec.ts:72`. They fail identically without these changes — e2e only runs in CI on PRs to
 `main`, and this project pushes straight to `main`, so the suite has drifted unnoticed. Flagged to
 the owner for triage; deliberately **not** fixed here (out of this batch's scope).
+
+---
+
+## MENU-1 / B-242 / B-243 — account-menu trigger in accent; menu grouped into titled blocks — RESOLVED (owner, 2026-07-31)
+
+**B-242 — the trigger was too discreet.** Not a defect: `top-nav.md` specified the avatar as
+deliberately neutral (`border:var(--border); color:var(--text)`) and **reserved the accent for the
+open state**. Colouring the closed state would therefore have consumed the very signal that marks
+"open" — the two states had to be **redistributed**, not one repainted.
+
+**Decision (owner):** **closed** = neutral background with **accent border + accent initials**;
+**open** = **filled accent** (`background:var(--accent); color:var(--accent-ink)`), the treatment
+the active nav pill already uses, so closed → open still reads as a state change. The right cluster
+gains the colour anchor it lacked (the neighbouring 💡 stays neutral-by-default per B-202). The
+mobile sheet's trigger keeps its open state in React, not in a `<details>`, so the same look is
+applied there by class (`.acctSummaryOpen`) — both variants follow the contract.
+
+**B-243 — the menu was a flat list of seven interleaved destinations.** They span three natures:
+identity, reference data the user maintains, and application configuration — yet Paramètres sat
+_after_ Utilisateurs while Assistant IA and Intégrations, which belong beside it, sat higher.
+
+**Decision (owner): three titled blocks, then the meta block** —
+COMPTE (Mon compte · Utilisateurs*ᵃᵈᵐⁱⁿ*) · MES DONNÉES (Cibles · Contenants) · CONFIGURATION
+(Paramètres · Assistant IA · Intégrations) · divider · À propos · Se déconnecter. Headings are
+**visible**, in the discreet small-caps style already used for table/card headers. **Submenus were
+rejected with a reason:** the only candidate was folding Assistant IA + Intégrations under a
+"Connexions" entry, but the Assistant IA page was deliberately extracted from Paramètres to be
+autonomous (B-130) — re-nesting it would partly undo that, and a seven-entry menu gains nothing
+from hiding two behind an extra interaction. Presentation note: the menu had **two** dividers (one
+before À propos, one before Se déconnecter); the approved structure keeps **one**, before the meta
+block, so those two entries are now adjacent. No page changed — only the presentation here.
+
+**Contract impact.** `design/components/top-nav.md`: the trigger paragraph (both states) and the
+canonical item set, which becomes a table of the three blocks plus the empty-group rule and the
+"no submenus" rationale; §Mobile account sheet, which re-lists the same set, now points at the same
+blocks. `specifications/masterplan.md:177` (git-ignored local authority) still enumerated
+"Compte · Cibles · Contenants · Paramètres · — · Se déconnecter" — **already stale**, since
+Assistant IA (B-130), Intégrations (B-180), Utilisateurs (B-192), the "Mon compte" rename (B-191)
+and À propos were all added without updating it; rewriting it on the new structure absorbs that
+drift too.
+
+**Code.** `MENU_LINKS` became `MENU_GROUPS` (`{labelKey, items}`) with `visibleGroups()` applying
+the B-192 per-item admin filter and **dropping a group left with no items** (heading included); a
+shared `MenuGroups` component renders the blocks for both variants, so there is no per-variant
+duplication. The headings are real `<h3>`s rather than styled divs — they label sections of the
+menu, so assistive tech announces the grouping (and the markup, not a CSS-module class, is what the
+test can key on: vitest does not process CSS modules). Three new i18n keys `menu.group.*` (fr+en).
+
+**Tests.** `AccountMenu.test.tsx` rewritten: the three headings render in order with each block's
+items under it (full document-order assertion); a non-admin session loses Utilisateurs **but keeps
+the COMPTE heading** (Mon compte remains); the mobile sheet — forced via `matchMedia` and queried
+on `document.body`, since the Modal portals there — shows the same blocks. The previous oracle
+("Utilisateurs between Intégrations and Paramètres") is deliberately gone: that ordering is what
+this batch changes. **Gate:** lint + typecheck + check:schema + check:i18n (1079 keys) + 842 unit +
+279 integration green.

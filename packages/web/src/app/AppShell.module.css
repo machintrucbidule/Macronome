@@ -154,14 +154,18 @@
 .acct {
   position: relative;
 }
+/* B-242: the menu is the only way to the secondary screens, so its opener carries the right
+   cluster's colour anchor — accent border + accent initials when closed (top-nav.md). The
+   accent that used to mark "open" therefore moves up a notch: open is the filled pill, the
+   same treatment as the active nav tab. */
 .acctSummary {
   list-style: none;
   width: 32px;
   height: 32px;
   border-radius: var(--r-pill);
-  border: var(--bw) solid var(--border);
+  border: var(--bw) solid var(--accent);
   background: var(--bg-elev-2);
-  color: var(--text);
+  color: var(--accent);
   cursor: pointer;
   font-family: var(--font-num);
   font-size: var(--fs-12);
@@ -172,9 +176,12 @@
 .acctSummary::-webkit-details-marker {
   display: none;
 }
-.acct[open] > .acctSummary {
-  border-color: var(--accent);
-  color: var(--accent);
+/* Two selectors, one look: <details open> on desktop, a class on the mobile sheet trigger
+   (whose open state lives in React). */
+.acct[open] > .acctSummary,
+.acctSummaryOpen {
+  background: var(--accent);
+  color: var(--accent-ink);
 }
 .acctPop {
   position: absolute;
@@ -209,6 +216,24 @@
   height: var(--bw);
   background: var(--border);
   margin: var(--sp-1) 0;
+}
+/* Block headings (B-243) — the discreet small-caps header used by tables and cards. Two
+   classes because the dropdown and the sheet pad their rows differently. */
+.acctGroup,
+.sheetGroup {
+  margin: 0;
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  font-weight: var(--fw-regular);
+  letter-spacing: var(--ls-caps);
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.acctGroup {
+  padding: var(--sp-3) var(--sp-5) var(--sp-1);
+}
+.sheetGroup {
+  padding: var(--sp-4) var(--sp-3) var(--sp-1);
 }
 .logout {
   color: var(--nok);

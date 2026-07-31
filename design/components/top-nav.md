@@ -53,9 +53,13 @@ primitive yet — this establishes the appbar-icon pattern; the row-hover icon a
 ## Account menu — [AUTO-normalised to acct-pop]
 
 Trigger: a circular avatar button, `--avatar` (32px), `border-radius:50%;
-border:1px solid var(--border); background:var(--bg-elev-2); color:var(--text);
---font-num; --fs-12`, initials ("IV"). Open state: `border-color/color →
-var(--accent)`.
+background:var(--bg-elev-2); --font-num; --fs-12`, initials ("IV").
+**Closed: `border-color:var(--accent); color:var(--accent)`** — the menu is the only way to
+reach the secondary screens, so its opener carries the right cluster's colour anchor (B-242;
+the neighbouring 💡 stays neutral-by-default). **Open: filled accent**
+(`background:var(--accent); color:var(--accent-ink); border-color:var(--accent)`), the same
+treatment as the active nav pill, so closed → open still reads as a state change. Both variants
+(desktop `<details>`, mobile sheet) show both states.
 
 Popover `.acct-pop`: `position:absolute; right:0; top:38px;
 background:var(--bg-elev-2); border:1px solid var(--border-strong);
@@ -63,10 +67,26 @@ border-radius:var(--r-md); box-shadow:var(--shadow); min-width:172px; padding:5p
 z-index:var(--z-menu)`.
 
 Items (canonical set, fixed by masterplan v1.9; "Compte" renamed "Mon compte"
-by B-191; admin-conditional "Utilisateurs" added by B-192):
-**Mon compte · Cibles · Contenants · Utilisateurs*ᵃᵈᵐⁱⁿ* · Paramètres** ·
-`—`(divider `.sep`: 1px border, margin 5px 0) · **Se déconnecter** (`.logout`,
-`color:var(--nok)`).
+by B-191; admin-conditional "Utilisateurs" added by B-192). **Grouped into three titled
+blocks then a meta block (B-243)** — the seven destinations span three natures (identity,
+reference data the user maintains, application configuration) and a flat list interleaved
+them:
+
+| Block heading     | Items                                                         |
+| ----------------- | ------------------------------------------------------------- |
+| **COMPTE**        | Mon compte · Utilisateurs*ᵃᵈᵐⁱⁿ*                              |
+| **MES DONNÉES**   | Cibles · Contenants                                           |
+| **CONFIGURATION** | Paramètres · Assistant IA · Intégrations                      |
+| `—` (divider)     | À propos · **Se déconnecter** (`.logout`, `color:var(--nok)`) |
+
+Block heading: the discreet small-caps header treatment already used for table/card headers —
+`--font-num; --fs-10; uppercase; letter-spacing:var(--ls-caps); color:var(--text-faint)`, not
+interactive. **A group whose items are all filtered out renders no heading** (see conditional
+entries below). **One** divider only, before the meta block; À propos and Se déconnecter are
+adjacent inside it. **No submenus** (B-243): the sole candidate was folding Assistant IA +
+Intégrations under a "Connexions" entry, but the Assistant IA page was deliberately extracted
+from Paramètres to be autonomous (B-130) — a titled block gives the same grouping at no
+interaction cost.
 Item: `display:block; padding:8px 12px; --fs-13; border-radius:var(--r-sm)`;
 hover `background: color-mix(in srgb, var(--accent) 14%, transparent)`.
 
@@ -87,9 +107,9 @@ toggle** (spec §2.1; both move off the bar) — but **keeps the Conseils 💡 l
 its only entry point (see above). The avatar then opens a **bottom sheet**
 (`Modal mobile="sheet"`, overlay taxonomy in `mobile.md` / `modals.md`) instead of the
 `<details>` dropdown. The sheet holds, as comfortable `--tap` rows: the **theme toggle**
-(moved out of the bar) + the canonical secondary destinations **Mon compte · Cibles ·
-Contenants · Assistant IA · Intégrations · Utilisateurs*ᵃᵈᵐⁱⁿ* · Paramètres ·
-À propos · Déconnexion**. Selected via a
+(moved out of the bar) + the canonical secondary destinations **in the same titled blocks as
+the dropdown** (B-243 — COMPTE · MES DONNÉES · CONFIGURATION, then the meta block with
+À propos · Déconnexion); same headings, same order, same empty-group rule. Selected via a
 `useIsMobile()` render-switch — **desktop (≥561px) keeps the exact `<details>` dropdown
 above, untouched** (`AccountMenu.tsx`). See `bottom-nav.md` for the bottom tab bar that
 carries the primary routes on mobile.
