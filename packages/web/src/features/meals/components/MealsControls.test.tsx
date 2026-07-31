@@ -76,6 +76,7 @@ function settings(aiConfigured: boolean): Settings {
     open_period_note: null,
     lines_desktop: 20,
     lines_mobile: 15,
+    min_meal_columns: 4,
     ai: aiConfigured
       ? {
           provider: 'openai_compatible',

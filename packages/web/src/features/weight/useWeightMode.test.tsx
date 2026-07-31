@@ -18,6 +18,7 @@ const SETTINGS: Settings = {
   open_period_note: null,
   lines_desktop: 20,
   lines_mobile: 15,
+  min_meal_columns: 4,
 };
 
 function wrapper({ children }: { children: ReactNode }) {

@@ -3,6 +3,7 @@ import { useIsMobile } from '../../../../lib/useIsMobile';
 import { useSettingsQuery } from '../../../settings/useSettings';
 import { MealColumn } from '../MealColumn/MealColumn';
 import { DEFAULT_LINES_DESKTOP, DEFAULT_LINES_MOBILE } from '../../logic/lineRows';
+import { DEFAULT_MIN_MEAL_COLUMNS } from '../../logic/columnFit';
 import { useMealScroller } from './useMealScroller';
 import { useMealSwipe } from '../../hooks/useMealSwipe';
 import styles from '../../meals.module.css';
@@ -27,11 +28,14 @@ interface MealScrollerProps {
 }
 
 export function MealScroller({ meals, activeIndex, onSwitchMeal }: MealScrollerProps) {
+  const settings = useSettingsQuery().data?.data;
+  // Minimum meal columns (B-244) — module default while the settings load. Desktop-only in
+  // effect: at ≤760px the CSS forces each column full-width, so the count is inert there.
   const { scrollerRef, barRef, colWidth, bar, atStart, atEnd, sync, scrollBy, onThumbDown } =
-    useMealScroller(meals);
+    useMealScroller(meals, settings?.min_meal_columns ?? DEFAULT_MIN_MEAL_COLUMNS);
   const isMobile = useIsMobile();
   // Configurable displayed-line floor (B-203), resolved by viewport and passed to every column.
-  const minLines = resolveMinLines(isMobile, useSettingsQuery().data?.data);
+  const minLines = resolveMinLines(isMobile, settings);
   const swipe = useMealSwipe(isMobile && !!onSwitchMeal, (dir) => {
     const next = Math.min(Math.max(activeIndex + dir, 0), meals.length - 1);
     onSwitchMeal?.(next);

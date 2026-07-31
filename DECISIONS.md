@@ -5250,3 +5250,59 @@ on `document.body`, since the Modal portals there — shows the same blocks. The
 ("Utilisateurs between Intégrations and Paramètres") is deliberately gone: that ordering is what
 this batch changes. **Gate:** lint + typecheck + check:schema + check:i18n (1079 keys) + 842 unit +
 279 integration green.
+
+---
+
+## MEALS-1 / B-244 — a user-set minimum number of meal columns — RESOLVED (owner, 2026-07-31)
+
+**Problem.** On a 1280px window the Repas screen laid out **3 columns for 4 meals**: the 4th was
+only reachable by scrolling. `columnFit` derived the count from the width alone
+(`n = round(width / 400)`) and **never saw how many meals there were**, although `useMealScroller`
+holds `meals.length` right beside it. Four columns therefore needed 1400px of usable width; below
+that the rounding dropped to 3. On 4K — and on 1080p maximised — the computed count already
+exceeded the meal count and `flex-grow: 1` stretched the columns, which is why those widths looked
+right and hid the rule's weakness.
+
+**The physical constraint.** The meal line is a 9-column grid of which **255px are incompressible**;
+everything above that is the food-name column. 400px of column → 145px of name, 311px → 56px, and
+at 254px the name column would go negative and the grid would break. Any "more columns" rule must
+therefore be bounded.
+
+**Decision (owner).** A **user setting** — `min_meal_columns`, integer **1..6, default 4** — in
+Paramètres → « Structure de journée par défaut », beside the two B-203 line floors. Columns take
+priority over name width (at 1244px usable: 4 columns = 311px = 56px of name, accepted). The
+minimum is **honoured only while physically viable**: below a **300px** per-column floor the layout
+falls back to today's automatic rounding, so a narrow window can never break the grid. Final rule,
+now written into `specifications/screens/meals.md` §Layout:
+`n = max(round(width / 400), min(min_meal_columns, floor(width / 300)))`, still ≥ 1 — the setting
+never _reduces_ the automatic count. **Desktop-only in effect:** at ≤760px the scroller stacks and
+the CSS forces `width:100% !important`, so the setting is inert there.
+
+**⚠ The default of 4 is not neutral for existing accounts:** in the ~1036–1436px viewport band it
+yields more, narrower columns than before. The owner chose it over a neutral default of 1 **after**
+being shown that. Recorded so it is never later mistaken for a regression.
+
+**Contract impact.** `specifications/screens/meals.md` §Layout (the integer-fit rule gains the
+minimum clause, the viability floor and the desktop-only note); `spec/api/weight-targets-stats-
+settings.md` §Settings (the DTO gains `min_meal_columns`, 1..6, default 4, out-of-range → 422,
+always present on read); `specifications/screens/settings.md` (the third stepper in the
+day-structure card). No schema change, no migration — `app_user.settings` is already a JSON blob.
+
+**Code.** `logic/columnFit.ts` gains `MIN_VIABLE_COL_WIDTH = 300`, `DEFAULT_MIN_MEAL_COLUMNS = 4`
+and an optional `minColumns` on both `columnFit` and `hasOverflow` — sharing one computation, so
+the ‹ › arrows and the custom scrollbar follow the raised count by construction.
+`useMealScroller` takes it as a parameter (and in its effect deps); `MealScroller` reads it from
+`useSettingsQuery`, which it already used for the line floors. Server side: the three usual lines
+in `services/settings.ts` plus the DTO/Zod in `shared/dto/settings.ts`. The draft/save/clamp rule
+of `MealLinesFields` was **extracted into `useNumberSetting(key, min, max)`** and is now shared by
+all three steppers instead of being duplicated for the new one.
+
+**Tests.** `columnFit.test.ts` gains the owner's table as oracles (1244 / 964 / 764px × minimum 1
+and 4), plus: the 300px floor wins over the setting, the setting never reduces the automatic count,
+and `hasOverflow` follows. New `MealLinesFields.test.tsx` covers the new control **and** a line
+field — proving the hook extraction changed nothing about B-203's behaviour (those fields had no
+test before). Integration: `PATCH /settings {min_meal_columns}` round-trip, 0 and 7 → 422, and the
+default 4 on a fresh account. `settings-pantry.test.ts` crossed the 300-line ceiling with the new
+case, so the settings-blob suite moved to its own `settings-blob.test.ts` (template/pantry/
+containers stayed). **Gate:** lint + typecheck + check:schema + check:i18n (1081 keys) + 851 unit +
+280 integration green.

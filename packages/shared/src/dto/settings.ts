@@ -109,6 +109,9 @@ export interface Settings {
    * rows a meal shows on each layout — user-configurable, defaults desktop 20 / mobile 15. */
   lines_desktop: number;
   lines_mobile: number;
+  /** Minimum meal columns the Repas scroller lays out (B-244), 1..6, default 4 — honoured only
+   * while a 300px per-column floor allows it; inert on the ≤760px stacked layout. */
+  min_meal_columns: number;
 }
 
 /** PATCH /settings — partial; merged onto the stored settings (other keys preserved). */
@@ -122,6 +125,7 @@ export const PatchSettingsSchema = z
     open_period_note: z.string().max(2000).nullable(),
     lines_desktop: z.number().int().min(5).max(50),
     lines_mobile: z.number().int().min(5).max(50),
+    min_meal_columns: z.number().int().min(1).max(6),
   })
   .partial()
   .refine((b) => Object.keys(b).length > 0, { message: 'empty_patch' });

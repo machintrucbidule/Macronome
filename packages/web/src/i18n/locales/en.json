@@ -1154,7 +1154,9 @@
       "add": "+ Add",
       "linesDesktop": "Lines per meal (desktop)",
       "linesMobile": "Lines per meal (mobile)",
-      "linesNote": "Minimum rows shown in each meal (5–50). A fuller meal shows more."
+      "linesNote": "Minimum rows shown in each meal (5–50). A fuller meal shows more.",
+      "minColumns": "Minimum meal columns (desktop)",
+      "minColumnsNote": "Minimum number of meal columns laid out side by side on the Repas screen (1–6), so a normal day needs no scrolling. No effect on a phone, where meals stack; if the window is too narrow to show them legibly, the app lays out fewer on its own."
     },
     "pantry": {
       "title": "Pantry",

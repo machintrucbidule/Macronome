@@ -1154,7 +1154,9 @@
       "add": "+ Ajouter",
       "linesDesktop": "Lignes par repas (ordinateur)",
       "linesMobile": "Lignes par repas (mobile)",
-      "linesNote": "Nombre minimum de lignes affichées dans chaque repas (5–50). Un repas plus rempli en montre davantage."
+      "linesNote": "Nombre minimum de lignes affichées dans chaque repas (5–50). Un repas plus rempli en montre davantage.",
+      "minColumns": "Colonnes de repas minimum (ordinateur)",
+      "minColumnsNote": "Nombre minimum de colonnes affichées côte à côte sur l'écran Repas (1–6), pour éviter d'avoir à faire défiler. Sans effet sur téléphone, où les repas s'empilent ; si la fenêtre est trop étroite pour les afficher lisiblement, l'app en met moins d'elle-même."
     },
     "pantry": {
       "title": "Garde-manger",

@@ -38,6 +38,7 @@ const STORED_DEFAULTS: StoredSettings = {
   open_period_note: null,
   lines_desktop: 20,
   lines_mobile: 15,
+  min_meal_columns: 4,
 };
 
 function storedIntegrations(s: Partial<StoredSettings>): StoredIntegrations {
@@ -60,6 +61,7 @@ function toStored(stored: unknown): StoredSettings {
     open_period_note: s.open_period_note ?? STORED_DEFAULTS.open_period_note,
     lines_desktop: s.lines_desktop ?? STORED_DEFAULTS.lines_desktop,
     lines_mobile: s.lines_mobile ?? STORED_DEFAULTS.lines_mobile,
+    min_meal_columns: s.min_meal_columns ?? STORED_DEFAULTS.min_meal_columns,
   };
 }
 
@@ -91,6 +93,7 @@ export async function patch(userId: string, body: PatchSettingsRequest): Promise
   if (body.open_period_note !== undefined) merged.open_period_note = body.open_period_note;
   if (body.lines_desktop !== undefined) merged.lines_desktop = body.lines_desktop;
   if (body.lines_mobile !== undefined) merged.lines_mobile = body.lines_mobile;
+  if (body.min_meal_columns !== undefined) merged.min_meal_columns = body.min_meal_columns;
   await userRepo.updateSettings(userId, merged);
   return toDto(merged);
 }

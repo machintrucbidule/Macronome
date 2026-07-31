@@ -16,7 +16,9 @@ interface Bar {
   thumbL: number;
 }
 
-export function useMealScroller(meals: Meal[]) {
+// `minColumns` is the user's minimum-columns setting (B-244); it feeds both the width computation
+// and the overflow predicate, so the chrome always matches the laid-out column count.
+export function useMealScroller(meals: Meal[], minColumns = 1) {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const barRef = useRef<HTMLDivElement>(null);
   const [colWidth, setColWidth] = useState(400);
@@ -31,26 +33,26 @@ export function useMealScroller(meals: Meal[]) {
     const { scrollWidth: sw, clientWidth: cw, scrollLeft: sl } = sc;
     // Gate the chrome on a DOM-free, integer test (B-075): genuine overflow ⇔ more meals than the
     // integer-fit columns. Reading scrollWidth here over-triggered on the floor/border residual.
-    const overflow = hasOverflow(cw, meals.length);
+    const overflow = hasOverflow(cw, meals.length, minColumns);
     const thumbW = overflow ? Math.max(40, (cw / sw) * track) : 40;
     const thumbL = overflow && sw > cw ? (sl / (sw - cw)) * (track - thumbW) : 0;
     setBar({ overflow, thumbW, thumbL: Number.isFinite(thumbL) ? thumbL : 0 });
     setAtStart(sl <= 4);
     setAtEnd(sl >= sw - cw - 4);
-  }, [meals.length]);
+  }, [meals.length, minColumns]);
 
   useEffect(() => {
     const sc = scrollerRef.current;
     if (!sc) return;
     const measure = (): void => {
-      setColWidth(columnFit(sc.clientWidth).colWidth);
+      setColWidth(columnFit(sc.clientWidth, minColumns).colWidth);
       sync();
     };
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(sc);
     return () => ro.disconnect();
-  }, [sync, meals.length]);
+  }, [sync, meals.length, minColumns]);
 
   const scrollBy = (dir: 1 | -1): void =>
     scrollerRef.current?.scrollBy({ left: dir * colWidth, behavior: 'smooth' });
