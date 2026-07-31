@@ -7,6 +7,8 @@
   place-items: center;
   min-height: 100vh;
   padding: 24px;
+  /* Reserve the fixed AuthTopBar's band so it can never overlay the card (B-235). */
+  padding-top: calc(24px + var(--auth-topbar-h));
   background: var(--bg);
   color: var(--text);
 }

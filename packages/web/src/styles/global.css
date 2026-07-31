@@ -5,6 +5,15 @@
   box-sizing: border-box;
 }
 
+/* Height of the fixed pre-auth top bar (app/AuthTopBar.module.css: 16px padding + a 34px
+   control + 16px padding). Declared here rather than in tokens.css — that file is the
+   verbatim copy of the design contract — so the four pre-auth pages (login, invite, reset,
+   setup wizard) can reserve the space instead of letting the bar overlay their content
+   (B-235). Keep in sync with .topbar's padding/control height. */
+:root {
+  --auth-topbar-h: 66px;
+}
+
 html,
 body {
   margin: 0;

@@ -7,6 +7,8 @@
   place-items: center;
   min-height: 100vh;
   padding: var(--sp-8);
+  /* Reserve the fixed AuthTopBar's band so it can never overlay the card (B-235). */
+  padding-top: calc(var(--sp-8) + var(--auth-topbar-h));
   background: var(--bg);
   color: var(--text);
 }
@@ -70,6 +72,8 @@
   justify-content: center;
   gap: var(--sp-4);
   padding: var(--sp-8);
+  /* Reserve the fixed AuthTopBar's band so it can never overlay the message (B-235). */
+  padding-top: calc(var(--sp-8) + var(--auth-topbar-h));
   text-align: center;
 }
 .dead h1 {

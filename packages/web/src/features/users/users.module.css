@@ -1,10 +1,10 @@
 /* Utilisateurs desktop view (screens/users.md, B-192). Table per
    design/components/data-tables.md; semantic tokens only (CLAUDE.md rule 6).
-   Structure cribbed from containers.module.css — wider wrap (6 columns). */
+   Structure cribbed from containers.module.css, but the six nowrap columns need the full
+   page width (B-238) — no max-width cap, like the other table screens. */
 
 .wrap {
-  max-width: 960px;
-  margin: 0 auto;
+  width: 100%;
 }
 .toolbar {
   display: flex;
@@ -35,11 +35,16 @@
 .banner {
   margin-bottom: var(--sp-4);
 }
+/* `auto`, not `hidden` (B-238): the six nowrap columns can still exceed a narrow window, and
+   `hidden` clipped the last cell — the delete × — with no way to reach it. A scroll container
+   still clips to the rounded corners, so the frame looks unchanged. Safe here because this
+   thead is not sticky (design/components/data-tables.md: a contained horizontal scroll and an
+   appbar-sticky header cannot coexist). */
 .card {
   background: var(--bg-elev);
   border: var(--bw) solid var(--border);
   border-radius: var(--r-lg);
-  overflow: hidden;
+  overflow: auto;
 }
 .table {
   width: 100%;

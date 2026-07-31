@@ -58,8 +58,12 @@
   color: var(--text-dim);
   font-variant-numeric: tabular-nums;
 }
+/* Wraps (B-236): the three action labels exceed a phone-width card, and with
+   `justify-content: flex-end` a non-wrapping row pushes its overflow off the START edge —
+   the first button (Promouvoir/Rétrograder) disappeared off-screen to the left. */
 .actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: var(--sp-3);
 }

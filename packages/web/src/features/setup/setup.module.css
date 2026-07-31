@@ -1,7 +1,9 @@
 /* First-run setup wizard (M8). Centred single-column card; semantic tokens only. */
 .wizard {
   max-width: 420px;
-  margin: var(--sp-8) auto;
+  /* Top margin reserves the fixed AuthTopBar's band so it can never overlay the title or the
+     top of the form (B-235). */
+  margin: calc(var(--sp-8) + var(--auth-topbar-h)) auto var(--sp-8);
   padding: 0 var(--sp-6);
 }
 .intro {
