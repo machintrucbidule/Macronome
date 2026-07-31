@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { SexSchema } from './profile.js';
+import { LocaleSchema, ThemeSchema } from './settings.js';
 
 // Auth DTOs (spec/api/00-conventions.md §7). One source for controller validation
 // and the web client's request/response types.
@@ -35,11 +36,17 @@ export type PasswordChangeRequest = z.infer<typeof PasswordChangeRequestSchema>;
 export const SetupStateResponseSchema = z.object({ setup_required: z.boolean() });
 export type SetupStateResponse = z.infer<typeof SetupStateResponseSchema>;
 
+// `locale`/`theme` are optional (B-237): the pre-auth bar sends whatever it last applied so the
+// new account's settings start on that choice instead of being overwritten by the stored
+// defaults on first entry. Omitted → today's defaults. RegisterRequestSchema extends this, so
+// the invite path gets them too.
 export const SetupRequestSchema = z.object({
   username: z.string().min(1).max(255),
   password: z.string().min(8).max(1024),
   sex: SexSchema,
   birthdate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'invalid_date'),
   height_cm: z.number().positive(),
+  locale: LocaleSchema.optional(),
+  theme: ThemeSchema.optional(),
 });
 export type SetupRequest = z.infer<typeof SetupRequestSchema>;

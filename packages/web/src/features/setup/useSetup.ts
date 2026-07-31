@@ -5,6 +5,7 @@ import type { Sex } from '@macronome/shared';
 import { ApiError } from '../../api/client';
 import { authApi } from '../../api/auth';
 import { targetApi } from '../../api/target';
+import { currentAppearance } from '../../app/applySettings';
 import { SESSION_KEY } from '../../app/useSession';
 import { SETUP_STATE_KEY } from '../../app/useSetupState';
 
@@ -116,6 +117,9 @@ export function useSetup({ inviteToken }: { inviteToken?: string | undefined } =
         sex: draft.sex as Sex,
         birthdate: draft.birthdate,
         height_cm: Number(draft.heightCm),
+        // The language/theme picked on the pre-auth bar, so the new account's settings start
+        // there instead of on the stored defaults (B-237).
+        ...currentAppearance(),
       };
       if (inviteToken) await authApi.register({ ...fields, token: inviteToken });
       else await authApi.setup(fields);

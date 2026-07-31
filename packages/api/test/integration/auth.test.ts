@@ -298,3 +298,31 @@ describe('auth setup (first-run)', () => {
     expect(res.body.error.code).toBe('validation_error');
   });
 });
+
+// B-237: the pre-auth bar's language/theme reach the server, so the settings sync on first entry
+// re-applies the user's own choice instead of overwriting it with the stored defaults.
+describe('auth setup — appearance seeding (B-237)', () => {
+  it('seeds the account settings from the locale/theme the wizard sends', async () => {
+    const { agent, csrf } = await csrfAgent();
+    const res = await agent
+      .post('/api/v1/auth/setup')
+      .set('x-csrf-token', csrf)
+      .send({ ...VALID_SETUP, locale: 'en', theme: 'light' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.user).toMatchObject({ locale: 'en', theme: 'light' });
+
+    const settings = await agent.get('/api/v1/settings');
+    expect(settings.status).toBe(200);
+    expect(settings.body.data).toMatchObject({ locale: 'en', theme: 'light' });
+  });
+
+  it('keeps the fr/dark defaults when the wizard sends neither', async () => {
+    const { agent, csrf } = await csrfAgent();
+    const res = await agent.post('/api/v1/auth/setup').set('x-csrf-token', csrf).send(VALID_SETUP);
+
+    expect(res.status).toBe(200);
+    const settings = await agent.get('/api/v1/settings');
+    expect(settings.body.data).toMatchObject({ locale: 'fr', theme: 'dark' });
+  });
+});

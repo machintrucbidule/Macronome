@@ -187,6 +187,22 @@ describe('token links — registration (§7 carve-out, B-193)', () => {
     expect(again.body.error.code).toBe('token_invalid');
   });
 
+  it('seeds the invited account settings from the locale/theme sent (B-237)', async () => {
+    const token = await mintInvite(false);
+    const anon = await anonAgent();
+    const res = await csrfPost(anon.agent, anon.csrf, '/api/v1/auth/register', {
+      ...REGISTER_FIELDS,
+      token,
+      locale: 'en',
+      theme: 'light',
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body.user).toMatchObject({ locale: 'en', theme: 'light' });
+    const settings = await anon.agent.get('/api/v1/settings');
+    expect(settings.body.data).toMatchObject({ locale: 'en', theme: 'light' });
+  });
+
   it('honours the admin role chosen at creation', async () => {
     const token = await mintInvite(true);
     const anon = await anonAgent();

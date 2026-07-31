@@ -15,6 +15,9 @@ their data (owner decision, B-192).
 
 `AdminUser = {id, username, is_admin, created_at, last_login_at|null,
 last_seen_at|null}` — instants ISO-8601 UTC (`last_*` per B-190).
+`last_seen_at` is refreshed at most **once per 5 minutes** per user
+(`00-conventions.md` §7), so a listed stamp can lag real activity by up to that
+window — deliberate, to avoid a database write on every request (B-239).
 
 ## Endpoints
 

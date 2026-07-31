@@ -2,8 +2,10 @@ import type {
   AiConnection,
   DietFlag,
   GoogleDriveConnection,
+  Locale,
   PatchSettingsRequest,
   Settings,
+  Theme,
 } from '@macronome/shared';
 import { userRepo } from '../data/repositories/user.repo.js';
 import { mergeAi, redact } from '../domain/ai-connection/index.js';
@@ -91,6 +93,28 @@ export async function patch(userId: string, body: PatchSettingsRequest): Promise
   if (body.lines_mobile !== undefined) merged.lines_mobile = body.lines_mobile;
   await userRepo.updateSettings(userId, merged);
   return toDto(merged);
+}
+
+/**
+ * Seed a brand-new account's appearance from the choice made on the pre-auth bar (B-237).
+ * Both fields are optional: with neither, nothing is written and the account keeps the stored
+ * defaults exactly as before. Returns the effective pair so the caller can put it in the
+ * SessionUser without re-deriving the defaults.
+ */
+export async function seedAppearance(
+  userId: string,
+  input: { locale?: Locale | undefined; theme?: Theme | undefined },
+): Promise<{ locale: Locale; theme: Theme }> {
+  const effective = {
+    locale: input.locale ?? STORED_DEFAULTS.locale,
+    theme: input.theme ?? STORED_DEFAULTS.theme,
+  };
+  if (input.locale === undefined && input.theme === undefined) return effective;
+
+  const user = await userRepo.findById(userId);
+  if (!user) return effective;
+  await userRepo.updateSettings(userId, { ...toStored(user.settings), ...effective });
+  return effective;
 }
 
 /** The persisted Régime/Maintien mode, or null when unset (Weight read-model gate). */

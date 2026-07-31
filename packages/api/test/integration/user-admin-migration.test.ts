@@ -8,7 +8,7 @@ import { userRepo } from '../../src/data/repositories/user.repo.js';
 import { authedAgent } from './helpers.js';
 
 // B-190 — the upgrade migration's promote backfill, and the last_seen_at activity
-// stamp (throttled to one write per hour). The ALTERs are exercised by CI's migrate
+// stamp (throttled to one write per 5 minutes since B-239). The ALTERs are exercised by CI's migrate
 // step on a fresh database; here we re-run the shipped UPDATE out of migration
 // context to verify its promote semantics against a pre-upgrade-shaped row.
 const app = createApp();
@@ -75,8 +75,8 @@ describe('user_admin_last_login migration — promote backfill (B-190)', () => {
   });
 });
 
-describe('last_seen_at activity stamp (B-190)', () => {
-  it('recordActivity stamps a null or stale (>1h) last_seen_at', async () => {
+describe('last_seen_at activity stamp (B-190, 5-minute window per B-239)', () => {
+  it('recordActivity stamps a null or stale (>5 min) last_seen_at', async () => {
     const user = await seedStandardUser('alice');
     expect(await lastSeen(user.id)).toBeNull();
 
@@ -84,16 +84,17 @@ describe('last_seen_at activity stamp (B-190)', () => {
     const first = await lastSeen(user.id);
     expect(first).not.toBeNull();
 
-    const stale = new Date(Date.now() - 2 * 3600_000);
+    // Just past the window: an hour-old stamp used to be needed, 6 minutes now suffice (B-239).
+    const stale = new Date(Date.now() - 6 * 60_000);
     await setLastSeen(user.id, stale);
     await userRepo.recordActivity(user.id);
     const refreshed = await lastSeen(user.id);
     expect(refreshed!.getTime()).toBeGreaterThan(stale.getTime());
   });
 
-  it('recordActivity is throttled: a recent (<1h) stamp is left untouched', async () => {
+  it('recordActivity is throttled: a recent (<5 min) stamp is left untouched', async () => {
     const user = await seedStandardUser('alice');
-    const recent = new Date(Date.now() - 30 * 60_000);
+    const recent = new Date(Date.now() - 2 * 60_000);
     await setLastSeen(user.id, recent);
 
     await userRepo.recordActivity(user.id);

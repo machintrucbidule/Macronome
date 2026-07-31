@@ -75,6 +75,11 @@ describe('SetupWizard targets step (B-059)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Créer le compte' }));
 
     await waitFor(() => expect(authApi.setup).toHaveBeenCalledTimes(1));
+    // B-237: the payload carries the pre-auth language/theme so the account starts on that choice.
+    expect(vi.mocked(authApi.setup).mock.calls[0]![0]).toMatchObject({
+      locale: 'fr',
+      theme: 'dark',
+    });
     await waitFor(() =>
       expect(createSpy).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -87,5 +92,31 @@ describe('SetupWizard targets step (B-059)', () => {
         }),
       ),
     );
+  });
+
+  // B-237: picking EN on the pre-auth bar used to die with the wizard — the account was created
+  // with the fr default and the settings sync put French back on first entry.
+  it('sends the language chosen before submitting (B-237)', async () => {
+    vi.spyOn(authApi, 'setup').mockResolvedValue({
+      user: { id: '1', username: 'owner', locale: 'en', theme: 'dark' },
+    } as never);
+    vi.spyOn(targetApi, 'create').mockResolvedValue({} as never);
+    await i18n.changeLanguage('en');
+
+    renderWizard();
+    fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'owner' } });
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'correct-horse' } });
+    fireEvent.change(screen.getByLabelText('Confirm password'), {
+      target: { value: 'correct-horse' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    fireEvent.change(screen.getByLabelText('Sex'), { target: { value: 'male' } });
+    fireEvent.change(screen.getByLabelText('Date of birth'), { target: { value: '1990-01-01' } });
+    fireEvent.change(screen.getByLabelText(/Height/), { target: { value: '180' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+
+    await waitFor(() => expect(authApi.setup).toHaveBeenCalledTimes(1));
+    expect(vi.mocked(authApi.setup).mock.calls[0]![0]).toMatchObject({ locale: 'en' });
   });
 });

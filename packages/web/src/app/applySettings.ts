@@ -43,3 +43,17 @@ export function applyLocale(locale: Locale): void {
   if (i18n.language !== locale) void i18n.changeLanguage(locale);
   document.documentElement.setAttribute('lang', locale);
 }
+
+// What the pre-auth bar has applied so far: the live i18next language and the stored theme mode
+// (the same localStorage key ThemeToggle and ThemeProvider use). Sent with an account-creation
+// payload so the choice is persisted server-side instead of being overwritten by the stored
+// defaults on first entry (B-237). Falls back to the app defaults on anything unexpected.
+export function currentAppearance(): { locale: Locale; theme: Theme } {
+  const language = i18n.language?.slice(0, 2);
+  const stored =
+    typeof localStorage === 'undefined' ? null : localStorage.getItem(THEME_STORAGE_KEY);
+  return {
+    locale: language === 'en' ? 'en' : 'fr',
+    theme: stored === 'light' || stored === 'system' || stored === 'dark' ? stored : 'dark',
+  };
+}

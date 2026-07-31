@@ -5081,3 +5081,58 @@ job). `Autocomplete.test.tsx` (B-023/B-159/B-105) passes **unmodified** — with
 verdict is `false`, so the existing rendering is unchanged. **Gate:** lint (0 warnings) + typecheck +
 check:i18n + 831 unit + 276 integration + web build green; the compiled CSS was checked for the
 compound `.ac.up` selector.
+
+---
+
+## ACC-1 / B-237 / B-239 — appearance seeded at account creation; `last_seen_at` throttle narrowed to 5 minutes — RESOLVED (owner, 2026-07-31)
+
+**B-237 — the language (and theme) picked during registration were discarded on first entry.** The
+account-creation payload carried only `{username, password, sex, birthdate, height_cm}`, and the
+pre-auth FR/EN + theme controls apply **client-side only** (`applyLocale` / `ThemeToggle`). The
+account was therefore created on the stored defaults (`fr` / `dark`) and, on arrival, `SettingsSync`
+fetched `GET /settings` and applied those defaults over the user's choice — the theme's localStorage
+fast-path survived the reload but was overwritten by the same sync.
+
+**Decision (owner): persist both.** `POST /auth/setup` and `POST /auth/register` accept **optional**
+`locale` and `theme` (same literals as `GET/PATCH /settings`) which **initialise the new account's
+settings**; the web sends whatever the pre-auth bar last applied. Optional keeps the change additive:
+omitted → today's `fr`/`dark` behaviour, unchanged, and every existing client keeps working.
+
+**Contract impact.** `spec/api/00-conventions.md` §7 — the two request bodies gain `locale?, theme?`
+with a sentence on what they do. No schema change (`app_user.settings` is already a JSON blob), no
+migration, no new endpoint.
+
+**Code.** `packages/shared/src/dto/auth.ts` (`SetupRequestSchema`; `RegisterRequestSchema` extends it,
+so the invite path is covered by construction); `packages/api/src/services/settings.ts` — new
+`seedAppearance(userId, {locale?, theme?})`, which writes **only** when something was sent, merges
+through the existing `toStored`/`STORED_DEFAULTS` (no duplicated defaults) and returns the effective
+pair; `packages/api/src/services/account-create.ts` uses it for the `SessionUser` instead of the
+hardcoded `'fr'`/`'dark'` — one shared creation path, so wizard and invite both benefit;
+`packages/web/src/app/applySettings.ts` — new pure `currentAppearance()` (live i18next language +
+the `macronome.theme` localStorage mode already shared by `ThemeToggle`/`ThemeProvider`), spread into
+the `useSetup` payload.
+
+**B-239 — « Dernière activité » lagged by up to an hour.** The mechanism was working: `requireAuth`
+calls `recordActivity` on every authenticated request, but its SQL guard only wrote when the stamp
+was older than **one hour** (B-190, to avoid a write per request), so the displayed value could be 59
+minutes stale and read as frozen.
+
+**Decision (owner): narrow the window to 5 minutes.** Cost stays bounded — at most one tiny raw
+UPDATE per user per 5 minutes, still not bumping `updated_at`, still fire-and-forget.
+
+**Contract impact.** The granularity **was** stated in a contract (contrary to the triage note):
+`spec/api/00-conventions.md` §7 said "throttled to one write per hour per user" → now "per 5
+minutes". `spec/api/users-admin.md` gains one sentence so a reader of `AdminUser.last_seen_at` knows
+the displayed stamp can lag by up to that window without digging into the SQL.
+
+**Code.** `packages/api/src/data/repositories/user.repo.ts` (`interval '1 hour'` → `'5 minutes'`) and
+the comment in `http/middleware/auth.ts`.
+
+**Tests.** API integration: setup/register with `locale:'en'`/`theme:'light'` → that `SessionUser`
+**and** that `GET /settings` (`auth.test.ts`, `account-tokens.test.ts`), plus a test pinning the
+`fr`/`dark` defaults when the fields are omitted. The two `recordActivity` throttle tests
+(`user-admin-migration.test.ts`) were rewritten onto the new window — the old "recent" case used 30
+minutes, which is _stale_ under a 5-minute throttle: recent = 2 min (no write), stale = 6 min
+(write), `null` still writes. Web: `currentAppearance` unit tests (defaults, live language + stored
+theme, `system` kept / unknown value ignored) and a `SetupWizard` test creating the account in
+English and asserting the payload carries `locale: 'en'`.

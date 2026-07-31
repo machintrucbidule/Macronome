@@ -18,18 +18,24 @@ Base path `/api/v1`. See `logic/*` for computation rules.
 - `GET /api/v1/auth/session` — 200 current user (same `{user}` shape as login)
   or 401.
 - Every authenticated request refreshes `app_user.last_seen_at`, throttled to
-  one write per hour per user; the stamp is fire-and-forget (never blocks or
-  fails the request). (B-190)
+  one write per **5 minutes** per user; the stamp is fire-and-forget (never
+  blocks or fails the request). (B-190; window narrowed from one hour by B-239 —
+  an hour-old stamp read as "frozen" on the Utilisateurs screen.)
 - Password change is a dedicated secure flow (not a plain field):
   `POST /api/v1/auth/password` (current + new); never logged.
 - First-run bootstrap (single owner account):
   - `GET /api/v1/auth/setup-state` — unauthenticated, non-enumerating; 200
     `{setup_required}` (whether _any_ user exists yet; never reveals _which_).
-  - `POST /api/v1/auth/setup` — body `{username, password, sex, birthdate, height_cm}`.
+  - `POST /api/v1/auth/setup` — body `{username, password, sex, birthdate,
+height_cm, locale?, theme?}`.
     Allowed **only while no user exists**; creates the single owner **as admin**
     (`is_admin = true`), seeds defaults, opens the session (stamping
     `last_login_at`/`last_seen_at` like a login). Once an owner exists → **409**
     `{error:{code:'setup_already_completed'}}` (creates nothing).
+    `locale` / `theme` are **optional** (same literals as `GET/PATCH /settings`)
+    and **initialise the new account's settings**, so the language and theme
+    picked on the pre-auth bar survive first entry; omitted → the stored
+    defaults (`fr` / `dark`) as before. (B-237)
 - **No open/public sign-up.** Account creation is limited to the one-shot,
   zero-user-gated first-run setup above, plus **token-gated registration via
   admin-generated invitations** (B-193 — a deliberate, owner-approved carve-out
@@ -42,7 +48,9 @@ Base path `/api/v1`. See `logic/*` for computation rules.
     `{valid, kind?, is_admin?}` (non-enumerating probe for the invite/reset
     pages; `kind ∈ 'invite'|'password_reset'`).
   - `POST /api/v1/auth/register` — body `{token, username, password, sex,
-birthdate, height_cm}` (the setup payload + token). Creates the account with
+birthdate, height_cm, locale?, theme?}` (the setup payload + token; the two
+    optional appearance fields behave exactly as on `/auth/setup` — B-237).
+    Creates the account with
     the invite's role, seeds defaults, consumes the token, opens the session →
     200 `{user}`. Errors: **409** `{error:{code:'token_invalid'}}` (invalid /
     expired / revoked / wrong-kind — one non-enumerating code) and **409**

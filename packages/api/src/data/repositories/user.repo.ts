@@ -78,12 +78,14 @@ export const userRepo = {
   },
 
   /** Refresh last_seen_at on authenticated activity; the SQL guard throttles to
-   *  one write per hour per user (B-190). Raw so updated_at is not bumped. */
+   *  one write per 5 minutes per user (B-190; narrowed from an hour by B-239, whose
+   *  staleness made the Utilisateurs stamp look frozen). Raw so updated_at is not
+   *  bumped. */
   async recordActivity(id: string): Promise<void> {
     await prisma.$executeRaw`
       UPDATE "app_user" SET "last_seen_at" = now()
       WHERE "id" = ${id}::uuid
-        AND ("last_seen_at" IS NULL OR "last_seen_at" < now() - interval '1 hour')`;
+        AND ("last_seen_at" IS NULL OR "last_seen_at" < now() - interval '5 minutes')`;
   },
 
   /** Replace the whole settings JSON blob (the service merges before calling). */
