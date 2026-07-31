@@ -90,6 +90,33 @@ condition as `estimated_burn`.
 - `POST /days/:date/meals` — `{slot_name, order_index}` → 201.
 - `PATCH /days/:date/meals/:mealId` — rename / reorder → 200.
 - `DELETE /days/:date/meals/:mealId` → 204.
+- `POST /meals/:mealId/copy-from` — **replace one meal with a copy of the matching meal
+  of another day** (CP-2 / B-248). Body `{from:"YYYY-MM-DD"}`. The day-level
+  `/days/:date/copy-from` above replaces the **whole** day; this is its per-meal
+  counterpart, for the common case where a single meal repeats.
+  - **Source matching: by name, else by position.** The source meal is the one of `from`
+    whose `slot_name` equals the target's; failing that, the one at the target's
+    `order_index`. Renaming a meal therefore never silently copies the wrong one.
+  - **Replace, not append:** the target meal's entries and leftover groups are dropped
+    first, then rebuilt from the source — one rule shared with the day-level copy.
+  - **Semantics inherited from the day-level copy** (same guarantees, not re-decided):
+    entries carry their **frozen macro snapshots**, **leftover groups verbatim** (frozen
+    container value included), and the **garde-manger is not re-applied** (a food pinned
+    after `from` is not injected). Unlike the **day-level** copy, this one **keeps the day's
+    `verdict_override`**: replacing one meal is an edit of the day's lines, and a line edit
+    has never cleared a forced verdict. `verdict_auto` follows the new totals on read, like
+    after any line write; `comment` and `activity_level` are untouched.
+  - **Nothing to copy → 409 `copy_source_empty`, nothing written:** the source day is
+    absent or has no served line, the matched meal has no served line, or `from` is a
+    **summary (Partiel)** day (it has no meals to take).
+  - **No matching meal → 409 `copy_meal_not_found`** (the only new code): `from` has
+    content but neither a same-named meal nor one at that position (fewer meals that day).
+  - `from` equal to the target meal's own date, or an invalid date → **422**. Unknown meal /
+    another user's meal → **404**. A **summary (Partiel) target** carries no meals at all
+    (converting a day discards them), so its ids are already gone and the call 404s; the
+    `summary_day_readonly` guard is kept server-side as an unreachable safety net.
+  - → **200 DayDetail** (the same payload as the day-level copy, so one round-trip
+    refreshes totals, verdict and constat).
 
 ## Meal entries
 

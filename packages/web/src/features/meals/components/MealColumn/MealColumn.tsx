@@ -8,18 +8,29 @@ import { eligibleIds } from '../../logic/selectionSum';
 import { useLineDnd } from '../../hooks/useLineDnd';
 import { useTouchReorder } from '../../hooks/useTouchReorder';
 import { useMealPhotoEntry } from '../../hooks/useMealPhotoEntry';
-import { FoodLine } from '../FoodLine/FoodLine';
-import { LineHeader } from './LineHeader';
+import { MealLines } from './MealLines';
 import { MealHeader } from './MealHeader';
 import { MealPhotoButton } from './MealPhotoButton';
 import { MealPhotoFeedback } from './MealPhotoFeedback';
 import { MealFooter } from './MealFooter';
-import { MealDeleteConfirm } from './MealDeleteConfirm';
+import { MealColumnConfirms } from './MealColumnConfirms';
 import styles from './meal-column.module.css';
 
 // One meal as a column: header + sub-header + the lines + footer totals. Each entry sits at
 // its order_index row; the remaining rows are clickable "+ aliment" empties (B-028). The grip
 // drag-reorders lines (B-029). Domain values come from the server (the web never computes).
+
+// Is this row the one being edited? Pure: the inline-search target is (mealIndex, entryId) for a
+// filled line, or (mealIndex, orderIndex) for an empty row being added into.
+type EditTarget = ReturnType<typeof useMeals>['editing'];
+function editingPredicate(editing: EditTarget, mealIndex: number) {
+  return (row: number, entry: MealEntry | null): boolean => {
+    if (!editing || editing.mealIndex !== mealIndex) return false;
+    return entry
+      ? editing.entryId === entry.id
+      : editing.entryId === null && editing.orderIndex === row;
+  };
+}
 
 // Swap two meals' order_index (the header's move left/right arrows).
 function swapMeals(mutations: ReturnType<typeof useMeals>['mutations'], a: Meal, b: Meal): void {
@@ -46,6 +57,13 @@ export function MealColumn(props: MealColumnProps) {
   const { t } = useTranslation();
   const { editing, mutations, actions, lineDragRef } = useMeals();
   const [confirming, setConfirming] = useState(false);
+  // Copier le repas de la veille (CP-2/B-248): confirm ONLY when there is content to lose;
+  // an empty meal — the common case — copies straight away.
+  const [copying, setCopying] = useState(false);
+  const copyMeal = (): void => void actions.copyMealYesterday(meal.id, meal.order_index);
+  // "Content to lose" is a served line — a qty-0 garde-manger placeholder is not, mirroring the
+  // server's own emptiness rule, so a freshly pre-filled meal still copies in one click.
+  const hasContent = meal.entries.some((e) => e.served_quantity > 0);
   const isMobile = useIsMobile();
   // Configurable per-meal line floor (B-203); fall back to the viewport default in direct renders.
   const floor = minLines ?? (isMobile ? DEFAULT_LINES_MOBILE : DEFAULT_LINES_DESKTOP);
@@ -66,12 +84,7 @@ export function MealColumn(props: MealColumnProps) {
   // Mobile one-tap photo → AI → custom line (QP-1/B-158); wiring + state live in the hook.
   const photo = useMealPhotoEntry(meal);
 
-  const isEditing = (row: number, entry: MealEntry | null): boolean => {
-    if (!editing || editing.mealIndex !== meal.order_index) return false;
-    return entry
-      ? editing.entryId === entry.id
-      : editing.entryId === null && editing.orderIndex === row;
-  };
+  const isEditing = editingPredicate(editing, meal.order_index);
 
   return (
     <div
@@ -87,6 +100,7 @@ export function MealColumn(props: MealColumnProps) {
         canMoveLeft={index > 0}
         canMoveRight={index < meals.length - 1}
         onCook={() => actions.openCook(meal.id)}
+        onCopyYesterday={() => (hasContent ? setCopying(true) : copyMeal())}
         onRename={() => {
           const next = window.prompt(t('meals.meal.renamePrompt'), meal.slot_name);
           if (next) void actions.renameMeal(meal.id, next);
@@ -99,32 +113,30 @@ export function MealColumn(props: MealColumnProps) {
         extra={photo.ready ? <MealPhotoButton busy={photo.busy} onClick={photo.trigger} /> : null}
       />
       <MealPhotoFeedback photo={photo} />
-      <div className={styles.lines}>
-        <LineHeader />
-        {rows.map(({ row, entry }) => (
-          <FoodLine
-            key={entry?.id || `empty-${row}`}
-            mealId={meal.id}
-            mealIndex={meal.order_index}
-            row={row}
-            entry={entry}
-            editing={isEditing(row, entry)}
-            dnd={dnd}
-            touch={touch}
-          />
-        ))}
-      </div>
+      <MealLines
+        mealId={meal.id}
+        mealIndex={meal.order_index}
+        rows={rows}
+        isEditing={isEditing}
+        dnd={dnd}
+        touch={touch}
+      />
       <MealFooter mealId={meal.id} totals={meal.totals} entryIds={eligibleIds(meal)} />
-      {confirming && (
-        <MealDeleteConfirm
-          name={meal.slot_name}
-          onCancel={() => setConfirming(false)}
-          onConfirm={() => {
-            setConfirming(false);
-            void actions.deleteMeal(meal.id);
-          }}
-        />
-      )}
+      <MealColumnConfirms
+        name={meal.slot_name}
+        copying={copying}
+        deleting={confirming}
+        onCancelCopy={() => setCopying(false)}
+        onConfirmCopy={() => {
+          setCopying(false);
+          copyMeal();
+        }}
+        onCancelDelete={() => setConfirming(false)}
+        onConfirmDelete={() => {
+          setConfirming(false);
+          void actions.deleteMeal(meal.id);
+        }}
+      />
     </div>
   );
 }

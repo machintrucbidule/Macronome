@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import * as entries from '../controllers/entries.js';
 import * as leftover from '../controllers/leftover.js';
+import * as mealCopy from '../controllers/meal-copy.js';
 import { asyncHandler } from '../async-handler.js';
 import { requireAuth } from '../middleware/auth.js';
 
@@ -11,6 +12,8 @@ import { requireAuth } from '../middleware/auth.js';
 const router = Router();
 
 router.use(requireAuth);
+// Per-meal copy from another day (CP-2 / B-248) — the day-level counterpart is on /days.
+router.post('/:mealId/copy-from', asyncHandler(mealCopy.copyFrom));
 router.post('/:mealId/entries', asyncHandler(entries.create));
 // `entries/order` must precede `entries/:id` so it isn't captured as an id.
 router.patch('/:mealId/entries/order', asyncHandler(entries.reorder));

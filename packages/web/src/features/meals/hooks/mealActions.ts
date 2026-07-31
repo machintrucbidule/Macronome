@@ -206,8 +206,18 @@ function customActions(d: MealActionDeps, run: Run, resolveMealId: ResolveMealId
   };
 }
 
-function dayActions(d: MealActionDeps, run: Run) {
+function dayActions(d: MealActionDeps, run: Run, resolveMealId: ResolveMealId) {
   return {
+    // Copier le repas de la veille (CP-2 / B-248): replaces ONE meal with its counterpart of
+    // date−1. The slot may still be a scaffold on a fresh day, so the id is resolved (which
+    // materializes) exactly like every other meal action.
+    copyMealYesterday: (mealId: string, mealIndex: number) =>
+      run(
+        (async () => {
+          const id = await resolveMealId(mealId, mealIndex);
+          await d.day.copyMeal.mutateAsync({ mealId: id, from: shiftIso(d.date, -1) });
+        })(),
+      ),
     addMeal: (slot_name: string, order_index: number) =>
       run(d.day.createMeal.mutateAsync({ slot_name, order_index })),
     renameMeal: (mealId: string, slot_name: string) =>
@@ -264,7 +274,7 @@ export function createMealActions(d: MealActionDeps) {
     ...editLineActions(d, run, resolveEntry),
     ...moveLineActions(d, run),
     ...customActions(d, run, resolveMealId),
-    ...dayActions(d, run),
+    ...dayActions(d, run, resolveMealId),
   };
 }
 

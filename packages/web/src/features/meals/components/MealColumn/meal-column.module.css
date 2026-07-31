@@ -77,6 +77,25 @@
   border-color: var(--accent);
 }
 
+/* Copy-yesterday button (CP-2/B-248): the exact .cookBtn box, immediately left of it, with a
+   "‹" badge on the clipboard icon (design/components/data-tables.md §meal column header). It
+   reuses the badge construction of the photo button below. Hidden ≤560px with .cookBtn — the
+   action moves into the meal ⋯ sheet there. */
+.copyBtn {
+  border: 1px solid var(--border);
+  background: var(--bg-elev-2);
+  color: var(--text-dim);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-14);
+  line-height: 1;
+  padding: 5px 8px;
+  cursor: pointer;
+}
+.copyBtn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
 /* Mobile one-tap photo entry (QP-1/B-158): same size as .cookBtn (never taller; may be a touch
    wider), with a small "+" badge on the camera icon's top-right corner. Mounts only on the phone
    layout (the component is gated), so no media query is needed here. */
@@ -99,12 +118,15 @@
   cursor: default;
 }
 /* The badge anchors to the icon (not the button), so it hugs the camera's top-right corner and
-   may overflow the glyph slightly while staying inside the button. */
+   may overflow the glyph slightly while staying inside the button. `.copyIcon`/`.copyBadge`
+   (B-248) are the same construction for the 📋‹ button. */
+.copyIcon,
 .photoIcon {
   position: relative;
   display: inline-block;
   line-height: 1;
 }
+.copyBadge,
 .photoBadge {
   position: absolute;
   top: -6px;
@@ -259,7 +281,8 @@
    the cook takeover never opens). The footer ⊟ Restes button stays (owner correction 2026-06-11);
    its popup opens as a bottom sheet. Desktop keeps the 🍳 button. */
 @media (max-width: 560px) {
-  .cookBtn {
+  .cookBtn,
+  .copyBtn {
     display: none;
   }
   /* Drop the redundant "Total" label on the phone footer (B-162); the ⊟ Restes button and the

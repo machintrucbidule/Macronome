@@ -28,6 +28,8 @@ export enum ErrorCode {
   WouldCreateCycle = 'would_create_cycle',
   PantryDuplicate = 'pantry_duplicate',
   CopySourceEmpty = 'copy_source_empty',
+  /** Per-meal copy (CP-2/B-248): the source day has content but no meal matching by name or rank. */
+  CopyMealNotFound = 'copy_meal_not_found',
 
   // admin user management (B-192) + token links (B-193/B-194)
   LastAdmin = 'last_admin',

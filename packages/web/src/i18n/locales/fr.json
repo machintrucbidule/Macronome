@@ -363,7 +363,7 @@
     "today": "Aujourd'hui",
     "addMeal": "+ Repas",
     "clearAll": "Tout effacer",
-    "copyYesterday": "Copier hier",
+    "copyYesterday": "Tout copier hier",
     "undo": "Annuler (Ctrl+Z)",
     "redo": "Rétablir (Ctrl+Y)",
     "dayMenu": {
@@ -474,7 +474,7 @@
     "copy": {
       "title": "Copier les repas d'hier ?",
       "prompt": "Le contenu de ce jour sera remplacé par une copie de la veille (repas, quantités et restes ; ou le total de calories si hier était un jour partiel). Le commentaire et l'activité du jour sont conservés, et le verdict repasse en Auto.",
-      "confirm": "Copier hier"
+      "confirm": "Tout copier hier"
     },
     "copyEmpty": "Aucun repas hier à copier.",
     "moveInLeftover": "Impossible de déplacer cette ligne : elle fait partie d'un groupe de restes. Retirez-la du groupe (⊟ Restes) d'abord.",
@@ -673,6 +673,14 @@
       "warnBelowTare": "⚠ Le poids brut est inférieur à la tare : le reste serait négatif.",
       "warnExceeds": "⚠ Le reste net dépasse le poids servi des lignes cochées.",
       "serverError": "⚠ Déduction refusée : rien n'a été enregistré."
+    },
+    "copyMeal": {
+      "action": "Copier le repas de la veille",
+      "title": "Copier le repas de la veille ?",
+      "prompt": "Le contenu de « {{name}} » sera remplacé par le repas correspondant de la veille (mêmes aliments, quantités et restes). Les autres repas du jour ne changent pas.",
+      "confirm": "Copier le repas",
+      "empty": "Rien à copier dans ce repas hier.",
+      "notFound": "Aucun repas correspondant hier."
     }
   },
   "journal": {

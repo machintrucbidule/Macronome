@@ -5349,3 +5349,62 @@ carried the now-false "e2e on PRs to main" claim and were corrected.
 `git status` was checked as the proof that these are test fixes, not app changes. **Gate:** the full
 e2e suite green (**24/24**, including the 3 tests previously skipped behind the failures), plus
 lint + typecheck + 851 unit + 280 integration.
+
+---
+
+## CP-2 / B-248 / B-247 — per-meal "Copier le repas de la veille"; the day button becomes "Tout copier hier" — RESOLVED (owner, 2026-07-31)
+
+**Problem.** Only one copy existed: `POST /days/:date/copy-from` (CP-1/B-082) **replaces the whole
+day**. The common gesture — "my breakfast is the same as yesterday, the rest is not" — had no
+affordance, and the only button was named as if it were one.
+
+**Decision (owner).** A **per-meal copy** in every meal header, immediately left of 🍳: 📋 with a
+small "‹" badge, tooltip/accessible name « Copier le repas de la veille »; on mobile it leaves the
+header (like 🍳) and becomes a text row in the meal ⋯ sheet. **Source matching: same name first,
+else same position.** **Replace, not append.** **Confirmation only when the target meal already has
+lines** — an empty meal, the common case, copies in one click. The day-level button is renamed
+**Tout copier hier** (`Copy all from yesterday`) so the two never read alike (B-247).
+
+**Decisions taken during the run:**
+
+- **Nothing to copy ⇒ refuse, write nothing** (owner pick, over "copy the emptiness"): the source
+  day absent/empty, a **Partiel** source, or a matched meal with no served line all return
+  `copy_source_empty`; a source day with content but no meal matching by name or rank returns the
+  one new code `copy_meal_not_found`. Copying emptiness would silently wipe a filled meal, and the
+  conditional confirm cannot protect that direction.
+- **The forced verdict is kept**, unlike the day-level copy which resets it. Replacing one meal is
+  an edit of the day's lines, and a line edit has never cleared a `verdict_override`. (The spec
+  draft first said "reset"; corrected before implementation.)
+- **A summary (Partiel) target 404s rather than 409s** — converting a day discards its meals, so the
+  id is already gone. The `summary_day_readonly` guard stays as an unreachable safety net, and the
+  contract says so instead of promising a status the API cannot return. Found by the test.
+- **Endpoint shape kept as proposed** (`POST /meals/:mealId/copy-from`, → 200 DayDetail): the
+  scaffold-day worry (a never-materialized day has no real meal ids) is already solved by
+  `makeResolveMealId`, which materializes then maps by `order_index` — the pattern every other meal
+  action uses.
+
+**Contract impact.** `spec/api/days-meals-leftover.md` (the endpoint, matching rule, inherited
+semantics, the four refusals); `specifications/screens/meals.md` (the header button + the behaviour
+under Interactions, and the label rename in 4 places); `design/components/data-tables.md` (the
+button's box and badge, the ⋯ sheet row, label rename in 2 places);
+`design/components/modals.md` (a new §Conditional confirmation naming this as the **one** bounded
+exception to "a flow that overwrites confirms first"). No schema change, no migration.
+
+**Code.** `services/day-copy.ts` gained two exports — `planMeal` (one meal → copy plan) and
+`mealHasContent` — so the per-meal path **reuses** the faithful-copy mapping instead of
+re-implementing it; `services/meal-copy.ts` holds the new orchestration; `day-copy.repo.ts` gained
+`mealContext` + `copyIntoMeal`, with the entry/leftover creation factored into a shared `fillMeal`
+used by both copies. Web: `mealsApi.copyFrom`, a `copyMeal` mutation, `copyMealYesterday` in
+`mealActions` (through `makeResolveMealId`), `CopyMealButton`, the ⋯-sheet row and `CopyMealConfirm`.
+Four components were extracted along the way (`CopyMealButton`, `MealMenuDropdown`, `MealLines`,
+`MealColumnConfirms`) because MealHeader/MealColumn crossed the per-function line cap — markup
+unchanged, so the existing screens render identically.
+
+**Tests.** Integration (`meal-copy.test.ts`, 6 cases): same-named copy with snapshots + leftover
+group while other meals stay untouched; replace into a filled meal with the forced verdict kept;
+name beats position; position used when no name matches; `copy_meal_not_found` with the day
+unchanged; the three `copy_source_empty` shapes; 422 same-day, 404 foreign meal, 404 converted
+Partiel day. Web (`MealColumn.test.tsx`, 5 new): one-click copy on an empty meal, a qty-0
+garde-manger placeholder still counting as empty, confirm-then-copy on a filled meal, cancel copies
+nothing, and the mobile ⋯ sheet row firing the same action. **Gate:** lint + typecheck +
+check:schema + check:i18n (1087 keys) + 856 unit + 286 integration + **e2e 24/24** green.

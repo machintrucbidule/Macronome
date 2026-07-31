@@ -24,18 +24,25 @@ const num = (d: { toString(): string }): number => Number(d.toString());
 const asJson = (s: ResolvedSnapshot): Prisma.InputJsonValue =>
   s as unknown as Prisma.InputJsonValue;
 
+/** Whether a meal carries something worth copying: at least one served line (a qty-0
+ *  garde-manger placeholder is not content). Shared with the per-meal copy (CP-2/B-248). */
+export function mealHasContent(meal: DayAggregate['meals'][number]): boolean {
+  return meal.entries.some((e) => num(e.servedQuantity) > 0);
+}
+
 /** Whether the source day carries something worth copying (a served line or a summary kcal). */
 function hasContent(source: DayAggregate): boolean {
   if (source.dayLog.kind === 'summary') {
     return source.dayLog.summaryKcal !== null && num(source.dayLog.summaryKcal) > 0;
   }
-  return source.meals.some((m) => m.entries.some((e) => num(e.servedQuantity) > 0));
+  return source.meals.some(mealHasContent);
 }
 
-/** Map the source aggregate's meals → the copy plan's meals (entries + leftover groups,
- *  remapping each group's source entry ids to positional indexes the repo can rewire). */
-function planMeals(source: DayAggregate): CopyMealData[] {
-  return source.meals.map(({ meal, entries, groups }) => {
+/** Map one source meal → the copy plan's meal (entries + leftover groups, remapping each
+ *  group's source entry ids to positional indexes the repo can rewire). Shared with the
+ *  per-meal copy (CP-2/B-248), which reuses the exact same faithful-copy mapping. */
+export function planMeal({ meal, entries, groups }: DayAggregate['meals'][number]): CopyMealData {
+  {
     const indexById = new Map(entries.map((e, i) => [e.id, i]));
     return {
       slotName: meal.slotName,
@@ -62,7 +69,12 @@ function planMeals(source: DayAggregate): CopyMealData[] {
         entryIndexes: entryIds.map((id) => indexById.get(id) ?? -1),
       })),
     };
-  });
+  }
+}
+
+/** Map every meal of the source aggregate (the whole-day copy plan). */
+function planMeals(source: DayAggregate): CopyMealData[] {
+  return source.meals.map(planMeal);
 }
 
 /** POST /days/:date/copy-from — replace the target day with a faithful copy of `from`

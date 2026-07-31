@@ -132,6 +132,11 @@ export function useDay(date: string) {
     mutationFn: (mealId: string) => mealsApi.remove(date, mealId),
     onSuccess,
   });
+  // Replace one meal with the matching meal of another day (CP-2 / B-248).
+  const copyMeal = useMutation({
+    mutationFn: (v: { mealId: string; from: string }) => mealsApi.copyFrom(v.mealId, v.from),
+    onSuccess,
+  });
 
   const { createEntry, updateEntry, reorderEntries, moveEntry, removeEntry, pinEntry, unpinEntry } =
     useEntryMutations(onSuccess);
@@ -149,6 +154,7 @@ export function useDay(date: string) {
     createMeal,
     patchMeal,
     removeMeal,
+    copyMeal,
     createEntry,
     updateEntry,
     reorderEntries,

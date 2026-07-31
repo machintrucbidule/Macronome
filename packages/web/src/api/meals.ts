@@ -1,4 +1,4 @@
-import type { CreateMealRequest, PatchMealRequest } from '@macronome/shared';
+import type { CreateMealRequest, DayDetail, PatchMealRequest } from '@macronome/shared';
 import { api } from './client';
 
 // Meals sub-resource client (spec/api/days-meals-leftover.md §Meals). A meal is this
@@ -15,4 +15,8 @@ export const mealsApi = {
   patch: (date: string, mealId: string, body: PatchMealRequest) =>
     api.patch<MealSummary>(`/days/${date}/meals/${mealId}`, body),
   remove: (date: string, mealId: string) => api.del<void>(`/days/${date}/meals/${mealId}`),
+  // Replace one meal with the matching meal of `from` (CP-2 / B-248). Returns the whole day,
+  // like the day-level copy, so one round-trip refreshes totals, verdict and constat.
+  copyFrom: (mealId: string, from: string) =>
+    api.post<DayDetail>(`/meals/${mealId}/copy-from`, { from }),
 };

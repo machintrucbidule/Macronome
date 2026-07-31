@@ -287,6 +287,17 @@ pointer-events:none; filter:grayscale(.45)}`) or an **A–Z on-screen keyboard**
   States: idle (keypad disabled) · qty-edit (keypad active, row `.sel.qmode`) ·
   name-edit (A–Z + `.cook-ac` open) · unit-menu open · validate/cancel.
 
+## Conditional confirmation (per-meal copy, CP-2 / B-248)
+
+The house rule is that a flow which **overwrites existing content confirms first** (Tout copier
+hier, Tout effacer, delete meal — the shared confirm modal, never a native `confirm()`). The
+**per-meal** "Copier le repas de la veille" is the one **deliberate divergence**: it shows the
+confirm **only when the target meal already has lines**, and copies straight away into an empty
+meal — the common case, and the reason the button exists. The exception is bounded by its own
+condition: the moment there is content to lose, the standard confirm-size modal appears, with the
+same shell and wording pattern as the day-level copy. Do not generalise the exception to any other
+destructive flow.
+
 ## Typed-confirmation modal (irreversible actions)
 
 confirm-size. A stronger confirm for **irreversible, account-wide** actions (the Données

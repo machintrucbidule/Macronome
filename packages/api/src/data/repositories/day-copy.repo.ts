@@ -91,46 +91,98 @@ export const dayCopyRepo = {
         const meal = await tx.meal.create({
           data: { dayLogId, slotName: m.slotName, orderIndex: m.orderIndex },
         });
-        const entryIds: string[] = [];
-        for (const e of m.entries) {
-          const entry = await tx.mealEntry.create({
-            data: {
-              mealId: meal.id,
-              kind: e.kind,
-              foodId: e.foodId,
-              customName: e.customName,
-              servedQuantity: e.servedQuantity,
-              unit: e.unit,
-              portionId: e.portionId,
-              servedGrams: e.servedGrams,
-              snapKcal: e.snapKcal,
-              snapFat: e.snapFat,
-              snapCarb: e.snapCarb,
-              snapProtein: e.snapProtein,
-              orderIndex: e.orderIndex,
-              pinned: e.pinned,
-            },
-          });
-          entryIds.push(entry.id);
-        }
-        for (const g of m.groups) {
-          const group = await tx.leftoverGroup.create({
-            data: {
-              mealId: meal.id,
-              containerName: g.containerName,
-              tareG: g.tareG,
-              grossGrams: g.grossGrams,
-            },
-          });
-          const links = g.entryIndexes
-            .map((i) => entryIds[i])
-            .filter((id): id is string => id !== undefined)
-            .map((mealEntryId) => ({ leftoverGroupId: group.id, mealEntryId }));
-          if (links.length > 0) {
-            await tx.leftoverGroupEntry.createMany({ data: links });
-          }
-        }
+        await fillMeal(tx, meal.id, m);
       }
     });
   },
+
+  /** The meal's own coordinates + its day's date/kind — what the per-meal copy needs to
+   *  resolve the source and refuse a summary target. Null when the meal is unknown or
+   *  belongs to another user (CLAUDE.md rule 3). */
+  async mealContext(userId: string, mealId: string): Promise<MealContext | null> {
+    const meal = await prisma.meal.findUnique({
+      where: { id: mealId },
+      select: { id: true, slotName: true, orderIndex: true, dayLogId: true },
+    });
+    if (!meal) return null;
+    const day = await prisma.dayLog.findFirst({
+      where: { id: meal.dayLogId, userId },
+      select: { date: true, kind: true },
+    });
+    if (!day) return null;
+    return {
+      slotName: meal.slotName,
+      orderIndex: meal.orderIndex,
+      date: day.date.toISOString().slice(0, 10),
+      kind: day.kind as 'detailed' | 'summary',
+    };
+  },
+
+  /** Replace ONE meal's content with `data` in a single transaction (CP-2 / B-248): drop its
+   *  entries (leftover groups cascade) then recreate the source's lines and groups. The
+   *  day_log row is untouched — comment, activity_level and verdict_override stay as they
+   *  are, exactly like any other line write. */
+  async copyIntoMeal(mealId: string, data: CopyMealData): Promise<void> {
+    await prisma.$transaction(async (tx) => {
+      await tx.mealEntry.deleteMany({ where: { mealId } });
+      await tx.leftoverGroup.deleteMany({ where: { mealId } });
+      await fillMeal(tx, mealId, data);
+    });
+  },
 };
+
+/** The meal + day coordinates the per-meal copy resolves against. */
+export interface MealContext {
+  slotName: string;
+  orderIndex: number;
+  date: string;
+  kind: 'detailed' | 'summary';
+}
+
+/** Create a meal's entries then its leftover groups, rewiring each group's positional
+ *  entry indexes to the ids just created. Shared by the whole-day and per-meal copies. */
+async function fillMeal(
+  tx: Prisma.TransactionClient,
+  mealId: string,
+  m: CopyMealData,
+): Promise<void> {
+  const entryIds: string[] = [];
+  for (const e of m.entries) {
+    const entry = await tx.mealEntry.create({
+      data: {
+        mealId,
+        kind: e.kind,
+        foodId: e.foodId,
+        customName: e.customName,
+        servedQuantity: e.servedQuantity,
+        unit: e.unit,
+        portionId: e.portionId,
+        servedGrams: e.servedGrams,
+        snapKcal: e.snapKcal,
+        snapFat: e.snapFat,
+        snapCarb: e.snapCarb,
+        snapProtein: e.snapProtein,
+        orderIndex: e.orderIndex,
+        pinned: e.pinned,
+      },
+    });
+    entryIds.push(entry.id);
+  }
+  for (const g of m.groups) {
+    const group = await tx.leftoverGroup.create({
+      data: {
+        mealId,
+        containerName: g.containerName,
+        tareG: g.tareG,
+        grossGrams: g.grossGrams,
+      },
+    });
+    const links = g.entryIndexes
+      .map((i) => entryIds[i])
+      .filter((id): id is string => id !== undefined)
+      .map((mealEntryId) => ({ leftoverGroupId: group.id, mealEntryId }));
+    if (links.length > 0) {
+      await tx.leftoverGroupEntry.createMany({ data: links });
+    }
+  }
+}

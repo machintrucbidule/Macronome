@@ -171,7 +171,17 @@ container** (the columns scroller) draws a **continuous outer border on all four
 `--r-lg` on all four corners**; the columns themselves provide only the inter-column dividers
 (`border-right`), not the outer frame (B-201). (On the ≤760px stacked layout each column is
 instead an individual full-bordered `--r-lg` card.) Header `.meal-head` (name in `--font-display
---fw-bold --fs-14` + cook 🍳 + ⋯ menu). Lines via CSS grid:
+--fw-bold --fs-14` + **copy-yesterday 📋‹** + cook 🍳 + ⋯ menu).
+
+**Copy-yesterday button (CP-2 / B-248).** Sits **immediately left of 🍳** and shares its exact box
+(`1px solid var(--border)`, `--bg-elev-2`, `--text-dim`, `--r-sm`, `--fs-14`, `padding:5px 8px`,
+hover → `--accent` border + text). The 📋 glyph carries a small **« ‹ »** badge on its top-right
+corner — the same construction as the mobile 📷 button's "+" badge (badge anchored to the icon, not
+the button: `position:absolute; top:-6px; right:-6px; 12px` pill on `--accent`/`--accent-ink`,
+`font-size:10px`). Tooltip + `aria-label` "Copier le repas de la veille". **Hidden ≤560px** by the
+same rule that hides 🍳; the action moves into the meal ⋯ sheet as a text row.
+
+Lines via CSS grid:
 `grid-template-columns: 7px 1fr 54px 34px 26px 26px 26px 15px 15px`
 (grip · name · qty+unit · kcal · L · G · P · pin · del). The **qty+unit column is
 sized to its real content** — the numeric input plus the always-short unit chip
@@ -198,7 +208,7 @@ its colour; `.zero` lines stay muted (the tint is gated on `:not(.zero)`).
 
 An Excel-status-bar-style live SUM of a chosen subset of meal food-lines — **desktop only** (the
 controls row is `display:none` ≤560px, so no mobile surface). A **Σ toggle** in the controls-row
-right action group (with Copier hier / Tout effacer / + Repas) enters **selection mode**; it carries
+right action group (with Tout copier hier / Tout effacer / + Repas) enters **selection mode**; it carries
 a **distinct active/pressed state** (accent-filled fill + `--accent-ink`, `aria-pressed=true`) so the
 mode is obvious. In selection mode a **click on a line body** toggles that line's `.selected` state,
 and a **click on a meal footer** toggles the whole meal (= all its eligible lines); **Ctrl/⌘-click**
@@ -232,10 +242,12 @@ to overlays; desktop (≥561px) is unchanged.
   pre-fill lines too (pinned, qty 0): they resolve by row, and the sheet offers change-food +
   quantity (no move/pin/delete until materialised). **Long-press the grip** → touch
   drag-to-reorder.
-- **Meal “⋯” menu** (S9): a bottom sheet (rename · move left/right · delete). The 🍳 cook button
-  is **removed on mobile**; the **⊟ Restes button stays in the meal footer** (owner correction
-  2026-06-11) and its leftover popup opens as a **bottom sheet**.
-- **Day “⋯” menu** (S9): a bottom sheet in the day bar (+ Repas · Copier hier · Vider · undo/
+- **Meal “⋯” menu** (S9): a bottom sheet (**Copier le repas de la veille** · rename ·
+  move left/right · delete). The 🍳 cook button is **removed on mobile**, and the header's
+  📋‹ copy button likewise moves into this sheet as its first text row (CP-2 / B-248); the
+  **⊟ Restes button stays in the meal footer** (owner correction 2026-06-11) and its leftover
+  popup opens as a **bottom sheet**.
+- **Day “⋯” menu** (S9): a bottom sheet in the day bar (+ Repas · Tout copier hier · Vider · undo/
   redo · ✨ Proposition IA) — the desktop controls row is hidden ≤560px.
 
 All Repas overlays are **bottom sheets** on mobile (food picker, custom entry, AI dish analysis,

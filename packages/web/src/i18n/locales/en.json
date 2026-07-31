@@ -363,7 +363,7 @@
     "today": "Today",
     "addMeal": "+ Meal",
     "clearAll": "Clear all",
-    "copyYesterday": "Copy yesterday",
+    "copyYesterday": "Copy all from yesterday",
     "undo": "Undo (Ctrl+Z)",
     "redo": "Redo (Ctrl+Y)",
     "dayMenu": {
@@ -474,7 +474,7 @@
     "copy": {
       "title": "Copy yesterday's meals?",
       "prompt": "This day's content will be replaced with a copy of yesterday (meals, quantities and leftovers; or the calorie total if yesterday was a partial day). The day's comment and activity are kept, and the verdict reverts to Auto.",
-      "confirm": "Copy yesterday"
+      "confirm": "Copy all from yesterday"
     },
     "copyEmpty": "Nothing to copy from yesterday.",
     "moveInLeftover": "This line can't be moved: it belongs to a leftover group. Remove it from the group (⊟ Restes) first.",
@@ -673,6 +673,14 @@
       "warnBelowTare": "⚠ Gross weight is below the tare: the leftover would be negative.",
       "warnExceeds": "⚠ Net leftover exceeds the served weight of the checked lines.",
       "serverError": "⚠ Deduction refused: nothing was saved."
+    },
+    "copyMeal": {
+      "action": "Copy yesterday's meal",
+      "title": "Copy yesterday's meal?",
+      "prompt": "The contents of “{{name}}” will be replaced by the matching meal of the previous day (same foods, quantities and leftovers). The day’s other meals are untouched.",
+      "confirm": "Copy the meal",
+      "empty": "Nothing to copy into this meal from yesterday.",
+      "notFound": "No matching meal yesterday."
     }
   },
   "journal": {

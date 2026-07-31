@@ -11,6 +11,8 @@ interface Props {
   name: string;
   canMoveLeft: boolean;
   canMoveRight: boolean;
+  /** Copier le repas de la veille (CP-2/B-248) — the header button's mobile home. */
+  onCopyYesterday: () => void;
   onRename: () => void;
   onMoveLeft: () => void;
   onMoveRight: () => void;
@@ -22,6 +24,7 @@ export function MealMenuSheet({
   name,
   canMoveLeft,
   canMoveRight,
+  onCopyYesterday,
   onRename,
   onMoveLeft,
   onMoveRight,
@@ -37,6 +40,9 @@ export function MealMenuSheet({
   return (
     <Modal title={name} size="confirm" onClose={onClose}>
       <div className={styles.menu}>
+        <button type="button" className={styles.item} onClick={act(onCopyYesterday)}>
+          {t('meals.copyMeal.action')}
+        </button>
         <button type="button" className={styles.item} onClick={act(onRename)}>
           {t('meals.meal.rename')}
         </button>

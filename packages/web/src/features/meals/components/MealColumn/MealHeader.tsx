@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../../../../lib/useIsMobile';
+import { CopyMealButton } from './CopyMealButton';
+import { MealMenuDropdown } from './MealMenuDropdown';
 import { MealMenuSheet } from './MealMenuSheet';
 import styles from './meal-column.module.css';
 
@@ -13,6 +15,8 @@ interface MealHeaderProps {
   canMoveLeft: boolean;
   canMoveRight: boolean;
   onCook: () => void;
+  /** Copier le repas de la veille (CP-2/B-248) — header button on desktop, ⋯ sheet row on mobile. */
+  onCopyYesterday: () => void;
   onRename: () => void;
   onMoveLeft: () => void;
   onMoveRight: () => void;
@@ -27,6 +31,7 @@ export function MealHeader({
   canMoveLeft,
   canMoveRight,
   onCook,
+  onCopyYesterday,
   onRename,
   onMoveLeft,
   onMoveRight,
@@ -57,6 +62,7 @@ export function MealHeader({
     <div className={styles.head}>
       <span className={styles.name}>{name}</span>
       {extra}
+      <CopyMealButton onClick={onCopyYesterday} />
       <button
         type="button"
         className={styles.cookBtn}
@@ -71,20 +77,14 @@ export function MealHeader({
           ⋯
         </button>
         {open && !isMobile && (
-          <div className={styles.popmenu} role="menu">
-            <button type="button" onClick={act(onRename)}>
-              {t('meals.meal.rename')}
-            </button>
-            <button type="button" disabled={!canMoveLeft} onClick={act(onMoveLeft)}>
-              {t('meals.meal.moveLeft')}
-            </button>
-            <button type="button" disabled={!canMoveRight} onClick={act(onMoveRight)}>
-              {t('meals.meal.moveRight')}
-            </button>
-            <button type="button" className={styles.danger} onClick={act(onDelete)}>
-              {t('meals.meal.delete')}
-            </button>
-          </div>
+          <MealMenuDropdown
+            canMoveLeft={canMoveLeft}
+            canMoveRight={canMoveRight}
+            onRename={act(onRename)}
+            onMoveLeft={act(onMoveLeft)}
+            onMoveRight={act(onMoveRight)}
+            onDelete={act(onDelete)}
+          />
         )}
       </div>
       {open && isMobile && (
@@ -92,6 +92,7 @@ export function MealHeader({
           name={name}
           canMoveLeft={canMoveLeft}
           canMoveRight={canMoveRight}
+          onCopyYesterday={onCopyYesterday}
           onRename={onRename}
           onMoveLeft={onMoveLeft}
           onMoveRight={onMoveRight}
