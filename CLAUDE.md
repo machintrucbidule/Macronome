@@ -181,8 +181,8 @@ release the owner runs `git tag -a vX.Y.Z -m "vX.Y.Z" && git push origin vX.Y.Z`
   overrides the generic "branch off the default branch" habit.)
 - **CI must stay green.** `.github/workflows/ci.yml` runs on every push: it does
   `npm ci`, **generates the Prisma client**, then lint → typecheck → check:schema →
-  unit → migrate → integration (and e2e on PRs to `main`). A green local run that
-  skips `prisma generate` is **not** proof CI passes — the client must be generated
+  unit → migrate → integration, and **e2e on every push to `main`** (B-246; also on PRs).
+  A green local run that skips `prisma generate` is **not** proof CI passes — the client must be generated
   (CI is the "fresh clone" context). After pushing, check the run with `gh run watch`.
 - **Never commit personal/local files** (`.env`, `specifications/`, `*.local.test.ts`,
   DB dumps). Confirm `git status` before each commit.

@@ -69,7 +69,9 @@ test('weigh-ins draw the trend/trajectory + a period; editing a date re-derives 
   await expect(page.getByText('Trajectoire cible')).toBeVisible();
   const period = page.locator('tr[data-period="2026-02-17"]');
   await expect(period).toBeVisible();
-  await expect(period.locator('td').nth(1)).toHaveText('7');
+  // Days is the 3rd cell: B-225 inserted the 📋 interval-days recap button in its own cell
+  // between the date range and the day count.
+  await expect(period.locator('td').nth(2)).toHaveText('7');
 
   // Editing the second weigh-in's date to +14 re-derives the period (now 14 days).
   await period.click();
@@ -79,7 +81,7 @@ test('weigh-ins draw the trend/trajectory + a period; editing a date re-derives 
   await expect(page.locator('tr[data-period="2026-02-17"]')).toHaveCount(0);
   const rederived = page.locator('tr[data-period="2026-02-24"]');
   await expect(rederived).toBeVisible();
-  await expect(rederived.locator('td').nth(1)).toHaveText('14');
+  await expect(rederived.locator('td').nth(2)).toHaveText('14');
 });
 
 test('the Régime/Maintien mode persists across a reload (B-177)', async ({ page, playwright }) => {

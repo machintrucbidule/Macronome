@@ -102,7 +102,10 @@ test('open via the lightbulb → generate → archived → delete', async ({ pag
   await expect(page.getByRole('heading', { name: 'Bilan e2e' })).toBeVisible();
   await expect(page.getByText('Belle régularité, continue.')).toBeVisible();
 
-  // Delete → it disappears.
-  await page.getByRole('button', { name: 'Supprimer' }).click();
+  // Delete → the row's × opens the confirm modal (B-213: destructive flows are never immediate),
+  // and only confirming removes it. The × and the modal's confirm share the accessible name
+  // "Supprimer", so the confirm is scoped to the dialog.
+  await page.getByRole('button', { name: 'Supprimer' }).first().click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Supprimer' }).click();
   await expect(page.getByRole('heading', { name: 'Bilan e2e' })).toHaveCount(0);
 });

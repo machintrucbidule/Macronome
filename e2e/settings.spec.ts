@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import argon2 from 'argon2';
 import { PrismaClient } from '@prisma/client';
 
@@ -51,6 +51,14 @@ test.afterAll(async () => {
   await prisma.$disconnect();
 });
 
+// B-209 made the Paramètres cards collapsible and "Structure de journée par défaut" starts
+// collapsed, so its garde-manger controls are not in the DOM until the title row is clicked.
+// Must run after every navigation to /settings — otherwise an assertion on hidden content
+// passes for the wrong reason.
+async function openTemplateCard(page: Page): Promise<void> {
+  await page.getByRole('button', { name: 'Structure de journée par défaut' }).click();
+}
+
 test('pin a food in settings → it pre-fills a new day; unpin → future-only', async ({
   page,
   playwright,
@@ -67,6 +75,7 @@ test('pin a food in settings → it pre-fills a new day; unpin → future-only',
 
   // Pin the food on the first meal's garde-manger.
   await page.goto('/settings');
+  await openTemplateCard(page);
   await page.getByRole('button', { name: '+ Aliment' }).first().click();
   await page.getByPlaceholder('Rechercher un aliment…').fill(FOOD_NAME);
   await page.getByText(FOOD_NAME).click();
@@ -79,6 +88,7 @@ test('pin a food in settings → it pre-fills a new day; unpin → future-only',
   // Unpin from settings → future days no longer pre-fill it. Target the chip's own remove
   // button via its test id (the chip also has a unit button, and meal rows a × delete).
   await page.goto('/settings');
+  await openTemplateCard(page);
   await page.getByTestId('pantry-remove').click();
   await expect(page.getByText(FOOD_NAME)).toHaveCount(0);
 

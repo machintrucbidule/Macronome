@@ -5306,3 +5306,46 @@ default 4 on a fresh account. `settings-pantry.test.ts` crossed the 300-line cei
 case, so the settings-blob suite moved to its own `settings-blob.test.ts` (template/pantry/
 containers stayed). **Gate:** lint + typecheck + check:schema + check:i18n (1081 keys) + 851 unit +
 280 integration green.
+
+---
+
+## E2E-1 / B-245 / B-246 — four stale e2e oracles refreshed; e2e now runs on pushes to `main` — RESOLVED (owner, 2026-07-31)
+
+**How it was found.** The ROUTE-1 run reported 4 e2e failures out of 21. Re-run on the stashed
+pre-ROUTE-1 tree they failed **identically**, so they were pre-existing drift, not a regression —
+and the app behaviour was the intended one in all four cases, each already covered by an up-to-date
+unit or integration test. Only the e2e oracles were stale.
+
+**Why nobody noticed (B-246).** `.github/workflows/ci.yml` gated the e2e step on
+`github.event_name == 'pull_request'`, while CLAUDE.md mandates pushing **straight to `main`, no
+PRs**. The step had therefore **never run**. Every other gate (lint, typecheck, check:schema,
+check:i18n, unit, integration) ran on each push and stayed green, which made the suite look healthy.
+
+**Decision (owner): run e2e on every push to `main`** (PRs keep it too) —
+`if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'`. Cost ≈ 3 minutes per
+CI run (Chromium install + booting the API and Vite); the owner does not watch CI live, so the
+trade is a later notification instead of a months-late discovery. Options weighed and rejected: a
+nightly scheduled run (weaker attribution — a night can hold several commits) and "local only"
+(pure discipline, which is exactly what failed here). `docs/architecture/testing.md` and CLAUDE.md
+carried the now-false "e2e on PRs to main" claim and were corrected.
+
+**The four oracles (B-245)** — each cause verified in the code, two with a twist:
+
+1. `weight.spec.ts` read the period row's 2nd cell for the day count; **B-225** inserted the 📋
+   interval-days recap button in **its own cell**, so days moved to the 3rd.
+2. `settings.spec.ts` clicked « + Aliment » straight after landing; **B-209** made the Paramètres
+   cards collapsible and « Structure de journée par défaut » starts collapsed. A local
+   `openTemplateCard()` helper now expands it after **both** navigations — without it the
+   post-unpin assertion would have passed for the wrong reason (content simply absent).
+3. `advices.spec.ts` expected the advice to vanish on « Supprimer »; **B-213** put deletion behind
+   a confirm modal, and the row's `×` and the modal's confirm share the accessible name
+   "Supprimer" — so the test now clicks the row control, then confirms **scoped to the dialog**.
+4. `login.spec.ts` had **two** stale oracles, not one: `waitForURL('**/login')` does not match the
+   `?next=` query **B-219** adds, and the test then expected to land on the home screen although
+   `safeNext` returns the originally requested page. It now waits on `/\/login(\?|$)/` and asserts
+   the return to **`/foods`** — so it finally checks what B-219 promises instead of contradicting it.
+
+**Scope.** `e2e/` + the CI workflow + two doc lines. **No file under `packages/` was touched** —
+`git status` was checked as the proof that these are test fixes, not app changes. **Gate:** the full
+e2e suite green (**24/24**, including the 3 tests previously skipped behind the failures), plus
+lint + typecheck + 851 unit + 280 integration.
