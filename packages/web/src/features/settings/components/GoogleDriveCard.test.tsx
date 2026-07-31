@@ -52,7 +52,7 @@ function settings(gd: GoogleDriveRead | null): Settings {
   } as unknown as Settings;
 }
 
-function renderCard(gd: GoogleDriveRead | null, entry = '/parametres') {
+function renderCard(gd: GoogleDriveRead | null, entry = '/settings') {
   mocks.settings.get.mockResolvedValue({ data: settings(gd) });
   mocks.settings.patch.mockImplementation((body: object) =>
     Promise.resolve({ data: { ...settings(gd), ...body } }),
@@ -141,10 +141,7 @@ describe('GoogleDriveCard (B-208)', () => {
   });
 
   it('surfaces the OAuth callback success marker as a banner', async () => {
-    renderCard(
-      gdRead({ client_id: 'cid', client_secret_set: true }),
-      '/parametres?gdrive=connected',
-    );
+    renderCard(gdRead({ client_id: 'cid', client_secret_set: true }), '/settings?gdrive=connected');
     expect(await screen.findByText(i18n.t('settings.gdrive.connectedOk'))).toBeTruthy();
   });
 });

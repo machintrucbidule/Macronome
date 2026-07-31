@@ -9,7 +9,7 @@ buttons of `buttons.md`, and the toasts/banners of `toasts-warnings.md`. v1 scop
 
 ## Hosting page
 
-The card lives on its **own account-menu page** `/assistant-ia` (between Contenants and
+The card lives on its **own account-menu page** `/ai-assistant` (between Contenants and
 Paramètres), **not** inside Paramètres (B-130). The host page owns the page title/lead, so
 the card body below omits its own duplicate header/intro. See
 `specifications/screens/ai-assistant.md`.

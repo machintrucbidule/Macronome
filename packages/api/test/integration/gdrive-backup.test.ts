@@ -83,7 +83,7 @@ async function connectDrive(a: Authed): Promise<void> {
     `/api/v1/integrations/google-drive/callback?code=fakecode&state=${state}`,
   );
   expect(cb.status).toBe(302);
-  expect(cb.headers.location).toBe('/parametres?gdrive=connected');
+  expect(cb.headers.location).toBe('/settings?gdrive=connected');
 }
 
 beforeEach(async () => {
@@ -211,7 +211,7 @@ describe('google_drive callback + status + disconnect (B-208)', () => {
       '/api/v1/integrations/google-drive/callback?code=x&state=wrong-state',
     );
     expect(cb.status).toBe(302);
-    expect(cb.headers.location).toBe('/parametres?gdrive_error=gdrive_oauth_failed');
+    expect(cb.headers.location).toBe('/settings?gdrive_error=gdrive_oauth_failed');
     const status = await a.agent.get('/api/v1/integrations/google-drive/status');
     expect(status.body.data.connected).toBe(false);
   });

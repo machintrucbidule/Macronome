@@ -6,7 +6,7 @@ import { InvitePage } from '../features/invite/InvitePage';
 import { ResetPage } from '../features/reset/ResetPage';
 import { FoodsPage } from '../features/foods/FoodsPage';
 import { RecipesPage } from '../features/recipes/RecipesPage';
-import { CiblesPage } from '../features/targets/CiblesPage';
+import { TargetsPage } from '../features/targets/TargetsPage';
 import { JournalPage } from '../features/journal/JournalPage';
 import { MealsPage } from '../features/meals/MealsPage';
 import { StatsPage } from '../features/stats/StatsPage';
@@ -19,10 +19,12 @@ import { ContainersPage } from '../features/containers/ContainersPage';
 import { UsersPage } from '../features/users/UsersPage';
 import { AccountPage } from '../features/account/AccountPage';
 import { AboutPage } from '../features/about/AboutPage';
+import { NotFoundPage } from '../features/not-found/NotFoundPage';
 import { ContextMenuProvider } from '../components/ContextMenu/ContextMenuProvider';
 import { AppShell } from './AppShell';
 import { AppGate } from './AppGate';
 import { LaunchHandler } from './LaunchHandler';
+import { LEGACY_REDIRECTS, LegacyRedirect } from './legacy-redirects';
 import { RequireAdmin } from './RequireAdmin';
 import { RequireAuth } from './RequireAuth';
 import { SettingsSync } from './SettingsSync';
@@ -42,9 +44,9 @@ const PROTECTED: ReadonlyArray<[string, ReactElement]> = [
   ['/recipes', <RecipesPage />],
   ['/stats', <StatsPage />],
   ['/advices', <AdvicesPage />],
-  ['/cibles', <CiblesPage />],
+  ['/targets', <TargetsPage />],
   ['/containers', <ContainersPage />],
-  ['/assistant-ia', <AiAssistantPage />],
+  ['/ai-assistant', <AiAssistantPage />],
   ['/integrations', <IntegrationsPage />],
   [
     '/users',
@@ -52,7 +54,7 @@ const PROTECTED: ReadonlyArray<[string, ReactElement]> = [
       <UsersPage />
     </RequireAdmin>,
   ],
-  ['/parametres', <SettingsPage />],
+  ['/settings', <SettingsPage />],
   ['/account', <AccountPage />],
   ['/about', <AboutPage />],
   [
@@ -61,6 +63,9 @@ const PROTECTED: ReadonlyArray<[string, ReactElement]> = [
       <HealthStatus />
     </AppShell>,
   ],
+  // Catch-all (B-241) — last, and inside the guard like every other route: an unknown URL from a
+  // logged-out visitor goes to /login (uniform behaviour), not to the app frame.
+  ['*', <NotFoundPage />],
 ];
 
 export function AppRouter() {
@@ -78,6 +83,10 @@ export function AppRouter() {
               {/* Token-link pages (B-193/B-194) — public; the token rides the URL fragment. */}
               <Route path="/invite" element={<InvitePage />} />
               <Route path="/reset" element={<ResetPage />} />
+              {/* Retired French paths (B-240): rewritten before the auth guard runs. */}
+              {LEGACY_REDIRECTS.map(([from, to]) => (
+                <Route key={from} path={from} element={<LegacyRedirect to={to} />} />
+              ))}
               {PROTECTED.map(([path, element]) => (
                 <Route key={path} path={path} element={<RequireAuth>{element}</RequireAuth>} />
               ))}

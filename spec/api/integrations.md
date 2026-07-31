@@ -104,9 +104,9 @@ merge (above). All error codes: `integrations-connections.md §9.5`.
 - `GET /integrations/google-drive/callback?code&state` — Google's redirect target (the
   exact URL the operator registered). Validates `state`, exchanges `code` → `refresh_token`
   (stored, server-written only), creates/finds the "Macronome Backups" folder (stores
-  `folder_id`), then **302-redirects** the browser to `/parametres`. Not a JSON endpoint
+  `folder_id`), then **302-redirects** the browser to `/settings`. Not a JSON endpoint
   (it is hit by the browser via Google). On `?error=access_denied` it redirects to
-  `/parametres` with an error marker; internal failures map to the codes below.
+  `/settings` with an error marker; internal failures map to the codes below.
   Errors: `gdrive_oauth_denied` 400 · `gdrive_oauth_failed` 502 · `gdrive_unreachable` 504.
 - `GET /integrations/google-drive/status` — the current backup state for the Settings card
   (also derivable from the redacted `GET /settings`, provided as a focused endpoint for

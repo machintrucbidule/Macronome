@@ -9,7 +9,7 @@ import { PrismaClient } from '@prisma/client';
 process.loadEnvFile('packages/api/.env');
 const prisma = new PrismaClient();
 
-const USER = 'e2e_cibles';
+const USER = 'e2e_targets';
 const PASSWORD = 'correct-horse-battery';
 
 test.beforeAll(async () => {
@@ -58,7 +58,7 @@ test('set an inconsistent target and see the negative carb-ceiling warning', asy
   });
   await page.context().addCookies((await api.storageState()).cookies);
 
-  await page.goto('/cibles');
+  await page.goto('/targets');
 
   // Enter targets whose protein + fat floors exceed the calorie max → carb ceiling < 0.
   await page.getByLabel('Minimum').fill('1000');

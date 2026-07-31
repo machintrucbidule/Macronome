@@ -48,22 +48,22 @@ function takeValidState(req: Request): boolean {
   return saved.value === state && saved.expiresAt >= Date.now();
 }
 
-/** GET /callback — Google's redirect target; 302 back to /parametres with a result marker. */
+/** GET /callback — Google's redirect target; 302 back to /settings with a result marker. */
 export async function callback(req: Request, res: Response): Promise<void> {
   const denied = req.query.error === 'access_denied';
   const stateOk = takeValidState(req);
   const code = req.query.code;
   if (denied || !stateOk || typeof code !== 'string' || code.length === 0) {
     const reason = denied ? ErrorCode.GdriveOauthDenied : ErrorCode.GdriveOauthFailed;
-    res.redirect(302, `/parametres?gdrive_error=${reason}`);
+    res.redirect(302, `/settings?gdrive_error=${reason}`);
     return;
   }
   try {
     await connection.completeConnect(userId(res), code, callbackUrl(req));
-    res.redirect(302, '/parametres?gdrive=connected');
+    res.redirect(302, '/settings?gdrive=connected');
   } catch (err) {
     const reason = err instanceof ApiError ? err.code : ErrorCode.GdriveOauthFailed;
-    res.redirect(302, `/parametres?gdrive_error=${reason}`);
+    res.redirect(302, `/settings?gdrive_error=${reason}`);
   }
 }
 

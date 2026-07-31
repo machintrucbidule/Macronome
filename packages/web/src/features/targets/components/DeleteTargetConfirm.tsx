@@ -22,11 +22,11 @@ export function DeleteTargetConfirm({
 }: DeleteTargetConfirmProps) {
   const { t, i18n } = useTranslation();
   return (
-    <Modal title={t('cibles.deleteVersion.title')} size="confirm" onClose={onCancel}>
+    <Modal title={t('targets.deleteVersion.title')} size="confirm" onClose={onCancel}>
       <div className={modalStyles.body}>
         <p className={modalStyles.text}>
           <Trans
-            i18nKey="cibles.deleteVersion.body"
+            i18nKey="targets.deleteVersion.body"
             values={{ date: shortDate(version.effective_from, i18n.language) }}
             components={{ b: <b /> }}
           />
@@ -39,7 +39,7 @@ export function DeleteTargetConfirm({
             {t('common.cancel')}
           </Button>
           <Button variant="danger" onClick={onConfirm} disabled={pending}>
-            {t('cibles.deleteVersion.confirm')}
+            {t('targets.deleteVersion.confirm')}
           </Button>
         </div>
       </div>

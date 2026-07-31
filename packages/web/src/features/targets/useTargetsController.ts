@@ -39,7 +39,7 @@ function periodLabelOf(editing: TargetVersion | null, lang: string, currentLabel
   return `${shortDate(editing.effective_from, lang)} – ${until}`;
 }
 
-export function useCiblesController() {
+export function useTargetsController() {
   const { t, i18n } = useTranslation();
   const target = useTarget();
   const history = useTargetHistory();
@@ -86,7 +86,7 @@ export function useCiblesController() {
     });
   }
 
-  const periodLabel = periodLabelOf(editing, i18n.language, t('cibles.history.current'));
+  const periodLabel = periodLabelOf(editing, i18n.language, t('targets.history.current'));
 
   return {
     draft,
@@ -127,4 +127,4 @@ export function useCiblesController() {
   };
 }
 
-export type CiblesController = ReturnType<typeof useCiblesController>;
+export type CiblesController = ReturnType<typeof useTargetsController>;

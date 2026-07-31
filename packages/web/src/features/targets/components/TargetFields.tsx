@@ -6,7 +6,7 @@ import { GoalFields } from './GoalFields';
 import { RatioPresets, PROTEIN_PRESETS, FAT_PRESETS } from './RatioPresets';
 import { macroG } from '../format';
 import type { TargetDraft } from '../draft';
-import styles from '../cibles.module.css';
+import styles from '../targets.module.css';
 
 // Body fields of the manual-targets form (split out of TargetForm for modularity). Pure
 // presentational over the draft + a setter; carbs are never a field (derived remainder).
@@ -24,10 +24,10 @@ export function TargetFields({ draft, set, engine }: TargetFieldsProps) {
   return (
     <>
       <div className={styles.group}>
-        <div className={styles.groupTitle}>{t('cibles.targets.calorie')}</div>
+        <div className={styles.groupTitle}>{t('targets.targets.calorie')}</div>
         <div className={styles.grid2}>
           <NumberInput
-            label={t('cibles.targets.calorieMin')}
+            label={t('targets.targets.calorieMin')}
             suffix="kcal"
             wrapperClassName={styles.inpW}
             min={0}
@@ -35,7 +35,7 @@ export function TargetFields({ draft, set, engine }: TargetFieldsProps) {
             onChange={(e) => set({ calorieMin: e.target.value })}
           />
           <NumberInput
-            label={t('cibles.targets.calorieMax')}
+            label={t('targets.targets.calorieMax')}
             suffix="kcal"
             wrapperClassName={styles.inpW}
             min={0}
@@ -46,11 +46,11 @@ export function TargetFields({ draft, set, engine }: TargetFieldsProps) {
       </div>
 
       <div className={`${styles.group} ${styles.groupSep}`}>
-        <div className={styles.groupTitle}>{t('cibles.targets.ratios')}</div>
+        <div className={styles.groupTitle}>{t('targets.targets.ratios')}</div>
         <div className={styles.grid2}>
           <div className={styles.ratioField}>
             <NumberInput
-              label={t('cibles.targets.proteinRatio')}
+              label={t('targets.targets.proteinRatio')}
               suffix="g/kg"
               wrapperClassName={styles.inpW}
               min={0}
@@ -62,7 +62,7 @@ export function TargetFields({ draft, set, engine }: TargetFieldsProps) {
           </div>
           <div className={styles.ratioField}>
             <NumberInput
-              label={t('cibles.targets.fatRatio')}
+              label={t('targets.targets.fatRatio')}
               suffix="g/kg"
               wrapperClassName={styles.inpW}
               min={0}
@@ -73,7 +73,7 @@ export function TargetFields({ draft, set, engine }: TargetFieldsProps) {
             <RatioPresets presets={FAT_PRESETS} onPick={(v) => set({ fatGPerKg: v })} />
           </div>
         </div>
-        <DerivedField label={t('cibles.targets.carbLabel')} value={carbText} />
+        <DerivedField label={t('targets.targets.carbLabel')} value={carbText} />
       </div>
 
       <GoalFields draft={draft} set={set} engine={engine} />

@@ -98,7 +98,7 @@ describe('AdvicesPage (B-202)', () => {
     // Scope to the AiNotConfigured paragraph — the account menu also has an "Assistant IA" link.
     const notCfg = await screen.findByText(new RegExp(i18n.t('advices.notConfigured')));
     const link = within(notCfg).getByRole('link', { name: i18n.t('advices.configureLink') });
-    expect(link.getAttribute('href')).toBe('/assistant-ia');
+    expect(link.getAttribute('href')).toBe('/ai-assistant');
     expect(screen.queryByRole('button', { name: i18n.t('advices.generate') })).toBeNull();
   });
 

@@ -255,7 +255,7 @@
       "body": "« <b>{{name}}</b> » disparaîtra des recherches et de cette liste, mais restera dans l'historique des repas qui l'ont utilisée. Tu pourras la restaurer."
     }
   },
-  "cibles": {
+  "targets": {
     "title": "Cibles",
     "badge": {
       "manual": "saisi à la main",
@@ -960,6 +960,11 @@
     "account": "Mon compte",
     "about": "À propos",
     "logout": "Se déconnecter"
+  },
+  "notFound": {
+    "title": "Page introuvable",
+    "body": "Cette adresse ne correspond à aucun écran de Macronome. Elle a peut-être changé, ou le lien est incomplet.",
+    "home": "Retour à l'accueil"
   },
   "contextMenu": {
     "goTo": "Aller à",

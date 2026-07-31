@@ -21,12 +21,12 @@ import styles from './AppShell.module.css';
 // are the real guards.
 const MENU_LINKS: ReadonlyArray<{ to: string; key: string; adminOnly?: boolean }> = [
   { to: '/account', key: 'menu.account' },
-  { to: '/cibles', key: 'cibles.title' },
+  { to: '/targets', key: 'targets.title' },
   { to: '/containers', key: 'containers.title' },
-  { to: '/assistant-ia', key: 'settings.ai.title' },
+  { to: '/ai-assistant', key: 'settings.ai.title' },
   { to: '/integrations', key: 'integrations.title' },
   { to: '/users', key: 'users.title', adminOnly: true },
-  { to: '/parametres', key: 'settings.title' },
+  { to: '/settings', key: 'settings.title' },
 ];
 
 function visibleLinks(isAdmin: boolean) {

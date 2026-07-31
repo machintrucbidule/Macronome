@@ -5,7 +5,7 @@ import { Button } from '../../../components/Button/Button';
 import { NumberInput } from '../../../components/Form/NumberInput';
 import { useTargetMutations } from '../useTargets';
 import { kcal } from '../format';
-import styles from '../cibles.module.css';
+import styles from '../targets.module.css';
 
 // "Suggérer une cible depuis le déficit visé" (opt-in). Proposes a calorie range from
 // the recent-avg burn minus a desired deficit; it never writes — on Apply it only
@@ -22,10 +22,10 @@ export function SuggestDialog({ onClose, onApply }: SuggestDialogProps) {
   const proposed = suggest.data ?? null;
 
   return (
-    <Modal title={t('cibles.suggest.title')} size="confirm" onClose={onClose}>
+    <Modal title={t('targets.suggest.title')} size="confirm" onClose={onClose}>
       <div className={modalStyles.body}>
         <NumberInput
-          label={t('cibles.suggest.deficit')}
+          label={t('targets.suggest.deficit')}
           suffix="kcal"
           value={deficit}
           onChange={(e) => setDeficit(e.target.value)}
@@ -35,12 +35,12 @@ export function SuggestDialog({ onClose, onApply }: SuggestDialogProps) {
           onClick={() => suggest.mutate({ desired_deficit: Number(deficit) })}
           disabled={suggest.isPending}
         >
-          {t('cibles.suggest.compute')}
+          {t('targets.suggest.compute')}
         </Button>
-        {suggest.isError && <div className={styles.error}>{t('cibles.suggest.noWeight')}</div>}
+        {suggest.isError && <div className={styles.error}>{t('targets.suggest.noWeight')}</div>}
         {proposed && (
           <div className={styles.proposed}>
-            {t('cibles.suggest.proposed', {
+            {t('targets.suggest.proposed', {
               min: kcal(proposed.calorie_min),
               max: kcal(proposed.calorie_max),
             })}
@@ -57,7 +57,7 @@ export function SuggestDialog({ onClose, onApply }: SuggestDialogProps) {
             onClick={() => proposed && onApply(proposed.calorie_min, proposed.calorie_max)}
             disabled={!proposed}
           >
-            {t('cibles.suggest.apply')}
+            {t('targets.suggest.apply')}
           </Button>
         </div>
       </div>

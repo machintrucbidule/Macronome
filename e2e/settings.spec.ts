@@ -66,7 +66,7 @@ test('pin a food in settings → it pre-fills a new day; unpin → future-only',
   await page.context().addCookies((await api.storageState()).cookies);
 
   // Pin the food on the first meal's garde-manger.
-  await page.goto('/parametres');
+  await page.goto('/settings');
   await page.getByRole('button', { name: '+ Aliment' }).first().click();
   await page.getByPlaceholder('Rechercher un aliment…').fill(FOOD_NAME);
   await page.getByText(FOOD_NAME).click();
@@ -78,7 +78,7 @@ test('pin a food in settings → it pre-fills a new day; unpin → future-only',
 
   // Unpin from settings → future days no longer pre-fill it. Target the chip's own remove
   // button via its test id (the chip also has a unit button, and meal rows a × delete).
-  await page.goto('/parametres');
+  await page.goto('/settings');
   await page.getByTestId('pantry-remove').click();
   await expect(page.getByText(FOOD_NAME)).toHaveCount(0);
 

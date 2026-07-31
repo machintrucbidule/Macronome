@@ -23,11 +23,11 @@ export function RecomputeConfirm({
 }: RecomputeConfirmProps) {
   const { t } = useTranslation();
   return (
-    <Modal title={t('cibles.recompute.title')} size="confirm" onClose={onCancel}>
+    <Modal title={t('targets.recompute.title')} size="confirm" onClose={onCancel}>
       <div className={modalStyles.body}>
         <p className={modalStyles.text}>
           <Trans
-            i18nKey="cibles.recompute.body"
+            i18nKey="targets.recompute.body"
             values={{ count, period: periodLabel }}
             components={{ b: <b /> }}
           />
@@ -40,7 +40,7 @@ export function RecomputeConfirm({
             {t('common.cancel')}
           </Button>
           <Button variant="danger" onClick={onConfirm} disabled={pending}>
-            {t('cibles.recompute.confirm', { count })}
+            {t('targets.recompute.confirm', { count })}
           </Button>
         </div>
       </div>

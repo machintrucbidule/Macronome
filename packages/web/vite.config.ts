@@ -43,7 +43,7 @@ export default defineConfig({
           { name: 'Ajouter une pesée', url: '/weight?action=add' },
           { name: 'Journal', url: '/history' },
           { name: 'Stats', url: '/stats' },
-          { name: 'Paramètres', url: '/parametres' },
+          { name: 'Paramètres', url: '/settings' },
         ],
         icons: [
           { src: 'pwa-64x64.png', sizes: '64x64', type: 'image/png' },

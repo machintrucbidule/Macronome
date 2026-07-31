@@ -255,7 +255,7 @@
       "body": "“<b>{{name}}</b>” will leave search and this list, but stays in the history of meals that used it. You can restore it."
     }
   },
-  "cibles": {
+  "targets": {
     "title": "Targets",
     "badge": {
       "manual": "entered by hand",
@@ -960,6 +960,11 @@
     "account": "My account",
     "about": "About",
     "logout": "Log out"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "This address matches no Macronome screen. It may have changed, or the link is incomplete.",
+    "home": "Back to home"
   },
   "contextMenu": {
     "goTo": "Go to",

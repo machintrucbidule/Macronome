@@ -20,7 +20,7 @@ export function AdviceGenerate({ ready, pending, error, onGenerate }: AdviceGene
   if (!ready) {
     return (
       <p className={styles.notConfigured}>
-        {t('advices.notConfigured')} — <Link to="/assistant-ia">{t('advices.configureLink')}</Link>
+        {t('advices.notConfigured')} — <Link to="/ai-assistant">{t('advices.configureLink')}</Link>
       </p>
     );
   }

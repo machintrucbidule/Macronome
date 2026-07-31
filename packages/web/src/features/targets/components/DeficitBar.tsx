@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import type { EngineReadout } from '@macronome/shared';
 import { kcal, rate2 } from '../format';
-import styles from '../cibles.module.css';
+import styles from '../targets.module.css';
 
 // "Dépense & déficit" visual (targets mockup .defbar-wrap + .synth): a horizontal bar
 // comparing the target-calorie midpoint (intake) against the estimated burn, a legend, and
@@ -26,48 +26,48 @@ export function DeficitBar({ engine }: DeficitBarProps) {
 
   const synth =
     deficit < 0
-      ? t('cibles.deficit.synthDeficit', {
+      ? t('targets.deficit.synthDeficit', {
           intake: kcal(intake),
           burn: kcal(burn),
           deficit: kcal(Math.abs(deficit)),
           kg: kg(kgWeek ?? 0),
         })
       : deficit > 0
-        ? t('cibles.deficit.synthSurplus', {
+        ? t('targets.deficit.synthSurplus', {
             intake: kcal(intake),
             burn: kcal(burn),
             surplus: kcal(deficit),
             kg: kg(kgWeek ?? 0),
           })
-        : t('cibles.deficit.synthBalance');
+        : t('targets.deficit.synthBalance');
 
   return (
     <>
       <div className={styles.defbarWrap}>
         <div className={styles.defbarHead}>
-          <span>{t('cibles.deficit.intakeLabel')}</span>
-          <span>{t('cibles.deficit.burnLabel')}</span>
+          <span>{t('targets.deficit.intakeLabel')}</span>
+          <span>{t('targets.deficit.burnLabel')}</span>
         </div>
         <div className={styles.defbar}>
           <div className={styles.defbarBurn} style={{ width: `${(burn / max) * 100}%` }}>
             <span className={styles.defbarBurnLbl}>
-              {t('cibles.deficit.kcal', { value: kcal(burn) })}
+              {t('targets.deficit.kcal', { value: kcal(burn) })}
             </span>
           </div>
           <div className={styles.defbarIntake} style={{ width: `${(intake / max) * 100}%` }}>
             <span className={styles.defbarIntakeLbl}>
-              {t('cibles.deficit.kcal', { value: kcal(intake) })}
+              {t('targets.deficit.kcal', { value: kcal(intake) })}
             </span>
           </div>
         </div>
         <div className={styles.deflegend}>
           <span>
             <i className={styles.swIntake} />
-            {t('cibles.deficit.intakeLabel')}
+            {t('targets.deficit.intakeLabel')}
           </span>
           <span>
             <i className={styles.swBurn} />
-            {t('cibles.deficit.burnLabel')}
+            {t('targets.deficit.burnLabel')}
           </span>
         </div>
       </div>

@@ -144,7 +144,7 @@ describe('MealsControls — Proposition IA button (S9 / B-123)', () => {
     const btn = getByRole('button', { name: new RegExp(i18n.t('meals.proposals.button')) });
     expect((btn as HTMLButtonElement).disabled).toBe(true);
     const link = getByRole('link', { name: i18n.t('meals.proposals.configureLink') });
-    expect(link.getAttribute('href')).toBe('/parametres');
+    expect(link.getAttribute('href')).toBe('/settings');
     expect(getByText(new RegExp(i18n.t('meals.proposals.notConfigured')))).toBeTruthy();
   });
 });

@@ -117,7 +117,7 @@ export function MealsControls({
       {!aiReady && (
         <span className={styles.aiOffHint}>
           {t('meals.proposals.notConfigured')} —{' '}
-          <Link to="/parametres">{t('meals.proposals.configureLink')}</Link>
+          <Link to="/settings">{t('meals.proposals.configureLink')}</Link>
         </span>
       )}
       <SelectionBar selection={selection} />

@@ -82,6 +82,20 @@ Driven by a `data-state` on the body: `idle | loading | error | lockout | succes
   Copy avoids gendered/agreement forms so FR↔EN translation stays clean.
   (The bottom demo state-switcher in the mockup is **not** part of the product.)
 
+## Page introuvable (unknown route) — B-241
+
+A URL matching no route renders a **not-found screen inside the normal app frame** (appbar +
+nav), never a blank page: a centred column with the screen title, one calm explanatory line in
+`--text-dim` (the empty-state treatment above — same `.empty` line, no illustration), and a
+single accent **link back to the home screen**. No CTA button, no error tone: a wrong address is
+not a failure of the app.
+
+It sits **behind the same auth guard as every other route**, so a logged-out visitor of an
+unknown URL is sent to the login screen exactly like a logged-out visitor of a real one (owner
+decision) — the app frame is never shown without a session. Retired paths are declared as
+explicit redirects instead of falling through here (B-240), so a stale bookmark or an installed
+PWA shortcut lands on the renamed screen, not on this page.
+
 ## Disabled / inert
 
 - Disabled buttons: see `buttons.md` (filled → desaturate/dim; ghost → reduced

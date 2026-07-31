@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import type { EngineReadout } from '@macronome/shared';
 import { MetricCard } from '../../../components/MetricCard/MetricCard';
 import { macroG } from '../format';
-import styles from '../cibles.module.css';
+import styles from '../targets.module.css';
 
 // The three derived-macro target tiles (protein floor ≥, fat floor ≥, carb ceiling ≤),
 // macro-colour-coded per the Cibles mockup. Split out of EnginePanel for modularity.
@@ -20,22 +20,22 @@ export function MacroFloorTiles({ engine, carbWarn }: MacroFloorTilesProps) {
     <div className={styles.tiles3}>
       <MetricCard
         size="md"
-        label={t('cibles.engine.proteinFloor')}
+        label={t('targets.engine.proteinFloor')}
         value={showG(engine.protein_floor_g)}
         unit="g"
-        note={t('cibles.engine.floorNote')}
+        note={t('targets.engine.floorNote')}
         accent="prot"
       />
       <MetricCard
         size="md"
-        label={t('cibles.engine.fatFloor')}
+        label={t('targets.engine.fatFloor')}
         value={showG(engine.fat_floor_g)}
         unit="g"
         accent="fat"
       />
       <MetricCard
         size="md"
-        label={t('cibles.engine.carbCeiling')}
+        label={t('targets.engine.carbCeiling')}
         value={showG(engine.carb_ceiling_g)}
         unit="g"
         tone={carbWarn ? 'warn' : 'default'}

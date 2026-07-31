@@ -5136,3 +5136,62 @@ minutes, which is _stale_ under a 5-minute throttle: recent = 2 min (no write), 
 (write), `null` still writes. Web: `currentAppearance` unit tests (defaults, live language + stored
 theme, `system` kept / unknown value ignored) and a `SetupWizard` test creating the account in
 English and asserting the payload carries `locale: 'en'`.
+
+---
+
+## ROUTE-1 / B-240 / B-241 — the English-route sweep finished; legacy redirects + a not-found page — RESOLVED (owner, 2026-07-31)
+
+**B-240 — three routes were still French.** `d47e5aa` (9 July) applied CLAUDE.md's
+English-identifiers rule to **one** page (`/conseils` → `/advices`) and stopped there; `/cibles`,
+`/parametres` and `/assistant-ia` were the entire remainder. Not a regression — an unfinished
+sweep.
+
+**Decision (owner): `/targets`, `/settings`, `/ai-assistant`**, with the `cibles` rename carried
+**all the way down** as it was for Conseils: `TargetsPage.tsx`, `targets.module.css`,
+`useTargetsController.ts` (no clash with the existing `useTargets.ts` query hook) and the i18n
+namespace `cibles.*` → `targets.*` (79 keys × 2 locales). The **displayed labels are unchanged** —
+"Cibles" / "Paramètres" / "Assistant IA" are translation values, not identifiers.
+
+**The rename is not web-only** (each verified in code): the Google Drive OAuth callback
+302-redirects the browser to the settings screen (`http/controllers/gdrive.ts`, asserted in
+`gdrive-backup.test.ts`); the installed PWA's "Paramètres" shortcut is baked into the manifest
+(`vite.config.ts`) and stays frozen at `/parametres` inside existing installs until they refresh —
+which is the strongest argument for the redirects below. Shipped as **one commit**: a half-applied
+rename is exactly what produced this report.
+
+**B-241 — an unknown URL rendered a blank page.** `<Routes>` declared no `path="*"`, and the server
+serves the SPA for any path, so a typo or a stale bookmark loaded the app, matched nothing and
+rendered **nothing** — no message, no way back. Found while analysing B-240; the owner chose to fix
+it in the same pass, because without it every retired French URL would land there.
+
+**Decision (owner): redirects _and_ a real not-found screen.**
+
+- `app/legacy-redirects.tsx` holds the table (`/cibles`→`/targets`, `/parametres`→`/settings`,
+  `/assistant-ia`→`/ai-assistant`) and a `LegacyRedirect` that navigates **carrying the query
+  string over** — `<Navigate to="/settings">` alone drops it, which would swallow an older
+  client's `?gdrive=connected` marker. They are declared as **public** routes so the path is
+  rewritten before the auth guard runs.
+- `features/not-found/NotFoundPage.tsx` is the `path="*"` route, **inside the protected table**:
+  an unknown URL opened without a session behaves like any other route → the login screen (owner
+  decision this run), never the app frame. It reuses the shared `EmptyState` line plus a link home.
+
+**Contract impact.** `design/components/states.md` gains a short **"Page introuvable"** section
+(the new state, incl. the logged-out rule). Mechanical path syncs where the contracts quote URLs:
+`spec/api/integrations.md`, `spec/logic/integrations-connections.md`,
+`design/components/ai-connection.md`, `design/components/pwa.md`, and the git-ignored local specs
+`specifications/screens/{targets,settings,ai-assistant}.md`. No schema, DTO or endpoint change.
+
+**Tests.** `legacy-redirects.test.tsx` walks the exported table (each old path lands on its new
+one; `?gdrive=connected` and `?gdrive_error=…` survive; an unrelated unknown path is left to the
+catch-all) and `NotFoundPage.test.tsx` asserts the message + the way home. The redirect table is
+mounted rather than the whole `AppRouter` on purpose: mounting the real router would render every
+target page and fire its queries, testing something other than the routing rule. `e2e/cibles.spec.ts`
+→ `e2e/targets.spec.ts` (and its seeded username), `e2e/settings.spec.ts` and the gdrive integration
+test point at the new paths. **Gate:** lint + typecheck + check:schema + check:i18n (1076 keys) +
+841 unit + 279 integration green; `e2e/targets.spec.ts` green.
+
+**Pre-existing e2e failures, NOT caused by this batch** (verified by re-running the same specs on
+the stashed baseline): `login.spec.ts:49`, `settings.spec.ts:54`, `advices.spec.ts:107`,
+`weight.spec.ts:72`. They fail identically without these changes — e2e only runs in CI on PRs to
+`main`, and this project pushes straight to `main`, so the suite has drifted unnoticed. Flagged to
+the owner for triage; deliberately **not** fixed here (out of this batch's scope).

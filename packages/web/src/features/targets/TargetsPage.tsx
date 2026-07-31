@@ -8,23 +8,23 @@ import { TargetHistory } from './components/TargetHistory';
 import { RecomputeConfirm } from './components/RecomputeConfirm';
 import { DeleteTargetConfirm } from './components/DeleteTargetConfirm';
 import { isSavable } from './draft';
-import { useCiblesController, type CiblesController } from './useCiblesController';
-import styles from './cibles.module.css';
+import { useTargetsController, type CiblesController } from './useTargetsController';
+import styles from './targets.module.css';
 
 // Cibles screen (specifications/screens/targets.md + TH-1): manual targets on the left,
 // the computed engine on the right, the version history below. The form doubles as the
 // history editor — create mode POSTs a new version, loading a row PATCHes it, and a past
 // version offers the opt-in recompute. All derived figures come from the server (rule 2);
 // the controller hook owns the UI state so this stays a thin renderer.
-export function CiblesPage() {
+export function TargetsPage() {
   const { t } = useTranslation();
-  const c = useCiblesController();
+  const c = useTargetsController();
   const { live, ready } = c;
 
   return (
     <AppShell>
       <div className={styles.head}>
-        <h1>{t('cibles.title')}</h1>
+        <h1>{t('targets.title')}</h1>
       </div>
 
       {!ready || !live ? (
@@ -52,7 +52,7 @@ export function CiblesPage() {
 
           {c.mutError && (
             <p className={styles.formError}>
-              {t(`cibles.error.${c.mutError}`, { defaultValue: c.mutError })}
+              {t(`targets.error.${c.mutError}`, { defaultValue: c.mutError })}
             </p>
           )}
 

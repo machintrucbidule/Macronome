@@ -99,7 +99,7 @@ function DayMenuSheet({
         {!aiReady && (
           <span className={styles.hint}>
             {t('meals.proposals.notConfigured')} —{' '}
-            <Link to="/parametres">{t('meals.proposals.configureLink')}</Link>
+            <Link to="/settings">{t('meals.proposals.configureLink')}</Link>
           </span>
         )}
         <button type="button" className={styles.item} onClick={addMeal}>

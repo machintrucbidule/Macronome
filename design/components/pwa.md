@@ -34,7 +34,7 @@ update** and **install** — plus the version line. Reuses `buttons.md` (ghost b
   across the full width, no seam (B-205; semantic tokens only, WCO-mode only).
 - **App shortcuts (B-183)** — the manifest exposes five `shortcuts`, in this order:
   **Repas du jour** (`/`) · **Ajouter une pesée** (`/weight?action=add`) · **Journal**
-  (`/history`) · **Stats** (`/stats`) · **Paramètres** (`/parametres`). Shown by the OS
+  (`/history`) · **Stats** (`/stats`) · **Paramètres** (`/settings`). Shown by the OS
   on taskbar right-click (Windows) / icon long-press (Android). No per-shortcut icons
   (the OS falls back to the app icon). `/weight?action=add` opens Poids with the
   add-weigh-in sheet already open; the param is **consumed once** (stripped with a

@@ -343,7 +343,7 @@ Settings card is browser-derived (`window.location.origin`), so it may read http
    failure → `gdrive_oauth_failed`. The `refresh_token` is **stored** (`google_drive
 .refresh_token`, server-written only), and the app **creates or finds** the "Macronome
    Backups" folder (§9.4), persisting its `folder_id`. The callback then redirects the
-   browser back to `/parametres`.
+   browser back to `/settings`.
 
 The short-lived `access_token` is **not persisted** — it is obtained on demand from the
 `refresh_token` at backup time (a `refresh_token` grant), cached in memory only.

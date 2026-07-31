@@ -16,7 +16,7 @@ import styles from '../settings.module.css';
 const formatDate = (iso: string, lang: string): string =>
   new Intl.DateTimeFormat(lang, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(iso));
 
-/** Read + consume the OAuth-callback marker (/parametres?gdrive=connected | ?gdrive_error=code). */
+/** Read + consume the OAuth-callback marker (/settings?gdrive=connected | ?gdrive_error=code). */
 function useGdriveFlash() {
   const [params, setParams] = useSearchParams();
   const [flash, setFlash] = useState<{ ok: boolean; error?: string } | null>(null);

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import styles from '../cibles.module.css';
+import styles from '../targets.module.css';
 
 // A read-only derived figure rendered like the editable g/kg fields (B-071): a caption, a
 // disabled/greyed box holding the server-computed value, and a "calculé" tag just to its right.
@@ -17,7 +17,7 @@ export function DerivedField({ label, value }: DerivedFieldProps) {
       <span className={styles.derivedCaption}>{label}</span>
       <div className={styles.derivedFieldRow}>
         <span className={styles.derivedBox}>{value}</span>
-        <span className={styles.calcTag}>{t('cibles.targets.calculated')}</span>
+        <span className={styles.calcTag}>{t('targets.targets.calculated')}</span>
       </div>
     </div>
   );
