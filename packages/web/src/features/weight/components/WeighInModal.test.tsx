@@ -1,6 +1,6 @@
 import { createElement, type ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, type RenderResult } from '@testing-library/react';
+import { cleanup, fireEvent, render, type RenderResult } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { WeighIn } from '@macronome/shared';
 import i18n from '../../../i18n/config';
@@ -34,10 +34,17 @@ function renderModal(target: Parameters<typeof WeighInModal>[0]['target'], last:
 
 // NumberInput's label also wraps the unit suffix + stepper, so match the accessible
 // name by prefix instead of the exact label text.
-const inputValue = (r: RenderResult, label: string): string =>
-  (r.getByRole('spinbutton', { name: new RegExp(`^${label}`) }) as HTMLInputElement).value;
+const field = (r: RenderResult, label: string): HTMLInputElement =>
+  r.getByRole('spinbutton', { name: new RegExp(`^${label}`) }) as HTMLInputElement;
+const inputValue = (r: RenderResult, label: string): string => field(r, label).value;
 const weight = (r: RenderResult): string => inputValue(r, i18n.t('weight.field.weight'));
 const waist = (r: RenderResult): string => inputValue(r, i18n.t('weight.field.waist'));
+
+/** The ▲▼ stepper buttons of a field (aria-hidden, so reached through its wrapper). */
+function arrows(r: RenderResult, label: string): { up: HTMLElement; down: HTMLElement } {
+  const btns = (field(r, label).parentElement as HTMLElement).querySelectorAll('button');
+  return { up: btns[0] as HTMLElement, down: btns[1] as HTMLElement };
+}
 
 afterEach(() => {
   cleanup();
@@ -68,5 +75,27 @@ describe('WeighInModal — add-mode pre-fill (B-179)', () => {
     const r = renderModal({ kind: 'edit', weighIn: edited }, weighIn({}));
     expect(weight(r)).toBe('84.1');
     expect(waist(r)).toBe('90');
+  });
+});
+
+describe('WeighInModal — weight stepper (B-251)', () => {
+  const seeded = () => renderModal({ kind: 'add' }, weighIn({ weight_kg: 75, waist_cm: 88 }));
+
+  it('steps the weight up by 0.1 kg', () => {
+    const r = seeded();
+    fireEvent.click(arrows(r, i18n.t('weight.field.weight')).up);
+    expect(weight(r)).toBe('75.1');
+  });
+
+  it('steps the weight down by 0.1 kg', () => {
+    const r = seeded();
+    fireEvent.click(arrows(r, i18n.t('weight.field.weight')).down);
+    expect(weight(r)).toBe('74.9');
+  });
+
+  it('keeps the waist stepper at 1 cm', () => {
+    const r = seeded();
+    fireEvent.click(arrows(r, i18n.t('weight.field.waist')).up);
+    expect(waist(r)).toBe('89');
   });
 });

@@ -42,9 +42,13 @@ export function WeighInFields({ draft, set, error, openMode, addMode }: WeighInF
               onChange={(e) => set({ date: e.target.value })}
             />
           </label>
+          {/* Weight is a 1-decimal quantity, so the ▲▼ arrows move it by 0.1 kg like the
+              Cibles target weight (B-251). The waist below keeps the default 1 cm step. */}
           <NumberInput
             label={t('weight.field.weight')}
             suffix="kg"
+            min={0}
+            step={0.1}
             value={draft.weight}
             onChange={(e) => set({ weight: e.target.value })}
           />

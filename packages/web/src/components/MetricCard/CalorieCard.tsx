@@ -46,15 +46,19 @@ interface CalorieValueProps {
 /** The calorie total in the card footer: a read-only number, or an inline input on a Partiel
  *  day (commits on blur/Enter when finite, > 0 and changed — mirrors the Journal Calories cell). */
 function CalorieValue({ value, unit, editable, onSave, placeholder }: CalorieValueProps) {
-  const [draft, setDraft] = useState(value > 0 ? String(value) : '');
+  // One rounding policy for the whole card (B-250): kcal display is an integer
+  // (spec/logic/00-conventions.md §Rounding), so the editable draft is seeded at the same
+  // precision as the read-only number — the server keeps the exact derived sum.
+  const rounded = Math.round(value);
+  const [draft, setDraft] = useState(value > 0 ? String(rounded) : '');
   useEffect(() => {
-    setDraft(value > 0 ? String(value) : '');
+    setDraft(value > 0 ? String(Math.round(value)) : '');
   }, [value]);
 
   if (!editable) {
     return (
       <span className={styles.val} data-testid="day-total-kcal">
-        {Math.round(value)} {unit}
+        {rounded} {unit}
       </span>
     );
   }

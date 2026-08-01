@@ -9,8 +9,8 @@ const STATUS = { inBand: 'OK', under: 'Below', over: 'Over' };
 
 afterEach(cleanup);
 
-function renderCard(props: Partial<Parameters<typeof CalorieCard>[0]> = {}) {
-  return render(
+function card(props: Partial<Parameters<typeof CalorieCard>[0]> = {}) {
+  return (
     <CalorieCard
       label="Calories"
       value={1800}
@@ -20,8 +20,12 @@ function renderCard(props: Partial<Parameters<typeof CalorieCard>[0]> = {}) {
       status={STATUS}
       unit="kcal"
       {...props}
-    />,
+    />
   );
+}
+
+function renderCard(props: Partial<Parameters<typeof CalorieCard>[0]> = {}) {
+  return render(card(props));
 }
 
 describe('CalorieCard editable (DK-1 / B-079)', () => {
@@ -50,6 +54,28 @@ describe('CalorieCard editable (DK-1 / B-079)', () => {
     fireEvent.change(input, { target: { value: '' } }); // invalid
     fireEvent.blur(input);
     expect(onSave).not.toHaveBeenCalled();
+  });
+});
+
+describe('CalorieCard editable seeding is rounded (B-250)', () => {
+  const input = (c: HTMLElement): HTMLInputElement => c.querySelector('input') as HTMLInputElement;
+
+  it('seeds the draft with the integer kcal, not the raw sum', () => {
+    const { container } = renderCard({ value: 1873.45, editable: true, onSave: vi.fn() });
+    expect(input(container).value).toBe('1873');
+  });
+
+  it('re-seeds rounded when the server value changes', () => {
+    const { container, rerender } = renderCard({ value: 1873.45, editable: true, onSave: vi.fn() });
+    rerender(card({ value: 1902.6, editable: true, onSave: vi.fn() }));
+    expect(input(container).value).toBe('1903');
+  });
+
+  it('normalises the stored value on a blur without typing (deliberate, B-250)', () => {
+    const onSave = vi.fn();
+    const { container } = renderCard({ value: 1873.45, editable: true, onSave });
+    fireEvent.blur(input(container));
+    expect(onSave).toHaveBeenCalledWith(1873);
   });
 });
 

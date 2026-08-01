@@ -16,11 +16,13 @@ interface CaloriesCellProps {
 }
 
 export function CaloriesCell({ kcal, editable, placeholder, onOpen, onSave }: CaloriesCellProps) {
-  const [draft, setDraft] = useState(kcal > 0 ? String(kcal) : '');
+  // Seeded at display precision (B-250): kcal shows as an integer everywhere, editable or
+  // not (spec/logic/00-conventions.md §Rounding); the server keeps the exact derived sum.
+  const [draft, setDraft] = useState(kcal > 0 ? String(r0(kcal)) : '');
 
   // Re-seed from the server value (e.g. after a refetch); show blank for a 0/empty day.
   useEffect(() => {
-    setDraft(kcal > 0 ? String(kcal) : '');
+    setDraft(kcal > 0 ? String(r0(kcal)) : '');
   }, [kcal]);
 
   if (!editable) {

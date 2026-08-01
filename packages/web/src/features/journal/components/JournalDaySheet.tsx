@@ -11,7 +11,7 @@ import { Modal } from '../../../components/Modal/Modal';
 import { VerdictBadge } from '../../../components/VerdictBadge/VerdictBadge';
 import { ActivitySelect } from '../../../components/ActivitySelect/ActivitySelect';
 import { CommentCell } from './CommentCell';
-import { formatDow, formatJournalDate } from '../format';
+import { formatDow, formatJournalDate, r0 } from '../format';
 import styles from '../journal-mobile.module.css';
 
 // Journal day-editor bottom sheet (mobile-responsive S5, spec §4.2). Tapping a card opens
@@ -114,7 +114,8 @@ function KcalField({
   label: string;
   onSave: (kcal: number) => void;
 }) {
-  const [draft, setDraft] = useState(kcal > 0 ? String(kcal) : '');
+  // Seeded at display precision, like the desktop cell (B-250).
+  const [draft, setDraft] = useState(kcal > 0 ? String(r0(kcal)) : '');
   const commit = (): void => {
     const n = Number(draft.replace(',', '.'));
     if (Number.isFinite(n) && n > 0 && n !== kcal) onSave(n);
