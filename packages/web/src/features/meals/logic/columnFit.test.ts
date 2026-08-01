@@ -54,15 +54,23 @@ describe('columnFit with a minimum column count (B-244)', () => {
 
   it('raises a ~1000px window from 2 to 3 columns (964px usable)', () => {
     expect(columnFit(964, 1)).toEqual({ columns: 2, colWidth: 482 });
-    expect(columnFit(964, 4)).toEqual({ columns: 3, colWidth: 321 }); // floor(964/300) = 3 caps it
+    expect(columnFit(964, 4)).toEqual({ columns: 3, colWidth: 321 }); // floor(964/275) = 3 caps it
   });
 
-  it('lets the 300px viability floor win over the setting (764px usable)', () => {
-    // floor(764/300) = 2, so a minimum of 4 cannot apply: the automatic count stands.
+  it('lets the viability floor win over the setting (764px usable)', () => {
+    // floor(764/275) = 2, so a minimum of 4 cannot apply: the automatic count stands.
     expect(columnFit(764, 4)).toEqual(columnFit(764, 1));
     expect(columnFit(764, 4).columns).toBe(2);
     // A phone-width scroller can never be pushed past one column.
     expect(columnFit(360, 6).columns).toBe(1);
+  });
+
+  // GR-1 / B-252: the food-line grid dropped from 255px to 229px incompressible, so the floor
+  // dropped 300 → 275 and the setting now holds on windows ~25px narrower per column. These two
+  // widths straddle the new floor exactly — under 300 the first case laid out 2 columns.
+  it('honours the setting down to the 275px floor (825px usable), and not below', () => {
+    expect(columnFit(825, 4)).toEqual({ columns: 3, colWidth: 275 }); // floor(825/275) = 3
+    expect(columnFit(824, 4)).toEqual({ columns: 2, colWidth: 412 }); // floor(824/275) = 2
   });
 
   it('never reduces the automatically computed count', () => {

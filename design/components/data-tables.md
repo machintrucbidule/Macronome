@@ -182,11 +182,16 @@ the button: `position:absolute; top:-6px; right:-6px; 12px` pill on `--accent`/`
 same rule that hides 🍳; the action moves into the meal ⋯ sheet as a text row.
 
 Lines via CSS grid:
-`grid-template-columns: 7px 1fr 54px 34px 26px 26px 26px 15px 15px`
-(grip · name · qty+unit · kcal · L · G · P · pin · del). The **qty+unit column is
-sized to its real content** — the numeric input plus the always-short unit chip
-(`g`/`ml`/`kg`/`nb`), not a wide unit label that never renders — so the reclaimed
-width widens the `1fr` name column (longer food names show before ellipsis). `.lhead` row `--fs-9`
+`grid-template-columns: 7px 1fr 57px 28px 21px 21px 21px 15px 15px` with **`gap: 3px`**
+(grip · name · qty+unit · kcal · L · G · P · pin · del). **Every fixed track is sized to its
+own content at maximum, not to a round number** (GR-1 / B-252): kcal holds 4 monospace digits
+(27.6px in 28), each macro 3 digits (20.7px in 21), and qty+unit holds the 36px input + 2px
+inner gap + the **18px** unit chip (`g`/`ml`/`kg`/`nb`) — the chip was previously squeezed to
+16px and ellipsised "nb" into "n…". Everything left over goes to the `1fr` name column
+(longer food names show before ellipsis); the incompressible width is **229px**
+(tracks 185 + 8 gutters 24 + side padding 20). The value cells deliberately carry **no
+`overflow: hidden`**, so a sub-pixel overrun spills into the gutter rather than truncating.
+`.lhead` row `--fs-9`
 uppercase. Line `min-height:32px`. Footer `.meal-foot` = totals on `--bg-elev-2`.
 Line states: `.empty` (italic faint "+ aliment"), `.zero` (**whole-line muted**:
 text cells name/qty/unit/macros in `--text-faint`, grip/📌/× at `opacity:.45` — a

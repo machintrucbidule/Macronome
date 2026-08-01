@@ -3,11 +3,14 @@
    `composes: row`. Used across FoodLine, QtyCell, UnitMenu, LineHeader, MealFooter. */
 .row {
   display: grid;
-  /* qty+unit column sized to its real content (input + short SI/`nb` chip), not the old
-     74px that reserved room for a wide unit label that never renders — the reclaimed width
-     goes to the 1fr name column (data-tables.md §62). */
-  grid-template-columns: 7px 1fr 54px 34px 26px 26px 26px 15px 15px;
-  gap: 4px;
+  /* Every fixed track is sized to its own content at maximum (GR-1 / B-252): kcal holds 4
+     monospace digits (27.6px in 28), each macro 3 digits (20.7px in 21), and qty+unit holds
+     the 36px input + the 2px inner gap + the 18px unit chip — at 54px that chip was squeezed
+     to 16px and ellipsised `nb` into `n…`. Everything left over goes to the 1fr name column
+     (data-tables.md §meal column grid). The value cells carry no `overflow: hidden`, so a
+     sub-pixel overrun spills into the gutter instead of truncating. */
+  grid-template-columns: 7px 1fr 57px 28px 21px 21px 21px 15px 15px;
+  gap: 3px;
   align-items: center;
   padding: 0 10px;
 }

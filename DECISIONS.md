@@ -5461,3 +5461,59 @@ keys) + 863 unit + 286 integration + e2e 24/24 green.
 **Process note.** Part of this batch was written while plan mode was still active — the owner's
 "exécute" does not lift it; only approving the plan does. Flagged, then the plan was submitted and
 approved before finishing.
+
+## GR-1 / B-252 — food-line grid retuned to its real content; the viability floor follows — RESOLVED (owner, 2026-08-01)
+
+**Need.** On the Repas screen the numeric cells kept visible slack at their maximum digit count
+while the unit chip rendered **"n…" instead of "nb"** and the food name ellipsised early. Reported
+with devtools measurements.
+
+**Root cause — arithmetic, not approximation.** The numeric font (`--font-num`, Space Mono) is
+monospace at **0.6 em/char** and the value cells carry no `letter-spacing` (the `0.03em` is on the
+sub-header only), so each track's real need is exact. Inside the 54px qty track, `.qtyCell` is a
+flex row: the `.qty` input (**36px**) + a 2px inner gap left the `.unit` chip **16px**; minus its
+6px padding → **10px of text**, while "nb" at `--fs-10` measures **12px**. The chip was squeezed
+below its natural **18px** and `text-overflow: ellipsis` fired. **Short by exactly 2px** — the chip
+was never too narrow by design, it was starved by the track.
+
+**Decision (owner).** He rejected the triage's conservative proposals and set the values himself
+after seeing the per-cell arithmetic: **qty+unit 57px · kcal 28px · L/G/P 21px · gutter 4 → 3px**.
+
+| Cell       | New  | Content at max              | Remaining |
+| ---------- | ---- | --------------------------- | --------- |
+| kcal       | 28px | 4 digits = 27.6px           | 0.4px     |
+| L / G / P  | 21px | 3 digits = 20.7px           | 0.3px     |
+| qty + unit | 57px | 36 + 2 + chip 19 (needs 18) | 1px       |
+
+Incompressible width **255px → 229px** (tracks 185 + 8 gutters 24 + side padding 20), so **the
+`1fr` name column gains 26px**. One declaration and the `gap` changed; the 36px input width, the
+chip's padding and its `min-width: 16px` floor all stayed — the chip stops truncating because it is
+no longer squeezed, not because it was widened.
+
+**Why sub-pixel slack is safe here** (verified, so it is not re-litigated): the value cells have
+**no `overflow: hidden`**, so an overrun spills into the gutter instead of truncating; the tracks
+are fixed sizes, so an oversized item cannot stretch them; and the sub-header labels still fit
+("kcal" measures 22.7px including its `0.03em` letter-spacing, inside 28px; L/G/P are one glyph).
+
+**Shared by three consumers**, all via `composes: row`: `.lhead` (sub-header), `.line` and
+`.totalRow` (the meal footer). The footer narrows with them — a 4-digit meal-total kcal (27.6 in 28)
+and 3-digit macro totals (20.7 in 21) still fit. **Desktop only:** ≤560px replaces the template with
+the two-row `18px 1fr auto` layout, untouched.
+
+**Follow-on — the B-244 viability floor.** `MIN_VIABLE_COL_WIDTH` was justified as "255px
+incompressible + ~45px of name" → 300. On the new base the same allowance gives **275**, so
+`min_meal_columns` now still applies on windows ~25px narrower per column (e.g. an ~886px window
+with the setting at 4 lays out 3 columns instead of 2).
+
+**Contract impact.** `design/components/data-tables.md` (the 9-column template, the gutter, the
+sizing rule and the no-`overflow: hidden` guarantee) and `specifications/screens/meals.md` (both
+citations of the floor — the prose and the `n = max(...)` formula — plus the incompressible figure).
+No API, schema or DTO change.
+
+**Tests.** `columnFit.test.ts`: the B-244 oracles were **recomputed, not relaxed** — at 1244px,
+964px, 764px and 360px the results are identical under 275 (only the `floor(width / …)` comments
+moved), so the new floor got its own oracle where the two values genuinely differ: `columnFit(825,
+4)` → 3 columns / 275px wide (2 under the old floor) and `columnFit(824, 4)` → 2 columns, the floor
+still winning one pixel below. **The CSS grid itself is not test-provable** — the rendering was
+verified by the owner on the Repas screen at 1280px and 1920px before the commit, by explicit
+arrangement.
