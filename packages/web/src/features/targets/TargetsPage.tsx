@@ -1,5 +1,4 @@
 import { useTranslation } from 'react-i18next';
-import { AppShell } from '../../app/AppShell';
 import { SkeletonRows } from '../../components/states/SkeletonRows';
 import { TargetForm } from './components/TargetForm';
 import { EnginePanel } from './components/EnginePanel';
@@ -22,7 +21,7 @@ export function TargetsPage() {
   const { live, ready } = c;
 
   return (
-    <AppShell>
+    <>
       <div className={styles.head}>
         <h1>{t('targets.title')}</h1>
       </div>
@@ -65,7 +64,7 @@ export function TargetsPage() {
           <CiblesModals c={c} />
         </>
       )}
-    </AppShell>
+    </>
   );
 }
 

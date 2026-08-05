@@ -54,6 +54,19 @@ A feature folder owns: a page container (route + data fetching), feature-local
 `components/`, `hooks/`, optional `modals/`, and `logic/` for **view** logic only
 (layout math, keyboard nav) — never domain calculation.
 
+**Route shape (B-266/B-274) — keep both when adding a route.**
+
+1. `app/routes.tsx` holds **lazy component factories** (`lazyNamed(() => import(...), 'Page')`),
+   never built elements. The old `['/history', <JournalPage />]` shape instantiated all 20 pages
+   at module scope: one ~1 MB chunk, and any `React.lazy` added later would have been inert.
+   Heavy leaves that only mount on demand (cook mode, the custom-line/AI dialogs, the Markdown
+   renderer) are lazy inside their feature for the same reason.
+2. `AppShell` is a **layout route** in `app/router.tsx`, mounted once for the session; pages
+   render their **content only** and never wrap themselves in it. Per-screen chrome differences
+   (Repas's flush gutter) are derived from the pathname inside the shell, not passed in — a
+   layout route takes no per-page props. Remounting the shell used to rebuild the appbar, the
+   bottom nav and the animated brand tick on every navigation.
+
 Cross-feature data access goes through `web/src/api/<resource>.ts`, mapping to the
 API resources:
 

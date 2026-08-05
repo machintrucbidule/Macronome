@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import type { Container } from '@macronome/shared';
-import { AppShell } from '../../app/AppShell';
 import { useIsMobile } from '../../lib/useIsMobile';
 import { type SortKey } from './components/ContainerTable';
 import { ContainersDesktop } from './components/ContainersDesktop';
@@ -71,7 +70,7 @@ export function ContainersPage() {
   };
 
   return (
-    <AppShell>
+    <>
       {isMobile ? (
         <ContainersMobile {...common} />
       ) : (
@@ -99,6 +98,6 @@ export function ContainersPage() {
           }}
         />
       )}
-    </AppShell>
+    </>
   );
 }

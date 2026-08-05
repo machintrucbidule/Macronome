@@ -23,6 +23,11 @@
     "ok": "Connected: proxy → API → database.",
     "error": "Failed to reach the API."
   },
+  "fatal": {
+    "title": "This screen could not be displayed",
+    "lead": "An unexpected error occurred. Reloading the app usually clears it; if it comes back, the detail below helps diagnose it.",
+    "reload": "Reload"
+  },
   "login": {
     "title": "Sign in",
     "username": "Username",

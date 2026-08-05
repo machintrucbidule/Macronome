@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AppShell } from '../../app/AppShell';
 import { EmptyState } from '../../components/states/EmptyState';
 import { SkeletonRows } from '../../components/states/SkeletonRows';
 import { AdherenceSections } from './components/AdherenceSections';
@@ -22,7 +21,7 @@ export function StatsPage() {
   const noData = rolling.data !== undefined && asOf === null;
 
   return (
-    <AppShell>
+    <>
       <header className={styles.head}>
         <h1 className={styles.title}>{t('stats.title')}</h1>
         {asOf && (
@@ -47,6 +46,6 @@ export function StatsPage() {
           />
         </>
       )}
-    </AppShell>
+    </>
   );
 }

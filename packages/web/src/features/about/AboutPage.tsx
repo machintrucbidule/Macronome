@@ -1,7 +1,6 @@
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import type { AboutInfo } from '@macronome/shared';
-import { AppShell } from '../../app/AppShell';
 import { EmptyState } from '../../components/states/EmptyState';
 import { SkeletonRows } from '../../components/states/SkeletonRows';
 import { formatBytes, formatDuration } from './format';
@@ -107,7 +106,7 @@ export function AboutPage() {
   const about = useAbout();
   const info = about.data?.data;
   return (
-    <AppShell>
+    <>
       <div className={styles.wrap}>
         <h1 className={styles.h1}>{t('about.title')}</h1>
         <p className={styles.lead}>{t('about.lead')}</p>
@@ -121,6 +120,6 @@ export function AboutPage() {
           ))
         )}
       </div>
-    </AppShell>
+    </>
   );
 }

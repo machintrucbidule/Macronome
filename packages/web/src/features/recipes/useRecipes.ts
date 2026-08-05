@@ -7,6 +7,7 @@ import type {
 } from '@macronome/shared';
 import { recipesApi, type RecipeListParams } from '../../api/recipes';
 import { loggableSearchApi } from '../../api/loggableSearch';
+import { LIST_GC_TIME } from '../../lib/listCache';
 import { draftToPreviewBody, type RecipeDraft } from './modals/draft';
 
 // Data hooks for the Recettes screen. The page owns search/sort state and passes it
@@ -23,6 +24,11 @@ export function useRecipesList(params: RecipeListParams) {
       recipesApi.list(pageParam ? { ...params, cursor: pageParam } : params),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (last) => last.next_cursor ?? undefined,
+    // B-268: keep the pages the user scrolled through while they step into a recipe and back.
+    // With the default 5-minute GC only page 1 remains on Back, so the list is shorter than the
+    // saved scroll offset and the restore is clamped near the top. Scoped to this list, not the
+    // global default: nothing else accumulates pages this way.
+    gcTime: LIST_GC_TIME,
   });
 }
 

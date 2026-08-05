@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { AppShell } from '../../app/AppShell';
 import { EmptyState } from '../../components/states/EmptyState';
 import styles from './not-found.module.css';
 
@@ -12,7 +11,7 @@ import styles from './not-found.module.css';
 export function NotFoundPage() {
   const { t } = useTranslation();
   return (
-    <AppShell>
+    <>
       <div className={styles.wrap}>
         <h1 className={styles.title}>{t('notFound.title')}</h1>
         <EmptyState>{t('notFound.body')}</EmptyState>
@@ -20,6 +19,6 @@ export function NotFoundPage() {
           {t('notFound.home')}
         </Link>
       </div>
-    </AppShell>
+    </>
   );
 }

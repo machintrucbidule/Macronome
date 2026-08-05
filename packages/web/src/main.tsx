@@ -1,5 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { ErrorBoundary } from './app/ErrorBoundary';
 import { QueryProvider } from './app/providers/QueryProvider';
 import { ThemeProvider } from './app/providers/ThemeProvider';
 import { AppRouter } from './app/router';
@@ -16,10 +17,15 @@ registerServiceWorker();
 
 createRoot(container).render(
   <StrictMode>
+    {/* Root boundary (B-265): outside the router, so it still renders the recovery card when the
+        failure is the router itself. The per-screen boundary lives in AppShell. It sits inside
+        ThemeProvider so the card is drawn in the user's theme. */}
     <ThemeProvider>
-      <QueryProvider>
-        <AppRouter />
-      </QueryProvider>
+      <ErrorBoundary>
+        <QueryProvider>
+          <AppRouter />
+        </QueryProvider>
+      </ErrorBoundary>
     </ThemeProvider>
   </StrictMode>,
 );

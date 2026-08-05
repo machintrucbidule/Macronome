@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import type { Food } from '@macronome/shared';
-import { AppShell } from '../../app/AppShell';
 import { FoodsDesktop } from './components/FoodsDesktop';
 import { FoodsMobile } from './components/FoodsMobile';
 import type { SortField } from './components/FoodTable';
@@ -97,7 +96,7 @@ export function FoodsPage() {
   };
 
   return (
-    <AppShell>
+    <>
       {isMobile ? (
         <FoodsMobile {...common} />
       ) : (
@@ -130,6 +129,6 @@ export function FoodsPage() {
           }}
         />
       )}
-    </AppShell>
+    </>
   );
 }

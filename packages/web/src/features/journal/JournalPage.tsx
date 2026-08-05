@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { JournalRow, PatchDayRequest } from '@macronome/shared';
-import { AppShell } from '../../app/AppShell';
 import { dataApi } from '../../api/data';
 import { Banner } from '../../components/Banner/Banner';
 import { EmptyState } from '../../components/states/EmptyState';
@@ -66,7 +65,7 @@ export function JournalPage() {
   const maxYear = query.data?.max_year ?? null;
 
   return (
-    <AppShell>
+    <>
       {error && (
         <div className={styles.errorBar}>
           <Banner tone="warning" onDismiss={dismissError}>
@@ -114,6 +113,6 @@ export function JournalPage() {
           />
         </>
       )}
-    </AppShell>
+    </>
   );
 }

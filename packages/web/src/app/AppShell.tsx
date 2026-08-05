@@ -1,15 +1,24 @@
-import type { ReactNode } from 'react';
+import { Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { SkeletonRows } from '../components/states/SkeletonRows';
 import { AccountMenu } from './AccountMenu';
 import { BottomNav } from './BottomNav';
+import { ErrorBoundary } from './ErrorBoundary';
 import { ThemeToggle } from './ThemeToggle';
+import { useScrollRestoration } from './useScrollRestoration';
 import styles from './AppShell.module.css';
 
 // In-app frame: appbar (brand tick + wordmark + primary nav + theme toggle + account menu)
 // + page body. Cibles / Contenants / Paramètres / Compte live in the account menu (top-right
-// avatar), not the primary nav (specifications/screens/settings.md). `flush` pages (Repas)
-// provide their own gutter + full-bleed sticky header, so the page wrapper drops its padding.
+// avatar), not the primary nav (specifications/screens/settings.md).
+//
+// B-274: this is a **layout route** (router.tsx), mounted once for the whole session — the page
+// renders into the <Outlet/> below. Nothing here is rebuilt on navigation, which is what stopped
+// the brand tick's swing from restarting on every page change and keeps the bottom nav in place.
+// Repas is "flush" (it provides its own gutter + full-bleed sticky header, so the page wrapper
+// drops its padding); that is derived from the pathname here, exactly like the nav highlight,
+// rather than passed in by the page.
 //
 // Mobile shell (mobile-responsive S3, spec §2): ≤560px the appbar swaps the wordmark for the
 // route-derived screen title and hides the top nav + theme toggle (CSS); a fixed BottomNav
@@ -41,11 +50,14 @@ function titleKey(pathname: string): string {
   return match ? (TITLE_KEYS[match] ?? 'app.title') : 'app.title';
 }
 
-export function AppShell({ children, flush = false }: { children: ReactNode; flush?: boolean }) {
+export function AppShell() {
   const { t } = useTranslation();
   const { pathname } = useLocation();
-  // Repas is reachable as both `/` and `/day/:date`; keep its tab lit on either (B-014).
+  useScrollRestoration();
+  // Repas is reachable as both `/` and `/day/:date`; keep its tab lit on either (B-014). The same
+  // test decides `flush`: Repas is the only flush screen.
   const mealsActive = pathname === '/' || pathname.startsWith('/day/');
+  const flush = mealsActive;
   return (
     <div className={styles.root}>
       <header className={styles.appbar}>
@@ -98,7 +110,18 @@ export function AppShell({ children, flush = false }: { children: ReactNode; flu
           <AccountMenu />
         </div>
       </header>
-      <main className={flush ? styles.pageFlush : styles.page}>{children}</main>
+      <main className={flush ? styles.pageFlush : styles.page}>
+        {/* B-265: one screen may fail without taking the frame with it. Keyed on the pathname
+            because React never resets a boundary on its own — otherwise a crashed screen would
+            keep showing the recovery card after you navigated away.
+            B-266: the Suspense fallback covers the route's code chunk arriving; a skeleton, never
+            a spinner (states.md §Loading states). */}
+        <ErrorBoundary key={pathname}>
+          <Suspense fallback={<SkeletonRows />}>
+            <Outlet />
+          </Suspense>
+        </ErrorBoundary>
+      </main>
       <BottomNav />
     </div>
   );

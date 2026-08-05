@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AppShell } from '../../app/AppShell';
 import { authApi } from '../../api/auth';
 import { useSession } from '../../app/useSession';
 import { Button } from '../../components/Button/Button';
@@ -24,7 +23,7 @@ export function AccountPage() {
   };
 
   return (
-    <AppShell>
+    <>
       <div className={styles.wrap}>
         <h1 className={styles.h1}>{t('account.title')}</h1>
 
@@ -71,6 +70,6 @@ export function AccountPage() {
       </div>
 
       {pwOpen && <PasswordModal onClose={() => setPwOpen(false)} />}
-    </AppShell>
+    </>
   );
 }

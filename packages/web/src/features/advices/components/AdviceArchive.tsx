@@ -1,9 +1,16 @@
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Advice } from '@macronome/shared';
-import { AdviceMarkdown } from './AdviceMarkdown';
+import { lazyNamed } from '../../../lib/lazyNamed';
 import { AdviceDeleteConfirm } from './AdviceDeleteConfirm';
 import styles from '../advices.module.css';
+
+// B-266: react-markdown + remark-gfm are the app's heaviest third-party leaf and are used here
+// only — inside a collapsed card. They load when a card is first expanded, not with the screen.
+const AdviceMarkdown = lazyNamed<{ children: string }>(
+  () => import('./AdviceMarkdown'),
+  'AdviceMarkdown',
+);
 
 // Archived-advice list (B-202 block D; B-213 + B-214): newest first, each item = date · model +
 // the rendered Markdown, collapsible (house ▸/▾). Defaults (B-214): the just-generated advice is
@@ -67,7 +74,11 @@ export function AdviceArchive({ advices, onDelete, justGeneratedId }: AdviceArch
                 ×
               </button>
             </header>
-            {open && <AdviceMarkdown>{a.content}</AdviceMarkdown>}
+            {open && (
+              <Suspense fallback={null}>
+                <AdviceMarkdown>{a.content}</AdviceMarkdown>
+              </Suspense>
+            )}
           </article>
         );
       })}

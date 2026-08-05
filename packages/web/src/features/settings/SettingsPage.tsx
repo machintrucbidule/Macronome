@@ -1,5 +1,4 @@
 import { useTranslation } from 'react-i18next';
-import { AppShell } from '../../app/AppShell';
 import { AppearanceCard } from './components/AppearanceCard';
 import { MealTemplateCard } from './components/MealTemplateCard';
 import { DataCard } from './components/DataCard';
@@ -13,7 +12,7 @@ import styles from './settings.module.css';
 export function SettingsPage() {
   const { t } = useTranslation();
   return (
-    <AppShell>
+    <>
       <div className={styles.wrap}>
         <h1 className={styles.h1}>{t('settings.title')}</h1>
         <p className={styles.lead}>{t('settings.lead')}</p>
@@ -24,6 +23,6 @@ export function SettingsPage() {
         <GoogleDriveCard />
         <UpdateCard />
       </div>
-    </AppShell>
+    </>
   );
 }

@@ -1,5 +1,4 @@
 import { useTranslation } from 'react-i18next';
-import { AppShell } from '../../app/AppShell';
 import { AiCard } from './components/AiCard';
 import styles from './settings.module.css';
 
@@ -10,13 +9,13 @@ import styles from './settings.module.css';
 export function AiAssistantPage() {
   const { t } = useTranslation();
   return (
-    <AppShell>
+    <>
       <div className={styles.wrap}>
         <h1 className={styles.h1}>{t('settings.ai.title')}</h1>
         <p className={styles.lead}>{t('settings.ai.intro')}</p>
 
         <AiCard />
       </div>
-    </AppShell>
+    </>
   );
 }

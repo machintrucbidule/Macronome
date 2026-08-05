@@ -32,6 +32,22 @@ inside the app (the spinner is reserved for the login submit).
 - **Aliments / tables**: skeleton rows (greyed bars at row height).
 - Skeleton fill: a low-contrast block on `--bg-elev-2`; keep motion subtle or
   static. Show data progressively as it arrives rather than blocking the view.
+- A screen whose **code** is still loading (routes are split, B-266) uses the same
+  skeleton treatment — never a spinner.
+
+## Fatal error (uncaught render error) — B-265
+
+A screen that throws during render shows a **recovery card in place of the screen**, inside
+the app frame: the appbar and nav stay usable, so the failure costs one screen, not the
+session. A failure below the router renders the same card full-page.
+
+Calm and illustration-free like the empty state: a short title, one explanatory line in
+`--text-dim`, the error text in a dashed `--font-num` chip (`user-select: all`, the same
+affordance as the login diagnostic code above — a plain-HTTP host has no clipboard API), and a
+single **Recharger** action. **No alarm colour**: a crash is not the user's fault.
+
+A stale-chunk failure after an update — the browser asking for a hashed chunk the new build no
+longer serves — surfaces here, and the same reload is its cure.
 
 ## Error (non-blocking, in-app)
 

@@ -1,5 +1,4 @@
 import { useTranslation } from 'react-i18next';
-import { AppShell } from '../../app/AppShell';
 import { SkeletonRows } from '../../components/states/SkeletonRows';
 import { useSettingsQuery } from '../settings/useSettings';
 import { AdviceDashboard } from './components/AdviceDashboard';
@@ -22,7 +21,7 @@ export function AdvicesPage() {
   const { generate, remove } = useAdviceMutations();
 
   return (
-    <AppShell>
+    <>
       <div className={styles.wrap}>
         <h1 className={styles.h1}>{t('advices.title')}</h1>
         <p className={styles.lead}>{t('advices.intro')}</p>
@@ -47,6 +46,6 @@ export function AdvicesPage() {
           />
         )}
       </div>
-    </AppShell>
+    </>
   );
 }

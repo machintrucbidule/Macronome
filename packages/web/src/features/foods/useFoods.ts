@@ -5,6 +5,7 @@ import type {
   UpdateFoodRequest,
 } from '@macronome/shared';
 import { foodsApi, type FoodListParams } from '../../api/foods';
+import { LIST_GC_TIME } from '../../lib/listCache';
 
 // Data hooks for the Aliments screen. The page owns filter/sort state and passes it
 // here; mutations invalidate the foods cache so the list refetches.
@@ -20,6 +21,11 @@ export function useFoodsList(params: FoodListParams) {
       foodsApi.list(pageParam ? { ...params, cursor: pageParam } : params),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (last) => last.next_cursor ?? undefined,
+    // B-268: keep the pages the user scrolled through while they step into a food and back. With
+    // the default 5-minute GC only page 1 remains on Back, so the list is shorter than the saved
+    // scroll offset and the restore is clamped near the top. Scoped to this list, not the global
+    // default: nothing else accumulates pages this way.
+    gcTime: LIST_GC_TIME,
   });
 }
 

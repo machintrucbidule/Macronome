@@ -50,9 +50,13 @@ const ACT_CLASS: Record<ActivityLevel, string | undefined> = {
 interface JournalCardProps {
   row: Row;
   onOpen: (row: Row) => void;
+  /** Index in the sorted year — how the virtualiser (B-267) attributes a measured height. */
+  index?: number;
+  /** Virtualiser ref: measures this card's real height, replacing the estimate. */
+  measure?: (el: Element | null) => void;
 }
 
-export function JournalCard({ row, onOpen }: JournalCardProps) {
+export function JournalCard({ row, onOpen, index, measure }: JournalCardProps) {
   const { t, i18n } = useTranslation();
   const verdict = row.effective_verdict;
   const activity = row.activity_level as ActivityLevel;
@@ -62,6 +66,8 @@ export function JournalCard({ row, onOpen }: JournalCardProps) {
       type="button"
       className={`${styles.card} ${STATE_CLASS[row.state] ?? ''}`}
       data-date={row.date}
+      data-index={index}
+      ref={measure}
       onClick={() => onOpen(row)}
     >
       <div className={styles.top}>

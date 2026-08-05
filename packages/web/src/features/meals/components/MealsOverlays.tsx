@@ -1,14 +1,26 @@
-import { useMemo } from 'react';
+import { Suspense, useMemo } from 'react';
+import type { Meal } from '@macronome/shared';
 import { useIsMobile } from '../../../lib/useIsMobile';
-import type { CustomValues, MealsController } from '../hooks/useMealsController';
+import { lazyNamed } from '../../../lib/lazyNamed';
+import type { CustomTarget, CustomValues, MealsController } from '../hooks/useMealsController';
 import { useMeals } from '../MealsContext';
 import { ClearDayConfirm } from './ClearDayConfirm';
 import { CopyYesterdayConfirm } from './CopyYesterdayConfirm';
 import { LeftoverModal } from '../modals/LeftoverModal/LeftoverModal';
-import { CustomFoodModal } from '../modals/CustomFoodModal/CustomFoodModal';
-import { CookModeModal } from '../modals/CookModeModal/CookModeModal';
 import { FoodPickerSheet } from './FoodPickerSheet/FoodPickerSheet';
 import { LineEditorSheet } from './LineEditorSheet/LineEditorSheet';
+
+// B-266: Repas is the landing route, so anything it imports is downloaded before the first meal
+// can be logged. Cook mode and the custom-line editor (which pulls the whole AI dish-analysis
+// dialog and its image picker) only ever mount when the user opens them, so they load then.
+const CookModeModal = lazyNamed<{ meal: Meal }>(
+  () => import('../modals/CookModeModal/CookModeModal'),
+  'CookModeModal',
+);
+const CustomFoodModal = lazyNamed<{ target: CustomTarget; initial: CustomValues | null }>(
+  () => import('../modals/CustomFoodModal/CustomFoodModal'),
+  'CustomFoodModal',
+);
 
 // All Repas overlays in one place (clear-day confirm + leftover / cook / custom modals), so
 // MealsPage stays a thin route container. Reads the controller from context.
@@ -75,8 +87,12 @@ export function MealsOverlays({ clearing, onCloseClear, copying, onCloseCopy }: 
         />
       )}
       {leftoverMeal && <LeftoverModal meal={leftoverMeal} />}
-      {cookMeal && <CookModeModal key={cookMeal.id} meal={cookMeal} />}
-      {ctl.customTarget && <CustomFoodModal target={ctl.customTarget} initial={customInitial} />}
+      {/* No fallback: these are overlays opened by a click, and their chunk lands in a frame or
+          two — a placeholder panel would flash more than it would reassure. */}
+      <Suspense fallback={null}>
+        {cookMeal && <CookModeModal key={cookMeal.id} meal={cookMeal} />}
+        {ctl.customTarget && <CustomFoodModal target={ctl.customTarget} initial={customInitial} />}
+      </Suspense>
       <MobileSheets ctl={ctl} />
     </>
   );

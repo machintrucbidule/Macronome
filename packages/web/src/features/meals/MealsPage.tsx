@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { DayDetail } from '@macronome/shared';
-import { AppShell } from '../../app/AppShell';
 import { Banner } from '../../components/Banner/Banner';
 import { SkeletonMealDay } from '../../components/states/SkeletonMealDay';
 import { useIsMobile } from '../../lib/useIsMobile';
@@ -104,7 +103,7 @@ export function MealsPage() {
   };
 
   return (
-    <AppShell flush>
+    <>
       <MealsProvider value={ctl}>
         {ctl.error && (
           <div className={styles.errorBar}>
@@ -152,6 +151,6 @@ export function MealsPage() {
           onCloseCopy={() => setCopying(false)}
         />
       </MealsProvider>
-    </AppShell>
+    </>
   );
 }

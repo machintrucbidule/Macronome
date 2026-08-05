@@ -30,12 +30,33 @@ const STATE_ROW_CLASS: Record<Row['state'], string | undefined> = {
   none: undefined,
 };
 
+/** The L·G·P cell: values on a detailed day, an em-dash otherwise. Also a click into the day. */
+function MacrosCell({ macros, onOpen }: { macros: Row['macros']; onOpen: () => void }) {
+  return (
+    <td className={`${tableStyles.num} ${tableStyles.clickable}`} onClick={onOpen}>
+      {macros ? (
+        <span className={styles.macros}>
+          <span className={`${styles.mVal} ${styles.mFat}`}>{r0(macros.L)}</span>
+          <span className={`${styles.mVal} ${styles.mCarb}`}>{r0(macros.G)}</span>
+          <span className={`${styles.mVal} ${styles.mProt}`}>{r0(macros.P)}</span>
+        </span>
+      ) : (
+        DASH
+      )}
+    </td>
+  );
+}
+
 interface JournalRowProps {
   row: Row;
   onPatch: (date: string, body: PatchDayRequest) => void;
+  /** Index in the sorted year — how the virtualiser (B-267) attributes a measured height. */
+  index?: number;
+  /** Virtualiser ref: measures this row's real height, replacing the estimate. */
+  measure?: (el: Element | null) => void;
 }
 
-export function JournalRow({ row, onPatch }: JournalRowProps) {
+export function JournalRow({ row, onPatch, index, measure }: JournalRowProps) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const openDay = (): void => {
@@ -52,7 +73,12 @@ export function JournalRow({ row, onPatch }: JournalRowProps) {
   };
 
   return (
-    <tr data-date={row.date} className={STATE_ROW_CLASS[row.state]}>
+    <tr
+      data-date={row.date}
+      data-index={index}
+      ref={measure}
+      className={STATE_ROW_CLASS[row.state]}
+    >
       <td className={tableStyles.clickable} onClick={openDay}>
         {formatJournalDate(row.date, i18n.language)}{' '}
         <span className={styles.dow}>{formatDow(row.date, i18n.language)}</span>
@@ -64,17 +90,7 @@ export function JournalRow({ row, onPatch }: JournalRowProps) {
         onOpen={openDay}
         onSave={(k) => onPatch(row.date, { summary_kcal: k })}
       />
-      <td className={`${tableStyles.num} ${tableStyles.clickable}`} onClick={openDay}>
-        {row.macros ? (
-          <span className={styles.macros}>
-            <span className={`${styles.mVal} ${styles.mFat}`}>{r0(row.macros.L)}</span>
-            <span className={`${styles.mVal} ${styles.mCarb}`}>{r0(row.macros.G)}</span>
-            <span className={`${styles.mVal} ${styles.mProt}`}>{r0(row.macros.P)}</span>
-          </span>
-        ) : (
-          DASH
-        )}
-      </td>
+      <MacrosCell macros={row.macros} onOpen={openDay} />
       <td>
         <div className={styles.verdictCell}>
           {/* Fixed-width slot so the écarts line up just to the right of the badge regardless of

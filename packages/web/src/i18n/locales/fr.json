@@ -23,6 +23,11 @@
     "ok": "Connexion établie : proxy → API → base de données.",
     "error": "Échec de la connexion à l'API."
   },
+  "fatal": {
+    "title": "Cet écran n'a pas pu s'afficher",
+    "lead": "Une erreur inattendue s'est produite. Recharger l'application résout le plus souvent le problème ; si elle revient, l'indication ci-dessous aide à la diagnostiquer.",
+    "reload": "Recharger"
+  },
   "login": {
     "title": "Connexion",
     "username": "Identifiant",

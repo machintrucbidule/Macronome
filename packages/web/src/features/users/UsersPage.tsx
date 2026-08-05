@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import type { AdminUser, CreatedToken } from '@macronome/shared';
-import { AppShell } from '../../app/AppShell';
 import { useSession } from '../../app/useSession';
 import { useIsMobile } from '../../lib/useIsMobile';
 import { ApiError } from '../../api/client';
@@ -150,9 +149,9 @@ export function UsersPage() {
   };
 
   return (
-    <AppShell>
+    <>
       {isMobile ? <UsersMobile {...common} /> : <UsersDesktop {...common} />}
       <PageModals modal={modal} close={() => setModal(null)} mut={{ setRole, remove, run }} />
-    </AppShell>
+    </>
   );
 }

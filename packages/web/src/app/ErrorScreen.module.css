@@ -1,0 +1,54 @@
+/* Fatal-error recovery card (design/components/states.md §Fatal error, B-265). Calm and
+   illustration-free like the empty state — no alarm colour: a crash is not the user's fault. */
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-5);
+  text-align: center;
+  padding: var(--sp-10) var(--page-gutter);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: var(--fs-16);
+  font-weight: var(--fw-bold);
+  color: var(--text);
+  margin: 0;
+}
+
+.lead {
+  font-size: var(--fs-13);
+  color: var(--text-dim);
+  line-height: var(--lh-snug);
+  max-width: 46ch;
+  margin: 0;
+}
+
+/* Same affordance as the login diagnostic code (states.md §Login — error): selectable by hand,
+   because a plain-HTTP self-hosted instance has no clipboard API. */
+.detail {
+  font-family: var(--font-num);
+  font-size: var(--fs-12);
+  color: var(--text-dim);
+  background: var(--bg-elev-2);
+  border: var(--bw) dashed var(--border-strong);
+  border-radius: var(--r-sm);
+  padding: 6px 10px;
+  max-width: 60ch;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.action {
+  font-family: var(--font-num);
+  font-size: var(--fs-12);
+  color: var(--accent-ink);
+  background: var(--accent);
+  border: none;
+  border-radius: var(--r-md);
+  padding: 0 14px;
+  height: var(--control-h);
+  cursor: pointer;
+}

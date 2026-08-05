@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import type { RecipeSummary } from '@macronome/shared';
-import { AppShell } from '../../app/AppShell';
 import { RecipesDesktop } from './components/RecipesDesktop';
 import { RecipesMobile } from './components/RecipesMobile';
 import type { SortField } from './components/RecipesTable';
@@ -85,7 +84,7 @@ export function RecipesPage() {
   };
 
   return (
-    <AppShell>
+    <>
       {isMobile ? (
         // Mobile (≤560px): card list + shared list chrome + FAB → bottom-sheet builder (S6).
         <RecipesMobile {...common} />
@@ -119,6 +118,6 @@ export function RecipesPage() {
           }}
         />
       )}
-    </AppShell>
+    </>
   );
 }

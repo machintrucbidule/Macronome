@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { GetWeightResponse, WeighIn } from '@macronome/shared';
-import { AppShell } from '../../app/AppShell';
 import { dataApi } from '../../api/data';
 import { Banner } from '../../components/Banner/Banner';
 import { useCsvExport } from '../../lib/useCsvExport';
@@ -61,7 +60,7 @@ export function WeightPage() {
   };
 
   return (
-    <AppShell>
+    <>
       {csv.error && (
         <div className={styles.errorBar}>
           <Banner tone="warning" onDismiss={csv.dismiss}>
@@ -84,6 +83,6 @@ export function WeightPage() {
           onClose={ctl.closeModal}
         />
       )}
-    </AppShell>
+    </>
   );
 }

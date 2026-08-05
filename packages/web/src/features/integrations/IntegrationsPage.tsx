@@ -1,5 +1,4 @@
 import { useTranslation } from 'react-i18next';
-import { AppShell } from '../../app/AppShell';
 import { HomeAssistantCard } from './components/HomeAssistantCard';
 import { BarclaudeGatewayCard } from './components/BarclaudeGatewayCard';
 import styles from './integrations.module.css';
@@ -11,7 +10,7 @@ import styles from './integrations.module.css';
 export function IntegrationsPage() {
   const { t } = useTranslation();
   return (
-    <AppShell>
+    <>
       <div className={styles.wrap}>
         <h1 className={styles.h1}>{t('integrations.title')}</h1>
         <p className={styles.lead}>{t('integrations.intro')}</p>
@@ -19,6 +18,6 @@ export function IntegrationsPage() {
         <HomeAssistantCard />
         <BarclaudeGatewayCard />
       </div>
-    </AppShell>
+    </>
   );
 }
