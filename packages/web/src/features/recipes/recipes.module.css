@@ -220,7 +220,12 @@
   display: flex;
   flex-direction: column;
   min-width: 96px;
-  overflow: hidden;
+  /* Base units + the ingredient's named portions — unbounded, so cap and scroll instead of
+     being clipped by the builder modal. `contain` keeps the wheel inside the list. */
+  max-height: 260px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .unitMenu button {
   background: none;

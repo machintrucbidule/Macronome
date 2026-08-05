@@ -74,7 +74,18 @@
      options by setting --sm-menu-min (e.g. the rating dropdown — B-121). Using a var keeps
      this the single min-width declaration, so the override wins regardless of CSS order. */
   min-width: var(--sm-menu-min, 160px);
-  overflow: hidden;
+  /* A long list scrolls inside itself instead of being cut off by the clipping ancestor — the
+     modal panel, or a card in `overflow:hidden`. Same recipe as the autocomplete `.ac`, which
+     had it from the start; `.menu` never did, and it only showed once a list became unbounded
+     (the leftover tare catalog, the AI model list). useMenuPlacement overrides this ceiling
+     inline with the room actually available on the side it picked; this is the pre-measure
+     fallback. `contain` stops the wheel from chaining out to the modal and the page behind. */
+  max-height: 300px;
+  /* Both axes declared: naming only `overflow-y` would compute `overflow-x` to `auto` too and
+     hand a nowrap option list a horizontal scrollbar it never had. */
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   background: var(--bg-elev-2);
   border: 1px solid var(--border-strong);
   border-radius: var(--r-md);

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import styles from './Modal.module.css';
 import { useFocusTrap } from './useFocusTrap';
+import { lockBodyScroll, unlockBodyScroll } from './bodyScrollLock';
 import { useIsMobile } from '../../lib/useIsMobile';
 
 // Shared modal shell (design/components/modals.md): scrim + panel. Click-outside and
@@ -67,12 +68,14 @@ export function Modal({
 
   useEffect(() => {
     modalStack.push(titleId);
+    lockBodyScroll();
     const onKey = (e: KeyboardEvent): void => {
       if (e.key === 'Escape' && modalStack[modalStack.length - 1] === titleId) onCloseRef.current();
     };
     document.addEventListener('keydown', onKey);
     return () => {
       document.removeEventListener('keydown', onKey);
+      unlockBodyScroll();
       const i = modalStack.lastIndexOf(titleId);
       if (i >= 0) modalStack.splice(i, 1);
     };

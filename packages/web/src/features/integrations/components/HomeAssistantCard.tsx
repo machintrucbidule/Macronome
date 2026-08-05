@@ -16,7 +16,9 @@ export function HomeAssistantCard() {
   const f = useHaForm();
 
   return (
-    <div className={styles.card}>
+    // `flow`: hosts the rounding-decimals dropdown, which the card's clip would cut off with no
+    // way to scroll to the rest.
+    <div className={`${styles.card} ${styles.flow}`}>
       <div className={styles.cardTitle}>{t('integrations.ha.title')}</div>
       <div className={styles.body}>
         <TextInput

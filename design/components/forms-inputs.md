@@ -58,9 +58,21 @@ variant: the trigger takes the canonical text-field box (`height:36px; --font-bo
 caret in `--text-faint`; the panel is the menu surface (`--bg-elev-2`, `--border-strong`,
 `--r-md`, `var(--shadow)`) and **flips above** the trigger when there is no room below
 (same hook as the autocomplete). Disabled → `color:var(--text-faint);
-cursor:not-allowed`. A **placeholder** renders in `--text-faint` when the current value
-matches no option. Keyboard: ↑/↓ move the active option, Home/End jump to first/last,
-Enter selects, Esc closes and **returns focus to the trigger**.
+cursor:not-allowed`.
+
+- **The panel is height-capped and scrolls.** `overflow-x:hidden; overflow-y:auto;
+overscroll-behavior:contain`, with a `max-height` set **dynamically** to the room actually
+  available on the side the flip chose (clamped 120–300px). This differs from the autocomplete
+  on purpose: `.ac` keeps a **fixed** ceiling and never shrinks, because its host cell is
+  predictable; a list field can sit anywhere — mid-modal, in a card — and its option count can
+  be user data (the leftover tare catalog, the fetched AI model list), so flipping alone only
+  picks the less-bad side and the list still gets cut off. `contain` keeps the wheel inside the
+  list instead of chaining to the modal and the page behind.
+- A card hosting a list field must **not** clip it: `overflow:hidden` on a card clips _without_
+  scrolling, so whatever falls outside is unreachable. Such cards carry the `flow` modifier
+  (`overflow:visible`), the same escape hatch the garde-manger card already uses. A **placeholder** renders in `--text-faint` when the current value
+  matches no option. Keyboard: ↑/↓ move the active option, Home/End jump to first/last,
+  Enter selects, Esc closes and **returns focus to the trigger**.
 
 Small inline **badge** variant (the original: `--font-num; --fs-11` on `--bg-elev-2`) —
 activity multiplier, rating dropdown, cross-meal move picker.

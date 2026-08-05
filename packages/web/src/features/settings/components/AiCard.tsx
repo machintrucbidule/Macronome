@@ -18,7 +18,10 @@ export function AiCard() {
   const f = useAiConnectionForm();
 
   return (
-    <div className={styles.card}>
+    // `flow` (B-103's escape hatch): the per-task model pickers open a dropdown listing every
+    // model the provider returned — dozens of rows. The card's `overflow:hidden` clips WITHOUT
+    // scrolling, so anything past the card edge would be unreachable.
+    <div className={`${styles.card} ${styles.flow}`}>
       <div className={`${styles.cb} ${styles.aiBody}`}>
         <AiConnectionFields f={f} />
 

@@ -29,6 +29,14 @@
   margin-bottom: var(--sp-5);
   overflow: hidden;
 }
+/* Same escape hatch as the settings garde-manger card (B-103): a card hosting an
+   absolutely-positioned dropdown must not clip it, because `overflow:hidden` here clips WITHOUT
+   scrolling — the cut-off part would be unreachable by any means. Children are inset and there is
+   no full-bleed background at the rounded corners, so dropping the clip costs nothing.
+   Scoped, so the other cards keep clipping. */
+.card.flow {
+  overflow: visible;
+}
 .cardTitle {
   font-family: var(--font-display);
   font-weight: var(--fw-bold);

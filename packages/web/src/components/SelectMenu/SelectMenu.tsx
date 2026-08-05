@@ -118,6 +118,7 @@ export function SelectMenu<T extends string>({
           isField={isField}
           dropUp={m.placement.dropUp}
           left={m.placement.left}
+          maxHeight={m.placement.maxHeight}
           menuClassName={menuClassName}
           panelRef={m.menuRef}
           onChoose={m.choose}

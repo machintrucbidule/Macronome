@@ -28,21 +28,36 @@ export interface MenuPlacement {
   left: number | null;
   /** True when the menu should open above the trigger (no room below, more room above). */
   dropUp: boolean;
+  /** Height ceiling (px) so a long list scrolls inside itself instead of being cut off by the
+   *  clipping ancestor; null until measured. Opt-in — Autocomplete ignores it, its contract
+   *  (forms-inputs.md §Autocomplete) says the list keeps a fixed max-height and never shrinks. */
+  maxHeight: number | null;
 }
+
+/** Never taller than the autocomplete's ceiling, never so short it stops being a list. */
+const MAX_MENU_H = 300;
+const MIN_MENU_H = 120;
 
 // Right-align the menu under the trigger; flip to left-align and clamp when it would spill past the
 // clipping ancestor's horizontal edge (B-121). Also report `dropUp` when there is no room below and
-// more room above, so a tall list near the box bottom can flip above and stay visible (B-168).
+// more room above, so a tall list near the box bottom can flip above and stay visible (B-168), and
+// `maxHeight` so a list taller than BOTH sides scrolls inside itself instead of being cut off —
+// flipping alone only picks the less-bad side, which is what clipped the leftover-modal container
+// picker once its option list became the user's whole tare catalog.
 export function useMenuPlacement(
   open: boolean,
   wrapRef: RefObject<HTMLDivElement | null>,
   menuRef: RefObject<HTMLDivElement | null>,
   count: number,
 ): MenuPlacement {
-  const [placement, setPlacement] = useState<MenuPlacement>({ left: null, dropUp: false });
+  const [placement, setPlacement] = useState<MenuPlacement>({
+    left: null,
+    dropUp: false,
+    maxHeight: null,
+  });
   useLayoutEffect(() => {
     if (!open) {
-      setPlacement({ left: null, dropUp: false });
+      setPlacement({ left: null, dropUp: false, maxHeight: null });
       return;
     }
     const place = (): void => {
@@ -61,7 +76,10 @@ export function useMenuPlacement(
       const roomBelow = box.bottom - tr.bottom;
       const roomAbove = tr.top - box.top;
       const dropUp = roomBelow < mh + gap + margin && roomAbove > roomBelow;
-      setPlacement({ left: left - tr.left, dropUp });
+      // Cap to the side actually chosen, so the panel always ends inside the clipping box.
+      const room = (dropUp ? roomAbove : roomBelow) - gap - margin;
+      const maxHeight = Math.min(MAX_MENU_H, Math.max(MIN_MENU_H, room));
+      setPlacement({ left: left - tr.left, dropUp, maxHeight });
     };
     place();
     window.addEventListener('scroll', place, true);

@@ -172,7 +172,12 @@
   top: 30px;
   z-index: var(--z-menu);
   min-width: 200px;
-  overflow: hidden;
+  /* Four fixed rows today, but the meal scroller clips vertically — cap and scroll so a future
+     entry cannot make it unreachable. */
+  max-height: 260px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   background: var(--bg-elev-2);
   border: 1px solid var(--border-strong);
   border-radius: var(--r-md);

@@ -234,7 +234,12 @@
   top: calc(100% + 3px);
   right: 0;
   z-index: var(--z-menu);
-  overflow: hidden;
+  /* The list is base units + the food's named portions, so it has no upper bound: cap it and
+     let it scroll rather than let the meal scroller cut it off. `contain` keeps the wheel in. */
+  max-height: 260px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   background: var(--bg-elev-2);
   border: 1px solid var(--border-strong);
   border-radius: var(--r-md);

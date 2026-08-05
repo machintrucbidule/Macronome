@@ -82,7 +82,12 @@
   top: calc(100% + 4px);
   z-index: var(--z-menu);
   min-width: 180px;
-  overflow: hidden;
+  /* Three fixed rows, and this menu cannot flip (it consumes only `left` from useMenuPlacement),
+     so cap and scroll rather than rely on there always being room below. */
+  max-height: 260px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   background: var(--bg-elev-2);
   border: 1px solid var(--border-strong);
   border-radius: var(--r-md);

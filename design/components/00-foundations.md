@@ -61,6 +61,16 @@ var(--border); border-radius:var(--r-md); overflow:hidden; height:var(--control-
   Used by: theme toggle, FR/EN (login), range/year selectors, Régime/Maintien,
   visibility toggle, type filter. Same anatomy, different option sets.
 
+## Floating panels (dropdowns, menus, popovers)
+
+Every absolutely-positioned panel rendered **inside** the DOM — select menu, verdict menu, unit
+menus, the meal ⋯ menu, the autocomplete list — carries a **`max-height` and scrolls**
+(`overflow-y:auto; overscroll-behavior:contain`). Without both, a list longer than the room left
+in its clipping ancestor is simply cut off, and the wheel chains out to whatever scrolls behind
+it. Never rely on "this list is short": several are driven by user data (named portions, the tare
+catalog, a fetched model list). Only the right-click context menu is exempt — it is `position:
+fixed` and portaled, so no ancestor can clip it.
+
 ## Disclosure (`<details>` / `<summary>`)
 
 The native marker is **always** hidden — `list-style:none` on the summary plus

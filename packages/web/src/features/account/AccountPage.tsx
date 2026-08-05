@@ -57,7 +57,9 @@ export function AccountPage() {
           </div>
         </div>
 
-        <div className={styles.card}>
+        {/* `flow`: hosts the sex picker's dropdown, which the card's clip would cut off with no
+            way to scroll to the rest. */}
+        <div className={`${styles.card} ${styles.flow}`}>
           <div className={styles.ch}>{t('account.profileInfo')}</div>
           <div className={styles.cb}>
             {profile.data ? (

@@ -15,6 +15,13 @@ focus trap are unaffected.
 border-radius:var(--r-lg); box-shadow:var(--shadow); max-height:88–92vh;
 overflow:auto`.
 
+**Background scroll is locked while any modal is open.** The scrim is `position:fixed`, so a page
+scrolling behind an immobile overlay reads as a bug. The lock is **ref-counted** — a nested
+sub-dialog closing on its own must not release it — and restores the exact previous inline values.
+The removed scrollbar is compensated with matching padding so the page does not jump sideways.
+Panel and scrim both carry `overscroll-behavior:contain` as the second line of defence, so
+reaching the end of one does not start scrolling the next.
+
 - **Header**: title `--font-display; --fs-15–16`, padded `14–18px 16–20px`,
   often a `border-bottom:1px solid var(--border)`. Recipe modal uses an inline
   editable name field + a `recette` badge + an `×` close.

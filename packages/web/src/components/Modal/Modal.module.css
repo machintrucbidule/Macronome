@@ -15,6 +15,10 @@
   justify-content: center;
   padding: var(--sp-9) var(--sp-6);
   overflow: auto;
+  /* Belt to the body scroll lock's braces: even at the scrim's own scroll end, the wheel must not
+     chain out to the document behind. The scrim is fixed, so a page scrolling behind an immobile
+     overlay reads as a bug. */
+  overscroll-behavior: contain;
 }
 
 .modal {
@@ -24,6 +28,8 @@
   box-shadow: var(--shadow);
   max-height: 90vh;
   overflow: auto;
+  /* Scrolling past the panel's end must not start scrolling the scrim underneath it. */
+  overscroll-behavior: contain;
   width: min(560px, 93vw);
   /* Centre the panel in the scrim (both axes). margin:auto on a flex child centres it and,
      unlike align-items:center, keeps the top reachable when the panel overflows the viewport

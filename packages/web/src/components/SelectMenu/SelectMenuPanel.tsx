@@ -13,6 +13,8 @@ interface SelectMenuPanelProps<T extends string> {
   isField: boolean;
   dropUp: boolean;
   left: number | null;
+  /** Height ceiling from useMenuPlacement; the panel scrolls inside it. */
+  maxHeight: number | null;
   menuClassName?: string | undefined;
   panelRef: Ref<HTMLDivElement>;
   onChoose: (value: T) => void;
@@ -26,6 +28,7 @@ export function SelectMenuPanel<T extends string>({
   isField,
   dropUp,
   left,
+  maxHeight,
   menuClassName,
   panelRef,
   onChoose,
@@ -39,7 +42,10 @@ export function SelectMenuPanel<T extends string>({
       id={listId}
       role="listbox"
       ref={panelRef}
-      style={left == null ? undefined : { left, right: 'auto' }}
+      style={{
+        ...(left == null ? {} : { left, right: 'auto' }),
+        ...(maxHeight == null ? {} : { maxHeight }),
+      }}
     >
       {options.map((o, i) => (
         <button
