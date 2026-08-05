@@ -4,7 +4,12 @@
   position: fixed;
   inset: 0;
   z-index: var(--z-scrim);
-  background: rgba(0, 0, 0, 0.5);
+  /* design/components/00-foundations.md §Scrim (B-256): .55 + a 3px blur. The blur is what
+     makes the panel read as floating above the page rather than pasted on it; cook mode keeps
+     its own distinct scrim (.66, no blur) in its own stylesheet. */
+  background: rgba(0, 0, 0, 0.55);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
   display: flex;
   align-items: flex-start;
   justify-content: center;

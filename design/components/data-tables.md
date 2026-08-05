@@ -25,9 +25,11 @@ tabular-nums; white-space:nowrap`; first/name cell left, `--font-body`. The **Jo
   sorted state `.sorted` shows the arrow (`.arr`) in `--accent`; arrow flips ▼/▲.
   (Aliments: Nom·kcal·L·G·P·Note·Visib sortable; **Portion not sortable** —
   DECISIONS Gap #10.)
-- **scroll container**: `.tblscroll{max-height:420px; overflow:auto}` is an **optional**
-  variant for a very long table that wants its own box (it resets the sticky header to the
-  box top, `top:0`). **No screen uses it by default** — the Poids period table renders in
+- **scroll container**: a contained-scroll variant (`max-height` + its own `overflow`, header
+  pinned to the box top rather than the appbar) is **not implemented** (B-273): the two long
+  tables have divergent sticky-header needs — Poids viewport-anchored, Utilisateurs contained —
+  so a single shared variant cannot serve both and any future case stays **screen-local**.
+  **No screen uses one by default** — the Poids period table renders in
   normal page flow with the standard appbar-sticky header (B-189); when the 15-column table
   is wider than a narrow desktop window, the **page** scrolls sideways (a contained
   horizontal scroll and an appbar-sticky header can't coexist in one wrapper).

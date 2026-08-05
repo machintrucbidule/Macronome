@@ -59,3 +59,29 @@ describe('NumberInput stepper (B-006)', () => {
     expect(nthValue(onChange, 0)).toBe('1');
   });
 });
+
+// B-270 (design/components/mobile.md §Cross-cutting rules): the phone keypad is derived in the
+// primitive, so no call site can forget it. A field that accepts fractions — including one that
+// declares no step at all, e.g. a food's macros per 100 g — must keep the decimal separator.
+describe('NumberInput phone keyboard (B-270)', () => {
+  const field = (el: HTMLElement): HTMLInputElement =>
+    el.querySelector('input') as HTMLInputElement;
+
+  it.each([
+    ['an integer step', { step: 1 }, 'numeric'],
+    ['a step of 10', { step: 10 }, 'numeric'],
+    ['a tenth step', { step: 0.1 }, 'decimal'],
+    ['a hundredth step', { step: 0.01 }, 'decimal'],
+    ['no step at all', {}, 'decimal'],
+  ])('%s → inputmode=%s', (_label, props, expected) => {
+    const { container } = render(<NumberInput value="1" onChange={vi.fn()} {...props} />);
+    expect(field(container).getAttribute('inputmode')).toBe(expected);
+  });
+
+  it('a call site can still override it', () => {
+    const { container } = render(
+      <NumberInput value="1" step={1} inputMode="decimal" onChange={vi.fn()} />,
+    );
+    expect(field(container).getAttribute('inputmode')).toBe('decimal');
+  });
+});

@@ -5,7 +5,7 @@ import { AppShell } from '../../app/AppShell';
 import { dataApi } from '../../api/data';
 import { Banner } from '../../components/Banner/Banner';
 import { EmptyState } from '../../components/states/EmptyState';
-import { SkeletonRows } from '../../components/states/SkeletonRows';
+import { SkeletonTableRows } from '../../components/states/SkeletonTableRows';
 import { JournalHeader } from './components/JournalHeader';
 import { JournalTable } from './components/JournalTable';
 import { JournalMobile } from './components/JournalMobile';
@@ -27,7 +27,9 @@ function JournalContent(props: {
   onPatch: (date: string, body: PatchDayRequest) => void;
 }) {
   const { t } = useTranslation();
-  if (props.loading) return <SkeletonRows />;
+  // Journal rows trim the shared cell padding (B-065) but carry 30px controls (verdict badge,
+  // activity select), so they sit taller than the shared default — hence the explicit height.
+  if (props.loading) return <SkeletonTableRows rowHeight={38} />;
   if (props.rows.length === 0) return <EmptyState>{t('journal.empty')}</EmptyState>;
   return (
     <JournalTable

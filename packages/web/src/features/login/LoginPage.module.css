@@ -60,7 +60,10 @@
   top: 3px;
   left: 50%;
   transform-origin: bottom center;
-  transform: translateX(-50%) rotate(-22deg);
+  /* Upright at rest (B-254) — see app/AppShell.module.css: the swing's 0% keyframe overrides
+     this while it runs, so the animated look is unchanged; the global reduced-motion layer
+     (styles/global.css) neutralises the animation and the needle rests upright. */
+  transform: translateX(-50%) rotate(0deg);
   animation: swing 2.6s var(--ease) infinite;
 }
 
@@ -71,13 +74,6 @@
   }
   50% {
     transform: translateX(-50%) rotate(22deg);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .tick::after {
-    animation: none;
-    transform: translateX(-50%) rotate(0deg);
   }
 }
 

@@ -63,3 +63,25 @@ select,
 #root {
   min-height: 100vh;
 }
+
+/* B-254: single app-wide reduced-motion layer (design/components/charts.md §Entrance — the
+   intent is app-wide, not chart-only). Components must NOT declare their own
+   `prefers-reduced-motion` block: this one neutralises every animation and transition in one
+   place, and a guard test (styles/reduced-motion.test.ts) enforces that.
+   `.01ms` rather than `none`: the animation still starts and ends (so any animationend
+   listener keeps firing) but is imperceptible; `animation-iteration-count: 1` is what stops
+   the four *looping* animations (skeleton shimmer + the three spinners). Elements whose
+   resting look depended on the animation (the brand tick's needle) declare that resting look
+   as their base style, so neutralising the animation leaves them correct. Looping spinners
+   degrade to a static arc — they stay visible, since they are the only "work in progress"
+   signal on those screens. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

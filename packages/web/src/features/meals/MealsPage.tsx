@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next';
 import type { DayDetail } from '@macronome/shared';
 import { AppShell } from '../../app/AppShell';
 import { Banner } from '../../components/Banner/Banner';
-import { SkeletonRows } from '../../components/states/SkeletonRows';
+import { SkeletonMealDay } from '../../components/states/SkeletonMealDay';
+import { useIsMobile } from '../../lib/useIsMobile';
 import { MealsProvider } from './MealsContext';
 import { useMealsContextMenu } from './contextMenu/useMealsContextMenu';
 import { useMealsController } from './hooks/useMealsController';
@@ -16,6 +17,8 @@ import { MealsControls } from './components/MealsControls';
 import { MealsOverlays } from './components/MealsOverlays';
 import { MealScroller } from './components/MealScroller/MealScroller';
 import { MealTabs } from './components/MealTabs';
+import { DEFAULT_LINES_DESKTOP, DEFAULT_LINES_MOBILE } from './logic/lineRows';
+import { DEFAULT_MIN_MEAL_COLUMNS } from './logic/columnFit';
 import { todayIso } from './format';
 import styles from './meals.module.css';
 
@@ -67,6 +70,7 @@ export function MealsPage() {
   useMealsContextMenu(ctl);
   const [clearing, setClearing] = useState(false);
   const [copying, setCopying] = useState(false);
+  const isMobile = useIsMobile();
   // Mobile meal-tab layer (S4): which meal is shown ≤560px. Resets on day change; desktop
   // renders every column regardless (the tab bar is `display:none` ≥561px).
   const [activeMeal, setActiveMeal] = useActiveMeal(date, ctl.day?.meals.length ?? 0);
@@ -111,7 +115,14 @@ export function MealsPage() {
         )}
 
         {ctl.isLoading || !ctl.day ? (
-          <SkeletonRows />
+          // B-264: the placeholder carries the day's real shape — totals row + meal columns at
+          // the module defaults (the user's own floors live in settings, which are still
+          // loading here), so the screen does not reflow when the day lands. One column on a
+          // phone, where the meal-tab layer shows a single meal at a time.
+          <SkeletonMealDay
+            columns={isMobile ? 1 : DEFAULT_MIN_MEAL_COLUMNS}
+            lines={isMobile ? DEFAULT_LINES_MOBILE : DEFAULT_LINES_DESKTOP}
+          />
         ) : (
           <>
             <DayHeader

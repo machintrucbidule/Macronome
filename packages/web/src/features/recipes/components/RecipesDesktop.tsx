@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import type { RecipeSummary } from '@macronome/shared';
 import { EmptyState } from '../../../components/states/EmptyState';
-import { SkeletonRows } from '../../../components/states/SkeletonRows';
+import { SkeletonTableRows } from '../../../components/states/SkeletonTableRows';
 import { InfiniteScrollFooter } from '../../../lib/InfiniteScrollFooter';
 import { RecipesToolbar } from './RecipesToolbar';
 import { RecipesTable, type SortField } from './RecipesTable';
@@ -45,7 +45,7 @@ export function RecipesDesktop(props: RecipesDesktopProps) {
       />
 
       {props.loading ? (
-        <SkeletonRows />
+        <SkeletonTableRows />
       ) : props.recipes.length === 0 ? (
         <EmptyState>{t('recipes.empty')}</EmptyState>
       ) : (

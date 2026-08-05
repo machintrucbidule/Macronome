@@ -69,7 +69,10 @@
   top: 3px;
   left: 50%;
   transform-origin: bottom center;
-  transform: translateX(-50%) rotate(-20deg);
+  /* Upright at rest (B-254): while the swing runs, its 0% keyframe overrides this, so the
+     animated look is unchanged; under the global reduced-motion layer (styles/global.css) the
+     animation is neutralised and the needle rests upright instead of frozen at -20deg. */
+  transform: translateX(-50%) rotate(0deg);
   animation: swing 2.6s var(--ease) infinite;
 }
 @keyframes swing {
@@ -79,12 +82,6 @@
   }
   50% {
     transform: translateX(-50%) rotate(20deg);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .tick::after {
-    animation: none;
-    transform: translateX(-50%) rotate(0deg);
   }
 }
 

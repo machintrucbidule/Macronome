@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import type { Container } from '@macronome/shared';
 import { EmptyState } from '../../../components/states/EmptyState';
-import { SkeletonRows } from '../../../components/states/SkeletonRows';
+import { SkeletonTableRows } from '../../../components/states/SkeletonTableRows';
 import { ContainerTable, type SortKey } from './ContainerTable';
 import { ContainersToolbar } from './ContainersToolbar';
 import styles from '../containers.module.css';
@@ -31,7 +31,7 @@ export function ContainersDesktop(props: ContainersDesktopProps) {
       <p className={styles.lead}>{t('containers.lead')}</p>
 
       {props.loading ? (
-        <SkeletonRows />
+        <SkeletonTableRows />
       ) : props.rows.length === 0 ? (
         <EmptyState>{t('containers.empty')}</EmptyState>
       ) : (

@@ -162,7 +162,8 @@ satisfied by the shared `Modal` with no per-overlay work:
 - **Focus** — each focus trap binds its Tab handler to **its own panel**, not to the document, so
   the two traps never fight: Tab cycles inside the top overlay only. On close, the trap restores
   focus to whatever was focused before it opened, i.e. back into the overlay beneath.
-- **Scrim tone** — the scrims **compound** (each `rgba(0,0,0,.5)`), so the page reads darker behind
+- **Scrim tone** — the scrims **compound** (each `rgba(0,0,0,.55)` + `blur(3px)`, B-256), so the
+  page reads darker and blurrier behind
   two overlays than behind one. Accepted: it is already the rendering of the paste sub-dialog, and
   the extra dimming correctly signals depth.
 - **Prefer a hand-off when the state allows it.** Nesting is for the case where the overlay beneath

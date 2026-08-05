@@ -74,9 +74,12 @@ export function LoginPage() {
 
           <label className={styles.field}>
             <span className={styles.label}>{t('login.username')}</span>
+            {/* B-270: the phone keyboard's return key advances to the password, then submits. */}
             <input
               name="username"
               autoComplete="username"
+              autoCapitalize="off"
+              enterKeyHint="next"
               value={username}
               disabled={locked}
               aria-invalid={invalid}
@@ -90,6 +93,7 @@ export function LoginPage() {
               name="password"
               type="password"
               autoComplete="current-password"
+              enterKeyHint="go"
               value={password}
               disabled={locked}
               aria-invalid={invalid}

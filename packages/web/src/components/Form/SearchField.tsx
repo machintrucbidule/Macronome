@@ -21,7 +21,18 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(
           <circle cx="11" cy="11" r="7" />
           <line x1="21" y1="21" x2="16.5" y2="16.5" />
         </svg>
-        <input ref={ref} type="search" className={styles.input} {...props} />
+        {/* B-270: phone-keyboard defaults for a search box — no auto-capitalised first letter,
+            no spellchecker underline on food names, and a "Rechercher" return key. Declared
+            before the spread so a call site can still override any of them. */}
+        <input
+          ref={ref}
+          type="search"
+          className={styles.input}
+          autoCapitalize="off"
+          spellCheck={false}
+          enterKeyHint="search"
+          {...props}
+        />
       </span>
     );
   },

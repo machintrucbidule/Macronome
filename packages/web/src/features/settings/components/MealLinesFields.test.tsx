@@ -53,6 +53,14 @@ describe('MealLinesFields — minimum meal columns (B-244)', () => {
     expect(mocks.save.mutate).toHaveBeenCalledWith({ min_meal_columns: 6 });
   });
 
+  // B-270: an integer call site of the shared NumberInput — a whole number of lines/columns, so
+  // the phone gets the plain numeric pad (the decimal one is derived for fractional fields).
+  it('opens the plain numeric keypad on a phone', () => {
+    render(<MealLinesFields />);
+    expect(screen.getByLabelText(columnsLabel()).getAttribute('inputmode')).toBe('numeric');
+    expect(screen.getByLabelText(linesLabel()).getAttribute('inputmode')).toBe('numeric');
+  });
+
   it('applies the same rule to the line floors (5..50), unchanged by the extraction', () => {
     render(<MealLinesFields />);
     const input = screen.getByLabelText<HTMLInputElement>(linesLabel());

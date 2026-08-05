@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import type { Food } from '@macronome/shared';
 import { Banner } from '../../../components/Banner/Banner';
 import { EmptyState } from '../../../components/states/EmptyState';
-import { SkeletonRows } from '../../../components/states/SkeletonRows';
+import { SkeletonTableRows } from '../../../components/states/SkeletonTableRows';
 import { InfiniteScrollFooter } from '../../../lib/InfiniteScrollFooter';
 import { FoodsToolbar } from './FoodsToolbar';
 import { FoodTable, type SortField } from './FoodTable';
@@ -53,7 +53,7 @@ export function FoodsDesktop(props: FoodsDesktopProps) {
       {props.isError && <Banner tone="warning">{t('common.loadError')}</Banner>}
 
       {props.loading ? (
-        <SkeletonRows />
+        <SkeletonTableRows />
       ) : props.foods.length === 0 ? (
         <EmptyState>{t('foods.empty')}</EmptyState>
       ) : (

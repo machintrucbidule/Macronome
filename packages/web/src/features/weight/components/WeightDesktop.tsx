@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { DietFlag, GetWeightResponse, WeighIn } from '@macronome/shared';
 import { EmptyState } from '../../../components/states/EmptyState';
-import { SkeletonRows } from '../../../components/states/SkeletonRows';
+import { SkeletonTableRows } from '../../../components/states/SkeletonTableRows';
 import { PeriodTable } from './PeriodTable';
 import { WeightHeader } from './WeightHeader';
 import { WeightOverview } from './WeightOverview';
@@ -38,7 +38,7 @@ export function WeightDesktop(props: WeightDesktopProps) {
       <WeightHeader mode={mode} onMode={onMode} onAdd={ctl.openAdd} onExport={onExport} />
       {deleting && <WeighInDeleteConfirm weighIn={deleting} onClose={() => setDeleting(null)} />}
       {loading ? (
-        <SkeletonRows />
+        <SkeletonTableRows />
       ) : !data || empty ? (
         <EmptyState>{t('weight.empty')}</EmptyState>
       ) : (

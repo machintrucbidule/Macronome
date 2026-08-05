@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import type { AccountTokenSummary, AdminUser } from '@macronome/shared';
 import { Banner } from '../../../components/Banner/Banner';
 import { Button } from '../../../components/Button/Button';
-import { SkeletonRows } from '../../../components/states/SkeletonRows';
+import { SkeletonTableRows } from '../../../components/states/SkeletonTableRows';
 import { PendingTokens } from './PendingTokens';
 import { UserTable, type SortKey } from './UserTable';
 import styles from '../users.module.css';
@@ -50,7 +50,7 @@ export function UsersDesktop(props: UsersDesktopProps) {
       )}
 
       {props.loading ? (
-        <SkeletonRows />
+        <SkeletonTableRows />
       ) : (
         <UserTable
           rows={props.rows}

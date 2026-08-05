@@ -30,6 +30,19 @@ function nextValue(
   return decimals ? next.toFixed(decimals) : String(next);
 }
 
+/**
+ * Phone keyboard for a numeric field (design/components/mobile.md §Cross-cutting rules, B-270).
+ * Derived here rather than at the 21 call sites, which is how the rule was missed everywhere.
+ * `step` is the field's own declaration of what it accepts: an integer step ≥ 1 means whole
+ * numbers, so the plain numeric pad suffices. Anything else — a fractional step, or **no step
+ * at all** (12 call sites, including a food's macros per 100 g and the waist measurement) —
+ * keeps the decimal separator, without which `22.8` is untypable on a phone.
+ */
+function inputModeFor(step: NumberInputProps['step']): 'numeric' | 'decimal' {
+  const n = Number(step);
+  return Number.isInteger(n) && n >= 1 ? 'numeric' : 'decimal';
+}
+
 export function NumberInput({
   label,
   suffix,
@@ -59,6 +72,8 @@ export function NumberInput({
       <input
         type="number"
         className={fieldCls}
+        // Before the {...rest} spread so a call site can still override it.
+        inputMode={inputModeFor(step)}
         aria-invalid={invalid || undefined}
         value={value}
         onChange={onChange}

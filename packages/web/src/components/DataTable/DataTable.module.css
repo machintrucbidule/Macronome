@@ -3,21 +3,12 @@
 
 /* No overflow scroll container on .wrap: that would make the sticky thead offset
    (top: --appbar-h) resolve against this box instead of the viewport and overlap
-   the first row. Narrow screens drop columns responsively. For very long tables
-   (e.g. Poids periods) opt into the .tblscroll variant below (M9b). */
+   the first row. Narrow screens drop columns responsively. A contained-scroll variant is
+   deliberately NOT provided (B-273, design/components/data-tables.md): the two long tables
+   have divergent sticky-header needs — Poids viewport-anchored, Utilisateurs contained — so
+   each owns its own rule instead of a shared decoy nothing consumed. */
 .wrap {
   width: 100%;
-}
-
-/* Self-contained scroll container for long tables (design/components/data-tables.md):
-   max-height with its own overflow + a sticky header pinned to the box top (top:0,
-   not --appbar-h, since the offset resolves against this box rather than the viewport). */
-.tblscroll {
-  max-height: 420px;
-  overflow: auto;
-}
-.tblscroll thead th {
-  top: 0;
 }
 
 .table {

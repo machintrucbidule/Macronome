@@ -34,6 +34,9 @@ export function LeftoverFields({
           <input
             id={`${fieldId}-gross`}
             type="number"
+            // B-270: this field bypasses the NumberInput primitive, so it declares the phone
+            // keypad itself. Decimal — a gross weight can be 812.5 g on a kitchen scale.
+            inputMode="decimal"
             data-testid="lo-gross"
             value={gross}
             onChange={(e) => onGross(e.target.value)}
