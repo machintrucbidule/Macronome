@@ -62,21 +62,26 @@
   font-size: var(--fs-14);
   flex: 1;
 }
-/* Cook-mode button (ICON-1/B-283): same box as before, but its content is now an 18px keypad SVG
-   instead of a text glyph. `display:inline-flex` + `align-items:center` keeps the icon vertically
-   centred and the box exactly as tall as the emoji-based .copyBtn beside it — sized by the SVG,
-   not by --fs-14 on text. Tinted --accent **at rest**: it is the findable one of the pair. */
+/* Cook-mode button (ICON-1/B-283): its content is a keypad SVG, not a text glyph, so the box is
+   sized **explicitly** rather than by font metrics. The arithmetic, because getting it wrong is
+   visible: its neighbours are 26px tall — `.menuBtn` says so outright, and `.copyBtn` works out to
+   14px glyph + 2×5px padding + 2×1px border = 26. Padding on a taller icon would overshoot (an
+   18px SVG made this button 30px, a mismatch the owner spotted immediately), so the height is
+   pinned to 26px with no padding and the icon is centred inside it. Tinted --accent **at rest**:
+   it is the findable one of the pair. */
 .cookBtn {
+  width: 26px;
+  height: 26px;
+  padding: 0;
   border: 1px solid var(--border);
   background: var(--bg-elev-2);
   color: var(--accent);
   border-radius: var(--r-sm);
-  font-size: var(--fs-14);
   line-height: 1;
-  padding: 5px 8px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
 }
 /* Border only: the colour is already --accent at rest, so a colour hover would be a no-op. */
 .cookBtn:hover {
