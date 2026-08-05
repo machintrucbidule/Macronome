@@ -56,7 +56,7 @@ export function DayHeader({ date, day, onNavigate, menu }: DayHeaderProps) {
           effective={day.effective_verdict}
           auto={day.verdict_auto}
           override={day.verdict_override}
-          belowBurn={day.constat.deficit === null ? null : day.constat.deficit <= 0}
+          tone={day.tone}
         />
       </div>
       <TotalsRow day={day} />

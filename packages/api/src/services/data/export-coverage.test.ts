@@ -33,10 +33,15 @@ const TABLE_TO_ENVELOPE: Record<string, string> = {
 // app_user is projected (not a 1:1 array): its exported columns live in `profile` + `settings`.
 const APP_USER_EXPORTED = new Set(['sex', 'birthdate', 'height_cm', 'settings']);
 
-// Whole tables intentionally never exported: account_token (B-193/194) holds transient
-// single-use security artifacts (hashed invite/reset links) — instance-operational, not
-// user data; exporting/importing them would be meaningless and leak the hashes.
-const TABLE_EXCLUDE = new Set(['account_token']);
+// Whole tables intentionally never exported:
+// · account_token (B-193/194) holds transient single-use security artifacts (hashed invite/reset
+//   links) — instance-operational, not user data; exporting them would be meaningless and would
+//   leak the hashes.
+// · day_restore_point (B-261) holds the single pending undo of a destructive day action. It is
+//   transient UI recourse, not history: the day it describes no longer exists as such, and the
+//   only affordance that can reach it is a toast in the session that created it. Restoring it
+//   into another instance would resurrect a state the user had already discarded.
+const TABLE_EXCLUDE = new Set(['account_token', 'day_restore_point']);
 
 // Columns intentionally never exported. Global: regenerated timestamps + the tenant pointer
 // (re-pointed at the importing user). Per-table: the app_user identity/credentials, plus the

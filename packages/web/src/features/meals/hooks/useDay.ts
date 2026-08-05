@@ -96,7 +96,10 @@ function useDayKindMutations(date: string, onSuccess: () => void) {
     mutationFn: () => daysApi.convertToSummary(date),
     onSuccess,
   });
-  return { clearDay, copyDay, convertToDetailed, convertToSummary };
+  // Undo the last destructive day action (B-261): the server replays its restore point, so the
+  // day comes back with its leftovers and frozen containers intact. Single-level — 409 after one.
+  const undoDay = useMutation({ mutationFn: () => daysApi.undo(date), onSuccess });
+  return { clearDay, copyDay, convertToDetailed, convertToSummary, undoDay };
 }
 
 export function useDay(date: string) {
@@ -115,7 +118,7 @@ export function useDay(date: string) {
     mutationFn: (b: PatchDayRequest) => daysApi.patch(date, b),
     onSuccess,
   });
-  const { clearDay, copyDay, convertToDetailed, convertToSummary } = useDayKindMutations(
+  const { clearDay, copyDay, convertToDetailed, convertToSummary, undoDay } = useDayKindMutations(
     date,
     onSuccess,
   );
@@ -151,6 +154,7 @@ export function useDay(date: string) {
     copyDay,
     convertToDetailed,
     convertToSummary,
+    undoDay,
     createMeal,
     patchMeal,
     removeMeal,

@@ -8,6 +8,7 @@ import { autoVerdict, type ResolvedSnapshot } from '../domain/day-verdict/index.
 import { ApiError } from '../http/errors.js';
 import { assembleDayDetail, buildConstat, computeDayTotals, pinKey } from './day-assembler.js';
 import { isPast, loadDayContext, resolveSnapshotForDate, type DayContext } from './day-context.js';
+import { captureRestorePoint } from './day-restore-capture.js';
 import { loadDaySeed, seedSlotPreview, seedToMeals, type DaySeed } from './day-prefill.js';
 
 // Days service (spec/api/days-meals-leftover.md §Day). Orchestration: lazy read/scaffold,
@@ -37,6 +38,8 @@ function scaffold(
     verdict_auto: auto,
     verdict_override: null,
     effective_verdict: auto,
+    // Nothing logged yet → no compliance to judge (spec/logic/day-snapshot-verdict.md §8b).
+    tone: 'none',
     target_snapshot: snapshot,
     totals: { kcal: 0, fat: 0, carb: 0, protein: 0, weight_g: 0 },
     constat: buildConstat({ ...ctx, activityLevel: DEFAULT_ACTIVITY_LEVEL, dayKcal: 0 }),
@@ -239,6 +242,8 @@ export async function clear(userId: string, date: string): Promise<DayDetail | n
   const existing = await dayRepo.findDay(userId, date);
   if (!existing) return get(userId, date); // scaffold: already "empty with pins at 0"
   if (existing.kind === 'summary') throw new ApiError(409, ErrorCode.SummaryDayReadonly);
+  // Undo point (B-261) — after the guards, so a refused clear leaves the previous point intact.
+  await captureRestorePoint(userId, date, 'clear');
 
   const [aggregate, pins] = await Promise.all([
     dayReadRepo.readAggregate(userId, date),

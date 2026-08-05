@@ -17,6 +17,7 @@ function row(p: Partial<JournalRow> & { date: string }): JournalRow {
     comment: null,
     kind: 'detailed',
     state: 'green',
+    tone: 'ok',
     editable_kcal: false,
     ...p,
   };

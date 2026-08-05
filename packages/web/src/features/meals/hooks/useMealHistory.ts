@@ -24,6 +24,9 @@ export interface MealHistory {
   redo: () => void;
   canUndo: boolean;
   canRedo: boolean;
+  /** Drop the stack: its entry ids no longer designate anything. Called after a server-side day
+   *  restore (B-261) — the replay re-creates every line with fresh ids. */
+  reset: () => void;
 }
 
 export function useMealHistory(
@@ -35,17 +38,19 @@ export function useMealHistory(
   const idMap = useRef(createIdMap()).current;
   const busy = useRef(false);
 
-  useEffect(() => {
+  // Drop the stack: its entry ids no longer designate anything. On a date change, and after a
+  // server-side day restore (B-261), whose replay re-creates every line with fresh ids.
+  const reset = useCallback(() => {
     setState(EMPTY_HISTORY);
     idMap.clear();
-  }, [date, idMap]);
+  }, [idMap]);
 
+  useEffect(() => reset(), [date, reset]);
+
+  const data = day.query.data as DayDetail | undefined;
   const exists = useCallback(
-    (id: string): boolean => {
-      const data = day.query.data as DayDetail | undefined;
-      return Boolean(data?.meals.some((m) => m.entries.some((e) => e.id === id)));
-    },
-    [day.query.data],
+    (id: string): boolean => Boolean(data?.meals.some((m) => m.entries.some((e) => e.id === id))),
+    [data],
   );
 
   const exec = useCallback(
@@ -108,5 +113,6 @@ export function useMealHistory(
     redo: useCallback(() => void step('redo'), [step]),
     canUndo: stackCanUndo(state),
     canRedo: stackCanRedo(state),
+    reset,
   };
 }

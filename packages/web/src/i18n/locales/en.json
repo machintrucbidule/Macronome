@@ -1,7 +1,8 @@
 {
   "app": {
     "title": "Macronome",
-    "tagline": "Nutrition & weight tracker"
+    "tagline": "Nutrition & weight tracker",
+    "offline": "Server unreachable. The figures shown may be out of date; the connection will resume automatically."
   },
   "rating": {
     "unrated": "Unrated",
@@ -85,7 +86,24 @@
     "optional": "(optional)",
     "loading": "Loading…",
     "loadError": "Couldn't load. Showing cached data; try again later.",
-    "typedConfirm": "Type “{{word}}” to confirm."
+    "typedConfirm": "Type “{{word}}” to confirm.",
+    "undo": "Undo"
+  },
+  "toast": {
+    "lineDeleted": "Line deleted",
+    "dayCleared": "Day cleared",
+    "dayCopied": "Day copied",
+    "mealDeleted": "Meal deleted",
+    "importDone": "Import complete",
+    "exportDone": "Export complete",
+    "targetsSaved": "Targets saved",
+    "settingsSaved": "Settings saved",
+    "undoFailed": "That action can no longer be undone.",
+    "dismiss": "Dismiss notification"
+  },
+  "a11y": {
+    "moreLoaded": "{{count}} more item loaded",
+    "moreLoaded_other": "{{count}} more items loaded"
   },
   "list": {
     "sort": "Sort",

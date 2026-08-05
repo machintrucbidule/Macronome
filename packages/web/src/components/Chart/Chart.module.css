@@ -44,7 +44,9 @@
   font-family: var(--font-num);
   font-size: var(--fs-11);
   color: var(--text);
-  z-index: var(--z-toast);
+  /* B-261: was --z-toast, which is now reserved for real confirmations — a hover tooltip must
+     never cover one. Same relative position as before against every other layer. */
+  z-index: var(--z-chart-tip);
   animation: tipIn 120ms ease-out;
 }
 .tipTitle {

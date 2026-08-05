@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import type { Verdict } from '@macronome/shared';
+import type { DayTone, Verdict } from '@macronome/shared';
 import { useIsMobile } from '../../../../lib/useIsMobile';
 import { useMeals } from '../../MealsContext';
 import { VerdictBadge } from '../../../../components/VerdictBadge/VerdictBadge';
@@ -11,11 +11,11 @@ interface Props {
   effective: Verdict | null;
   auto: Verdict | null;
   override: Verdict | null;
-  /** Day in a real deficit (`constat.deficit ≤ 0`); tints a NOK badge orange instead of red (B-166). */
-  belowBurn?: boolean | null | undefined;
+  /** The day's server-computed compliance tone (`DayDetail.tone`, §8b) — B-262. */
+  tone: DayTone;
 }
 
-export function DayVerdictBadge({ effective, auto, override, belowBurn }: Props) {
+export function DayVerdictBadge({ effective, auto, override, tone }: Props) {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   const { actions } = useMeals();
@@ -40,7 +40,7 @@ export function DayVerdictBadge({ effective, auto, override, belowBurn }: Props)
       override={override}
       labels={labels}
       onSet={(v) => void actions.setVerdict(v)}
-      belowBurn={belowBurn}
+      tone={tone}
     />
   );
 }

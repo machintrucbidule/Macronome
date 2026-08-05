@@ -1,6 +1,7 @@
 import type { CreateMealRequest, PatchMealRequest } from '@macronome/shared';
 import type { Meal as MealModel } from '@prisma/client';
 import { dayRepo } from '../data/repositories/day.repo.js';
+import { captureRestorePoint } from './day-restore-capture.js';
 import { materialize } from './days.js';
 
 // Meals service (spec/api/days-meals-leftover.md §Meals). A meal is this day's own
@@ -45,6 +46,13 @@ export async function patch(
   return meal ? toSummary(meal) : null;
 }
 
-export function remove(userId: string, mealId: string): Promise<boolean> {
+/** DELETE /days/:date/meals/:mealId — drop the meal (entries + leftover groups cascade).
+ *  Captures the WHOLE day as an undo point first (B-261): nothing narrower could bring back
+ *  the cascaded leftover groups. Ownership is still the repo's call, so a cross-tenant id
+ *  writes no point — the capture only runs once the meal is known to be the user's. */
+export async function remove(userId: string, date: string, mealId: string): Promise<boolean> {
+  const owned = await dayRepo.ownedMeal(userId, mealId);
+  if (!owned) return false;
+  await captureRestorePoint(userId, date, 'delete_meal');
   return dayRepo.deleteMeal(userId, mealId);
 }

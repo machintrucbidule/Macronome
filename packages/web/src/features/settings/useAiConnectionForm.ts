@@ -7,6 +7,8 @@ import {
   type AiTaskKey,
 } from '@macronome/shared';
 import { ApiError } from '../../api/client';
+import { showToast } from '../../components/Toast/toast-store';
+import i18n from '../../i18n/config';
 import { useAiModelsMutation, useSettingsMutation, useSettingsQuery } from './useSettings';
 
 // State + handlers for the Assistant IA card (design/components/ai-connection.md). Seeds a
@@ -104,8 +106,12 @@ export function useAiConnectionForm() {
     }
   };
 
+  // B-261: the explicit "Enregistrer" confirms; `runFetchModels` below persists too but already
+  // shows its own result, so only the bare save toasts.
   const onSave = (): void => {
-    void persist();
+    void persist().then((ok) => {
+      if (ok) showToast({ message: i18n.t('toast.settingsSaved') });
+    });
   };
 
   // "Récupérer les modèles" saves the typed config first, then proves the link against it, so

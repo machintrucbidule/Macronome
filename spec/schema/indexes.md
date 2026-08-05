@@ -37,6 +37,7 @@ CREATE INDEX idx_daylog_user_date  ON day_log(user_id, date DESC);
 CREATE INDEX idx_meal_day          ON meal(day_log_id, order_index);
 CREATE INDEX idx_mealentry_meal    ON meal_entry(meal_id, order_index);
 CREATE INDEX idx_leftover_meal     ON leftover_group(meal_id);
+CREATE UNIQUE INDEX uq_restorepoint_user_date ON day_restore_point(user_id, date); -- one undo point per day (B-261)
 
 -- weight traversal (period derivation)
 CREATE UNIQUE INDEX uq_weight_user_date ON weight_entry(user_id, date);

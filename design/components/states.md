@@ -36,6 +36,20 @@ inside the app (the spinner is reserved for the login submit).
 - A screen whose **code** is still loading (routes are split, B-266) uses the same
   skeleton treatment — never a spinner.
 
+### Announced to assistive technology — B-272
+
+A skeleton is a purely visual signal; on its own a screen-reader user gets nothing at all when
+50 more rows arrive. Two rules, both carried by the **primitives** so no screen can forget them:
+
+- **`aria-busy="true"`** on every skeleton container (`SkeletonRows`, `SkeletonTableRows`,
+  `SkeletonMealDay`) while it stands in for content.
+- **One polite live region per screen**, no more — several competing regions are worse than
+  none. It lives in the shared infinite-scroll footer and announces each page as it lands
+  ("50 aliments supplémentaires"); the observer sentinel stays `aria-hidden`.
+
+Conversely, a **hover-driven tooltip is not a status** and must not be announced as one: the
+chart tooltip carries no `role="status"` (it would fire on every pointer move).
+
 ## Fatal error (uncaught render error) — B-265
 
 A screen that throws during render shows a **recovery card in place of the screen**, inside
@@ -55,6 +69,25 @@ longer serves — surfaces here, and the same reload is its cure.
 Load/save failure on Repas/Aliments → non-blocking banner (see
 `toasts-warnings.md` D); the list renders from cache and edits buffer locally.
 Never a blocking modal for transient I/O errors.
+
+## Server unreachable — B-260
+
+The app shell is precached (ADR-0003) and API responses are **not**, so losing the server means
+"the window opens fine, then everything fails at once" — the most confusing possible reading of
+a network problem. One **global** indicator names it instead:
+
+- A single `toasts-warnings.md` banner, `tone="warning"`, mounted in the app frame **between the
+  appbar and the page body** — one place, not one error per screen. Copy states the server is
+  unreachable and that the displayed figures may be out of date.
+- **Not dismissible.** It clears itself the moment a request succeeds again. A closable banner
+  could be hidden by accident, leaving stale calories and targets looking current — and those
+  drive real decisions.
+- Driven by **two** signals, because either alone is blind: `navigator.onLine` (no network at
+  all) **and** repeated request failure (server unreachable while the OS still reports online —
+  the likely case for a self-hosted LAN/VPN instance).
+- Editing is **not** blocked and no modal appears: the failure is transient by assumption.
+- **No offline data mode.** API responses are never cached for offline reading — stale calories,
+  targets or weigh-ins could drive a real decision (owner decision, B-260).
 
 ## Login — error & lockout (pre-auth surface)
 

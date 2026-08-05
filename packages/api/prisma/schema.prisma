@@ -345,3 +345,21 @@ model Advice {
 
   @@map("advice")
 }
+
+/// One undo point for a day (spec/schema/tables-logging.md → day_restore_point, B-261).
+/// Written just before `/clear`, `/copy-from` and a meal deletion; consumed and deleted by
+/// `POST /days/:date/undo`. At most one per (user, date) — the unique index makes undo
+/// single-level. `payload` is a value snapshot in the day-copy plan shape, never a set of
+/// references, so a restore is faithful (frozen macro snaps + frozen leftover containers).
+/// The user_id FK (ON DELETE CASCADE) and the unique index live in migration SQL.
+model DayRestorePoint {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  date      DateTime @db.Date
+  payload   Json
+  action    String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  @@unique([userId, date])
+  @@map("day_restore_point")
+}

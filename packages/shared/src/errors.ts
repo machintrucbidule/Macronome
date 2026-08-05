@@ -30,6 +30,8 @@ export enum ErrorCode {
   CopySourceEmpty = 'copy_source_empty',
   /** Per-meal copy (CP-2/B-248): the source day has content but no meal matching by name or rank. */
   CopyMealNotFound = 'copy_meal_not_found',
+  /** Day undo (B-261): no restore point for that date, or one already consumed (single-level). */
+  NothingToUndo = 'nothing_to_undo',
 
   // admin user management (B-192) + token links (B-193/B-194)
   LastAdmin = 'last_admin',

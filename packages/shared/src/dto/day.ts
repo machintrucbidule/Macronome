@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { ACTIVITY_LEVELS } from '../constants/activity.js';
+import type { DayTone } from './day-tone.js';
 
 // Daily-log DTOs (spec/api/days-meals-leftover.md). Responses are plain interfaces
 // the server builds and the web only renders (no client computation); requests are
@@ -105,6 +106,8 @@ export interface DayDetail {
   verdict_auto: Verdict | null;
   verdict_override: Verdict | null;
   effective_verdict: Verdict | null;
+  /** Compliance colour (§8b) — server-derived so the web never re-derives it from the burn gap. */
+  tone: DayTone;
   summary_kcal?: number | null;
   target_snapshot: TargetSnapshot;
   totals: MealTotals;
@@ -276,6 +279,9 @@ export interface JournalRow {
   kind: 'detailed' | 'summary' | null;
   /** Calorie-driven state for the trame coloring (spec/logic/day-snapshot-verdict.md §8). */
   state: DayState;
+  /** Compliance colour for the verdict pill (§8b) — a different ladder from `state` despite the
+   *  overlapping words. Server-derived; the web never re-derives it from `burn_gap` (rule 2). */
+  tone: DayTone;
   /** Whether the Journal Calories cell is inline-editable: any day with no real meal detail
    *  (not green) — typing a total creates/updates a summary (yellow) day. */
   editable_kcal: boolean;

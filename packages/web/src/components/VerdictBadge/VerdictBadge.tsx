@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { Verdict } from '@macronome/shared';
+import type { DayTone, Verdict } from '@macronome/shared';
 import { useMenuPlacement } from '../../lib/useMenuPlacement';
 import styles from './VerdictBadge.module.css';
 
@@ -7,6 +7,15 @@ import styles from './VerdictBadge.module.css';
 // the effective verdict + an `auto`/`forcé` sub-label, opening a menu to force OK/NOK or revert
 // to auto. The verdict itself is computed server-side; this only displays it and emits the
 // chosen override (null = revert to auto).
+
+// Server tone → badge colour class. `none` shares the muted branch above (a badge with no
+// effective verdict never reaches here), so it maps to the neutral nok-less style.
+const TONE_CLASS: Record<DayTone, string> = {
+  ok: styles.ok ?? '',
+  warn: styles.warn ?? '',
+  nok: styles.nok ?? '',
+  none: styles.muted ?? '',
+};
 
 export interface VerdictLabels {
   forceOk: string;
@@ -24,12 +33,12 @@ interface VerdictBadgeProps {
   labels: VerdictLabels;
   onSet: (override: Verdict | null) => void;
   /**
-   * Whether the day is still in a real deficit (`intake ≤ estimated_burn`), derived by the caller
-   * from the server figure (`burn_gap`/`constat.deficit ≤ 0`). When the verdict is NOK, `true`
-   * tints the badge orange instead of red; `false`/`null` (surplus or unknown burn) stays red.
-   * OK is unaffected (B-166). Never computed here — CLAUDE.md rule 2.
+   * The day's server-computed compliance tone (`DayDetail.tone` / `JournalRow.tone`,
+   * spec/logic/day-snapshot-verdict.md §8b): `ok` green, `warn` orange (NOK but still under the
+   * estimated burn, B-166), `nok` red, `none` nothing logged. Read as-is — the rule lives in the
+   * API so this badge, the Journal pill and the window rule cannot disagree (B-262, rule 2).
    */
-  belowBurn?: boolean | null | undefined;
+  tone: DayTone;
 }
 
 export function VerdictBadge({
@@ -38,7 +47,7 @@ export function VerdictBadge({
   override,
   labels,
   onSet,
-  belowBurn,
+  tone,
 }: VerdictBadgeProps) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -78,15 +87,14 @@ export function VerdictBadge({
     { value: null, label: labels.autoCalc(auto) },
   ];
 
-  // Colour tone: OK → green; NOK → orange only when the day is in a deficit (belowBurn === true),
-  // otherwise red (surplus or unknown burn) (B-166).
-  const tone = effective === 'OK' ? styles.ok : belowBurn ? styles.warn : styles.nok;
+  // Colour comes straight from the server tone (§8b) — no derivation here (B-262).
+  const toneClass = TONE_CLASS[tone];
 
   return (
     <div className={styles.wrap} ref={wrapRef}>
       <button
         type="button"
-        className={`${styles.badge} ${tone}`}
+        className={`${styles.badge} ${toneClass}`}
         onClick={() => setOpen((o) => !o)}
       >
         <span>{effective}</span>

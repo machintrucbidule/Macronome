@@ -16,6 +16,7 @@ import {
   recordReorder,
   recordUpdate,
 } from '../history/recordHelpers';
+import { toastLineDeleted } from './dayToasts';
 import type { EditTarget, MealActionDeps, ResolveEntry, ResolveMealId, Run } from './mealActions';
 
 // Line-level Repas actions, split out of mealActions to keep each builder under the size caps.
@@ -214,6 +215,9 @@ export function editLineActions(d: MealActionDeps, run: Run, resolveEntry: Resol
         (async () => {
           await d.day.removeEntry.mutateAsync({ mealId, id });
           if (entry) recordRemove(d.recordHistory, mealId, entry);
+          // B-261: confirm it, offering the stack's inverse. The re-created line gets a new id
+          // (opReconcile) — exact for a custom line, recomputed if its food changed meanwhile.
+          if (entry && d.undoHistory) toastLineDeleted(d.undoHistory);
         })(),
       );
     },

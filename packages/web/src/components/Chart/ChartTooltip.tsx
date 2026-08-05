@@ -94,7 +94,10 @@ export function ChartTooltip({ anchor }: { anchor: TooltipAnchor }) {
         // keep the caret over the anchor even after a horizontal clamp
         ['--caret-x' as string]: `clamp(8px, calc(50% - ${place.dx}px), calc(100% - 8px))`,
       }}
-      role="status"
+      // B-272: deliberately NOT role="status". This tooltip is hover-driven, so announcing it as
+      // a status fires on every pointer move — noise, not information. The figures it shows are
+      // all readable from the chart's own data elsewhere on the screen.
+      data-testid="chart-tooltip"
     >
       <div className={styles.tipTitle}>{anchor.tip.title}</div>
       {anchor.tip.rows.map((row, i) => (

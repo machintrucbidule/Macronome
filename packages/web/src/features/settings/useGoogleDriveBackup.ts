@@ -3,6 +3,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { GoogleDrivePatch, GoogleDriveRead } from '@macronome/shared';
 import { ApiError } from '../../api/client';
 import { googleDriveApi } from '../../api/integrations';
+import { showToast } from '../../components/Toast/toast-store';
+import i18n from '../../i18n/config';
 import { SETTINGS_KEY, useSettingsMutation, useSettingsQuery } from './useSettings';
 
 // State + handlers for the Google Drive backup card (specifications/screens/settings.md,
@@ -100,6 +102,9 @@ function useGdriveConfig(gd: GoogleDriveRead | null) {
     save.mutate(
       { integrations: { google_drive: patch } },
       {
+        // B-261: an explicit "Enregistrer" on a card whose effect is invisible until the next
+        // scheduled backup — exactly what a transient confirmation is for.
+        onSuccess: () => showToast({ message: i18n.t('toast.settingsSaved') }),
         onError: (err) => {
           if (!(err instanceof ApiError)) return;
           if (err.details?.['integrations.google_drive.retention_days']) setRetentionInvalid(true);

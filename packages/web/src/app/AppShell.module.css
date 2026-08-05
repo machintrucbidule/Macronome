@@ -13,6 +13,36 @@
   z-index: var(--z-appbar);
 }
 
+/* ===== Day-tone rule (B-262, design/components/top-nav.md) =====
+   A 2px full-bleed rule carrying TODAY's compliance tone, directly under the appbar. Sticky at the
+   appbar's own height so it reads as the lower edge of the title strip — in an installed WCO window
+   that is literally the bottom of the OS title band; in a browser tab it degrades to a rule under
+   the header. On `none` it is the ordinary --border, i.e. indistinguishable from the appbar's own
+   bottom edge: an unstarted day must not shout. Decorative (aria-hidden) — the verdict is already
+   available as text on Repas and Journal. */
+.toneRule {
+  height: 2px;
+  background: var(--border);
+  position: sticky;
+  top: var(--appbar-h);
+  z-index: var(--z-appbar);
+}
+.toneOk {
+  background: var(--ok);
+}
+.toneWarn {
+  background: var(--warn);
+}
+.toneNok {
+  background: var(--nok);
+}
+
+/* The offline banner sits between the title strip and the page body (B-260), full width and
+   never dismissible; `Banner` carries its own tone styling. */
+.offline {
+  padding: var(--sp-3) var(--page-gutter) 0;
+}
+
 /* ===== Installed-window title bar (WCO, B-200) — window-controls-overlay only =====
    The manifest's display_override promotes the installed window to window-controls-overlay: the OS
    removes its own title bar and leaves only the native window buttons (minimise / maximise / close),
@@ -36,6 +66,10 @@
        (app/applySettings.ts → syncThemeColor), so the whole title band is one colour, no seam. */
     -webkit-app-region: drag;
     app-region: drag;
+  }
+  /* The tone rule sticks under whatever height the appbar actually took above (B-262). */
+  .toneRule {
+    top: max(env(titlebar-area-height, var(--appbar-h)), var(--appbar-h));
   }
   /* Interactive controls opt out of the drag region so they stay clickable. */
   .nav a,

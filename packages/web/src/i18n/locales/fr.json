@@ -1,7 +1,8 @@
 {
   "app": {
     "title": "Macronome",
-    "tagline": "Suivi nutrition & poids"
+    "tagline": "Suivi nutrition & poids",
+    "offline": "Serveur injoignable. Les valeurs affichées peuvent ne plus être à jour ; la connexion sera reprise automatiquement."
   },
   "rating": {
     "unrated": "Pas noté",
@@ -85,7 +86,24 @@
     "optional": "(optionnel)",
     "loading": "Chargement…",
     "loadError": "Échec du chargement. Affichage des données en cache ; réessayez plus tard.",
-    "typedConfirm": "Tape « {{word}} » pour confirmer."
+    "typedConfirm": "Tape « {{word}} » pour confirmer.",
+    "undo": "Annuler"
+  },
+  "toast": {
+    "lineDeleted": "Ligne supprimée",
+    "dayCleared": "Journée vidée",
+    "dayCopied": "Journée copiée",
+    "mealDeleted": "Repas supprimé",
+    "importDone": "Import terminé",
+    "exportDone": "Export terminé",
+    "targetsSaved": "Cibles enregistrées",
+    "settingsSaved": "Paramètres enregistrés",
+    "undoFailed": "Impossible d'annuler cette action.",
+    "dismiss": "Fermer la notification"
+  },
+  "a11y": {
+    "moreLoaded": "{{count}} élément supplémentaire chargé",
+    "moreLoaded_other": "{{count}} éléments supplémentaires chargés"
   },
   "list": {
     "sort": "Trier",

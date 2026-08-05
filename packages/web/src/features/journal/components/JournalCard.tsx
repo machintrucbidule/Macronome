@@ -18,16 +18,18 @@ const STATE_CLASS: Record<Row['state'], string | undefined> = {
   none: undefined,
 };
 
-// Verdict pill tone (B-166, same rule as the shared VerdictBadge): OK → green; NOK → orange when
-// the day is still in a deficit (burn_gap ≤ 0), else red (surplus or unknown burn); none → muted.
-// Reads the sign of the server figure only — never computes a verdict (CLAUDE.md rule 2).
-function verdictClass(
-  verdict: Row['effective_verdict'],
-  burnGap: number | null,
-): string | undefined {
-  if (verdict === null) return styles.badgeMuted;
-  if (verdict === 'OK') return styles.badgeOk;
-  return burnGap !== null && burnGap <= 0 ? styles.badgeWarn : styles.badgeNok;
+// Verdict pill colour — straight from the server tone (§8b, B-262), the same value the shared
+// VerdictBadge renders, so the card and the desktop row can never disagree. No derivation here
+// (CLAUDE.md rule 2): a day with no verdict is muted whatever its tone says.
+const TONE_CLASS: Record<Row['tone'], string | undefined> = {
+  ok: styles.badgeOk,
+  warn: styles.badgeWarn,
+  nok: styles.badgeNok,
+  none: styles.badgeMuted,
+};
+
+function verdictClass(verdict: Row['effective_verdict'], tone: Row['tone']): string | undefined {
+  return verdict === null ? styles.badgeMuted : TONE_CLASS[tone];
 }
 
 // Calories follow the verdict colour (same OK/NOK rule as the badge): green when in/under
@@ -79,7 +81,7 @@ export function JournalCard({ row, onOpen }: JournalCardProps) {
               {signedInt(row.kcal_gap)}
             </span>
           )}
-          <span className={`${styles.badge} ${verdictClass(verdict, row.burn_gap)}`}>
+          <span className={`${styles.badge} ${verdictClass(verdict, row.tone)}`}>
             {verdict ?? DASH}
           </span>
         </span>

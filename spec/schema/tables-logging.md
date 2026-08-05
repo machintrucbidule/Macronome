@@ -122,3 +122,31 @@ freezes history against later food/recipe edits.
 
 An entry may belong to at most one group per meal (enforced in app); only
 entries with served_grams > 0 are eligible.
+
+## day_restore_point (undo of a destructive day action; B-261)
+
+| column     | type        | notes                                                                  |
+| ---------- | ----------- | ---------------------------------------------------------------------- |
+| id         | uuid PK     |                                                                        |
+| user_id    | uuid        | NOT NULL REFERENCES app_user(id) ON DELETE CASCADE                     |
+| date       | date        | NOT NULL — the day the point restores                                  |
+| payload    | jsonb       | NOT NULL — the day's full content just before the action               |
+| action     | text        | NOT NULL — which action created it: `clear` \| `copy` \| `delete_meal` |
+| created_at | timestamptz |                                                                        |
+|            |             | UNIQUE (user_id, date)                                                 |
+
+**At most one point per (user, date)**: `POST /days/:date/clear`, `POST /days/:date/copy-from`
+and `DELETE /days/:date/meals/:mealId` each **overwrite** it just before writing, and
+`POST /days/:date/undo` consumes and **deletes** it. Undo is therefore single-level: it returns
+the day to the state immediately preceding the last destructive action, never further back.
+
+`payload` is a **value snapshot, not a set of references**: meals, entries (with their frozen
+macro snapshots and per-line pantry flags) and leftover groups (with their already-frozen
+`container_name` + `tare_g`), plus the day's `kind`, `summary_kcal`, `comment`,
+`activity_level` and `verdict_override`. It is the same shape the day-copy plan already uses, so
+a restore replays through the same transactional rebuild. A point captured on a date that carried
+no `day_log` records that absence, and restoring it removes the day again.
+
+Nothing else may read `payload`: it is not history, not an audit trail, and never feeds stats —
+`day_log` remains the sole source for every aggregate. Points do not expire; the next destructive
+action on the same date is what clears the previous one.

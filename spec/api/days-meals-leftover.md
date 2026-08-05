@@ -8,6 +8,16 @@ See `00-conventions.md`. Scoped to the authenticated user.
   on read; returns the existing day or an **unsaved scaffold** (meals seeded from
   template + pantry lines at qty 0) for a never-touched detailed date.
   → 200 DayDetail. Summary days return the reduced read-only shape.
+  **Not a pure read:** on a non-past date it re-persists the live `target_snapshot` and
+  `verdict_auto` (§3 freezing). Callers that only need the day's colour must use
+  `GET /days/:date/tone` instead.
+- `GET /days/:date/tone` — **the day's compliance tone**, `logic/day-snapshot-verdict.md §8b`
+  (B-262). No body. → 200 `{date, tone}` where `tone` is `none|ok|warn|nok`. **Strictly
+  read-only — it writes nothing, ever**, unlike `GET /days/:date` above; that is its reason to
+  exist. It is polled by the app frame to colour the window-level rule and the app-icon badge,
+  so it must stay cheap: no meals, no entries, no leftover payload. A never-touched date is
+  `none` (no row is created). Same value as the `tone` field of `DayDetail` / `JournalRow` — one
+  server-side rule, so the badge and the rule can never disagree.
 - `POST /days/:date` — materialize/ensure the day_log on first write
   (creates the row + target_snapshot from that date's effective target & weight,
   `logic/day-snapshot-verdict.md`). Usually implicit via the first entry write.
@@ -51,7 +61,7 @@ day's current Σ consumed kcal` **server-side**, then **drops the day's meals** 
   and `activity_level`; resets `verdict_override` to null (back to
   Auto). Pin membership is the live `pantry_item` set (`logic/pantry-pin.md`). A
   never-materialized scaffold (nothing logged) is a no-op. → 200 DayDetail. Summary day
-  → 409 `summary_day_readonly`.
+  → 409 `summary_day_readonly`. **Captures a restore point** first (below).
 - `POST /days/:date/copy-from` — **replace the day with a faithful copy of another day**
   (CP-1 / B-082). Body `{from:"YYYY-MM-DD"}`. Atomically rebuilds `:date` from `from`:
   a **detailed** source copies its meals → entries (frozen macro snapshots) → leftover
@@ -63,13 +73,32 @@ day's current Σ consumed kcal` **server-side**, then **drops the day's meals** 
   `verdict_override` to null. The **garde-manger is not re-applied** — a copy reproduces the
   source exactly (a food pinned after `from` is not injected). An **empty / absent source**
   (no served line, or a summary with no kcal) → **409 `copy_source_empty`** (nothing
-  written); `from == :date` or an invalid date → **422**. → 200 DayDetail.
+  written); `from == :date` or an invalid date → **422**. → 200 DayDetail. **Captures a restore
+  point** first (below) — but only once the source is validated, so a refused copy leaves the
+  previous point intact.
+- `POST /days/:date/undo` — **restore the day to the state preceding the last destructive
+  action** (B-261). No body. Consumes the day's restore point and replays it through the same
+  transactional rebuild as `/copy-from`, so the restoration is **faithful**: lines with their
+  frozen macro snapshots and per-line garde-manger flags, leftover groups with their frozen
+  container name + tare, plus the day's `kind`, `summary_kcal`, `comment`, `activity_level` and
+  `verdict_override`. `verdict_auto` is recomputed against the day's own snapshot (frozen if
+  past, live otherwise), like every other write. A point captured on a date that had no
+  `day_log` restores that absence (the day is removed). The point is **deleted** on success, so
+  undo is **single-level**: a second call → **409 `nothing_to_undo`**, as does a date that never
+  carried one. Another user's date → **404** (cross-tenant, `00-conventions.md`). → 200
+  DayDetail.
+
+  **Which actions capture a point:** `POST /days/:date/clear`, `POST /days/:date/copy-from` and
+  `DELETE /days/:date/meals/:mealId` — the three destructive day-level actions. Each **overwrites**
+  the previous point for that date; points do not expire. `POST /meals/:mealId/copy-from` (the
+  per-meal copy) and `POST /days/:date/summary` are **deliberately excluded** — they are guarded
+  by their own strong confirmation and were not in scope for B-261.
 
 **DayDetail** payload (detailed):
 
 ```json
 { "date","kind":"detailed","activity_level","comment",
-  "verdict_auto","verdict_override","effective_verdict",
+  "verdict_auto","verdict_override","effective_verdict","tone",
   "target_snapshot":{"cal_min","cal_max","protein_floor_g","fat_floor_g","carb_ceiling_g"},
   "totals":{"kcal","fat","carb","protein","weight_g"},
   "constat":{"estimated_burn","deficit","kg_per_week","per_level_activity_burn"},
@@ -78,6 +107,8 @@ day's current Σ consumed kcal` **server-side**, then **drops the day's meals** 
     "totals":{...} } ] }
 ```
 
+`tone` is the day's compliance colour (`none|ok|warn|nok`, `logic/day-snapshot-verdict.md §8b`),
+server-derived so the web never re-derives it from `constat.deficit`.
 `activity_level` is always one of the 5 canonical keys (never null) here and in the
 journal rows; `constat.estimated_burn`/`deficit`/`kg_per_week` are null only when the
 day has no body weight yet (no weigh-in). `constat.per_level_activity_burn` is a map of the
@@ -89,7 +120,9 @@ condition as `estimated_burn`.
 
 - `POST /days/:date/meals` — `{slot_name, order_index}` → 201.
 - `PATCH /days/:date/meals/:mealId` — rename / reorder → 200.
-- `DELETE /days/:date/meals/:mealId` → 204.
+- `DELETE /days/:date/meals/:mealId` → 204. **Captures a restore point** for the whole day first
+  (see `/undo`): the meal's entries and leftover groups cascade away, so nothing short of a
+  day-level snapshot could bring them back.
 - `POST /meals/:mealId/copy-from` — **replace one meal with a copy of the matching meal
   of another day** (CP-2 / B-248). Body `{from:"YYYY-MM-DD"}`. The day-level
   `/days/:date/copy-from` above replaces the **whole** day; this is its per-meal
@@ -191,11 +224,13 @@ leftover_net_grams,entry_ids:[...]}`.
   **one row per calendar day** from `max(first record, Jan 1 of year)` to `min(today, Dec 31)`,
   with **empty (never-touched) days included as `red` rows**, **plus** any **future** day
   (> today, ≤ Dec 31) that already has a row (listed inline — author decision). Future days are
-  never generated as empties.
+  never generated as empties. Each row also carries `tone` (below).
   → 200 `{data:[{date,kcal,macros:{L,G,P}|null,verdict_auto,verdict_override,
-effective_verdict,kcal_gap,burn_gap,activity_level,comment,kind,state,editable_kcal}], day_count, min_year, max_year}`.
+effective_verdict,kcal_gap,burn_gap,activity_level,comment,kind,state,tone,editable_kcal}], day_count, min_year, max_year}`.
   `kind` is `null` for an empty row; `state` is the calorie-driven colour
-  (`none|green|yellow|red`, `logic/day-snapshot-verdict.md §8`); `editable_kcal` is true on any
+  (`none|green|yellow|red`, `logic/day-snapshot-verdict.md §8`); `tone` is the **compliance**
+  colour (`none|ok|warn|nok`, §8b) — a different ladder despite the overlapping words, and the
+  one the verdict pill uses; `editable_kcal` is true on any
   non-`green` day (the Calories cell creates/updates a summary day). `kcal_gap` is the **signed
   kcal écart vs the upper target** (`kcal − cal_max`, B-138), server-computed so the web never
   derives it (CLAUDE.md rule 2): it is **always relative to `cal_max`** — negative at/under the

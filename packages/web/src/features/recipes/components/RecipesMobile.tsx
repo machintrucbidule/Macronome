@@ -91,7 +91,7 @@ export function RecipesMobile(props: RecipesMobileProps) {
     return (
       <>
         <RecipeCards recipes={props.recipes} onOpen={props.onOpen} rowsRef={reserve.listRef} />
-        <InfiniteScrollFooter query={props.list} padBottom={reserve.padBottom} />
+        <InfiniteScrollFooter query={props.list} {...reserve.footer} />
       </>
     );
   })();

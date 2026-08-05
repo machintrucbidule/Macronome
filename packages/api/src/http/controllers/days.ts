@@ -2,6 +2,8 @@ import type { Request, Response } from 'express';
 import { CopyDaySchema, DayDateSchema, ErrorCode, PatchDaySchema } from '@macronome/shared';
 import * as daysService from '../../services/days.js';
 import { copyFromDay } from '../../services/day-copy.js';
+import * as dayToneService from '../../services/day-tone.js';
+import { restoreDay } from '../../services/day-restore.js';
 import { ApiError, zodDetails } from '../errors.js';
 
 // THIN controllers (api-CLAUDE.md): validate path/body → call the service → serialise.
@@ -20,6 +22,12 @@ export function pathDate(req: Request): string {
 /** GET /days/:date — existing day or an unsaved scaffold (200). */
 export async function get(req: Request, res: Response): Promise<void> {
   res.status(200).json(await daysService.get(userId(res), pathDate(req)));
+}
+
+/** GET /days/:date/tone — the day's compliance colour only (200). Strictly read-only, unlike
+ *  `get` above which re-persists the live snapshot on a non-past date (B-262). */
+export async function tone(req: Request, res: Response): Promise<void> {
+  res.status(200).json(await dayToneService.get(userId(res), pathDate(req)));
 }
 
 /** POST /days/:date — materialize the day_log (201; idempotent). */
@@ -57,6 +65,12 @@ export async function copyFrom(req: Request, res: Response): Promise<void> {
     throw new ApiError(422, ErrorCode.ValidationError, { from: 'same_as_target' });
   }
   res.status(200).json(await copyFromDay(userId(res), date, parsed.data.from));
+}
+
+/** POST /days/:date/undo — restore the state preceding the last destructive day action
+ *  (200 DayDetail; 409 nothing_to_undo when no point exists / one was already consumed). */
+export async function undo(req: Request, res: Response): Promise<void> {
+  res.status(200).json(await restoreDay(userId(res), pathDate(req)));
 }
 
 /** POST /days/:date/clear — empty the day, keeping pins@0 + comment + activity (200; 409 summary). */

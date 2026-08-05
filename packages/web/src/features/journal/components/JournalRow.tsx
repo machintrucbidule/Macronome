@@ -93,7 +93,7 @@ export function JournalRow({ row, onPatch }: JournalRowProps) {
               override={row.verdict_override}
               labels={verdictLabels}
               onSet={(v) => onPatch(row.date, { verdict_override: v })}
-              belowBurn={row.burn_gap === null ? null : row.burn_gap <= 0}
+              tone={row.tone}
             />
           </span>
           {/* Écart vs the upper target (cal_max), server-provided (B-138). */}

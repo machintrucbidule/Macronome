@@ -23,6 +23,7 @@ function summaryRow(kcal: number): Row {
     comment: null,
     kind: 'summary',
     state: 'yellow',
+    tone: 'none',
     editable_kcal: true,
   };
 }

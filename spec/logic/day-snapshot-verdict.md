@@ -147,6 +147,43 @@ when a detailed day's entries sum to 0 (cleared, or pantry-only at qty 0).
 - detailed, Σ = 1500, date > T (planned) → `green`, **not** logged (future).
 - summary, summary_kcal = 1600, date > T → `yellow`, **not** logged (future).
 
+### 8b. Day tone — the compliance colour (B-262)
+
+The **state** above is a _data-presence_ ladder ("does this day carry a calorie value?"). It is
+**not** a compliance ladder, and the two must never be confused despite the overlapping colour
+words. The **tone** is the compliance signal: it answers "is this day on target?", and it is the
+single server-side source for every surface that colours a verdict — the day badge, the Journal
+pill, and the window-level rule (`design/components/top-nav.md`).
+
+| tone   | condition                                                                                      |
+| ------ | ---------------------------------------------------------------------------------------------- |
+| `none` | the day carries **no calorie value** (same "absent" test as §8) — nothing to judge yet         |
+| `ok`   | effective verdict `OK`                                                                         |
+| `warn` | effective verdict `NOK` **and** intake is still at or under the estimated burn (`deficit ≤ 0`) |
+| `nok`  | effective verdict `NOK` and intake is over the burn, or the burn is unknown                    |
+
+- **Derivation precedence:** no calorie value → `none`; else `OK` → `ok`; else `deficit ≤ 0` →
+  `warn`; else → `nok`. The `deficit` is the day constat's signed burn gap
+  (`metabolic-burn.md`); it is `null` when the day has no body weight yet, which reads as `nok`
+  (an unknown burn is not evidence of a deficit).
+- **`none` applies at any date**, past or future — unlike §8's state, the tone does not branch on
+  the date. A past day with no calorie value has nothing to be compliant _with_; a future planned
+  day with lines is judged on those lines like any other.
+- The effective verdict is the manual override when set, else the auto value (§6), so forcing a
+  day OK turns its tone `ok` too — the override is the lever, exactly as for the verdict itself.
+- The tone is **derived, never stored**: no column, no snapshot. It is recomputed on each read
+  from the day's own (frozen or live) snapshot, so it inherits §3's freezing rules for free.
+
+**Worked examples** (oracles; snapshot `cal_min = 1800`, `cal_max = 2200`):
+
+- no row, or detailed with Σ = 0 → `none` (whatever the verdict says).
+- detailed, Σ = 2000 → auto `OK` → `ok`.
+- detailed, Σ = 1500, burn 2400 (`deficit = −900`) → auto `NOK` (under `cal_min`) → `warn`.
+- detailed, Σ = 2600, burn 2400 (`deficit = +200`) → auto `NOK` → `nok`.
+- detailed, Σ = 2600, no weigh-in yet (`deficit = null`) → auto `NOK` → `nok`.
+- detailed, Σ = 2600, `verdict_override = 'OK'` → effective `OK` → `ok`.
+- summary, summary_kcal = 1900 → auto `OK` → `ok`.
+
 ## 9. Summary (light) days: creatable & freely convertible (day-model)
 
 - Summary days are **creatable in-app**: a calorie total (`summary_kcal`) with no meal

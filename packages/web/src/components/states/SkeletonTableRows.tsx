@@ -14,20 +14,24 @@ interface SkeletonTableRowsProps {
 // Skeleton rows at table row height (design/components/states.md §Loading states — "Aliments /
 // tables: skeleton rows (greyed bars at row height)", B-264). Stands in for a whole <table>:
 // a header band then N rows, so the page does not shift when the data lands.
+//
+// B-272: `aria-busy` on the outer element (in the accessibility tree), placeholders `aria-hidden`.
 export function SkeletonTableRows({ rows = 8, rowHeight = 33 }: SkeletonTableRowsProps) {
   return (
-    <div className={styles.skelTable} aria-hidden="true" data-testid="skeleton-table">
-      <div className={styles.skelTableHead} />
-      {Array.from({ length: rows }, (_, i) => (
-        <div
-          key={i}
-          className={styles.skelTableRow}
-          style={{ height: rowHeight }}
-          data-testid="skeleton-table-row"
-        >
-          <span className={styles.skelBar} />
-        </div>
-      ))}
+    <div className={styles.skelTable} aria-busy="true" data-testid="skeleton-table">
+      <div aria-hidden="true">
+        <div className={styles.skelTableHead} />
+        {Array.from({ length: rows }, (_, i) => (
+          <div
+            key={i}
+            className={styles.skelTableRow}
+            style={{ height: rowHeight }}
+            data-testid="skeleton-table-row"
+          >
+            <span className={styles.skelBar} />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

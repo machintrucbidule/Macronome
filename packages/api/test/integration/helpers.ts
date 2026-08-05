@@ -176,3 +176,7 @@ export function csrfPost(agent: Agent, csrf: string, url: string, body?: Record<
 export function csrfPatch(agent: Agent, csrf: string, url: string, body: Record<string, unknown>) {
   return agent.patch(url).set('x-csrf-token', csrf).send(body);
 }
+
+export function csrfDelete(agent: Agent, csrf: string, url: string) {
+  return agent.delete(url).set('x-csrf-token', csrf);
+}

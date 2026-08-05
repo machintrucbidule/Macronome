@@ -25,10 +25,14 @@ describe('SkeletonTableRows', () => {
     }
   });
 
-  it('is hidden from assistive technology', () => {
+  // B-272: the container reports that it is loading; the bars themselves stay hidden. A single
+  // `aria-hidden` root would have silenced the state too — aria-busy on a hidden node is ignored.
+  it('reports aria-busy on the container and hides the placeholder bars', () => {
     const { container } = render(<SkeletonTableRows />);
     const root = container.querySelector('[data-testid="skeleton-table"]');
-    expect(root?.getAttribute('aria-hidden')).toBe('true');
+    expect(root?.getAttribute('aria-busy')).toBe('true');
+    expect(root?.getAttribute('aria-hidden')).toBeNull();
+    expect(root?.querySelector('[aria-hidden="true"]')).not.toBeNull();
   });
 });
 

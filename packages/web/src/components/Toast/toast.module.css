@@ -1,0 +1,67 @@
+/* Transient confirmation (B-261, design/components/toasts-warnings.md §E).
+   Anatomy per the contract: a small --bg-elev-2 card, --border-strong, --shadow, --r-md.
+   `--z-toast` is now reserved for real toasts: the chart tooltip and the context menu moved to
+   their own tokens, so a confirmation always outranks them. */
+.toast {
+  position: fixed;
+  right: var(--page-gutter);
+  bottom: var(--sp-9);
+  z-index: var(--z-toast);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+  max-width: min(420px, calc(100vw - 2 * var(--page-gutter)));
+  padding: 11px 13px;
+  background: var(--bg-elev-2);
+  border: var(--bw) solid var(--border-strong);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow);
+  font-size: var(--fs-13);
+  line-height: 1.4;
+  color: var(--text);
+}
+
+.message {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Ghost action (buttons.md): the only affordance the reversible actions get. */
+.undo {
+  flex: none;
+  padding: var(--sp-2) var(--sp-5);
+  background: none;
+  border: var(--bw) solid var(--border-strong);
+  border-radius: var(--r-sm);
+  color: var(--accent);
+  font: inherit;
+  cursor: pointer;
+}
+.undo:hover {
+  background: var(--bg-elev);
+}
+
+.close {
+  flex: none;
+  padding: 0 var(--sp-2);
+  background: none;
+  border: 0;
+  color: var(--text-dim);
+  font-size: var(--fs-16);
+  line-height: 1;
+  cursor: pointer;
+}
+.close:hover {
+  color: var(--text);
+}
+
+/* Mobile: bottom-centred and lifted clear of the fixed bottom nav (its 56px) plus the safe
+   area, so a confirmation never covers a tab (design/components/toasts-warnings.md §E). */
+@media (max-width: 560px) {
+  .toast {
+    right: var(--sp-6);
+    left: var(--sp-6);
+    max-width: none;
+    bottom: calc(56px + var(--sp-6) + env(safe-area-inset-bottom, 0px));
+  }
+}

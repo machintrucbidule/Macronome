@@ -41,6 +41,7 @@ function journalRow(over: Partial<JournalRow>): JournalRow {
     comment: null,
     kind: 'detailed',
     state: 'green',
+    tone: 'ok',
     editable_kcal: false,
     ...over,
   };

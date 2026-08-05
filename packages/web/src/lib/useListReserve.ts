@@ -27,6 +27,10 @@ export interface ListReserve {
   padBottom: number;
   /** Attach to the element that directly contains the rows. */
   listRef: RefObject<HTMLElement | null>;
+  /** Spread straight into `<InfiniteScrollFooter>`: the reserve height it must render, and the
+   *  loaded count its live region announces page arrivals from (B-272). Bundled because every
+   *  call site passes both and neither is the caller's decision. */
+  footer: { padBottom: number; loadedCount: number };
 }
 
 export function useListReserve(
@@ -57,5 +61,6 @@ export function useListReserve(
     };
   }, [pitch, loaded, missing, hasNextPage, isFetchingNextPage, fetchNextPage, listRef]);
 
-  return { padBottom: pitch > 0 ? missing * pitch : 0, listRef };
+  const padBottom = pitch > 0 ? missing * pitch : 0;
+  return { padBottom, listRef, footer: { padBottom, loadedCount: loaded } };
 }

@@ -2,6 +2,7 @@ import { useRef, useState, type ChangeEvent, type RefObject } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { dataApi } from '../../api/data';
+import { showToast, toastAfterReload } from '../../components/Toast/toast-store';
 
 // Data-management mutations + the DataCard action controller (IMP-1). Wipe and import are
 // account-wide and destructive; on success we reload so every cached query — and the restored
@@ -47,6 +48,9 @@ export function useDataActions(): DataActions {
     setExporting(true);
     dataApi
       .exportFile()
+      // B-261: the file lands in the browser's downloads, off-screen — exactly the case a
+      // transient confirmation is for. No undo: nothing was changed.
+      .then(() => showToast({ message: t('toast.exportDone') }))
       .catch(() => setError(t('settings.data.exportError')))
       .finally(() => setExporting(false));
   };
@@ -73,7 +77,13 @@ export function useDataActions(): DataActions {
 
   const confirmImport = (): void => {
     importData.mutate(envelope, {
-      onSuccess: reload,
+      // B-261: a successful import reloads the page (every cached query, the theme and the locale
+      // are replaced), so the confirmation is handed across the reload rather than raised here —
+      // a toast shown now would be wiped with the document. No undo: an import is not reversible.
+      onSuccess: () => {
+        toastAfterReload(t('toast.importDone'));
+        reload();
+      },
       onError: () => {
         setMode(null);
         setError(t('settings.data.importError'));

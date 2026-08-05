@@ -4,7 +4,9 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { SkeletonRows } from '../components/states/SkeletonRows';
 import { AccountMenu } from './AccountMenu';
 import { BottomNav } from './BottomNav';
+import { DayToneRule } from './DayToneRule';
 import { ErrorBoundary } from './ErrorBoundary';
+import { OfflineBanner } from './OfflineBanner';
 import { ThemeToggle } from './ThemeToggle';
 import { useScrollRestoration } from './useScrollRestoration';
 import styles from './AppShell.module.css';
@@ -110,6 +112,11 @@ export function AppShell() {
           <AccountMenu />
         </div>
       </header>
+      {/* B-262: the day-tone rule belongs to the title strip — it must stay directly after
+          </header> so it reads as its lower edge in an installed WCO window. */}
+      <DayToneRule />
+      {/* B-260: one global "server unreachable" banner, above the page body. */}
+      <OfflineBanner />
       <main className={flush ? styles.pageFlush : styles.page}>
         {/* B-265: one screen may fail without taking the frame with it. Keyed on the pathname
             because React never resets a boundary on its own — otherwise a crashed screen would

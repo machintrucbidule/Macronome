@@ -3,7 +3,7 @@ import { ErrorCode } from '@macronome/shared';
 import { dayReadRepo, type DayAggregate } from '../data/repositories/day-read.repo.js';
 import { dayCopyRepo, type MealContext } from '../data/repositories/day-copy.repo.js';
 import { ApiError } from '../http/errors.js';
-import { mealHasContent, planMeal } from './day-copy.js';
+import { mealHasContent, planMeal } from './day-plan.js';
 import { get } from './days.js';
 
 // "Copy one meal from another day" service (CP-2 / B-248) — the per-meal counterpart of

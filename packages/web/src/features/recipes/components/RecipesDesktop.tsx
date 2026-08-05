@@ -65,7 +65,7 @@ export function RecipesDesktop(props: RecipesDesktopProps) {
             onRestore={props.onRestore}
             rowsRef={reserve.listRef}
           />
-          <InfiniteScrollFooter query={props.list} padBottom={reserve.padBottom} />
+          <InfiniteScrollFooter query={props.list} {...reserve.footer} />
         </>
       )}
     </>

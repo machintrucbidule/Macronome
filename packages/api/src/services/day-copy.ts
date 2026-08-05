@@ -2,15 +2,13 @@ import type { DayDetail } from '@macronome/shared';
 import { ErrorCode } from '@macronome/shared';
 import type { Prisma } from '@prisma/client';
 import { dayReadRepo, type DayAggregate } from '../data/repositories/day-read.repo.js';
-import {
-  dayCopyRepo,
-  type CopyMealData,
-  type CopyPlan,
-} from '../data/repositories/day-copy.repo.js';
+import { dayCopyRepo, type CopyPlan } from '../data/repositories/day-copy.repo.js';
 import { autoVerdict, type ResolvedSnapshot } from '../domain/day-verdict/index.js';
 import { ApiError } from '../http/errors.js';
 import { computeDayTotals } from './day-assembler.js';
 import { isPast, resolveSnapshotForDate } from './day-context.js';
+import { captureRestorePoint } from './day-restore-capture.js';
+import { mealHasContent, planMeals } from './day-plan.js';
 import { get } from './days.js';
 
 // "Copy a day into another" service (CP-1 / B-082). Orchestration: read the source
@@ -24,57 +22,12 @@ const num = (d: { toString(): string }): number => Number(d.toString());
 const asJson = (s: ResolvedSnapshot): Prisma.InputJsonValue =>
   s as unknown as Prisma.InputJsonValue;
 
-/** Whether a meal carries something worth copying: at least one served line (a qty-0
- *  garde-manger placeholder is not content). Shared with the per-meal copy (CP-2/B-248). */
-export function mealHasContent(meal: DayAggregate['meals'][number]): boolean {
-  return meal.entries.some((e) => num(e.servedQuantity) > 0);
-}
-
 /** Whether the source day carries something worth copying (a served line or a summary kcal). */
 function hasContent(source: DayAggregate): boolean {
   if (source.dayLog.kind === 'summary') {
     return source.dayLog.summaryKcal !== null && num(source.dayLog.summaryKcal) > 0;
   }
   return source.meals.some(mealHasContent);
-}
-
-/** Map one source meal → the copy plan's meal (entries + leftover groups, remapping each
- *  group's source entry ids to positional indexes the repo can rewire). Shared with the
- *  per-meal copy (CP-2/B-248), which reuses the exact same faithful-copy mapping. */
-export function planMeal({ meal, entries, groups }: DayAggregate['meals'][number]): CopyMealData {
-  {
-    const indexById = new Map(entries.map((e, i) => [e.id, i]));
-    return {
-      slotName: meal.slotName,
-      orderIndex: meal.orderIndex,
-      entries: entries.map((e) => ({
-        kind: e.kind,
-        foodId: e.foodId,
-        customName: e.customName,
-        servedQuantity: num(e.servedQuantity),
-        unit: e.unit,
-        portionId: e.portionId,
-        servedGrams: e.servedGrams === null ? null : num(e.servedGrams),
-        snapKcal: num(e.snapKcal),
-        snapFat: num(e.snapFat),
-        snapCarb: num(e.snapCarb),
-        snapProtein: num(e.snapProtein),
-        orderIndex: e.orderIndex,
-        pinned: e.pinned, // preserve the per-line garde-manger flag (B-198); pantry_item untouched
-      })),
-      groups: groups.map(({ group, entryIds }) => ({
-        containerName: group.containerName,
-        tareG: num(group.tareG),
-        grossGrams: num(group.grossGrams),
-        entryIndexes: entryIds.map((id) => indexById.get(id) ?? -1),
-      })),
-    };
-  }
-}
-
-/** Map every meal of the source aggregate (the whole-day copy plan). */
-function planMeals(source: DayAggregate): CopyMealData[] {
-  return source.meals.map(planMeal);
 }
 
 /** POST /days/:date/copy-from — replace the target day with a faithful copy of `from`
@@ -91,6 +44,10 @@ export async function copyFromDay(
   if (!source || !hasContent(source)) {
     throw new ApiError(409, ErrorCode.CopySourceEmpty);
   }
+
+  // Undo point (B-261) — captured only now that the source is validated, so a refused copy
+  // leaves the previous point intact (it must describe the state the user actually lost).
+  await captureRestorePoint(userId, targetDate, 'copy');
 
   // The target keeps its own snapshot: frozen when the target day is past, live otherwise.
   const snapshot = await resolveTargetSnapshot(userId, targetDate);

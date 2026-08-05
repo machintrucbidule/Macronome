@@ -15,3 +15,4 @@ export {
   type ResolvedSnapshot,
 } from './snapshot.js';
 export { dayState, isLoggedDay, type DayState, type DayStateInputs } from './state.js';
+export { dayTone, type DayTone, type DayToneInputs } from './tone.js';

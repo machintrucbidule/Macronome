@@ -5,6 +5,7 @@ import { dayReadRepo } from '../data/repositories/day-read.repo.js';
 import {
   autoVerdict,
   dayState,
+  dayTone,
   effectiveVerdict,
   kcalUpperGap,
   type ResolvedSnapshot,
@@ -39,21 +40,26 @@ function toRow(aggregate: DayAggregate, ctx: BurnContext): JournalRow {
   // (green/yellow) — including in-band OK days; a red/empty day has no real total, so no écart
   // (avoids a misleading écart on a no-data day). B-138.
   const isLoggedState = state === 'green' || state === 'yellow';
+  const effective = effectiveVerdict(override, auto);
+  // Same burn gap the row exposes, so the pill's tone and the écart column can never disagree.
+  const burnGap = isLoggedState ? burnGapFor(ctx, date, dayLog.activityLevel, kcal) : null;
   return {
     date,
     kcal,
     macros: totals ? { L: totals.fat, G: totals.carb, P: totals.protein } : null,
     verdict_auto: auto,
     verdict_override: override,
-    effective_verdict: effectiveVerdict(override, auto),
+    effective_verdict: effective,
     kcal_gap: isLoggedState ? kcalUpperGap(kcal, snapshot.cal_max) : null,
     // Second écart: vs the day's estimated expenditure (kcal − burn), null when no weigh-in on/before
     // the date (no expenditure) or on a non-logged day. Server-computed per rule 2. B-163.
-    burn_gap: isLoggedState ? burnGapFor(ctx, date, dayLog.activityLevel, kcal) : null,
+    burn_gap: burnGap,
     activity_level: dayLog.activityLevel,
     comment: dayLog.comment,
     kind,
     state,
+    // Compliance colour (§8b): green/yellow carry a calorie value, red/none do not.
+    tone: dayTone({ effective, hasCalorieValue: isLoggedState, burnGap }),
     // Calories cell is inline-editable on any non-green day (typing a total → summary day).
     editable_kcal: state !== 'green',
   };
@@ -75,6 +81,7 @@ function emptyRow(date: string): JournalRow {
     comment: null,
     kind: null,
     state: 'red',
+    tone: 'none', // no calorie value → nothing to be compliant with (§8b)
     editable_kcal: true,
   };
 }

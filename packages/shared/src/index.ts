@@ -51,6 +51,7 @@ export * from './dto/recipe.js';
 export * from './dto/profile.js';
 export * from './dto/target.js';
 export * from './dto/day.js';
+export * from './dto/day-tone.js';
 export * from './dto/weight.js';
 export * from './dto/stats.js';
 export * from './dto/settings.js';

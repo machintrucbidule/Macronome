@@ -82,7 +82,9 @@
   --z-scrim: 100; /* modal backdrop + modal */
   --z-cook: 300; /* cook-mode full-screen takeover */
   --z-cook-pop: 330; /* cook-mode menus (autocomplete/unit) sit above takeover */
-  --z-toast: 1000; /* toasts / transient inline system messages */
+  --z-chart-tip: 900; /* chart hover tooltip — above every surface it may sit inside */
+  --z-context: 950; /* right-click context menu — above the tooltip it may cover */
+  --z-toast: 1000; /* toasts ONLY (B-261): a confirmation outranks every floating layer */
 }
 
 /* ============================================================================

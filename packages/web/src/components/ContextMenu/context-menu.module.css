@@ -3,7 +3,9 @@
    only. Mouse-first surface (standalone desktop): 32px items. */
 .panel {
   position: fixed;
-  z-index: var(--z-toast);
+  /* B-261: was --z-toast, now reserved for real confirmations; the menu keeps its position
+     above every other layer, only below a toast. */
+  z-index: var(--z-context);
   min-width: 180px;
   padding: var(--sp-2) 0;
   background: var(--bg-elev-2);

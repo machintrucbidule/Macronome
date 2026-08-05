@@ -40,6 +40,15 @@ update** and **install** — plus the version line. Reuses `buttons.md` (ghost b
   add-weigh-in sheet already open; the param is **consumed once** (stripped with a
   `replace` navigation) so refresh/back never re-opens the sheet. Logged out, the
   shortcut lands on Poids after login without the sheet (intent not preserved).
+- **App-icon badge (B-262)** — while the app runs, `navigator.setAppBadge()` marks the installed
+  icon whenever the **current day is not compliant** (tone ≠ `ok`, including `none` — a day with
+  nothing logged is exactly when the reminder earns its keep), and `clearAppBadge()` removes it
+  once the day is `ok`. **The badge cannot carry the verdict colour**: the API accepts only a
+  number or a bare dot and the OS paints it in the system accent, and an installed app's icon is
+  frozen at install time. The tone therefore lives in the title-strip rule (`top-nav.md`); the
+  badge is a colourless "look at me". Progressive enhancement — guarded on API presence
+  (Chromium desktop; a silent no-op elsewhere, like the haptics below). **Known limitation:** it
+  only updates while the app is running, so an app closed all day shows the last session's state.
 - **Single window (B-183)** — `launch_handler: { client_mode: 'focus-existing' }`:
   launching the installed app focuses the existing window instead of opening a second
   one.

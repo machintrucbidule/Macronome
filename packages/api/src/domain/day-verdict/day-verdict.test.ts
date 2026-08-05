@@ -2,6 +2,7 @@ import { expect, test } from 'vitest';
 import { autoVerdict, calorieStatus, dayKcal, effectiveVerdict, kcalUpperGap } from './verdict.js';
 import { resolveSnapshot } from './snapshot.js';
 import { dayState, isLoggedDay } from './state.js';
+import { dayTone } from './tone.js';
 
 // Neutral CI oracles from spec/logic/day-snapshot-verdict.md §5 (range 1900–2100) and
 // the §2 snapshot composition (canonical 80 kg, target 1.8/0.8 → matches targets-macros).
@@ -82,4 +83,26 @@ test('isLoggedDay — only calorie-bearing days whose date has arrived count (§
   expect(isLoggedDay({ kind: 'detailed', dayKcal: 1500, isFuture: true })).toBe(false); // future green
   expect(isLoggedDay({ kind: 'summary', dayKcal: 1600, isFuture: true })).toBe(false); // future yellow
   expect(isLoggedDay({ kind: null, dayKcal: 0, isFuture: true })).toBe(false); // none
+});
+
+// Day-tone oracles — the worked examples from spec/logic/day-snapshot-verdict.md §8b
+// (snapshot cal_min 1800 / cal_max 2200). The tone is the COMPLIANCE ladder; it is not
+// the state ladder above, and unlike it never branches on the date.
+test('dayTone — compliance derivation (§8b worked examples)', () => {
+  // No calorie value → nothing to judge, whatever the verdict says.
+  expect(dayTone({ effective: 'NOK', hasCalorieValue: false, burnGap: -900 })).toBe('none');
+  // Σ = 2000, inside 1800–2200 → auto OK.
+  expect(dayTone({ effective: 'OK', hasCalorieValue: true, burnGap: -400 })).toBe('ok');
+  // Σ = 1500 under cal_min, burn 2400 → NOK but still in deficit.
+  expect(dayTone({ effective: 'NOK', hasCalorieValue: true, burnGap: -900 })).toBe('warn');
+  // Σ = 2600 over cal_max, burn 2400 → NOK and over the burn.
+  expect(dayTone({ effective: 'NOK', hasCalorieValue: true, burnGap: 200 })).toBe('nok');
+  // Same day with no weigh-in yet: an unknown burn is not evidence of a deficit.
+  expect(dayTone({ effective: 'NOK', hasCalorieValue: true, burnGap: null })).toBe('nok');
+  // The override is the lever: forcing OK turns the tone ok too (§6).
+  expect(dayTone({ effective: 'OK', hasCalorieValue: true, burnGap: 200 })).toBe('ok');
+  // Summary day, summary_kcal = 1900 → auto OK.
+  expect(dayTone({ effective: 'OK', hasCalorieValue: true, burnGap: null })).toBe('ok');
+  // Exactly at the burn counts as still under it (deficit ≤ 0).
+  expect(dayTone({ effective: 'NOK', hasCalorieValue: true, burnGap: 0 })).toBe('warn');
 });

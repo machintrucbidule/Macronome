@@ -16,6 +16,7 @@ const DAY: DayDetail = {
   verdict_auto: null,
   verdict_override: null,
   effective_verdict: null,
+  tone: 'none' as const,
   target_snapshot: {
     cal_min: 1550,
     cal_max: 1650,

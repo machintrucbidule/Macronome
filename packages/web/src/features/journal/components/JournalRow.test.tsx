@@ -31,6 +31,8 @@ function row(state: DayState, gap: number | null = null, burnGap: number | null 
     comment: null,
     kind: state === 'green' ? 'detailed' : state === 'yellow' ? 'summary' : null,
     state,
+    // These cases exercise the band + the écarts, not the badge; no verdict → no tone (§8b).
+    tone: 'none',
     editable_kcal: false,
   };
 }
@@ -152,12 +154,15 @@ describe('JournalRow écart hover tooltips (JT-1 / B-164)', () => {
   });
 });
 
-describe('JournalRow verdict badge deficit sub-tone (B-166)', () => {
-  function renderVerdict(verdict: 'OK' | 'NOK', burnGap: number | null) {
+// B-262: the row hands the badge the SERVER tone; it no longer derives the sub-tone from
+// burn_gap. The derivation's own oracles live in the api domain tests (day-verdict.test.ts).
+describe('JournalRow verdict badge renders the server tone (B-166 / B-262)', () => {
+  function renderVerdict(verdict: 'OK' | 'NOK', tone: Row['tone']) {
     const r: Row = {
-      ...row('green', null, burnGap),
+      ...row('green', null, null),
       effective_verdict: verdict,
       verdict_auto: verdict,
+      tone,
     };
     return render(
       <MemoryRouter>
@@ -172,25 +177,19 @@ describe('JournalRow verdict badge deficit sub-tone (B-166)', () => {
   const badge = (c: HTMLElement): HTMLElement =>
     c.querySelector(`.${styles.badgeSlot} button`) as HTMLElement;
 
-  it('is orange when NOK and intake is at/under the burn (burn_gap ≤ 0)', () => {
-    const { container } = renderVerdict('NOK', -288);
+  it('is orange on tone=warn (NOK but still under the burn)', () => {
+    const { container } = renderVerdict('NOK', 'warn');
     expect(badge(container).className).toContain(badgeStyles.warn);
   });
 
-  it('is red when NOK and intake is over the burn (burn_gap > 0)', () => {
-    const { container } = renderVerdict('NOK', 312);
+  it('is red on tone=nok (over the burn, or the burn is unknown)', () => {
+    const { container } = renderVerdict('NOK', 'nok');
     expect(badge(container).className).toContain(badgeStyles.nok);
     expect(badge(container).className).not.toContain(badgeStyles.warn);
   });
 
-  it('is red when NOK and the burn is unknown (burn_gap null)', () => {
-    const { container } = renderVerdict('NOK', null);
-    expect(badge(container).className).toContain(badgeStyles.nok);
-    expect(badge(container).className).not.toContain(badgeStyles.warn);
-  });
-
-  it('stays green when OK regardless of the deficit', () => {
-    const { container } = renderVerdict('OK', -288);
+  it('is green on tone=ok', () => {
+    const { container } = renderVerdict('OK', 'ok');
     expect(badge(container).className).toContain(badgeStyles.ok);
     expect(badge(container).className).not.toContain(badgeStyles.warn);
   });

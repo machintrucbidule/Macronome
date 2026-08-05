@@ -40,6 +40,30 @@ primitive yet — this establishes the appbar-icon pattern; the row-hover icon a
   must stay on the bar at every width. In the installed WCO window it inherits
   `app-region:no-drag` (it is interactive chrome), like the other right-cluster controls.
 
+## Day-tone rule (under the title strip) — [B-262]
+
+A **2px full-bleed rule** immediately below `.appbar`, carrying the **current day's** compliance
+tone (`logic/day-snapshot-verdict.md §8b`, server-computed — the web never derives it):
+
+| tone   | colour          | meaning                                     |
+| ------ | --------------- | ------------------------------------------- |
+| `ok`   | `var(--ok)`     | today is inside the calorie target          |
+| `warn` | `var(--warn)`   | outside the target but still under the burn |
+| `nok`  | `var(--nok)`    | outside the target and over the burn        |
+| `none` | `var(--border)` | today carries no calories yet               |
+
+- It always reflects **today** (the `effectiveDay` 03:00 rule), on **every** screen — it is a
+  standing reminder, not a per-screen readout, so browsing a past day in Journal never repaints
+  it. It therefore never contradicts the day badge: they answer different questions.
+- It sits **inside** the sticky appbar's stacking context, directly after `</header>`, so in an
+  installed **window-controls-overlay** window it reads as the lower edge of the title strip, and
+  in a browser tab it degrades to a plain rule under the appbar. It is 2px at every width; on
+  `none` it is indistinguishable from the existing `--border` bottom edge, which is the point —
+  an unstarted day should not shout.
+- **Decorative, not informative**: `aria-hidden`. The verdict is already available as text on
+  Repas and Journal; a bare colour with no label would only add noise to a screen reader.
+- No new token. `--ok`/`--warn`/`--nok`/`--border` in both themes.
+
 ## Nav link states — [CONFIRMED ④A]
 
 - **default**: `--text-dim`.

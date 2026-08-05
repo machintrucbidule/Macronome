@@ -27,7 +27,7 @@ export async function patch(req: Request, res: Response): Promise<void> {
 
 /** DELETE /days/:date/meals/:mealId. */
 export async function remove(req: Request, res: Response): Promise<void> {
-  const ok = await mealsService.remove(userId(res), req.params.mealId as string);
+  const ok = await mealsService.remove(userId(res), pathDate(req), req.params.mealId as string);
   if (!ok) throw new ApiError(404, ErrorCode.NotFound);
   res.status(204).end();
 }

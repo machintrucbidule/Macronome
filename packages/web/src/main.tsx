@@ -4,6 +4,7 @@ import { ErrorBoundary } from './app/ErrorBoundary';
 import { QueryProvider } from './app/providers/QueryProvider';
 import { ThemeProvider } from './app/providers/ThemeProvider';
 import { AppRouter } from './app/router';
+import { Toaster } from './components/Toast/Toaster';
 import { registerServiceWorker } from './lib/pwa/registerSw';
 import './i18n/config';
 import './styles/tokens.css';
@@ -24,6 +25,9 @@ createRoot(container).render(
       <ErrorBoundary>
         <QueryProvider>
           <AppRouter />
+          {/* B-261: the single toast surface, at the root so any screen can raise one — the
+              provider stays neutral and the caller supplies the undo callback. */}
+          <Toaster />
         </QueryProvider>
       </ErrorBoundary>
     </ThemeProvider>

@@ -47,6 +47,10 @@ export function useMealsController(date: string) {
     setPendingFocus,
     setError,
     recordHistory: history.record,
+    // B-261: the confirmations' Annuler. A deleted line replays through the stack; a destructive
+    // DAY action replays the server restore point and then drops the stack (stale ids).
+    undoHistory: history.undo,
+    resetHistory: history.reset,
   });
 
   return {

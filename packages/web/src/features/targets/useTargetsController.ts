@@ -8,6 +8,7 @@ import {
   today,
   type TargetDraft,
 } from './draft';
+import { showToast } from '../../components/Toast/toast-store';
 import { shortDate } from './format';
 import {
   useRecomputeCount,
@@ -65,15 +66,17 @@ export function useTargetsController() {
     preview.data ??
     (target.data ? { engine: target.data.engine, warnings: target.data.warnings } : null);
 
+  // B-261: the explicit save confirms. The Cibles screen otherwise gives no sign a save landed,
+  // and its effect (the day's band) is only visible on another screen.
+  const confirmSaved = (): void => showToast({ message: t('toast.targetsSaved') });
+
   function onSave(): void {
-    if (editing) {
-      patch.mutate(
-        { id: editing.id, body: draftToPatchBody(draft) },
-        { onSuccess: () => setEditing(null) },
-      );
-    } else {
-      save.mutate(draftToBody(draft));
-    }
+    const onSuccess = (): void => {
+      setEditing(null); // already null on the create branch — harmless, and keeps one callback
+      confirmSaved();
+    };
+    if (editing) patch.mutate({ id: editing.id, body: draftToPatchBody(draft) }, { onSuccess });
+    else save.mutate(draftToBody(draft), { onSuccess });
   }
 
   function doDelete(): void {

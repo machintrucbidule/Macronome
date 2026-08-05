@@ -92,6 +92,8 @@ displayed and copied.
 Validation failures → **422** with per-field `details`.
 Domain blocks (e.g. leftover incoherent) → **409** with a `code` the client maps
 to a warning (e.g. `leftover_exceeds_served`, `gross_below_tare`, `copy_source_empty`,
+`nothing_to_undo` (B-261 — `POST /days/:date/undo` with no restore point for that date, or a
+second undo after one already consumed it),
 `weigh_in_date_occupied`, `target_date_occupied` — both carry `{existing_id}` —
 and the admin guards `last_admin`, `own_account` — see `users-admin.md`, B-192).
 Targets carb ceiling ≤ 0 is **not** an error — it returns 200 with a `warnings` array.

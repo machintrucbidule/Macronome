@@ -5562,3 +5562,136 @@ rather than a number that would immediately change.
 `design/components/states.md` (the Aliments count chip), and both screen specs
 (`specifications/screens/food-db.md`, `recipe.md`), whose deferral sentence is superseded. No schema
 change.
+
+---
+
+## STATE-1 / B-262 — the day's compliance tone becomes a server value — RESOLVED (owner, 2026-08-06)
+
+**The ask.** The owner wanted the installed window to say, at a glance, where the current day
+stands, and the taskbar icon to remind him when it does not. He asked first for a
+**verdict-coloured taskbar badge**; that is **not achievable** — `navigator.setAppBadge()` accepts
+only a number or a bare dot, the OS paints it in the system accent, and an installed app's icon is
+frozen at install time. He then chose a **thin rule under the title strip** (not a fully tinted
+strip) **plus** the colourless dot while the day is not compliant.
+
+**Three findings shaped the design.** (1) `DayState` (`spec/logic/day-snapshot-verdict.md` §8) is a
+_data-presence_ ladder — `green` = detailed with Σ>0, `yellow` = summary, `red` = past with no
+calories — **not** a compliance ladder, so it could not be reused despite the matching colour
+words. (2) `GET /days/:date` **writes**: it re-persists the snapshot and `verdict_auto` on every
+read of a non-past date, so polling it from the app frame would have turned a passive indicator
+into a write on every focus. (3) The orange NOK tone was derived **client-side** in several places
+(`VerdictBadge` via `DayHeader`, `JournalRow`, `JournalDaySheet`, plus `JournalCard`), which both
+risks disagreement between surfaces and breaks CLAUDE.md rule 2.
+
+**Decision — a first-class `tone`.** A pure `dayTone()` returns `none | ok | warn | nok` from the
+effective verdict, the burn gap and whether the day carries calories (new §8b, with oracles). It is
+exposed three ways: on `DayDetail`, on `JournalRow`, and through a new **strictly read-only**
+`GET /days/:date/tone` returning `{date, tone}` only — no snapshot write, no meal payload — which
+is what the app frame polls. The client-side derivations are removed, so the badge, the pill and
+the rule cannot diverge.
+
+**Owner decisions.** The rule reflects **today** on every screen (not the day being browsed — it is
+a standing reminder, and following the browsed day would merely restate the badge below it). A day
+with nothing logged (`none`) **does** show the dot: an unstarted day is when the reminder is most
+useful. **Known limitation, accepted:** the badge only updates while the app runs, so an app closed
+all day reflects the last session.
+
+**Contract impact.** `spec/logic/day-snapshot-verdict.md` §8b (new), `spec/api/days-meals-leftover.md`
+(the route + `tone` on both payloads), `packages/shared` (`dto/day-tone.ts`),
+`design/components/top-nav.md` (the rule) and `design/components/pwa.md` (the badge). No schema change.
+
+---
+
+## STATE-1 / B-260 — losing the server is named, not cached around — RESOLVED (owner, 2026-08-06)
+
+**Decision — one global "server unreachable" banner**, mounted once in the app frame between the
+appbar and the page body, **not dismissible**, clearing itself when a request succeeds again. It is
+driven by **two** signals because either alone is blind: `navigator.onLine` (no network at all) and
+repeated request failure (server unreachable while the OS still reports online — the likely case for
+a self-hosted LAN/VPN instance, where `navigator.onLine` stays `true`).
+
+**Owner declined "banner + offline reading".** No API response is cached for offline use: stale
+calories, targets or weigh-ins could drive a real decision. The service worker keeps precaching the
+app shell only (ADR-0003), so "shell loads, data doesn't" remains the offline behaviour — it is now
+merely _explained_ instead of surfacing as a different generic error on every screen.
+
+**Not dismissible** was chosen over a closable banner for the same reason: hidden by accident, it
+would leave stale figures looking current.
+
+**Contract impact.** `design/components/states.md` (new "Server unreachable" section). No API,
+schema or logic change.
+
+---
+
+## STATE-1 / B-261 — transient confirmations, and a server-side restore point for destructive day actions — RESOLVED (owner, 2026-08-06)
+
+**This reverses a deliberate stance.** `design/components/toasts-warnings.md` stated Macronome
+"favours inline, in-context warnings over floating toasts" and marked the §E toast **optional,
+"keep rare"**. The owner asked for brief confirmations **with Annuler**, so §E is promoted to
+implemented — bounded by an explicit scope list so the reversal does not become "toast everything".
+
+**Decision 1 — a neutral toast provider.** `showToast({ message, undo? })`; the provider knows
+nothing about meals and **the caller supplies the undo callback**. That is what lets it be mounted
+at the app root even though the Repas history lives inside `MealsProvider`. Scope: the line
+deletion, the three destructive day actions, import/export completion, and explicit Cibles/
+Paramètres saves — auto-saving fields never toast. AI dish analysis keeps its **no-toast** rule
+(`ai-dish-analysis.md`: the filled form is the feedback). The `--z-toast` collision is resolved:
+the chart tooltip and the context menu, which were borrowing it, get their own tokens.
+
+**Decision 2 — Annuler is extended to the day-level actions** (vider la journée, copier hier,
+supprimer un repas). The line-level history stack (`Op = Add|Remove|Update|Pin|Reorder|Move`) does
+**not** record them, and extending it would not have been enough: **a browser-side replay cannot
+restore leftovers.** The `LeftoverGroup` payload exposes the frozen `container_name` and `tare_g`
+but **not** the container id, so a replayed day would silently lose its plate deductions. The owner
+was given that trade-off explicitly and chose fidelity.
+
+**So the undo is server-side.** A new `day_restore_point` table holds **at most one** snapshot per
+`(user, date)`, written just before each destructive action and consumed by
+`POST /days/:date/undo`. The payload reuses the **existing day-copy plan shape**, so the restore
+replays through `dayCopyRepo.copyInto` — the same transactional rebuild that already makes
+`/copy-from` faithful (entries with frozen macro snapshots and per-line pantry flags, leftover
+groups with their frozen container values), plus the day's `kind`, `summary_kcal`, `comment`,
+`activity_level` and `verdict_override`.
+
+**Owner decisions on its behaviour.** **Single-level** — undo returns to the state immediately
+before the last action, never further back. **No expiry** — the next destructive action on the same
+date overwrites the point; a day emptied by mistake stays recoverable. **Affordance: the toast
+only** — there is deliberately _no_ persistent "Annuler la dernière action" entry in the day menu.
+
+> **Consequence stated and accepted:** toast-only + no expiry means a restore point outlives the
+> only affordance that can reach it. It is cheap (at most one row per touched day) and leaves the
+> door open for a menu entry later, but in this batch it is dormant data.
+
+**Deliberately out of scope:** `POST /meals/:mealId/copy-from` (the per-meal copy) and
+`POST /days/:date/summary` capture no point — both are already behind a strong confirmation and
+neither was in the three actions the owner named.
+
+**Carried over unchanged:** undoing a line deletion **re-creates** the line with a new id
+(`opReconcile`), so a _referenced_ line whose food was edited in between comes back with the new
+macros, while a _custom_ line replays its snapshot exactly. After a day restore, the line-level
+history stack is reset — its ids no longer designate anything.
+
+**Contract impact.** `spec/schema/tables-logging.md` + `indexes.md` (`day_restore_point`),
+`spec/api/days-meals-leftover.md` (`POST /days/:date/undo` + the capture note on `/clear`,
+`/copy-from`, `DELETE .../meals/:mealId`), `spec/api/00-conventions.md` (`nothing_to_undo`),
+`design/components/toasts-warnings.md` §E, and `design/tokens.css` (the z-index split).
+
+---
+
+## STATE-1 / B-272 — loading is announced, in the primitives — RESOLVED (owner, 2026-08-06)
+
+**Observed:** `aria-busy`, `aria-live` and `role="progressbar"` each had **zero** occurrences; the
+infinite-scroll sentinel is `aria-hidden` and the skeletons carried nothing, so a screen-reader user
+got no signal at all when 50 more foods arrived. M9b covered focus, keyboard operability and route
+guards; live-region semantics were never in scope and no contract required them.
+
+**Decision — put it in the primitives, and keep it quiet.** `aria-busy` on the skeleton containers,
+and **one** polite live region per screen — in the shared infinite-scroll footer, announcing each
+page as it lands. The owner scoped announcements to the **infinite lists only** (Aliments,
+Recettes) rather than every screen: several competing regions, or a "chargement/chargé" pair on
+every navigation, are worse than none.
+
+**Also corrected here:** the chart tooltip loses its `role="status"`. It is hover-driven, so
+announcing it as a status fires on pointer movement — noise, not information.
+
+**Contract impact.** `design/components/states.md` (loading-states section). No API or schema change.

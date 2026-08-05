@@ -11,6 +11,7 @@ import { ApiError } from '../../../api/client';
 import { shiftIso } from '../format';
 import type { Op } from '../history/op';
 import { findEntry, recordAdd, recordUpdate } from '../history/recordHelpers';
+import { toastDayAction } from './dayToasts';
 import { editLineActions, moveLineActions, pickActions } from './lineActions';
 import type { UseDay } from './useDay';
 
@@ -75,6 +76,11 @@ export interface MealActionDeps {
   /** Record a line edit on the undo/redo stack (UR-1 / B-133). Line ops only; day-level ops
    *  never call it. Absent in contexts without history (e.g. tests). */
   recordHistory?: (op: Op) => void;
+  /** Replay the stack's last inverse — what the deleted-line confirmation's Annuler calls
+   *  (B-261). Absent in contexts without history. */
+  undoHistory?: () => void;
+  /** Drop the stack after a server-side day restore: the replay gives every line a fresh id. */
+  resetHistory?: () => void;
 }
 
 /** A single cook-mode adjustment: the entry id + the changed fields (qty/unit/food). */
@@ -206,6 +212,15 @@ function customActions(d: MealActionDeps, run: Run, resolveMealId: ResolveMealId
   };
 }
 
+/** Confirm a destructive day action once it succeeded, offering the server-side undo (B-261).
+ *  Silent in contexts wired without history (tests), which have no Annuler to offer. */
+function confirmDayAction(
+  d: MealActionDeps,
+  key: 'dayCleared' | 'dayCopied' | 'mealDeleted',
+): void {
+  toastDayAction(d.day, key, d.resetHistory ?? (() => undefined));
+}
+
 function dayActions(d: MealActionDeps, run: Run, resolveMealId: ResolveMealId) {
   return {
     // Copier le repas de la veille (CP-2 / B-248): replaces ONE meal with its counterpart of
@@ -222,7 +237,8 @@ function dayActions(d: MealActionDeps, run: Run, resolveMealId: ResolveMealId) {
       run(d.day.createMeal.mutateAsync({ slot_name, order_index })),
     renameMeal: (mealId: string, slot_name: string) =>
       run(d.day.patchMeal.mutateAsync({ mealId, body: { slot_name } })),
-    deleteMeal: (mealId: string) => run(d.day.removeMeal.mutateAsync(mealId)),
+    deleteMeal: (mealId: string) =>
+      run(d.day.removeMeal.mutateAsync(mealId).then(() => confirmDayAction(d, 'mealDeleted'))),
     setActivity: (level: ActivityLevel) =>
       run(d.day.patchDay.mutateAsync({ activity_level: level })),
     setComment: (comment: string) => run(d.day.patchDay.mutateAsync({ comment })),
@@ -231,9 +247,14 @@ function dayActions(d: MealActionDeps, run: Run, resolveMealId: ResolveMealId) {
     // Edit a Partiel day's calorie total from the Repas Calories card (B-079; parity with Journal).
     setSummaryKcal: (summary_kcal: number) => run(d.day.patchDay.mutateAsync({ summary_kcal })),
     // Tout effacer (B-046): server clears foods/leftovers, keeps pins@0 + comment + activity.
-    clearDay: () => run(d.day.clearDay.mutateAsync()),
+    clearDay: () => run(d.day.clearDay.mutateAsync().then(() => confirmDayAction(d, 'dayCleared'))),
     // Copier hier (B-082): server replaces today with a faithful copy of yesterday (date−1).
-    copyYesterday: () => run(d.day.copyDay.mutateAsync({ from: shiftIso(d.date, -1) })),
+    copyYesterday: () =>
+      run(
+        d.day.copyDay
+          .mutateAsync({ from: shiftIso(d.date, -1) })
+          .then(() => confirmDayAction(d, 'dayCopied')),
+      ),
     // Convert a summary (light) day to a detailed day so the user can log meal lines (day-model §9).
     convertToDetailed: () => run(d.day.convertToDetailed.mutateAsync()),
     // Convert a detailed (Complet) day to a summary (Partiel) day (DK-1 / B-078): discards lines,
