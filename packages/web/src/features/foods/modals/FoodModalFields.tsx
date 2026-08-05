@@ -58,9 +58,7 @@ export function FoodModalFields({
 
       <div className={styles.grid3}>
         <div>
-          <div className="hint" style={{ marginBottom: 6 }}>
-            {t('foods.field.rating')}
-          </div>
+          <div className={styles.segLabel}>{t('foods.field.rating')}</div>
           <RatingSelect
             value={draft.rating}
             onChange={(rating) => set({ rating })}
@@ -90,7 +88,7 @@ export function FoodModalFields({
       <TextInput
         label={
           <>
-            {t('foods.field.comment')} <span className="hint">{t('common.optional')}</span>
+            {t('foods.field.comment')} <span className={styles.hint}>{t('common.optional')}</span>
           </>
         }
         value={draft.comment}

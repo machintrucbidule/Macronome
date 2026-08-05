@@ -32,15 +32,15 @@ function MacroBlocks({ m }: { m: Pick<Macros, 'fat' | 'carb' | 'protein'> | unde
   return (
     <div className={styles.ppMacros}>
       <div className={styles.ppMacro}>
-        <span className="num">{grams(m?.fat)}</span>
+        <span className={styles.num}>{grams(m?.fat)}</span>
         <span className={styles.ppMacroLabel}>{t('recipes.builder.macroFat')}</span>
       </div>
       <div className={styles.ppMacro}>
-        <span className="num">{grams(m?.carb)}</span>
+        <span className={styles.num}>{grams(m?.carb)}</span>
         <span className={styles.ppMacroLabel}>{t('recipes.builder.macroCarb')}</span>
       </div>
       <div className={styles.ppMacro}>
-        <span className="num">{grams(m?.protein)}</span>
+        <span className={styles.num}>{grams(m?.protein)}</span>
         <span className={styles.ppMacroLabel}>{t('recipes.builder.macroProtein')}</span>
       </div>
     </div>
@@ -129,7 +129,7 @@ export function YieldPanel({
           <button type="button" onClick={() => onServings(String(Math.max(1, n - 1)))}>
             −
           </button>
-          <span className="num">{n}</span>
+          <span className={styles.num}>{n}</span>
           <button type="button" onClick={() => onServings(String(n + 1))}>
             +
           </button>
@@ -140,11 +140,11 @@ export function YieldPanel({
         <div className={styles.ppHead}>{t('recipes.builder.sectionTotal')}</div>
         <div className={styles.ppRow}>
           <span>{t('recipes.builder.totalWeight')}</span>
-          <span className="num">{grams(preview?.total_ingredient_grams)} g</span>
+          <span className={styles.num}>{grams(preview?.total_ingredient_grams)} g</span>
         </div>
         <div className={styles.ppRow}>
           <span>{t('recipes.builder.kcal')}</span>
-          <span className="num">{kcal(preview?.total_macros.kcal)}</span>
+          <span className={styles.num}>{kcal(preview?.total_macros.kcal)}</span>
         </div>
         <MacroBlocks m={preview?.total_macros} />
       </div>
@@ -153,7 +153,7 @@ export function YieldPanel({
         <div className={styles.ppHead}>{t('recipes.builder.sectionPer100')}</div>
         <div className={styles.ppRow}>
           <span>{t('recipes.builder.kcal')}</span>
-          <span className="num">{kcal(preview?.kcal_per_100g)}</span>
+          <span className={styles.num}>{kcal(preview?.kcal_per_100g)}</span>
         </div>
         <MacroBlocks m={per100} />
       </div>
@@ -162,11 +162,11 @@ export function YieldPanel({
         <div className={styles.ppHead}>{t('recipes.builder.sectionPerPortion')}</div>
         <div className={styles.ppRow}>
           <span>{t('recipes.builder.weightPerPortion')}</span>
-          <span className="num">{grams(preview?.weight_per_portion_g)} g</span>
+          <span className={styles.num}>{grams(preview?.weight_per_portion_g)} g</span>
         </div>
         <div className={styles.ppRow}>
           <span>{t('recipes.builder.kcalPerPortion')}</span>
-          <span className="num">{kcal(preview?.per_portion.kcal)}</span>
+          <span className={styles.num}>{kcal(preview?.per_portion.kcal)}</span>
         </div>
         <MacroBlocks m={preview?.per_portion} />
       </div>

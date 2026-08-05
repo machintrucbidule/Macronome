@@ -20,7 +20,7 @@ function OptionalLabel({ textKey }: { textKey: string }) {
   const { t } = useTranslation();
   return (
     <>
-      {t(textKey)} <span className="hint">{t('common.optional')}</span>
+      {t(textKey)} <span className={styles.hint}>{t('common.optional')}</span>
     </>
   );
 }

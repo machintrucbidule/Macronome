@@ -72,6 +72,11 @@
   font-size: var(--fs-10);
   text-transform: uppercase;
 }
+/* Figure cells: the row already right-aligns, this adds the tabular face so the bands line up. */
+.num {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+}
 
 /* Block B/E — generate + AiNotConfigured. */
 .generate {

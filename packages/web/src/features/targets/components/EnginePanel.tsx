@@ -47,7 +47,7 @@ export function EnginePanel({ engine, warnings }: EnginePanelProps) {
             {engine.recent_avg_activity === null ? DASH : multiplier2(engine.recent_avg_activity)}
           </b>
           {activityFallback && (
-            <span className="hint"> {t('targets.engine.activityFallback')}</span>
+            <span className={styles.hint}> {t('targets.engine.activityFallback')}</span>
           )}
         </span>
       </div>

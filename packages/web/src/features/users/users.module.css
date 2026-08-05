@@ -153,6 +153,12 @@
   font-size: var(--fs-13);
   cursor: pointer;
 }
+/* Native radio tinted to the app accent (forms-inputs.md §Radio). */
+.radioRow input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
 .linkRow {
   display: flex;
   gap: var(--sp-3);

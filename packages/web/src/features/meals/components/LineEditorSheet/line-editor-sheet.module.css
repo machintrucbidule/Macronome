@@ -49,6 +49,7 @@
 .qtyInput {
   width: 92px;
   text-align: right;
+  font-family: var(--font-num);
   /* --fs-13 = 16px on mobile → no iOS focus-zoom (cross-cutting rule §8). */
   font-size: var(--fs-13);
   background: var(--bg-field);

@@ -49,7 +49,7 @@ export function IngredientLine({ ingredient, onChange, onEdit, onRemove }: Ingre
       </span>
       <span className={styles.qtyCell}>
         <input
-          className={`${styles.qtyInput} num`}
+          className={styles.qtyInput}
           value={ingredient.quantity}
           inputMode="decimal"
           aria-label={t('recipes.builder.quantity')}

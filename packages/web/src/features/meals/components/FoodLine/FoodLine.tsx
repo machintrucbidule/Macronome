@@ -167,12 +167,12 @@ function NameCell({
 function MacroCells({ c }: { c: MealEntry['consumed'] }) {
   return (
     <span className={styles.macros}>
-      <span className={`${styles.v} num`} style={{ fontWeight: 700 }}>
+      <span className={styles.v} style={{ fontWeight: 700 }}>
         {r0(c.kcal)}
       </span>
-      <span className={`${styles.v} num`}>{r0(c.fat)}</span>
-      <span className={`${styles.v} num`}>{r0(c.carb)}</span>
-      <span className={`${styles.v} num`}>{r0(c.protein)}</span>
+      <span className={styles.v}>{r0(c.fat)}</span>
+      <span className={styles.v}>{r0(c.carb)}</span>
+      <span className={styles.v}>{r0(c.protein)}</span>
     </span>
   );
 }

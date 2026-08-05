@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import type { Sex } from '@macronome/shared';
 import { NumberInput } from '../../../components/Form/NumberInput';
+import { SelectMenu } from '../../../components/SelectMenu/SelectMenu';
 import type { SetupDraft } from '../useSetup';
 import styles from '../setup.module.css';
 
@@ -17,17 +17,18 @@ export function ProfileStep({ draft, set }: Props) {
     <>
       <label className={styles.field}>
         <span className={styles.label}>{t('setup.sex')}</span>
-        <select
-          className={styles.select}
+        <SelectMenu
+          variant="field"
+          // The trigger is a button, so the wrapping <label> does not name it — say it outright.
+          ariaLabel={t('setup.sex')}
           value={draft.sex}
-          onChange={(e) => set({ sex: e.target.value as Sex })}
-        >
-          <option value="" disabled>
-            {t('setup.sexPlaceholder')}
-          </option>
-          <option value="male">{t('setup.male')}</option>
-          <option value="female">{t('setup.female')}</option>
-        </select>
+          placeholder={t('setup.sexPlaceholder')}
+          options={[
+            { value: 'male', label: t('setup.male') },
+            { value: 'female', label: t('setup.female') },
+          ]}
+          onChange={(sex) => set({ sex })}
+        />
       </label>
       <label className={styles.field}>
         <span className={styles.label}>{t('setup.birthdate')}</span>

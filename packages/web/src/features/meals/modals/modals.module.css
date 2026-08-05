@@ -30,6 +30,9 @@
   text-transform: none;
   letter-spacing: 0;
 }
+/* The fields are the shared Form primitives (TextInput / NumberInput); this keeps the modal's
+   taller box while leaving the right padding to the primitive — NumberInput needs it wider to
+   clear the ▲▼ stepper — and the font-family to `.input` / `.num`. */
 .cuField input {
   width: 100%;
   height: var(--tap);
@@ -38,12 +41,15 @@
   border-radius: var(--r-md);
   color: var(--text);
   font-size: 14px;
-  padding: 0 11px;
-  font-family: var(--font-body);
+  padding-left: 11px;
 }
 .cuField input:focus {
   outline: none;
   border-color: var(--focus);
+}
+/* NumberInput's wrapper is an inline span; make it fill the grid cell. */
+.cuNum {
+  display: block;
 }
 
 /* ---- Leftover modal ---- */
@@ -82,8 +88,8 @@
   background: color-mix(in srgb, var(--accent) 8%, transparent);
 }
 .loRow input {
-  width: 15px;
-  height: 15px;
+  width: 18px;
+  height: 18px;
   accent-color: var(--accent);
 }
 .loName {
@@ -110,7 +116,10 @@
   grid-template-columns: 1fr 1fr;
   gap: var(--sp-6);
 }
-.loField label {
+/* `.loLabel` is the container picker's caption: SelectMenu's trigger is a button, so it is
+   named through aria-label rather than a <label for>. */
+.loField label,
+.loField .loLabel {
   display: block;
   font-family: var(--font-num);
   font-size: var(--fs-10);
@@ -119,8 +128,11 @@
   color: var(--text-dim);
   margin-bottom: var(--sp-3);
 }
+/* The gross-weight field is the shared NumberInput and the container picker is SelectMenu in
+   its field variant; this keeps the modal's taller box while leaving the right padding to the
+   primitive (NumberInput needs it wider to clear the ▲▼ stepper). */
 .loField input,
-.loField select {
+.loField .loTrigger {
   width: 100%;
   height: var(--tap);
   background: var(--bg-field);
@@ -129,12 +141,15 @@
   color: var(--text);
   font-family: var(--font-num);
   font-size: 14px;
-  padding: 0 11px;
+  padding-left: 11px;
 }
-.loField input:focus,
-.loField select:focus {
+.loField input:focus {
   outline: none;
   border-color: var(--focus);
+}
+/* NumberInput's wrapper is an inline span; make it fill the grid cell. */
+.loNum {
+  display: block;
 }
 
 .loNet {
@@ -309,34 +324,10 @@
 .aiThumb button:hover {
   color: var(--nok);
 }
+/* The box, label and counter now come from the shared Textarea primitive
+   (components/Form/Textarea, forms-inputs.md §Textarea); only the spacing is local. */
 .aiNoteField {
-  display: block;
   margin-top: var(--sp-4);
-}
-.aiNoteField span {
-  display: block;
-  font-family: var(--font-num);
-  font-size: var(--fs-10);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-dim);
-  margin-bottom: var(--sp-3);
-}
-.aiNoteField textarea {
-  width: 100%;
-  min-height: 60px;
-  background: var(--bg-field);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  color: var(--text);
-  font-family: var(--font-body);
-  font-size: 14px;
-  padding: var(--sp-3);
-  resize: vertical;
-}
-.aiNoteField textarea:focus {
-  outline: none;
-  border-color: var(--focus);
 }
 .aiBusy {
   display: flex;
@@ -401,8 +392,8 @@
   background: color-mix(in srgb, var(--accent) 7%, transparent);
 }
 .mealPickRow input {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   accent-color: var(--accent);
 }
 .mealPickName {
@@ -412,13 +403,6 @@
   font-family: var(--font-num);
   font-size: var(--fs-11);
   color: var(--text-faint);
-}
-.charCount {
-  font-family: var(--font-num);
-  font-size: var(--fs-10);
-  color: var(--text-faint);
-  text-align: right;
-  margin-top: var(--sp-2);
 }
 .remainCards {
   display: grid;

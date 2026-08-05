@@ -81,6 +81,13 @@
   margin-top: var(--sp-4);
   cursor: pointer;
 }
+/* Native checkbox tinted to the app accent (forms-inputs.md §Checkbox) — without this the
+   OS blue box sits among the accent-coloured filter chips. */
+.archivedToggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
 
 /* table cells */
 .nameLabel {
@@ -186,21 +193,9 @@
   line-height: var(--lh-snug);
   margin-top: var(--sp-2);
 }
+/* The box comes from the shared Textarea primitive; only the taller paste area is local. */
 .parsearea {
-  width: 100%;
   min-height: 140px;
-  background: var(--bg-field);
-  border: var(--bw) solid var(--border);
-  border-radius: var(--r-md);
-  color: var(--text);
-  font-family: var(--font-body);
-  line-height: var(--lh-normal);
-  padding: 9px 11px;
-  resize: vertical;
-}
-.parsearea:focus {
-  outline: none;
-  border-color: var(--focus);
 }
 .parseerror {
   font-size: var(--fs-12);
@@ -389,6 +384,25 @@
   color: var(--text-faint);
 }
 
+/* Caption above a segmented field, matching the canonical form label (forms-inputs.md §label).
+   It used to carry a bare `"hint"` string, which CSS Modules never resolved — so it rendered
+   unstyled next to the labelled number fields around it. */
+.segLabel {
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-caps);
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+/* Discreet annotation — "/100g", "(optionnel)", the Chronodrive search notes. Matches the
+   contract's optional-label variant (forms-inputs.md §label): faint, never uppercased, so it
+   stays readable inside an uppercase field label. */
+.hint {
+  color: var(--text-faint);
+  text-transform: none;
+  letter-spacing: 0;
+}
 .visseg {
   display: inline-flex;
   border: var(--bw) solid var(--border);

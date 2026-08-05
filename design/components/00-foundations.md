@@ -61,6 +61,15 @@ var(--border); border-radius:var(--r-md); overflow:hidden; height:var(--control-
   Used by: theme toggle, FR/EN (login), range/year selectors, Régime/Maintien,
   visibility toggle, type filter. Same anatomy, different option sets.
 
+## Disclosure (`<details>` / `<summary>`)
+
+The native marker is **always** hidden — `list-style:none` on the summary plus
+`summary::-webkit-details-marker{display:none}` — and replaced by a `::before` chevron in
+`--text-faint`: `▸ ` closed, `▾ ` open (swapped by `[open] > summary::before`). Used by
+the Conseils dashboard and every help block (Assistant IA, Google Drive, Home Assistant).
+The account-menu avatar is the one disclosure with **no** chevron: its open state is the
+filled pill instead (`top-nav.md`).
+
 ## Pills / tags
 
 `--font-num`, `--fs-9`, uppercase, `letter-spacing:.05em`, `border:1px solid

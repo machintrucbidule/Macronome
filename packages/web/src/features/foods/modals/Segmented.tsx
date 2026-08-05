@@ -21,9 +21,7 @@ export function Segmented<T extends string | boolean>({
 }: SegmentedProps<T>) {
   return (
     <div>
-      <div className="hint" style={{ marginBottom: 6 }}>
-        {label}
-      </div>
+      <div className={styles.segLabel}>{label}</div>
       <div className={styles.visseg}>
         {options.map((o) => (
           <button

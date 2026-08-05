@@ -24,11 +24,11 @@ export function AdviceTargetHistory({ versions }: { versions: TargetVersion[] })
               {v.effective_from}
               {v.until ? ` → ${v.until}` : ''}
             </td>
-            <td className="num">
+            <td className={styles.num}>
               {v.calorie_min}–{v.calorie_max}
             </td>
-            <td className="num">{v.protein_g_per_kg}</td>
-            <td className="num">{v.fat_g_per_kg}</td>
+            <td className={styles.num}>{v.protein_g_per_kg}</td>
+            <td className={styles.num}>{v.fat_g_per_kg}</td>
           </tr>
         ))}
       </tbody>

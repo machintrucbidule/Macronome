@@ -36,7 +36,7 @@ export function RatioPresets({ presets, onPick }: RatioPresetsProps) {
   const { t } = useTranslation();
   return (
     <div className={styles.presets}>
-      <span className="hint">{t('targets.targets.presets.hint')}</span>
+      <span className={styles.hint}>{t('targets.targets.presets.hint')}</span>
       <div className={styles.presetList}>
         {presets.map((p) => (
           <button

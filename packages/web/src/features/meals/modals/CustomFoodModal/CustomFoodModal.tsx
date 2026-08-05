@@ -1,8 +1,10 @@
-import { useId, useState, type KeyboardEvent } from 'react';
+import { useId, useState, type ChangeEvent, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { DishPhotoMacros } from '@macronome/shared';
 import { Modal, modalStyles } from '../../../../components/Modal/Modal';
 import { Button } from '../../../../components/Button/Button';
+import { TextInput } from '../../../../components/Form/TextInput';
+import { NumberInput } from '../../../../components/Form/NumberInput';
 import { useMeals } from '../../MealsContext';
 import type { CustomTarget, CustomValues } from '../../hooks/useMealsController';
 import { AiDishAnalysisDialog } from '../AiDishAnalysisDialog';
@@ -32,19 +34,26 @@ interface CuFieldProps {
 
 function CuField({ id, label, value, onChange, opt = false, full = false }: CuFieldProps) {
   const { t } = useTranslation();
+  // The name field is text, the five macro fields are numbers. Both go through the Form
+  // primitives so the numbers get --font-num, the right alignment and the custom ▲▼ stepper
+  // with the native spinner hidden (forms-inputs.md §stepper) — a bare `'num'` string literal
+  // used to be passed here, which CSS Modules never resolved, so none of that applied.
+  const common = {
+    id,
+    value,
+    onChange: (e: ChangeEvent<HTMLInputElement>) => onChange(e.target.value),
+  };
   return (
     <div className={`${styles.cuField} ${full ? styles.full : ''}`}>
       <label htmlFor={id}>
         {label}
         {opt && <span className={styles.opt}> {t('common.optional')}</span>}
       </label>
-      <input
-        id={id}
-        className={full ? '' : 'num'}
-        type={full ? 'text' : 'number'}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      />
+      {full ? (
+        <TextInput {...common} />
+      ) : (
+        <NumberInput {...common} min={0} wrapperClassName={styles.cuNum} />
+      )}
     </div>
   );
 }

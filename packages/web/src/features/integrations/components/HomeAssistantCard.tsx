@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { TextInput } from '../../../components/Form/TextInput';
+import { SelectMenu } from '../../../components/SelectMenu/SelectMenu';
 import { formatMeasuredAt } from '../format';
 import { useHaForm } from '../useHaForm';
 import { ConnectionActions } from './ConnectionActions';
@@ -47,17 +48,15 @@ export function HomeAssistantCard() {
         />
         <label className={styles.field}>
           <span className={styles.fieldLabel}>{t('integrations.ha.decimals')}</span>
-          <select
-            className={styles.select}
-            value={f.decimals}
-            onChange={(e) => f.setDecimals(Number(e.target.value))}
-          >
-            {DECIMALS.map((d) => (
-              <option key={d} value={d}>
-                {d}
-              </option>
-            ))}
-          </select>
+          <SelectMenu
+            variant="field"
+            // The trigger is a button, so the wrapping <label> does not name it.
+            ariaLabel={t('integrations.ha.decimals')}
+            wrapClassName={styles.selectWrap}
+            value={String(f.decimals)}
+            options={DECIMALS.map((d) => ({ value: String(d), label: String(d) }))}
+            onChange={(v) => f.setDecimals(Number(v))}
+          />
         </label>
 
         <details className={styles.help}>

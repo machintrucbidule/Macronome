@@ -43,7 +43,7 @@ function QtyRow({ entry, target }: { entry: MealEntry; target: LineSheetTarget }
     <div className={styles.qtyRow}>
       <span className={styles.label}>{t('meals.lineSheet.quantity')}</span>
       <input
-        className={`${styles.qtyInput} num`}
+        className={styles.qtyInput}
         value={value}
         inputMode="decimal"
         aria-label={t('meals.lineSheet.quantity')}

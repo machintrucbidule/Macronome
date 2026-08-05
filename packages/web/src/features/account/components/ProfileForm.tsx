@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { Profile, Sex } from '@macronome/shared';
 import { NumberInput } from '../../../components/Form/NumberInput';
 import { Button } from '../../../components/Button/Button';
+import { SelectMenu } from '../../../components/SelectMenu/SelectMenu';
 import { useProfileMutation } from '../useProfile';
 import styles from '../account.module.css';
 
@@ -35,15 +36,17 @@ export function ProfileForm({ profile }: { profile: Profile }) {
     <>
       <div className={styles.row}>
         <span className={styles.lab}>{t('account.info.sex')}</span>
-        <select
-          className={styles.select}
-          aria-label={t('account.info.sex')}
+        <SelectMenu
+          variant="field"
+          wrapClassName={styles.selectWrap}
+          ariaLabel={t('account.info.sex')}
           value={draft.sex}
-          onChange={(e) => setDraft((d) => ({ ...d, sex: e.target.value as Sex }))}
-        >
-          <option value="male">{t('account.info.male')}</option>
-          <option value="female">{t('account.info.female')}</option>
-        </select>
+          options={[
+            { value: 'male', label: t('account.info.male') },
+            { value: 'female', label: t('account.info.female') },
+          ]}
+          onChange={(sex) => setDraft((d) => ({ ...d, sex }))}
+        />
       </div>
       <div className={styles.row}>
         <span className={styles.lab}>{t('account.info.birthdate')}</span>

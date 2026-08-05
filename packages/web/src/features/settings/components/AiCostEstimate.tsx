@@ -27,7 +27,8 @@ export function AiCostEstimate({ taskKey }: { taskKey: AiTaskKey }) {
         {AI_PRICE_MODELS.map((m) => (
           <span key={m} className={styles.aiCostRow}>
             <span className={styles.aiCostModel}>{AI_MODEL_PRICES[m].label}</span>
-            <span className="num">{formatFixed(est.byModel[m], 3)} €</span>
+            {/* The row already sets --font-num; the old `num` literal never resolved and adds nothing. */}
+            <span>{formatFixed(est.byModel[m], 3)} €</span>
           </span>
         ))}
       </div>

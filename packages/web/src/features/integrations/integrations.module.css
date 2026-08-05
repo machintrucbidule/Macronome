@@ -51,19 +51,11 @@
   font-size: var(--fs-12);
   color: var(--text-dim);
 }
-.select {
-  height: 34px;
+/* The rounding-decimals picker is SelectMenu in its field variant (forms-inputs.md §Select);
+   only its width is local — the box comes from the component. */
+.selectWrap {
   align-self: flex-start;
-  background: var(--bg-field);
-  border: var(--bw) solid var(--border);
-  border-radius: var(--r-md);
-  color: var(--text);
-  font-size: var(--fs-13);
-  padding: 0 var(--sp-3);
-}
-.select:focus {
-  outline: none;
-  border-color: var(--focus);
+  width: 96px;
 }
 .testRow {
   display: flex;
@@ -79,8 +71,20 @@
   font-size: var(--fs-12);
   color: var(--text-dim);
 }
+/* Disclosure chevron replaces the UA marker (00-foundations.md §Disclosure). */
 .help summary {
   cursor: pointer;
+  list-style: none;
+}
+.help summary::-webkit-details-marker {
+  display: none;
+}
+.help summary::before {
+  content: '▸ ';
+  color: var(--text-faint);
+}
+.help[open] > summary::before {
+  content: '▾ ';
 }
 .help ol {
   margin: var(--sp-2) 0;

@@ -4,6 +4,7 @@ import type { DishPhotoMacros } from '@macronome/shared';
 import { Modal, modalStyles } from '../../../components/Modal/Modal';
 import { Button } from '../../../components/Button/Button';
 import { Banner } from '../../../components/Banner/Banner';
+import { Textarea } from '../../../components/Form/Textarea';
 import { useDishPhotoMacros } from '../hooks/useAi';
 import { mapAiError } from '../lib/aiError';
 import { AiImagePicker } from './AiImagePicker';
@@ -61,16 +62,15 @@ export function AiDishAnalysisDialog({ onClose, onApplied }: AiDishAnalysisDialo
       <div className={modalStyles.body}>
         <div className={styles.aiHint}>{t('meals.aiAnalysis.intro')}</div>
         <AiImagePicker disabled={busy} onChange={setImageUrls} />
-        <label className={styles.aiNoteField}>
-          <span>{t('meals.aiAnalysis.note')}</span>
-          <textarea
-            value={note}
-            maxLength={500}
-            disabled={busy}
-            placeholder={t('meals.aiAnalysis.notePlaceholder')}
-            onChange={(e) => setNote(e.target.value)}
-          />
-        </label>
+        <Textarea
+          label={t('meals.aiAnalysis.note')}
+          wrapperClassName={styles.aiNoteField}
+          value={note}
+          maxLength={500}
+          disabled={busy}
+          placeholder={t('meals.aiAnalysis.notePlaceholder')}
+          onChange={(e) => setNote(e.target.value)}
+        />
         {busy && (
           <div className={styles.aiBusy}>
             <span className={styles.aiSpinner} aria-hidden="true" />

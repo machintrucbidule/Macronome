@@ -10,6 +10,7 @@ import {
   type ExcludedFood,
   type PinnedLine,
 } from '../logic/refineConstraints';
+import { Textarea } from '../../../components/Form/Textarea';
 import { formatInt } from '../../../lib/format/number';
 import { RemainingCards } from './RemainingCards';
 import styles from './modals.module.css';
@@ -222,16 +223,15 @@ export function RefinePanel({
               />
             ))}
           </div>
-          <label className={styles.aiNoteField}>
-            <span>{t('meals.proposals.refine.moreNoteLabel')}</span>
-            <textarea
-              value={note}
-              maxLength={500}
-              placeholder={t('meals.proposals.refine.notePlaceholder')}
-              onChange={(e) => onNoteChange(e.target.value)}
-            />
-          </label>
-          <div className={styles.charCount}>{`${note.length} / 500`}</div>
+          <Textarea
+            label={t('meals.proposals.refine.moreNoteLabel')}
+            wrapperClassName={styles.aiNoteField}
+            counter
+            value={note}
+            maxLength={500}
+            placeholder={t('meals.proposals.refine.notePlaceholder')}
+            onChange={(e) => onNoteChange(e.target.value)}
+          />
         </div>
         <div>
           <span className={styles.fieldLbl}>{t('meals.proposals.refine.constraintsLabel')}</span>

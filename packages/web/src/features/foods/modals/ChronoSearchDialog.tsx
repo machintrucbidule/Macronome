@@ -128,10 +128,10 @@ export function ChronoSearchDialog({ onClose, onApplied }: ChronoSearchDialogPro
           />
           {busy && <span className={styles.chronoSpinner} aria-hidden="true" />}
         </div>
-        {tooShort && <div className="hint">{t('foods.chrono.hint')}</div>}
+        {tooShort && <div className={styles.hint}>{t('foods.chrono.hint')}</div>}
         {failed !== null && <div className={styles.parseerror}>⚠ {t(errorKey(failed))}</div>}
         {!tooShort && search.isSuccess && !busy && results.length === 0 && (
-          <div className="hint">{t('foods.chrono.empty')}</div>
+          <div className={styles.hint}>{t('foods.chrono.empty')}</div>
         )}
         <div className={styles.chronoList}>
           {results.map((p) => (

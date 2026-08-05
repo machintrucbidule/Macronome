@@ -34,23 +34,56 @@ color-mix(... nok 20% ...)`.
 
 ## Textarea
 
-Same field styling; `resize:vertical; min-height:54–120px; line-height:1.5;
---font-body`. Also the **macro-label paste** field (PM-1/B-114, parse-label sub-dialog,
-`modals.md`): a plain multi-line textarea the user pastes a nutrition table into; no new
-variant — same styling, `min-height ~140px`.
+**One shared primitive** (`components/Form/Textarea`), styled on the canonical text
+field above: `background:var(--bg-field); border:var(--bw) solid var(--border);
+border-radius:var(--r-md); color:var(--text); --font-body; --fs-13; padding:8px 12px;
+line-height:1.5; resize:vertical; width:100%`, with a per-host `min-height` in place of
+the input's fixed height. `:focus` → `border-color:var(--focus)`; `aria-invalid` → the
+standard invalid ring; placeholder `--text-faint`. Every multi-line field goes through
+it — no per-screen recipe.
 
-## Select (`<select>`)
+- **`mono` variant** (`--font-num; --fs-12`): the Assistant IA **prompt** and
+  **avoidances** fields, whose content is technical text.
+- Hosts and their `min-height`: AI note fields (60px; two of the three carry a
+  `maxLength` counter in `--font-num; --fs-10; --text-faint`), recipe **instructions**
+  (88px), and the **macro-label paste** field (PM-1/B-114, parse-label sub-dialog,
+  `modals.md`) at ~140px — a plain multi-line field the user pastes a nutrition table
+  into, no dedicated variant.
 
-Field styling; `--font-num`. Small inline variant (`.act-select`) at `--fs-11`
-on `--bg-elev-2`. Activity multiplier, container/tare picker, diet flag.
+## Select
 
-## Checkbox (custom box)
+**No native `<select>`.** A list field is the shared `SelectMenu` in its **field**
+variant: the trigger takes the canonical text-field box (`height:36px; --font-body;
+--fs-13; padding:0 12px; border:var(--bw) solid var(--border)`, full width) with a `▾`
+caret in `--text-faint`; the panel is the menu surface (`--bg-elev-2`, `--border-strong`,
+`--r-md`, `var(--shadow)`) and **flips above** the trigger when there is no room below
+(same hook as the autocomplete). Disabled → `color:var(--text-faint);
+cursor:not-allowed`. A **placeholder** renders in `--text-faint` when the current value
+matches no option. Keyboard: ↑/↓ move the active option, Home/End jump to first/last,
+Enter selects, Esc closes and **returns focus to the trigger**.
 
-Hidden native input + `.box`: `18px; border-radius:var(--r-sm); border:1.5px
-solid var(--border-strong); background:var(--bg-field)`. Checked: `background/
-border → var(--accent)`; check `svg` (`--accent-ink`) fades+scales in. Focus-
-visible: focus ring. Leftover-modal row checkboxes use native with
-`accent-color:var(--accent)`.
+Small inline **badge** variant (the original: `--font-num; --fs-11` on `--bg-elev-2`) —
+activity multiplier, rating dropdown, cross-meal move picker.
+
+Field hosts: sex (first-run wizard + Compte), Home Assistant rounding decimals,
+Assistant IA model, leftover container/tare.
+
+## Checkbox
+
+**Native input, tinted** — no custom box: `width/height:18px;
+accent-color:var(--accent)`. The row is a `<label>` in `display:flex;
+align-items:center; gap:var(--sp-3)`, its text taking the host block's own type scale.
+Focus is the browser's own ring on the native control (inputs are deliberately excluded
+from the global `:focus-visible` ring — `theming.md`).
+
+Applies everywhere: "Rester connecté" (login), the Repas proposal meal picker, the
+leftover-modal row checkboxes, and the Aliments/Recettes "Afficher les archivé·es"
+filter — desktop popover **and** mobile filter sheet.
+
+## Radio
+
+Same recipe as the checkbox: native `<input type="radio">`, `width/height:18px;
+accent-color:var(--accent)`, in a flex `<label>` row. (Invite-modal account type.)
 
 ## Segmented / toggle controls
 

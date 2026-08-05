@@ -44,3 +44,10 @@
   color: var(--text);
   cursor: pointer;
 }
+/* Native checkbox tinted to the app accent (forms-inputs.md §Checkbox) — the mobile twin of
+   the Aliments/Recettes archived filter. */
+.toggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}

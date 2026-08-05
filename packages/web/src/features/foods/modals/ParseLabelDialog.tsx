@@ -5,6 +5,7 @@ import { Modal, modalStyles } from '../../../components/Modal/Modal';
 import { Button } from '../../../components/Button/Button';
 import { ApiError } from '../../../api/client';
 import { useParseLabel } from '../useFoods';
+import { Textarea } from '../../../components/Form/Textarea';
 import styles from '../foods.module.css';
 
 // Paste sub-dialog for the macro-label parser (PM-1/B-114, design/components/modals.md).
@@ -44,7 +45,7 @@ export function ParseLabelDialog({ onClose, onApplied }: ParseLabelDialogProps) 
     <Modal title={t('foods.parse.title')} size="confirm" onClose={onClose}>
       <div className={modalStyles.sub}>{t('foods.parse.sub')}</div>
       <div className={modalStyles.body}>
-        <textarea
+        <Textarea
           className={styles.parsearea}
           value={text}
           autoFocus

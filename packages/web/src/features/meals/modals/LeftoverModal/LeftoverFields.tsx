@@ -1,4 +1,6 @@
 import { useTranslation } from 'react-i18next';
+import { NumberInput } from '../../../../components/Form/NumberInput';
+import { SelectMenu } from '../../../../components/SelectMenu/SelectMenu';
 import { r0 } from '../../format';
 import styles from '../modals.module.css';
 
@@ -31,31 +33,26 @@ export function LeftoverFields({
       <div className={styles.loGrid}>
         <div className={styles.loField}>
           <label htmlFor={`${fieldId}-gross`}>{t('meals.leftover.gross')}</label>
-          <input
+          <NumberInput
             id={`${fieldId}-gross`}
-            type="number"
-            // B-270: this field bypasses the NumberInput primitive, so it declares the phone
-            // keypad itself. Decimal — a gross weight can be 812.5 g on a kitchen scale.
-            inputMode="decimal"
             data-testid="lo-gross"
+            min={0}
+            wrapperClassName={styles.loNum}
             value={gross}
             onChange={(e) => onGross(e.target.value)}
           />
         </div>
         <div className={styles.loField}>
-          <label htmlFor={`${fieldId}-container`}>{t('meals.leftover.container')}</label>
-          <select
-            id={`${fieldId}-container`}
+          <span className={styles.loLabel}>{t('meals.leftover.container')}</span>
+          <SelectMenu
+            variant="field"
             data-testid="lo-container"
+            triggerClassName={styles.loTrigger}
+            ariaLabel={t('meals.leftover.container')}
             value={containerId ?? ''}
-            onChange={(e) => onContainer(e.target.value)}
-          >
-            {options.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
+            options={options}
+            onChange={onContainer}
+          />
         </div>
       </div>
       <div className={styles.loNet}>

@@ -1,5 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { defaultTaskPrompt, type AiTaskKey } from '@macronome/shared';
+import { Textarea } from '../../../components/Form/Textarea';
+import { SelectMenu } from '../../../components/SelectMenu/SelectMenu';
 import { AiCostEstimate } from './AiCostEstimate';
 import styles from '../settings.module.css';
 
@@ -33,20 +35,22 @@ export function AiTaskBlock({
       <div className={styles.aiTaskName}>{t(`settings.ai.tasks.${taskKey}`)}</div>
       <label className={styles.aiField}>
         <span className={styles.aiFieldLabel}>{t('settings.ai.model')}</span>
-        <select
-          className={styles.aiSelect}
-          value={model ?? ''}
+        <SelectMenu
+          variant="field"
           disabled={noModels}
-          aria-label={t('settings.ai.model')}
-          onChange={(e) => onModel(e.target.value === '' ? null : e.target.value)}
-        >
-          <option value="">{noModels ? t('settings.ai.modelPlaceholder') : '—'}</option>
-          {options.map((id) => (
-            <option key={id} value={id}>
-              {id}
-            </option>
-          ))}
-        </select>
+          ariaLabel={t('settings.ai.model')}
+          menuClassName={styles.aiModelMenu}
+          value={model ?? ''}
+          // With no model list there is nothing to match, so the trigger falls back to the
+          // placeholder — same readout the disabled native select used to show.
+          placeholder={t('settings.ai.modelPlaceholder')}
+          options={
+            noModels
+              ? []
+              : [{ value: '', label: '—' }, ...options.map((id) => ({ value: id, label: id }))]
+          }
+          onChange={(v) => onModel(v === '' ? null : v)}
+        />
       </label>
       <label className={styles.aiField}>
         <span className={styles.aiFieldLabel}>
@@ -60,12 +64,7 @@ export function AiTaskBlock({
             {t('settings.ai.reset')}
           </button>
         </span>
-        <textarea
-          className={styles.aiTextarea}
-          rows={3}
-          value={prompt}
-          onChange={(e) => onPrompt(e.target.value)}
-        />
+        <Textarea mono rows={3} value={prompt} onChange={(e) => onPrompt(e.target.value)} />
         <span className={styles.aiNote}>{t('settings.ai.promptNote')}</span>
         <AiCostEstimate taskKey={taskKey} />
       </label>

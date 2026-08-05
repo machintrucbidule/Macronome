@@ -70,6 +70,12 @@
   width: 180px;
   max-width: 100%;
 }
+/* The sex picker is SelectMenu in its field variant; the width lives on the wrapper, which is
+   the row's flex item (the trigger itself is width:100% of it). */
+.selectWrap {
+  width: 180px;
+  max-width: 100%;
+}
 .infoActions {
   display: flex;
   justify-content: flex-end;

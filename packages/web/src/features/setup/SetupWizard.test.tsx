@@ -20,6 +20,13 @@ function renderWizard() {
   );
 }
 
+// FORM-1: the sex picker is SelectMenu in its field variant (trigger button + listbox), not a
+// native <select> — so it is driven by two clicks rather than a change event.
+function pickSex(field: string, option: string): void {
+  fireEvent.click(screen.getByRole('button', { name: field }));
+  fireEvent.click(screen.getByRole('option', { name: option }));
+}
+
 beforeEach(async () => {
   await i18n.changeLanguage('fr');
 });
@@ -38,7 +45,7 @@ describe('SetupWizard targets step (B-059)', () => {
       target: { value: 'correct-horse' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Continuer' }));
-    fireEvent.change(screen.getByLabelText('Sexe'), { target: { value: 'male' } });
+    pickSex('Sexe', 'Homme');
     fireEvent.change(screen.getByLabelText('Date de naissance'), {
       target: { value: '1990-01-01' },
     });
@@ -66,7 +73,7 @@ describe('SetupWizard targets step (B-059)', () => {
       target: { value: 'correct-horse' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Continuer' }));
-    fireEvent.change(screen.getByLabelText('Sexe'), { target: { value: 'male' } });
+    pickSex('Sexe', 'Homme');
     fireEvent.change(screen.getByLabelText('Date de naissance'), {
       target: { value: '1990-01-01' },
     });
@@ -110,7 +117,7 @@ describe('SetupWizard targets step (B-059)', () => {
       target: { value: 'correct-horse' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
-    fireEvent.change(screen.getByLabelText('Sex'), { target: { value: 'male' } });
+    pickSex('Sex', 'Male');
     fireEvent.change(screen.getByLabelText('Date of birth'), { target: { value: '1990-01-01' } });
     fireEvent.change(screen.getByLabelText(/Height/), { target: { value: '180' } });
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }));

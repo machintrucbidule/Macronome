@@ -30,7 +30,9 @@ afterEach(() => {
 describe('account ProfileForm (B-060)', () => {
   it('renders the profile fields seeded from the current profile', () => {
     renderForm();
-    expect(screen.getByLabelText<HTMLSelectElement>('Sexe').value).toBe('male');
+    // FORM-1: the sex picker is SelectMenu in its field variant — a trigger button showing the
+    // current option's label, not a <select> carrying its value.
+    expect(screen.getByRole('button', { name: 'Sexe' }).textContent).toContain('Homme');
     expect(screen.getByLabelText<HTMLInputElement>('Date de naissance').value).toBe('1990-01-01');
     expect(screen.getByLabelText<HTMLInputElement>(/Taille/).value).toBe('180');
   });

@@ -344,38 +344,17 @@
   font-size: var(--fs-12);
   color: var(--text-dim);
 }
-.aiSelect {
-  height: 34px;
-  background: var(--bg-field);
-  border: var(--bw) solid var(--border);
-  border-radius: var(--r-md);
-  color: var(--text);
-  font-size: var(--fs-13);
-  padding: 0 var(--sp-3);
+/* The model picker is SelectMenu in its field variant (forms-inputs.md §Select). Model ids are
+   long ("gemini-2.5-flash-preview-…"), so this panel wraps instead of widening off-screen. */
+.aiModelMenu {
+  max-width: 100%;
 }
-.aiSelect:focus {
-  outline: none;
-  border-color: var(--focus);
+.aiModelMenu button {
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
-.aiSelect:disabled {
-  color: var(--text-faint);
-  cursor: not-allowed;
-}
-.aiTextarea {
-  background: var(--bg-field);
-  border: var(--bw) solid var(--border);
-  border-radius: var(--r-md);
-  color: var(--text);
-  font-family: var(--font-num);
-  font-size: var(--fs-12);
-  line-height: 1.5;
-  padding: var(--sp-3);
-  resize: vertical;
-}
-.aiTextarea:focus {
-  outline: none;
-  border-color: var(--focus);
-}
+/* The prompt / avoidances fields are the shared Textarea primitive in its `mono` variant
+   (forms-inputs.md §Textarea) — no local recipe. */
 .aiNote {
   font-family: var(--font-num);
   font-size: var(--fs-10);
@@ -470,9 +449,21 @@
   font-size: var(--fs-12);
   color: var(--text-dim);
 }
+/* Disclosure chevron replaces the UA marker (00-foundations.md §Disclosure). */
 .aiHelp summary {
   cursor: pointer;
   color: var(--text-dim);
+  list-style: none;
+}
+.aiHelp summary::-webkit-details-marker {
+  display: none;
+}
+.aiHelp summary::before {
+  content: '▸ ';
+  color: var(--text-faint);
+}
+.aiHelp[open] > summary::before {
+  content: '▾ ';
 }
 .aiHelp p {
   margin: var(--sp-3) 0 var(--sp-2);

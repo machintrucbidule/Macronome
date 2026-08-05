@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { Textarea } from '../../../components/Form/Textarea';
 import styles from '../settings.module.css';
 
 // Allergies / disliked foods (B-216). Connection-level free text, rendered just under the advice
@@ -15,8 +16,8 @@ export function AiAvoidancesField({ value, onChange }: Props) {
     <div className={styles.aiTask}>
       <div className={styles.aiTaskName}>{t('settings.ai.avoidances')}</div>
       <label className={styles.aiField}>
-        <textarea
-          className={styles.aiTextarea}
+        <Textarea
+          mono
           rows={3}
           value={value}
           aria-label={t('settings.ai.avoidances')}

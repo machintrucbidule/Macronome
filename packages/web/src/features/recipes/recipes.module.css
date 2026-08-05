@@ -91,6 +91,12 @@
   margin-top: var(--sp-4);
   cursor: pointer;
 }
+/* Native checkbox tinted to the app accent (forms-inputs.md §Checkbox). */
+.archivedToggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
 
 /* table cells */
 .iconbtn {
@@ -181,6 +187,7 @@
   border: var(--bw) solid var(--border-strong);
   border-radius: var(--r-sm);
   color: var(--text);
+  font-family: var(--font-num);
   padding: 5px 7px;
   text-align: right;
 }
@@ -393,26 +400,24 @@
   color: var(--accent);
 }
 
-/* instructions */
+/* Caption above a segmented field, matching the canonical form label (forms-inputs.md §label). */
+.segLabel {
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-caps);
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+/* instructions — box and label come from the shared Textarea primitive; only the height is local. */
 .instructions {
   display: flex;
   flex-direction: column;
   gap: var(--sp-3);
 }
-.instructions span {
-  font-size: var(--fs-12);
-  color: var(--text-dim);
-}
-.instructions textarea {
+.instructionsArea {
   min-height: 88px;
-  resize: vertical;
-  background: var(--bg-field);
-  border: var(--bw) solid var(--border-strong);
-  border-radius: var(--r-md);
-  color: var(--text);
-  font-family: var(--font-body);
-  font-size: var(--fs-13);
-  padding: 9px 11px;
 }
 
 /* Per-row L/G/P macro values colour-coded (B-175), matching the meal tables + Journal cells +

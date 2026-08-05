@@ -97,6 +97,14 @@
 
 /* Clickable g/kg guidance presets (B-007): a hint line + a column of suggestion buttons that
    fill the field. Static guidance only; positioning + tokens, no computed figure. */
+/* Discreet annotation — the presets caption, "(optionnel)", the activity-fallback note. Matches
+   the contract's optional-label variant (forms-inputs.md §label): faint and never uppercased, so
+   it stays readable inside an uppercase field label. */
+.hint {
+  color: var(--text-faint);
+  text-transform: none;
+  letter-spacing: 0;
+}
 .presets {
   display: flex;
   flex-direction: column;

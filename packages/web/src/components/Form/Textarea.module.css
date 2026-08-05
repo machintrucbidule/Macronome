@@ -1,0 +1,57 @@
+/* Multi-line field (design/components/forms-inputs.md §Textarea). Same box as the canonical
+   text input in Form.module.css, with a per-host min-height instead of its fixed 36px row.
+   Before this primitive the seven textareas in the app carried four divergent recipes and
+   three had no focus state at all. */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.label {
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-caps);
+  color: var(--text-dim);
+}
+
+.area {
+  width: 100%;
+  min-height: 60px;
+  background: var(--bg-field);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-md);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--fs-13);
+  line-height: var(--lh-normal);
+  padding: 8px 12px;
+  resize: vertical;
+}
+.area::placeholder {
+  color: var(--text-faint);
+}
+.area:focus {
+  outline: none;
+  border-color: var(--focus);
+}
+.area[aria-invalid='true'] {
+  border-color: var(--nok);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--nok) 20%, transparent);
+}
+
+/* Technical content (Assistant IA prompt / avoidances) reads as data, not prose. */
+.mono {
+  font-family: var(--font-num);
+  font-size: var(--fs-12);
+}
+
+.count {
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  color: var(--text-faint);
+  text-align: right;
+  margin-top: var(--sp-2);
+}

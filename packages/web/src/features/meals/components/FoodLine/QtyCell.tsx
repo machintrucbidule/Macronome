@@ -148,7 +148,7 @@ export function QtyCell({ mealId, mealIndex, entry }: QtyCellProps) {
       <input
         ref={inputRef}
         data-meal-qty
-        className={`${styles.qty} num`}
+        className={styles.qty}
         value={value}
         inputMode="decimal"
         onChange={(e) => onChange(e.target.value)}

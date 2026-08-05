@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import type { DayDetail } from '@macronome/shared';
+import { Textarea } from '../../../components/Form/Textarea';
 import { previewRemaining } from '../logic/remainingPreview';
 import { RemainingCards } from './RemainingCards';
 import styles from './modals.module.css';
@@ -45,17 +46,16 @@ export function RequestStep({ day, mealIds, onToggleMeal, note, onNoteChange, di
         ))}
       </div>
 
-      <label className={styles.aiNoteField}>
-        <span>{t('meals.proposals.noteLabel')}</span>
-        <textarea
-          value={note}
-          maxLength={500}
-          disabled={disabled}
-          placeholder={t('meals.proposals.notePlaceholder')}
-          onChange={(e) => onNoteChange(e.target.value)}
-        />
-      </label>
-      <div className={styles.charCount}>{`${note.length} / 500`}</div>
+      <Textarea
+        label={t('meals.proposals.noteLabel')}
+        wrapperClassName={styles.aiNoteField}
+        counter
+        value={note}
+        maxLength={500}
+        disabled={disabled}
+        placeholder={t('meals.proposals.notePlaceholder')}
+        onChange={(e) => onNoteChange(e.target.value)}
+      />
 
       <span className={styles.fieldLbl}>{t('meals.proposals.remainingLabel')}</span>
       <RemainingCards rem={rem} />

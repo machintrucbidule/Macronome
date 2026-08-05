@@ -19,7 +19,7 @@ export function MacroInputs({ draft, set, parseWarnings, onParse }: MacroInputsP
     <NumberInput
       label={
         <>
-          {label} <span className="hint">/100g</span>
+          {label} <span className={styles.hint}>/100g</span>
         </>
       }
       suffix={suffix}

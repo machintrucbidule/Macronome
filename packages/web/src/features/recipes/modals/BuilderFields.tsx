@@ -6,6 +6,7 @@ import { RatingSelect } from '../../../components/RatingStars/RatingSelect';
 import { IngredientBlock } from './IngredientBlock';
 import { YieldPanel } from './YieldPanel';
 import type { RecipeDraft } from './draft';
+import { Textarea } from '../../../components/Form/Textarea';
 import styles from '../recipes.module.css';
 
 // Body fields of the recipe builder (split out for modularity; the modal shell owns the
@@ -31,9 +32,7 @@ export function BuilderFields({ draft, full, preview, error, set }: BuilderField
           onChange={(e) => set({ name: e.target.value })}
         />
         <div>
-          <div className="hint" style={{ marginBottom: 6 }}>
-            {t('recipes.field.rating')}
-          </div>
+          <div className={styles.segLabel}>{t('recipes.field.rating')}</div>
           <RatingSelect
             value={draft.rating}
             onChange={(rating) => set({ rating })}
@@ -64,14 +63,14 @@ export function BuilderFields({ draft, full, preview, error, set }: BuilderField
           onBatchAuto={(batchAuto) => set({ batchAuto })}
         />
       </div>
-      <label className={styles.instructions}>
-        <span>{t('recipes.field.instructions')}</span>
-        <textarea
-          value={draft.instructions}
-          placeholder={t('recipes.field.instructionsPlaceholder')}
-          onChange={(e) => set({ instructions: e.target.value })}
-        />
-      </label>
+      <Textarea
+        label={t('recipes.field.instructions')}
+        wrapperClassName={styles.instructions}
+        className={styles.instructionsArea}
+        value={draft.instructions}
+        placeholder={t('recipes.field.instructionsPlaceholder')}
+        onChange={(e) => set({ instructions: e.target.value })}
+      />
     </>
   );
 }
