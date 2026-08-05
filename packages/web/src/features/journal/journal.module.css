@@ -63,6 +63,43 @@
 .journalTable tbody td {
   padding-top: 4px;
   padding-bottom: 4px;
+  /* Rows must stay a uniform height: the progressive renderer (B-275) reserves the remaining
+     days' height from the measured pitch of the rows already drawn. A wrapped cell would break
+     both that and the scan-down alignment. */
+  white-space: nowrap;
+}
+
+/* B-276: fixed layout with a declared width per column. With `auto`, a column is as wide as the
+   widest row *currently rendered*, so progressive rendering (B-275) made the headers shift while
+   scrolling — a day with a kcal écart widened the Verdict column, one without narrowed it again.
+   Widths are sized to each column's real maximum: the longest localised date + weekday, four
+   monospace digits, the three 30px macro slots + gaps, and the fixed badge/selector slots
+   (99.12px / 7rem) plus their écart. The comment column is deliberately left undeclared — in a
+   fixed layout it absorbs the remainder, which is what its previous 32% approximated. */
+.journalTable {
+  table-layout: fixed;
+}
+.journalTable th:nth-child(1),
+.journalTable td:nth-child(1) {
+  width: 11rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.journalTable th:nth-child(2),
+.journalTable td:nth-child(2) {
+  width: 6rem;
+}
+.journalTable th:nth-child(3),
+.journalTable td:nth-child(3) {
+  width: 8rem;
+}
+.journalTable th:nth-child(4),
+.journalTable td:nth-child(4) {
+  width: 11.5rem;
+}
+.journalTable th:nth-child(5),
+.journalTable td:nth-child(5) {
+  width: 12rem;
 }
 .dow {
   font-family: var(--font-num);
@@ -200,8 +237,9 @@
   color: var(--c-prot);
 }
 
+/* No width: the fixed layout above gives this column whatever the five declared ones leave. */
 .commentCell {
-  width: 32%;
+  width: auto;
 }
 .comment {
   width: 100%;

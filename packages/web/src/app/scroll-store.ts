@@ -1,24 +1,22 @@
-// Where each history entry was scrolled to (B-268). Pure and in-memory by design: the owner
-// declined persisting anything across sessions, so this dies with the tab.
+// Where each screen was scrolled to (B-268, corrected by B-277). Pure and in-memory by design:
+// the owner declined persisting anything across sessions, so this dies with the tab.
 //
-// Keyed on react-router's `location.key`, not the pathname: the same screen visited twice sits at
-// two different places in the history and must restore to two different offsets.
+// Keyed on the **pathname**, not react-router's `location.key`. Keying on the history entry only
+// restored on a browser Back/Forward, which is not how the app is used: a food's detail is a
+// modal, not a route, so returning to Aliments means clicking the nav — a PUSH, which used to
+// land at the top. Per screen, "come back where I was" holds however you got there.
 const offsets = new Map<string, number>();
 
-export type NavKind = 'POP' | 'PUSH' | 'REPLACE';
-
-export function saveOffset(key: string, y: number): void {
-  offsets.set(key, y);
+export function saveOffset(path: string, y: number): void {
+  offsets.set(path, y);
 }
 
 /**
- * The offset to restore for `key`. Only a **POP** (browser back/forward) returns to a remembered
- * place; a PUSH/REPLACE opens a screen, which always starts at the top — today those silently
- * inherit the previous screen's offset, which is its own small bug.
+ * The offset to restore for `path`: where it was left in this session, or the top for a screen
+ * not visited yet. A first visit therefore still opens at the top, as it should.
  */
-export function offsetFor(key: string, kind: NavKind): number {
-  if (kind !== 'POP') return 0;
-  return offsets.get(key) ?? 0;
+export function offsetFor(path: string): number {
+  return offsets.get(path) ?? 0;
 }
 
 /** Test seam — the map is module state, so a test must be able to empty it. */

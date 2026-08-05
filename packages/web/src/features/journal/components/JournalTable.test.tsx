@@ -1,39 +1,46 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render } from '@testing-library/react';
+import { act, cleanup, render } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import type { JournalRow as Row } from '@macronome/shared';
 import '../../../i18n/config';
-import { ROW_OVERSCAN } from '../../../lib/useWindowRows';
 import { JournalTable } from './JournalTable';
 
-// B-267: the Journal fetches and sorts the whole year, but must not *mount* it — each row carries
-// four interactive controls (calories cell, verdict badge, activity select, comment field) and a
-// full year of them cost about a second to open.
+// B-267: the Journal fetches and sorts the whole year but must not *mount* it — each row carries
+// four interactive controls and a full year of them cost ~1s to open.
+// B-275: rendering only ever **grows**. Nothing is unmounted behind you (scrolling back up must
+// never blank), and the reserved height comes from a **measured** row pitch, so the scrollbar
+// stops re-evaluating itself as you reach the bottom.
 afterEach(cleanup);
 
-const ROW_PX = 38;
+const ROW_PX = 40;
+const VIEWPORT = 768;
 
-// jsdom gives every element a zero height, which would make the virtualiser think the whole year
-// fits on screen and defeat the very thing under test. Give the rows a height, as a browser would.
+// jsdom gives every element a zero height and never scrolls, which would leave the pitch
+// unmeasurable and the growth maths inert. Model a browser: the rows container is as tall as the
+// rows it holds, and it sits at the top of the document — so its viewport-relative `top` moves up
+// as the window scrolls, which is what `top + scrollY` (its document offset) is read from.
 beforeEach(() => {
   window.scrollTo = vi.fn();
   vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
-    const height = this.matches('tr[data-date]') ? ROW_PX : 0;
+    const rows = this.querySelectorAll?.('tr[data-date]').length ?? 0;
+    const height = rows > 0 ? rows * ROW_PX : 0;
+    const top = -window.scrollY;
     return {
       height,
       width: 900,
-      top: 0,
+      top,
       left: 0,
       right: 900,
-      bottom: height,
+      bottom: top + height,
       x: 0,
-      y: 0,
+      y: top,
     } as DOMRect;
   });
 });
 
 afterEach(() => {
   vi.restoreAllMocks();
+  Object.defineProperty(window, 'scrollY', { value: 0, configurable: true, writable: true });
 });
 
 function year(days: number): Row[] {
@@ -64,33 +71,65 @@ function renderYear(days: number) {
   );
 }
 
-describe('JournalTable — virtualised rows (B-267)', () => {
+const rowCount = (c: HTMLElement): number => c.querySelectorAll('tr[data-date]').length;
+const reserved = (c: HTMLElement): number =>
+  [...c.querySelectorAll('tbody[aria-hidden="true"] td')].reduce(
+    (sum, td) => sum + Number.parseFloat((td as HTMLElement).style.height || '0'),
+    0,
+  );
+
+/** Scroll the window to `y` and let the listener run. */
+function scrollTo(y: number): void {
+  Object.defineProperty(window, 'scrollY', { value: y, configurable: true, writable: true });
+  act(() => {
+    window.dispatchEvent(new Event('scroll'));
+  });
+}
+
+describe('JournalTable — progressive rendering (B-267/B-275)', () => {
   it('mounts far fewer rows than the year holds', () => {
     const { container } = renderYear(366);
-    const mounted = container.querySelectorAll('tr[data-date]').length;
-    expect(mounted).toBeGreaterThan(0);
-    expect(mounted).toBeLessThan(366);
+    expect(rowCount(container)).toBeGreaterThan(0);
+    expect(rowCount(container)).toBeLessThan(366);
   });
 
-  it('keeps a generous margin of rows loaded around the viewport', () => {
+  it('reserves the height of the days not drawn yet, from a measured pitch', () => {
     const { container } = renderYear(366);
-    // The owner asked for rows to stay loaded beyond what is displayed, not just the visible ones.
-    expect(container.querySelectorAll('tr[data-date]').length).toBeGreaterThanOrEqual(ROW_OVERSCAN);
+    // Measured, not estimated: (366 − rendered) × the real 40px row.
+    expect(reserved(container)).toBeCloseTo((366 - rowCount(container)) * ROW_PX, 0);
   });
 
-  it('reserves the height of the rows it did not mount, so the scrollbar spans the year', () => {
+  it('keeps the total height stable while scrolling — the scrollbar must not re-evaluate', () => {
     const { container } = renderYear(366);
-    const spacers = [...container.querySelectorAll('tr[aria-hidden="true"] td')];
-    const reserved = spacers.reduce(
-      (sum, td) => sum + Number.parseFloat((td as HTMLElement).style.height || '0'),
-      0,
-    );
-    expect(reserved).toBeGreaterThan(0);
+    const total = () => rowCount(container) * ROW_PX + reserved(container);
+    const before = total();
+    scrollTo(2000);
+    expect(total()).toBeCloseTo(before, 0);
+    scrollTo(5000);
+    expect(total()).toBeCloseTo(before, 0);
+  });
+
+  it('never takes back a row it has drawn (scrolling up must not blank)', () => {
+    const { container } = renderYear(366);
+    scrollTo(6000);
+    const deep = rowCount(container);
+    scrollTo(0);
+    expect(rowCount(container)).toBe(deep);
+  });
+
+  it('jumps straight to what a far scroll demands, in one step', () => {
+    const { container } = renderYear(366);
+    const initial = rowCount(container);
+    // Land near the bottom: everything up to there must render at once, not chunk by chunk.
+    scrollTo(366 * ROW_PX - VIEWPORT);
+    expect(rowCount(container)).toBe(366);
+    expect(rowCount(container)).toBeGreaterThan(initial);
+    expect(reserved(container)).toBe(0);
   });
 
   it('renders every row when the year is short enough to fit', () => {
     const { container } = renderYear(12);
-    expect(container.querySelectorAll('tr[data-date]').length).toBe(12);
-    expect(container.querySelectorAll('tr[aria-hidden="true"]').length).toBe(0);
+    expect(rowCount(container)).toBe(12);
+    expect(container.querySelectorAll('tbody[aria-hidden="true"]').length).toBe(0);
   });
 });

@@ -50,13 +50,9 @@ function MacrosCell({ macros, onOpen }: { macros: Row['macros']; onOpen: () => v
 interface JournalRowProps {
   row: Row;
   onPatch: (date: string, body: PatchDayRequest) => void;
-  /** Index in the sorted year — how the virtualiser (B-267) attributes a measured height. */
-  index?: number;
-  /** Virtualiser ref: measures this row's real height, replacing the estimate. */
-  measure?: (el: Element | null) => void;
 }
 
-export function JournalRow({ row, onPatch, index, measure }: JournalRowProps) {
+export function JournalRow({ row, onPatch }: JournalRowProps) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const openDay = (): void => {
@@ -73,12 +69,7 @@ export function JournalRow({ row, onPatch, index, measure }: JournalRowProps) {
   };
 
   return (
-    <tr
-      data-date={row.date}
-      data-index={index}
-      ref={measure}
-      className={STATE_ROW_CLASS[row.state]}
-    >
+    <tr data-date={row.date} className={STATE_ROW_CLASS[row.state]}>
       <td className={tableStyles.clickable} onClick={openDay}>
         {formatJournalDate(row.date, i18n.language)}{' '}
         <span className={styles.dow}>{formatDow(row.date, i18n.language)}</span>
