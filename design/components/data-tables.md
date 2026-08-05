@@ -173,15 +173,29 @@ container** (the columns scroller) draws a **continuous outer border on all four
 `--r-lg` on all four corners**; the columns themselves provide only the inter-column dividers
 (`border-right`), not the outer frame (B-201). (On the ≤760px stacked layout each column is
 instead an individual full-bordered `--r-lg` card.) Header `.meal-head` (name in `--font-display
---fw-bold --fs-14` + **copy-yesterday 📋‹** + cook 🍳 + ⋯ menu).
+--fw-bold --fs-14` + **cook** + **copy-yesterday 📋‹** + ⋯ menu).
 
-**Copy-yesterday button (CP-2 / B-248).** Sits **immediately left of 🍳** and shares its exact box
-(`1px solid var(--border)`, `--bg-elev-2`, `--text-dim`, `--r-sm`, `--fs-14`, `padding:5px 8px`,
-hover → `--accent` border + text). The 📋 glyph carries a small **« ‹ »** badge on its top-right
-corner — the same construction as the mobile 📷 button's "+" badge (badge anchored to the icon, not
-the button: `position:absolute; top:-6px; right:-6px; 12px` pill on `--accent`/`--accent-ink`,
-`font-size:10px`). Tooltip + `aria-label` "Copier le repas de la veille". **Hidden ≤560px** by the
-same rule that hides 🍳; the action moves into the meal ⋯ sheet as a text row.
+**Cook-mode button (ICON-1 / B-281 / B-283).** Comes **first of the two**, immediately after the
+name: cook mode is the frequently-used control of the pair and leads (this revises CP-2/B-248,
+which put copy first). Its icon is a **numeric-keypad glyph drawn as an inline outline `<svg>`**
+(18px, `fill:none; stroke:currentColor`), **not** an emoji — the mode opens a large touch NumPad
+(`modals.md`), so the keypad is the honest metaphor, and an emoji at `--fs-14` renders differently
+on every machine. Same precedent and rationale as the Conseils lightbulb (`top-nav.md`): inlined at
+the call site, tinted via `currentColor`. It is **tinted `--accent` at rest** — deliberately the
+findable one of the two — so its hover changes the **border only** (`--accent`), the resting colour
+already being the accent.
+
+**Copy-yesterday button (CP-2 / B-248, re-ordered and re-toned by ICON-1).** Sits **immediately
+right of the cook button** and shares its exact box (`1px solid var(--border)`, `--bg-elev-2`,
+`--text-dim`, `--r-sm`, `--fs-14`, `padding:5px 8px`, hover → `--accent` border + text). The 📋
+glyph carries a small **« ‹ »** badge on its top-right corner, sharing the mobile 📷 button's badge
+**geometry** (anchored to the icon, not the button: `position:absolute; top:-6px; right:-6px; 12px`
+pill, `font-size:10px`) but **not its colours**: the copy badge is **neutral** (`--text-dim` fill,
+`--bg-elev-2` glyph) because copying yesterday is a rare action that must not draw the eye, while
+the **photo badge keeps `--accent`/`--accent-ink`** — accent-on-camera is the primary affordance of
+the mobile header. **The two are separate colour rules on purpose; do not merge them back.**
+Tooltip + `aria-label` "Copier le repas de la veille". **Hidden ≤560px** by the same rule that hides
+the cook button; the action moves into the meal ⋯ sheet as a text row.
 
 Lines via CSS grid:
 `grid-template-columns: 7px 1fr 57px 28px 21px 21px 21px 15px 15px` with **`gap: 3px`**
@@ -250,7 +264,7 @@ to overlays; desktop (≥561px) is unchanged.
   quantity (no move/pin/delete until materialised). **Long-press the grip** → touch
   drag-to-reorder.
 - **Meal “⋯” menu** (S9): a bottom sheet (**Copier le repas de la veille** · rename ·
-  move left/right · delete). The 🍳 cook button is **removed on mobile**, and the header's
+  move left/right · delete). The cook button is **removed on mobile**, and the header's
   📋‹ copy button likewise moves into this sheet as its first text row (CP-2 / B-248); the
   **⊟ Restes button stays in the meal footer** (owner correction 2026-06-11) and its leftover
   popup opens as a **bottom sheet**.

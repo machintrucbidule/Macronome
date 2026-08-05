@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
@@ -16,6 +16,15 @@ import { AdvicesPage } from './AdvicesPage';
 vi.mock('./components/AdviceDashboard', () => ({
   AdviceDashboard: () => <div>dashboard-stub</div>,
 }));
+
+// B-266 made AdviceMarkdown lazy (react-markdown + remark-gfm is the app's heaviest third-party
+// leaf and only loads when a card is expanded). In vite-node the *first* import() transforms that
+// whole module graph on demand, which on a loaded machine can outlast a findBy* timeout — the
+// Markdown assertion below then fails for a reason that has nothing to do with the app. Warming it
+// once here makes the test measure rendering rather than module transformation.
+beforeAll(async () => {
+  await import('./components/AdviceMarkdown');
+});
 
 afterEach(async () => {
   cleanup();

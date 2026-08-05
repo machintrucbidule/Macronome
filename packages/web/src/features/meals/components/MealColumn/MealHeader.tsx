@@ -1,15 +1,17 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../../../../lib/useIsMobile';
+import { CookModeButton } from './CookModeButton';
 import { CopyMealButton } from './CopyMealButton';
 import { MealMenuDropdown } from './MealMenuDropdown';
 import { MealMenuSheet } from './MealMenuSheet';
 import styles from './meal-column.module.css';
 
-// Meal column header: the 🍳 cook-mode button, name + the ⋯ menu (rename / move / delete — this
-// day's slot only, never the template). On mobile (S9, owner 2026-06-11) the 🍳 button is hidden
-// (CSS) and the ⋯ opens a bottom sheet instead of the dropdown; desktop keeps the exact dropdown +
-// 🍳. The ⊟ Restes button stays in the meal footer on mobile (owner correction 2026-06-11).
+// Meal column header: name + the cook-mode button + the copy-yesterday button + the ⋯ menu
+// (rename / move / delete — this day's slot only, never the template). Cook leads the pair
+// (ICON-1/B-281): it is the frequently-used control. On mobile (S9, owner 2026-06-11) both
+// buttons are hidden (CSS) and the ⋯ opens a bottom sheet instead of the dropdown, carrying the
+// copy action as a text row; desktop keeps the exact dropdown. The ⊟ Restes button stays in the
+// meal footer on mobile (owner correction 2026-06-11).
 interface MealHeaderProps {
   name: string;
   canMoveLeft: boolean;
@@ -22,7 +24,8 @@ interface MealHeaderProps {
   onMoveRight: () => void;
   onDelete: () => void;
   /** Mobile-only extra control in the button row (the 📷+ one-tap photo entry, QP-1/B-158). It sits
-   *  in the 🍳 slot, which is CSS-hidden ≤560px; null on desktop / when the AI task is unconfigured. */
+   *  in the cook-button slot, which is CSS-hidden ≤560px; null on desktop / when the AI task is
+   *  unconfigured. */
   extra?: ReactNode;
 }
 
@@ -38,7 +41,6 @@ export function MealHeader({
   onDelete,
   extra,
 }: MealHeaderProps) {
-  const { t } = useTranslation();
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -62,16 +64,8 @@ export function MealHeader({
     <div className={styles.head}>
       <span className={styles.name}>{name}</span>
       {extra}
+      <CookModeButton onClick={onCook} />
       <CopyMealButton onClick={onCopyYesterday} />
-      <button
-        type="button"
-        className={styles.cookBtn}
-        title={t('meals.cook.open')}
-        aria-label={t('meals.cook.open')}
-        onClick={onCook}
-      >
-        🍳
-      </button>
       <div className={styles.menuWrap} ref={ref}>
         <button type="button" className={styles.menuBtn} onClick={() => setOpen((o) => !o)}>
           ⋯

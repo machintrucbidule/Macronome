@@ -4,7 +4,7 @@ import styles from './meal-menu-sheet.module.css';
 
 // Mobile-only meal "⋯" menu as a bottom sheet (owner decision 2026-06-11): the desktop dropdown
 // (rename / move / delete) is replaced on phones by this sheet, which sits above the bottom nav.
-// Rendered only when useIsMobile() (MealHeader gates it), so desktop is untouched. Cook mode 🍳 is
+// Rendered only when useIsMobile() (MealHeader gates it), so desktop is untouched. Cook mode is
 // dropped on mobile, so it is absent here; the ⊟ Restes button stays in the meal footer (it is not
 // folded into this menu — owner correction 2026-06-11).
 interface Props {

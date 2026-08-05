@@ -5360,10 +5360,16 @@ affordance, and the only button was named as if it were one.
 
 **Decision (owner).** A **per-meal copy** in every meal header, immediately left of 🍳: 📋 with a
 small "‹" badge, tooltip/accessible name « Copier le repas de la veille »; on mobile it leaves the
-header (like 🍳) and becomes a text row in the meal ⋯ sheet. **Source matching: same name first,
-else same position.** **Replace, not append.** **Confirmation only when the target meal already has
-lines** — an empty meal, the common case, copies in one click. The day-level button is renamed
-**Tout copier hier** (`Copy all from yesterday`) so the two never read alike (B-247).
+header (like 🍳) and becomes a text row in the meal ⋯ sheet.
+
+> **Revised by ICON-1 / B-281 / B-283 (owner, 2026-08-06):** the **cook button now comes first**
+> and the copy button sits to its right — cook mode is the frequently-used control of the pair. The
+> cook trigger is no longer the 🍳 emoji but a **numeric-keypad outline SVG tinted `--accent`**, and
+> the copy badge is **neutral grey** rather than accent (B-282), the mobile 📷 badge keeping accent.
+> Everything else below still holds. **Source matching: same name first,
+> else same position.** **Replace, not append.** **Confirmation only when the target meal already has
+> lines** — an empty meal, the common case, copies in one click. The day-level button is renamed
+> **Tout copier hier** (`Copy all from yesterday`) so the two never read alike (B-247).
 
 **Decisions taken during the run:**
 

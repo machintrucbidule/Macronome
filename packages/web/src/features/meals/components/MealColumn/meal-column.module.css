@@ -62,25 +62,32 @@
   font-size: var(--fs-14);
   flex: 1;
 }
+/* Cook-mode button (ICON-1/B-283): same box as before, but its content is now an 18px keypad SVG
+   instead of a text glyph. `display:inline-flex` + `align-items:center` keeps the icon vertically
+   centred and the box exactly as tall as the emoji-based .copyBtn beside it — sized by the SVG,
+   not by --fs-14 on text. Tinted --accent **at rest**: it is the findable one of the pair. */
 .cookBtn {
   border: 1px solid var(--border);
   background: var(--bg-elev-2);
-  color: var(--text-dim);
+  color: var(--accent);
   border-radius: var(--r-sm);
   font-size: var(--fs-14);
   line-height: 1;
   padding: 5px 8px;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
 }
+/* Border only: the colour is already --accent at rest, so a colour hover would be a no-op. */
 .cookBtn:hover {
-  color: var(--accent);
   border-color: var(--accent);
 }
 
-/* Copy-yesterday button (CP-2/B-248): the exact .cookBtn box, immediately left of it, with a
-   "‹" badge on the clipboard icon (design/components/data-tables.md §meal column header). It
-   reuses the badge construction of the photo button below. Hidden ≤560px with .cookBtn — the
-   action moves into the meal ⋯ sheet there. */
+/* Copy-yesterday button (CP-2/B-248): the exact .cookBtn box, immediately RIGHT of it since
+   ICON-1/B-281 put cook first, with a "‹" badge on the clipboard icon
+   (design/components/data-tables.md §meal column header). It shares the photo button's badge
+   geometry below — but not its colours (B-282). Hidden ≤560px with .cookBtn — the action moves
+   into the meal ⋯ sheet there. */
 .copyBtn {
   border: 1px solid var(--border);
   background: var(--bg-elev-2);
@@ -126,6 +133,8 @@
   display: inline-block;
   line-height: 1;
 }
+/* Shared **geometry** only. The two badges are deliberately different colours (B-282) — do not
+   merge the colour rules back together. */
 .copyBadge,
 .photoBadge {
   position: absolute;
@@ -137,11 +146,24 @@
   width: 12px;
   height: 12px;
   border-radius: var(--r-pill);
-  background: var(--accent);
-  color: var(--accent-ink);
   font-size: 10px;
   font-weight: var(--fw-bold);
   line-height: 1;
+}
+/* B-282: copying yesterday is a rare action and must not draw the eye. On --accent the badge was
+   the brightest thing in the header and covered nearly as much area as the clipboard it badges —
+   the owner read the button as "a yellow circle with a left arrow". Neutral grey, but the *filled*
+   pairing (grey fill, dark glyph ≈ 6.5:1) rather than the softer grey-on-grey that would have
+   dropped a 10px bold glyph to ~3.5:1. */
+.copyBadge {
+  background: var(--text-dim);
+  color: var(--bg-elev-2);
+}
+/* The photo badge keeps --accent: accent-on-camera is the primary affordance of the mobile
+   header, and the owner did not ask to change it. */
+.photoBadge {
+  background: var(--accent);
+  color: var(--accent-ink);
 }
 .photoErrDetail {
   display: block;
@@ -282,9 +304,9 @@
   color: var(--c-prot);
 }
 
-/* Mobile (S9, owner 2026-06-11) — inert ≥561px. Cook mode 🍳 is removed on phones (no trigger →
+/* Mobile (S9, owner 2026-06-11) — inert ≥561px. The cook button is removed on phones (no trigger →
    the cook takeover never opens). The footer ⊟ Restes button stays (owner correction 2026-06-11);
-   its popup opens as a bottom sheet. Desktop keeps the 🍳 button. */
+   its popup opens as a bottom sheet. Desktop keeps the cook button. */
 @media (max-width: 560px) {
   .cookBtn,
   .copyBtn {

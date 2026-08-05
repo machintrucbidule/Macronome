@@ -37,8 +37,11 @@ test('fresh install → wizard creates the owner → land logged-in → add firs
   await page.getByLabel('Confirmer le mot de passe').fill(PASSWORD);
   await page.getByRole('button', { name: 'Continuer' }).click();
 
-  // Step 2 — metabolic profile.
-  await page.getByLabel('Sexe').selectOption('male');
+  // Step 2 — metabolic profile. "Sexe" is the app's own SelectMenu since B-280 (FORM-1), not a
+  // native <select>: open the listbox, then pick the option (the oracle was left behind by that
+  // change — same refresh as B-245).
+  await page.getByLabel('Sexe').click();
+  await page.getByRole('option', { name: 'Homme' }).click();
   await page.getByLabel('Date de naissance').fill('1990-01-01');
   await page.getByLabel('Taille').fill('180');
   await page.getByRole('button', { name: 'Continuer' }).click();
