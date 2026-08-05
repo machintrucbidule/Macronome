@@ -14,6 +14,7 @@ import {
 } from '../../../components/ListChrome';
 import { Fab } from '../../../app/Fab';
 import { InfiniteScrollFooter } from '../../../lib/InfiniteScrollFooter';
+import { useListReserve } from '../../../lib/useListReserve';
 import { FoodCards } from './FoodCards';
 import type { SortField } from './FoodTable';
 import type { MinRating, VisibilityFilter } from './FiltersPopover';
@@ -26,6 +27,8 @@ interface FoodsMobileProps {
   loading: boolean;
   isError: boolean;
   list: { hasNextPage: boolean; isFetchingNextPage: boolean; fetchNextPage: () => unknown };
+  /** Rows matching the current filters, server-side (B-278); undefined until page 1 lands. */
+  total: number | undefined;
   q: string;
   minRating: MinRating;
   visibility: VisibilityFilter;
@@ -41,8 +44,13 @@ interface FoodsMobileProps {
   onOpen: (food: Food) => void;
 }
 
+/** The card list's own `gap: var(--sp-5)`, which a measured container excludes (B-278). */
+const CARD_GAP = 10;
+
 export function FoodsMobile(props: FoodsMobileProps) {
   const { t } = useTranslation();
+  // B-278: reserve the unloaded rows' height and chain pages when the scroll asks for them.
+  const reserve = useListReserve(props.foods.length, props.total, props.list, CARD_GAP);
 
   const sortOptions: SortOption<SortField>[] = [
     { key: 'name', label: t('foods.col.name') },
@@ -89,8 +97,8 @@ export function FoodsMobile(props: FoodsMobileProps) {
     if (props.foods.length === 0) return <EmptyState>{t('foods.empty')}</EmptyState>;
     return (
       <>
-        <FoodCards foods={props.foods} onOpen={props.onOpen} />
-        <InfiniteScrollFooter query={props.list} />
+        <FoodCards foods={props.foods} onOpen={props.onOpen} rowsRef={reserve.listRef} />
+        <InfiniteScrollFooter query={props.list} padBottom={reserve.padBottom} />
       </>
     );
   })();

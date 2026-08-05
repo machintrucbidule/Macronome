@@ -97,10 +97,7 @@ type ListQuery = FoodListQuery & { normalized?: string };
 /** Usage-sorted list (FU-1/B-151): rank the full match set by 90-day usage, then paginate by
  *  cursor-id slicing over the deterministic order (no DB column for usage). Rows carry the count.
  *  The match set is a single user's bounded catalog, like the AI candidate read. */
-async function listByUsage(
-  userId: string,
-  query: ListQuery,
-): Promise<{ rows: FoodWithPortions[]; nextCursor: string | null }> {
+async function listByUsage(userId: string, query: ListQuery): Promise<ListPage> {
   const matches = await prisma.food.findMany({ where: buildWhere(userId, query) });
   const usage = await foodUsageMap(
     userId,
@@ -115,26 +112,38 @@ async function listByUsage(
   return {
     rows: rows.map((r) => ({ ...r, usage: usage.get(r.id)?.count ?? 0 })),
     nextCursor,
+    // Free here: this path already materialises every match to rank it.
+    total: ranked.length,
   };
 }
 
+/** A page of the list plus how many rows match the query overall (B-278). */
+interface ListPage {
+  rows: FoodWithPortions[];
+  nextCursor: string | null;
+  total: number;
+}
+
 export const foodRepo = {
-  async list(
-    userId: string,
-    query: ListQuery,
-  ): Promise<{ rows: FoodWithPortions[]; nextCursor: string | null }> {
+  async list(userId: string, query: ListQuery): Promise<ListPage> {
     if (query.sort === 'usage') return listByUsage(userId, query);
     const column = SORT_COLUMN[query.sort];
     const orderBy: Prisma.FoodOrderByWithRelationInput[] = [
       { [column]: query.dir },
       { id: query.dir },
     ];
-    const foods = await prisma.food.findMany({
-      where: buildWhere(userId, query),
-      orderBy,
-      take: query.limit + 1,
-      ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}),
-    });
+    const where = buildWhere(userId, query);
+    // B-278: the same predicate, counted — how many rows match regardless of limit/cursor. The
+    // client reserves the height of the rows not yet loaded and shows the figure in the toolbar.
+    const [foods, total] = await Promise.all([
+      prisma.food.findMany({
+        where,
+        orderBy,
+        take: query.limit + 1,
+        ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}),
+      }),
+      prisma.food.count({ where }),
+    ]);
     const hasMore = foods.length > query.limit;
     const page = hasMore ? foods.slice(0, query.limit) : foods;
     const nextCursor = hasMore ? (page.at(-1)?.id ?? null) : null;
@@ -148,6 +157,7 @@ export const foodRepo = {
     return {
       rows: rows.map((r) => ({ ...r, usage: usage.get(r.id)?.count ?? 0 })),
       nextCursor,
+      total,
     };
   },
 

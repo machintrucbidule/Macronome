@@ -9,7 +9,8 @@ Calm, centred-or-inline message in `--text-dim`, with the relevant primary CTA
 where one exists. No illustration.
 
 - **Aliments** — no foods / no search match → empty-state line; the count chip
-  reads `0 affichés`.
+  reads the **matching total** (`0 aliment` when nothing matches), not the rows
+  loaded so far (B-279).
 - **Recettes** — no recipes → empty list + "+ Ajouter une recette".
 - **Journal** — empty year → empty list; future days with no calories render the
   kcal/macros cells as faint em-dashes (`--text-faint`), not zeros.

@@ -1,3 +1,4 @@
+import type { RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { RecipeSummary } from '@macronome/shared';
 import { SortableTh, tableStyles } from '../../../components/DataTable/SortableTh';
@@ -16,6 +17,8 @@ interface RecipesTableProps {
   onOpen: (recipe: RecipeSummary) => void;
   onArchive: (recipe: RecipeSummary) => void;
   onRestore: (recipe: RecipeSummary) => void;
+  /** Rows container, measured to size the reserved scrollbar height (B-278). */
+  rowsRef?: RefObject<HTMLElement | null>;
 }
 
 export function RecipesTable({
@@ -26,6 +29,7 @@ export function RecipesTable({
   onOpen,
   onArchive,
   onRestore,
+  rowsRef,
 }: RecipesTableProps) {
   const { t } = useTranslation();
   const th = (field: SortField, align: 'left' | 'right' | 'center') => (
@@ -56,7 +60,7 @@ export function RecipesTable({
             <th aria-label="actions" />
           </tr>
         </thead>
-        <tbody>
+        <tbody ref={rowsRef as RefObject<HTMLTableSectionElement>}>
           {recipes.map((recipe) => (
             <RecipeRow
               key={recipe.id}

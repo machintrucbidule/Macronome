@@ -45,8 +45,8 @@ function toDto(row: FoodWithPortions): Food {
 
 export async function list(userId: string, query: FoodListQuery): Promise<FoodListResponse> {
   const opts = query.q ? { ...query, normalized: normalize(query.q) } : query;
-  const { rows, nextCursor } = await foodRepo.list(userId, opts);
-  return { data: rows.map(toDto), next_cursor: nextCursor };
+  const { rows, nextCursor, total } = await foodRepo.list(userId, opts);
+  return { data: rows.map(toDto), next_cursor: nextCursor, total };
 }
 
 export async function get(userId: string, id: string): Promise<Food | null> {

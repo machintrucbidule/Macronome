@@ -1,3 +1,4 @@
+import type { RefObject } from 'react';
 import type { Food } from '@macronome/shared';
 import { FoodCard } from './FoodCard';
 import styles from '../foods-mobile.module.css';
@@ -7,11 +8,13 @@ import styles from '../foods-mobile.module.css';
 interface FoodCardsProps {
   foods: Food[];
   onOpen: (food: Food) => void;
+  /** Rows container, measured to size the reserved scrollbar height (B-278). */
+  rowsRef?: RefObject<HTMLElement | null>;
 }
 
-export function FoodCards({ foods, onOpen }: FoodCardsProps) {
+export function FoodCards({ foods, onOpen, rowsRef }: FoodCardsProps) {
   return (
-    <div className={styles.cardList}>
+    <div className={styles.cardList} ref={rowsRef as RefObject<HTMLDivElement>}>
       {foods.map((food) => (
         <FoodCard key={food.id} food={food} onOpen={onOpen} />
       ))}

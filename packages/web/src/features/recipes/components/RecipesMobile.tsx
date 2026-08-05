@@ -13,6 +13,7 @@ import {
 } from '../../../components/ListChrome';
 import { Fab } from '../../../app/Fab';
 import { InfiniteScrollFooter } from '../../../lib/InfiniteScrollFooter';
+import { useListReserve } from '../../../lib/useListReserve';
 import { RecipeCards } from './RecipeCards';
 import type { SortField } from './RecipesTable';
 import type { MinRating } from './FiltersPopover';
@@ -30,6 +31,8 @@ interface RecipesMobileProps {
   loading: boolean;
   // Structural subset of the useInfiniteQuery result the footer needs (decoupled from the hook).
   list: { hasNextPage: boolean; isFetchingNextPage: boolean; fetchNextPage: () => unknown };
+  /** Rows matching the current filters, server-side (B-278); undefined until page 1 lands. */
+  total: number | undefined;
   q: string;
   minRating: MinRating;
   showArchived: boolean;
@@ -43,8 +46,13 @@ interface RecipesMobileProps {
   onOpen: (recipe: RecipeSummary) => void;
 }
 
+/** The card list's own `gap: var(--sp-5)`, which a measured container excludes (B-278). */
+const CARD_GAP = 10;
+
 export function RecipesMobile(props: RecipesMobileProps) {
   const { t } = useTranslation();
+  // B-278: reserve the unloaded rows' height and chain pages when the scroll asks for them.
+  const reserve = useListReserve(props.recipes.length, props.total, props.list, CARD_GAP);
 
   // The server-sortable columns (mirrors RecipesTable's SortField + the desktop sortable th's).
   const sortOptions: SortOption<SortField>[] = [
@@ -82,8 +90,8 @@ export function RecipesMobile(props: RecipesMobileProps) {
     if (props.recipes.length === 0) return <EmptyState>{t('recipes.empty')}</EmptyState>;
     return (
       <>
-        <RecipeCards recipes={props.recipes} onOpen={props.onOpen} />
-        <InfiniteScrollFooter query={props.list} />
+        <RecipeCards recipes={props.recipes} onOpen={props.onOpen} rowsRef={reserve.listRef} />
+        <InfiniteScrollFooter query={props.list} padBottom={reserve.padBottom} />
       </>
     );
   })();

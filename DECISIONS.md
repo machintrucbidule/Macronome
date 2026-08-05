@@ -5517,3 +5517,42 @@ moved), so the new floor got its own oracle where the two values genuinely diffe
 still winning one pixel below. **The CSS grid itself is not test-provable** — the rendering was
 verified by the owner on the Repas screen at 1280px and 1920px before the commit, by explicit
 arrangement.
+
+---
+
+## TOT-1 / B-278 / B-279 — the list envelope carries a total; the toolbar counts the catalogue — RESOLVED (owner, 2026-08-05)
+
+**The gap this closes was a documented deferral.** `specifications/screens/food-db.md` stated that
+"the toolbar count reflects the rows loaded so far … **there is no total without an API change, out
+of v1 scope**". The owner asked for two things that both need exactly that change: a scrollbar sized
+to the whole catalogue on **Aliments** and **Recettes** (matching what the Journal now does), and a
+toolbar chip showing the real number of foods/recipes instead of "N affichés", which he judged
+useless.
+
+**Decision — the paginated list envelope gains `total`.** `{data, next_cursor}` becomes
+`{data, next_cursor, total}`, where `total` counts the rows matching the query's **filters**
+(search, rating, visibility, archived) independently of `limit`/`cursor` — every page of the same
+query reports the same figure. Autocomplete search endpoints are untouched.
+
+**Cost is one extra `count()` on the same predicate.** Both repositories already build their filter
+once (`buildWhere(userId, query)`), so the count reuses it and runs in parallel with the page query.
+The foods `usage` sort path needs no query at all: it already materialises every match to rank it,
+so the total is the ranked array's length.
+
+**Alternative rejected by the owner: loading the whole catalogue in one request** (which would have
+made the scrollbar exact and every jump instant, at the price of a slower first paint). He chose to
+**keep the 50-row paging**, so the reserved area below the loaded rows starts out empty and fills a
+page at a time — each cursor page needing the previous one's response. The loader therefore chains
+pages while the visible range is beyond what is loaded; without that, dragging the scrollbar past
+the sentinel would have left a permanently blank area. **This trade-off was stated and accepted
+before implementation.**
+
+**The chip's meaning changes with a filter active**: it reads the number of **matches**, which is
+what the scrollbar agrees with. Before the first page lands there is no total, so it shows nothing
+rather than a number that would immediately change.
+
+**Contract impact.** `spec/api/00-conventions.md` §List behaviour (the envelope + the definition of
+`total`), `packages/shared` (`FoodListResponse`, `RecipeListResponse`),
+`design/components/states.md` (the Aliments count chip), and both screen specs
+(`specifications/screens/food-db.md`, `recipe.md`), whose deferral sentence is superseded. No schema
+change.

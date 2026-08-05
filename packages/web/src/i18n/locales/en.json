@@ -96,8 +96,8 @@
   },
   "foods": {
     "title": "Foods",
-    "count": "{{count}} shown",
-    "count_other": "{{count}} shown",
+    "count": "{{count}} food",
+    "count_other": "{{count}} foods",
     "searchPlaceholder": "Search",
     "add": "+ Add a food",
     "archive": "Archive",
@@ -188,8 +188,8 @@
   },
   "recipes": {
     "title": "Recipes",
-    "count": "{{count}} shown",
-    "count_other": "{{count}} shown",
+    "count": "{{count}} recipe",
+    "count_other": "{{count}} recipes",
     "searchPlaceholder": "Search",
     "add": "+ Add a recipe",
     "archive": "Archive",

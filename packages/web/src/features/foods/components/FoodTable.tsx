@@ -1,3 +1,4 @@
+import type { RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Food } from '@macronome/shared';
 import { SortableTh, tableStyles } from '../../../components/DataTable/SortableTh';
@@ -24,6 +25,8 @@ interface FoodTableProps {
   onOpen: (food: Food) => void;
   onArchive: (food: Food) => void;
   onRestore: (food: Food) => void;
+  /** Rows container, measured to size the reserved scrollbar height (B-278). */
+  rowsRef?: RefObject<HTMLElement | null>;
 }
 
 export function FoodTable({
@@ -34,6 +37,7 @@ export function FoodTable({
   onOpen,
   onArchive,
   onRestore,
+  rowsRef,
 }: FoodTableProps) {
   const { t } = useTranslation();
   const th = (field: SortField, align: 'left' | 'right' | 'center') => (
@@ -64,7 +68,7 @@ export function FoodTable({
             <th aria-label="actions" />
           </tr>
         </thead>
-        <tbody>
+        <tbody ref={rowsRef as RefObject<HTMLTableSectionElement>}>
           {foods.map((food) => (
             <FoodRow
               key={food.id}

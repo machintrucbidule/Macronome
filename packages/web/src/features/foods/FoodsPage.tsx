@@ -60,6 +60,10 @@ export function FoodsPage() {
   const list = useFoodsList(buildListParams({ q, minRating, visibility, showArchived, sort, dir }));
   const { archive, restore } = useFoodMutations();
   const foods = useMemo(() => list.data?.pages.flatMap((p) => p.data) ?? [], [list.data]);
+  // Rows matching the current filters, server-side (B-278). Read from the newest page: every page
+  // of the same query reports the same figure, and the newest is the freshest. Undefined until the
+  // first page lands, so the toolbar shows nothing rather than a number that would change.
+  const total = list.data?.pages.at(-1)?.total;
 
   const onSort = (field: SortField): void => {
     if (field === sort) setDir((d) => (d === 'asc' ? 'desc' : 'asc'));
@@ -77,6 +81,7 @@ export function FoodsPage() {
 
   const common = {
     foods,
+    total,
     loading: list.isLoading,
     isError: list.isError,
     list,

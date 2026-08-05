@@ -7,7 +7,9 @@ import styles from '../foods.module.css';
 // Aliments toolbar: title + count, search field, filters popover, "+ Ajouter" CTA
 // (specifications/screens/food-db.md).
 interface FoodsToolbarProps {
-  count: number;
+  /** Rows matching the current filters, server-side (B-279). Undefined before page 1: the
+   *  chip stays empty rather than showing a number that would immediately change. */
+  count: number | undefined;
   q: string;
   minRating: MinRating;
   visibility: VisibilityFilter;
@@ -24,7 +26,9 @@ export function FoodsToolbar(props: FoodsToolbarProps) {
   return (
     <div className={styles.toolbar}>
       <h1>{t('foods.title')}</h1>
-      <span className={styles.count}>{t('foods.count', { count: props.count })}</span>
+      <span className={styles.count}>
+        {props.count === undefined ? '' : t('foods.count', { count: props.count })}
+      </span>
       <SearchField
         value={props.q}
         placeholder={t('foods.searchPlaceholder')}

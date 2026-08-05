@@ -1,3 +1,4 @@
+import type { RefObject } from 'react';
 import type { RecipeSummary } from '@macronome/shared';
 import { RecipeCard } from './RecipeCard';
 import styles from '../recipes-mobile.module.css';
@@ -8,11 +9,13 @@ import styles from '../recipes-mobile.module.css';
 interface RecipeCardsProps {
   recipes: RecipeSummary[];
   onOpen: (recipe: RecipeSummary) => void;
+  /** Rows container, measured to size the reserved scrollbar height (B-278). */
+  rowsRef?: RefObject<HTMLElement | null>;
 }
 
-export function RecipeCards({ recipes, onOpen }: RecipeCardsProps) {
+export function RecipeCards({ recipes, onOpen, rowsRef }: RecipeCardsProps) {
   return (
-    <div className={styles.cardList}>
+    <div className={styles.cardList} ref={rowsRef as RefObject<HTMLDivElement>}>
       {recipes.map((recipe) => (
         <RecipeCard key={recipe.id} recipe={recipe} onOpen={onOpen} />
       ))}

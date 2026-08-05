@@ -3,6 +3,7 @@ import type { RecipeSummary } from '@macronome/shared';
 import { EmptyState } from '../../../components/states/EmptyState';
 import { SkeletonTableRows } from '../../../components/states/SkeletonTableRows';
 import { InfiniteScrollFooter } from '../../../lib/InfiniteScrollFooter';
+import { useListReserve } from '../../../lib/useListReserve';
 import { RecipesToolbar } from './RecipesToolbar';
 import { RecipesTable, type SortField } from './RecipesTable';
 import type { MinRating } from './FiltersPopover';
@@ -14,6 +15,8 @@ interface RecipesDesktopProps {
   recipes: RecipeSummary[];
   loading: boolean;
   list: { hasNextPage: boolean; isFetchingNextPage: boolean; fetchNextPage: () => unknown };
+  /** Rows matching the current filters, server-side (B-278); undefined until page 1 lands. */
+  total: number | undefined;
   q: string;
   minRating: MinRating;
   showArchived: boolean;
@@ -31,10 +34,12 @@ interface RecipesDesktopProps {
 
 export function RecipesDesktop(props: RecipesDesktopProps) {
   const { t } = useTranslation();
+  // B-278: reserve the unloaded rows' height and chain pages when the scroll asks for them.
+  const reserve = useListReserve(props.recipes.length, props.total, props.list);
   return (
     <>
       <RecipesToolbar
-        count={props.recipes.length}
+        count={props.total}
         q={props.q}
         minRating={props.minRating}
         showArchived={props.showArchived}
@@ -58,8 +63,9 @@ export function RecipesDesktop(props: RecipesDesktopProps) {
             onOpen={props.onOpen}
             onArchive={props.onArchive}
             onRestore={props.onRestore}
+            rowsRef={reserve.listRef}
           />
-          <InfiniteScrollFooter query={props.list} />
+          <InfiniteScrollFooter query={props.list} padBottom={reserve.padBottom} />
         </>
       )}
     </>

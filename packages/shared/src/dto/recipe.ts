@@ -190,6 +190,8 @@ export type RecipeListQuery = z.infer<typeof RecipeListQuerySchema>;
 export interface RecipeListResponse {
   data: RecipeSummary[];
   next_cursor: string | null;
+  /** Recipes matching the query's filters, independent of `limit`/`cursor` (B-278, see food.ts). */
+  total: number;
 }
 
 export interface RecipeMutationResponse {

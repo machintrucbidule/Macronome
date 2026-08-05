@@ -87,22 +87,28 @@ export const recipeRepo = {
   async list(
     userId: string,
     query: ListQuery,
-  ): Promise<{ rows: RecipeModel[]; nextCursor: string | null }> {
+  ): Promise<{ rows: RecipeModel[]; nextCursor: string | null; total: number }> {
     const column = SORT_COLUMN[query.sort];
     const orderBy: Prisma.RecipeOrderByWithRelationInput[] = [
       { [column]: query.dir },
       { id: query.dir },
     ];
-    const rows = await prisma.recipe.findMany({
-      where: buildWhere(userId, query),
-      orderBy,
-      take: query.limit + 1,
-      ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}),
-    });
+    const where = buildWhere(userId, query);
+    // B-278: the same predicate, counted — how many rows match regardless of limit/cursor. The
+    // client reserves the height of the rows not yet loaded and shows the figure in the toolbar.
+    const [rows, total] = await Promise.all([
+      prisma.recipe.findMany({
+        where,
+        orderBy,
+        take: query.limit + 1,
+        ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}),
+      }),
+      prisma.recipe.count({ where }),
+    ]);
     const hasMore = rows.length > query.limit;
     const page = hasMore ? rows.slice(0, query.limit) : rows;
     const nextCursor = hasMore ? (page.at(-1)?.id ?? null) : null;
-    return { rows: page, nextCursor };
+    return { rows: page, nextCursor, total };
   },
 
   async findById(userId: string, id: string): Promise<RecipeWithIngredients | null> {

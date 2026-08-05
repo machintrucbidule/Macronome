@@ -47,6 +47,8 @@ export function RecipesPage() {
   const list = useRecipesList(buildListParams({ q, minRating, showArchived, sort, dir }));
   const { archive, restore } = useRecipeMutations();
   const recipes = useMemo(() => list.data?.pages.flatMap((p) => p.data) ?? [], [list.data]);
+  // Rows matching the current filters, server-side (B-278) — see FoodsPage for why the newest page.
+  const total = list.data?.pages.at(-1)?.total;
 
   const onSort = (field: SortField): void => {
     if (field === sort) setDir((d) => (d === 'asc' ? 'desc' : 'asc'));
@@ -68,6 +70,7 @@ export function RecipesPage() {
   // same server-side state + handlers); desktop adds the per-row archive/restore actions.
   const common = {
     recipes,
+    total,
     loading: list.isLoading,
     list,
     q,

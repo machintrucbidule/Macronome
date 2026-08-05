@@ -11,15 +11,22 @@ interface InfiniteScrollFooterProps {
     isFetchingNextPage: boolean;
     fetchNextPage: () => unknown;
   };
+  /**
+   * Height of the rows the server says exist but that are not loaded yet (B-278, from
+   * `useListReserve`). Reserving it makes the scrollbar span the whole catalogue from the first
+   * page instead of growing as pages arrive.
+   */
+  padBottom?: number;
 }
 
-export function InfiniteScrollFooter({ query }: InfiniteScrollFooterProps) {
+export function InfiniteScrollFooter({ query, padBottom = 0 }: InfiniteScrollFooterProps) {
   const { hasNextPage, isFetchingNextPage, fetchNextPage } = query;
   const sentinelRef = useInfiniteScroll({ hasNextPage, isFetchingNextPage, fetchNextPage });
   return (
     <>
       {hasNextPage && <div ref={sentinelRef} aria-hidden="true" />}
       {isFetchingNextPage && <SkeletonRows count={2} />}
+      {padBottom > 0 && <div aria-hidden="true" style={{ height: padBottom }} />}
     </>
   );
 }

@@ -168,6 +168,12 @@ export type FoodListQuery = z.infer<typeof FoodListQuerySchema>;
 export interface FoodListResponse {
   data: Food[];
   next_cursor: string | null;
+  /**
+   * How many foods match the query's filters, independent of `limit`/`cursor` (B-278). The client
+   * reserves the height of the rows it has not loaded yet, so the scrollbar spans the catalogue
+   * from the first page, and shows the figure in the toolbar.
+   */
+  total: number;
 }
 
 /** Create/update may carry non-blocking warnings (e.g. duplicate_name). */

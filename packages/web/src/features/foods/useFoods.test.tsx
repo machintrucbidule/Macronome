@@ -25,8 +25,9 @@ describe('useFoodsList — keyset lazy-loading (B-122)', () => {
   it('loads page 1, fetches & appends page 2 on demand, then stops at next_cursor=null', async () => {
     const listSpy = vi
       .spyOn(foodsApi, 'list')
-      .mockResolvedValueOnce({ data: [food('a'), food('b')], next_cursor: 'c1' })
-      .mockResolvedValueOnce({ data: [food('c'), food('d')], next_cursor: null });
+      // `total` is the same on every page of a query (B-278): it counts the matches, not the page.
+      .mockResolvedValueOnce({ data: [food('a'), food('b')], next_cursor: 'c1', total: 4 })
+      .mockResolvedValueOnce({ data: [food('c'), food('d')], next_cursor: null, total: 4 });
 
     const { result } = renderHook(() => useFoodsList({ sort: 'name', dir: 'asc' }), { wrapper });
 

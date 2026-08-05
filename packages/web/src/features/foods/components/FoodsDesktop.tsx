@@ -4,6 +4,7 @@ import { Banner } from '../../../components/Banner/Banner';
 import { EmptyState } from '../../../components/states/EmptyState';
 import { SkeletonTableRows } from '../../../components/states/SkeletonTableRows';
 import { InfiniteScrollFooter } from '../../../lib/InfiniteScrollFooter';
+import { useListReserve } from '../../../lib/useListReserve';
 import { FoodsToolbar } from './FoodsToolbar';
 import { FoodTable, type SortField } from './FoodTable';
 import type { MinRating, VisibilityFilter } from './FiltersPopover';
@@ -16,6 +17,8 @@ interface FoodsDesktopProps {
   loading: boolean;
   isError: boolean;
   list: { hasNextPage: boolean; isFetchingNextPage: boolean; fetchNextPage: () => unknown };
+  /** Rows matching the current filters, server-side (B-278); undefined until page 1 lands. */
+  total: number | undefined;
   q: string;
   minRating: MinRating;
   visibility: VisibilityFilter;
@@ -35,10 +38,13 @@ interface FoodsDesktopProps {
 
 export function FoodsDesktop(props: FoodsDesktopProps) {
   const { t } = useTranslation();
+  // B-278: reserve the height of the rows the server has but we have not fetched, and keep pulling
+  // pages while the scroll position asks for rows beyond the loaded ones.
+  const reserve = useListReserve(props.foods.length, props.total, props.list);
   return (
     <>
       <FoodsToolbar
-        count={props.foods.length}
+        count={props.total}
         q={props.q}
         minRating={props.minRating}
         visibility={props.visibility}
@@ -66,8 +72,9 @@ export function FoodsDesktop(props: FoodsDesktopProps) {
             onOpen={props.onOpen}
             onArchive={props.onArchive}
             onRestore={props.onRestore}
+            rowsRef={reserve.listRef}
           />
-          <InfiniteScrollFooter query={props.list} />
+          <InfiniteScrollFooter query={props.list} padBottom={reserve.padBottom} />
         </>
       )}
     </>

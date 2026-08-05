@@ -162,12 +162,16 @@ function toSummary(
 
 export async function list(userId: string, query: RecipeListQuery): Promise<RecipeListResponse> {
   const opts = query.q ? { ...query, normalized: normalize(query.q) } : query;
-  const { rows, nextCursor } = await recipeRepo.list(userId, opts);
+  const { rows, nextCursor, total } = await recipeRepo.list(userId, opts);
   const derived = await recipeDerivedFoodRepo.derivedSummariesByRecipeIds(
     userId,
     rows.map((r) => r.id),
   );
-  return { data: rows.map((r) => toSummary(r, derived.get(r.id))), next_cursor: nextCursor };
+  return {
+    data: rows.map((r) => toSummary(r, derived.get(r.id))),
+    next_cursor: nextCursor,
+    total,
+  };
 }
 
 export async function get(userId: string, id: string): Promise<RecipeFull | null> {

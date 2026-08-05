@@ -113,7 +113,12 @@ because the database is unreachable returns **503** `database_unavailable` inste
 ## List behaviour
 
 - Pagination: `?limit=` (default 50, max 200) `&cursor=` (opaque, keyset on
-  `(sort_key,id)`); responses include `{data:[...], next_cursor}`.
+  `(sort_key,id)`); responses include `{data:[...], next_cursor, total}`.
+- **`total`** (B-278) is the number of rows matching the query's **filters** — search, rating,
+  visibility, archived — and is therefore independent of `limit` and `cursor`: every page of the
+  same query reports the same figure. It lets a client size its scrollbar to the whole result set
+  instead of to the rows fetched so far, and show a meaningful count. Paginated resource lists
+  only; the autocomplete search endpoints below do not carry it.
 - Sorting: `?sort=field&dir=asc|desc` where allowed per resource.
 - Filtering: documented per resource.
 - **Autocomplete search** (`?q=`): diacritic-insensitive, matches
