@@ -45,6 +45,8 @@ function invalidFields(err: unknown): { baseUrl: boolean; entityId: boolean } {
   };
 }
 
+const onDisconnected = (): void => notify('disconnected');
+
 export function useHaForm() {
   const ha = useSettingsQuery().data?.data.integrations.home_assistant ?? null;
   const save = useSettingsMutation();
@@ -92,12 +94,8 @@ export function useHaForm() {
     }
   };
 
-  const onSave = (): void => {
-    // B-261: an explicit save whose effect is invisible until the next import.
-    void persist().then((ok) => {
-      if (ok) notify('integrationSaved');
-    });
-  };
+  // B-261: an explicit save whose effect is invisible until the next import.
+  const onSave = (): void => void persist().then((ok) => ok && notify('integrationSaved'));
 
   // "Tester" persists the typed config first, then proves the link against it.
   const runTest = (): void => {
@@ -108,10 +106,7 @@ export function useHaForm() {
 
   const onDisconnect = (): void => {
     test.reset();
-    save.mutate(
-      { integrations: { home_assistant: null } },
-      { onSuccess: () => notify('disconnected') },
-    );
+    save.mutate({ integrations: { home_assistant: null } }, { onSuccess: onDisconnected });
   };
 
   const testError =
