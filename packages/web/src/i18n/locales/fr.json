@@ -94,6 +94,8 @@
     "dayCleared": "Journée vidée",
     "dayCopied": "Journée copiée",
     "mealDeleted": "Repas supprimé",
+    "mealCleared": "Repas vidé",
+    "mealZeroed": "Quantités remises à zéro",
     "importDone": "Import terminé",
     "updateApplied": "Mise à jour appliquée",
     "updateCurrent": "Déjà à jour",
@@ -666,6 +668,8 @@
     },
     "meal": {
       "rename": "Renommer",
+      "clearLines": "Supprimer tous les aliments",
+      "zeroLines": "Tout remettre à zéro",
       "moveLeft": "← Déplacer à gauche",
       "moveRight": "Déplacer à droite →",
       "delete": "Supprimer le repas",

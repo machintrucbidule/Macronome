@@ -16,9 +16,14 @@ interface MealHeaderProps {
   name: string;
   canMoveLeft: boolean;
   canMoveRight: boolean;
+  /** Bulk actions of the ⋯ menu (MC-1/B-296) — disabled when they would change nothing. */
+  canClearLines: boolean;
+  canZeroLines: boolean;
   onCook: () => void;
   /** Copier le repas de la veille (CP-2/B-248) — header button on desktop, ⋯ sheet row on mobile. */
   onCopyYesterday: () => void;
+  onClearLines: () => void;
+  onZeroLines: () => void;
   onRename: () => void;
   onMoveLeft: () => void;
   onMoveRight: () => void;
@@ -33,8 +38,12 @@ export function MealHeader({
   name,
   canMoveLeft,
   canMoveRight,
+  canClearLines,
+  canZeroLines,
   onCook,
   onCopyYesterday,
+  onClearLines,
+  onZeroLines,
   onRename,
   onMoveLeft,
   onMoveRight,
@@ -74,6 +83,10 @@ export function MealHeader({
           <MealMenuDropdown
             canMoveLeft={canMoveLeft}
             canMoveRight={canMoveRight}
+            canClearLines={canClearLines}
+            canZeroLines={canZeroLines}
+            onClearLines={act(onClearLines)}
+            onZeroLines={act(onZeroLines)}
             onRename={act(onRename)}
             onMoveLeft={act(onMoveLeft)}
             onMoveRight={act(onMoveRight)}
@@ -86,7 +99,11 @@ export function MealHeader({
           name={name}
           canMoveLeft={canMoveLeft}
           canMoveRight={canMoveRight}
+          canClearLines={canClearLines}
+          canZeroLines={canZeroLines}
           onCopyYesterday={onCopyYesterday}
+          onClearLines={onClearLines}
+          onZeroLines={onZeroLines}
           onRename={onRename}
           onMoveLeft={onMoveLeft}
           onMoveRight={onMoveRight}

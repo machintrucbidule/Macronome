@@ -7,6 +7,7 @@ import { pantryRepo } from '../data/repositories/pantry.repo.js';
 import { autoVerdict, type ResolvedSnapshot } from '../domain/day-verdict/index.js';
 import { ApiError } from '../http/errors.js';
 import { assembleDayDetail, buildConstat, computeDayTotals, pinKey } from './day-assembler.js';
+import { pinPrefillMap, planClear } from './clear-plan.js';
 import { isPast, loadDayContext, resolveSnapshotForDate, type DayContext } from './day-context.js';
 import { captureRestorePoint } from './day-restore-capture.js';
 import { loadDaySeed, seedSlotPreview, seedToMeals, type DaySeed } from './day-prefill.js';
@@ -250,34 +251,8 @@ export async function clear(userId: string, date: string): Promise<DayDetail | n
     pantryRepo.list(userId),
   ]);
   if (!aggregate) return get(userId, date);
-  // Each pinned (slot, food) carries the prefill unit a cleared line resets to (GM-2/B-092;
-  // unit='portion' without a portion → fall back to g, the deleted-portion case).
-  const pinByKey = new Map(
-    pins.map((p) => [
-      pinKey(p.mealSlotName, p.foodId),
-      p.unit === 'portion' && p.portionId
-        ? { unit: 'portion', portionId: p.portionId }
-        : { unit: p.unit === 'portion' ? 'g' : p.unit, portionId: null },
-    ]),
-  );
-
-  const groupIds: string[] = [];
-  const deleteEntryIds: string[] = [];
-  const zeroEntries: { id: string; unit: string; portionId: string | null }[] = [];
-  for (const { meal, entries, groups } of aggregate.meals) {
-    for (const g of groups) groupIds.push(g.group.id);
-    for (const e of entries) {
-      // Keep-and-zero only a garde-manger line: its own per-line flag is set AND its food is
-      // still pinned (B-198). A manually re-added duplicate (pinned=false) is deleted like any
-      // normal line.
-      const pin =
-        e.kind === 'referenced' && e.foodId !== null && e.pinned
-          ? pinByKey.get(pinKey(meal.slotName, e.foodId))
-          : undefined;
-      if (pin) zeroEntries.push({ id: e.id, unit: pin.unit, portionId: pin.portionId });
-      else deleteEntryIds.push(e.id);
-    }
-  }
-  await dayRepo.clearDay(userId, date, { groupIds, deleteEntryIds, zeroEntries });
+  // The partition rule itself lives in clear-plan.ts, shared with the per-meal clear (MC-1/B-296)
+  // so the two can never drift on what a garde-manger line is.
+  await dayRepo.clearDay(userId, date, planClear(aggregate.meals, pinPrefillMap(pins), 'delete'));
   return get(userId, date);
 }

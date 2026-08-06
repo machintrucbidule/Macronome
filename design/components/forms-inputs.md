@@ -12,6 +12,15 @@ form-primary fields (login, leftover modal), `34–36px` for compact rows.
 - **invalid** (`aria-invalid`): `border-color:var(--nok)` + `box-shadow 0 0 0 3px
 color-mix(... nok 20% ...)`.
 - **placeholder**: `color:var(--text-faint)`.
+- **autofilled** (B-305): a field the password manager filled keeps the app's own appearance —
+  `background` stays `--bg-field`, text stays `--text`, caret unchanged — and carries a **discreet
+  marker**: `box-shadow: inset 2px 0 0 var(--accent)`, the same "marked line" idiom as a used Repas
+  line. Deliberately **not** an amber border: that is what **focus** draws (`--focus` = `--accent`),
+  and the red border belongs to **invalid**, so a border marker could not be told from either.
+  The browser paints its own highlight here and exposes no writable `background`, so the field
+  colour is repainted with a large inset shadow in the **same** shadow list, **after** the marker
+  (later shadows paint behind earlier ones). Focus keeps its ring on an autofilled field. Declared
+  once globally (`global.css`), never per screen.
 - **disabled/locked** (e.g. login lockout): `opacity:.5; pointer-events:none`.
 - **with suffix** (`.with-suffix`/`.inp .sfx`/`.usfx`): absolutely-positioned
   unit (`kcal`,`g`,`kg`,`g/kg`,`cm`) in `--font-num; --fs-11–12; --text-faint`;
@@ -185,5 +194,5 @@ text until engaged.
 
 ## States (forms overall)
 
-default · hover · focus · invalid · disabled/locked · with-suffix · loading
+default · hover · focus · invalid · autofilled · disabled/locked · with-suffix · loading
 (skeleton field). Touch targets honour `--tap` (40→44 mobile).

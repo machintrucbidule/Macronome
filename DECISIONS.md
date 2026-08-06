@@ -5893,6 +5893,15 @@ declared on element selectors so those class rules keep winning.
 **Contract impact.** `design/tokens.css` + web copy, `design/components/00-foundations.md`
 §Native surfaces.
 
+**Amendment (MC-1 / B-305) — one native surface was missed: the autofill highlight.** The login
+fields started reading olive/yellow right after this shipped. `color-scheme` governs the native
+_widgets_; it does **not** govern the paint the browser lays over a field the password manager
+filled, which composites over the author background instead of taking the theme. Nothing opposed it
+because the repository contained **no autofill CSS at all** — the enumeration above ("scrollbars,
+`<select>` popups, date pickers and form widgets") simply never named it, which is exactly why
+nothing guarded it. Neutralised the same way as the scrollbars: one rule in `global.css`, element
+selectors, every field of the app at once. See "MC-1 / B-305" below for the visual contract.
+
 ---
 
 ## LF-1 / B-258 — chrome stops behaving like a web page — RESOLVED (owner, 2026-08-06)

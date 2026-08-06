@@ -147,6 +147,12 @@ export const PatchMealSchema = z
   .refine((b) => Object.keys(b).length > 0, { message: 'empty_patch' });
 export type PatchMealRequest = z.infer<typeof PatchMealSchema>;
 
+/** POST /meals/:mealId/clear — empty one meal (MC-1 / B-296). `delete` applies the day-clear
+ *  partition scoped to the meal (garde-manger lines kept at qty 0); `zero` keeps every line and
+ *  sets its quantity to 0. Both dissolve the meal's leftover groups. */
+export const ClearMealSchema = z.object({ mode: z.enum(['delete', 'zero']) });
+export type ClearMealRequest = z.infer<typeof ClearMealSchema>;
+
 const macroSnapInput = z.object({
   kcal: z.number().nonnegative(),
   fat: z.number().nonnegative(),

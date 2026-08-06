@@ -94,6 +94,8 @@
     "dayCleared": "Day cleared",
     "dayCopied": "Day copied",
     "mealDeleted": "Meal deleted",
+    "mealCleared": "Meal emptied",
+    "mealZeroed": "Quantities reset to zero",
     "importDone": "Import complete",
     "updateApplied": "Update applied",
     "updateCurrent": "Already up to date",
@@ -666,6 +668,8 @@
     },
     "meal": {
       "rename": "Rename",
+      "clearLines": "Delete all foods",
+      "zeroLines": "Reset all to zero",
       "moveLeft": "← Move left",
       "moveRight": "Move right →",
       "delete": "Delete meal",

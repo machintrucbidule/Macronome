@@ -320,8 +320,9 @@ to overlays; desktop (≥561px) is unchanged.
   pre-fill lines too (pinned, qty 0): they resolve by row, and the sheet offers change-food +
   quantity (no move/pin/delete until materialised). **Long-press the grip** → touch
   drag-to-reorder.
-- **Meal “⋯” menu** (S9): a bottom sheet (**Copier le repas de la veille** · rename ·
-  move left/right · delete). The cook button is **removed on mobile**, and the header's
+- **Meal “⋯” menu** (S9): a bottom sheet — **Copier le repas de la veille** · **Supprimer tous les
+  aliments** · **Tout remettre à zéro** · move left/right · rename · delete (MC-1/B-296; the copy
+  stays first, the two bulk actions follow it, and rename joins delete at the bottom). The cook button is **removed on mobile**, and the header's
   📋‹ copy button likewise moves into this sheet as its first text row (CP-2 / B-248); the
   **⊟ Restes button stays in the meal footer** (owner correction 2026-06-11) and its leftover
   popup opens as a **bottom sheet**.

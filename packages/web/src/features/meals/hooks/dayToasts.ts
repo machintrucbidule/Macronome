@@ -7,7 +7,8 @@ import type { UseDay } from './useDay';
 //
 // Two undo mechanisms, deliberately kept apart:
 //  · line edits replay through the existing client history stack (UR-1/B-133);
-//  · the three destructive DAY actions replay a SERVER restore point, because a browser-side
+//  · the destructive DAY actions — and the two per-meal bulk actions (MC-1/B-296), which write
+//    the same day-scoped restore point — replay a SERVER restore point, because a browser-side
 //    replay cannot bring leftovers back (the frozen group carries the container's name and tare,
 //    never its id). That is the whole reason `POST /days/:date/undo` exists.
 //
@@ -18,7 +19,7 @@ import type { UseDay } from './useDay';
  *  line-level stack afterwards: the replay re-creates every line with fresh ids. */
 export function toastDayAction(
   day: UseDay,
-  key: 'dayCleared' | 'dayCopied' | 'mealDeleted',
+  key: 'dayCleared' | 'dayCopied' | 'mealDeleted' | 'mealCleared' | 'mealZeroed',
   resetHistory: () => void,
 ): void {
   showToast({

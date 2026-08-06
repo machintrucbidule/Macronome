@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
+  ClearMealRequest,
   CreateMealEntryRequest,
   CreateMealRequest,
   LeftoverRequest,
@@ -138,6 +139,12 @@ export function useDay(date: string) {
     mutationFn: (v: { mealId: string; from: string }) => mealsApi.copyFrom(v.mealId, v.from),
     onSuccess,
   });
+  // Empty one meal / zero its quantities (MC-1 / B-296).
+  const clearMeal = useMutation({
+    mutationFn: (v: { mealId: string; mode: ClearMealRequest['mode'] }) =>
+      mealsApi.clear(v.mealId, v.mode),
+    onSuccess,
+  });
 
   const { createEntry, updateEntry, reorderEntries, moveEntry, removeEntry, pinEntry, unpinEntry } =
     useEntryMutations(onSuccess);
@@ -157,6 +164,7 @@ export function useDay(date: string) {
     patchMeal,
     removeMeal,
     copyMeal,
+    clearMeal,
     createEntry,
     updateEntry,
     reorderEntries,

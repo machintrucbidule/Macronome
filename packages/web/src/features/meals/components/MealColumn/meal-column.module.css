@@ -248,6 +248,12 @@
   color: var(--text-faint);
   cursor: not-allowed;
 }
+/* Group separator inside the ⋯ menu (MC-1/B-296): drawn as a top border on the first row of a
+   group, the same idiom the destructive row already used — so the menu stays a flat list of
+   buttons and the keyboard never lands on a decorative node. */
+.popmenu .sep {
+  border-top: 1px solid var(--border);
+}
 .popmenu .danger {
   color: var(--nok);
   border-top: 1px solid var(--border);

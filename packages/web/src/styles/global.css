@@ -127,6 +127,69 @@ html {
   background: transparent;
 }
 
+/* B-305 — an autofilled field keeps the app's own appearance. The browser paints its own highlight
+   over a field the password manager filled (the olive/yellow reported on Connexion); nothing in the
+   app opposed it, because there was no autofill CSS anywhere. `color-scheme` (tokens.css, B-257)
+   hands the native layer the theme but does NOT govern that highlight, so it needs its own rule —
+   declared here, once, for every field of the app (design/components/forms-inputs.md §autofilled).
+
+   Chromium/WebKit expose no writable `background`, so the field colour is repainted with a huge
+   inset shadow — the standard idiom. The autofilled MARKER (a 2px accent edge inside the field,
+   the same "marked line" idiom as a used Repas line) rides in the SAME shadow list, and must come
+   FIRST: later shadows paint behind earlier ones. An amber *border* could not be the marker — that
+   is exactly what focus draws (--focus is --accent), and the red border belongs to invalid.
+
+   Element selectors, so any component rule still wins on everything else. `box-shadow` is
+   deliberately outside the B-253 transition list above, so the repaint is instant. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  box-shadow:
+    inset 2px 0 0 var(--accent),
+    inset 0 0 0 100px var(--bg-field);
+  -webkit-text-fill-color: var(--text);
+  caret-color: auto;
+  /* Firefox tints `:autofill` with a filter rather than a background. */
+  filter: none;
+}
+/* Focus must still read as focus: a blanket shadow above would have swallowed the ring, so the
+   emphasised ring is re-declared alongside the repaint (login draws its ring this way).
+   The pseudo-class is REPEATED on purpose: `.field input:focus` (LoginPage.module.css) has the
+   same specificity as `input:-webkit-autofill:focus` and is injected after this file, so the tie
+   would go to the module and take the repaint with it — leaving the field yellow while focused.
+   Repeating it wins by one, without resorting to !important. */
+input:-webkit-autofill:-webkit-autofill:focus,
+textarea:-webkit-autofill:-webkit-autofill:focus,
+select:-webkit-autofill:-webkit-autofill:focus {
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--focus) 22%, transparent),
+    inset 2px 0 0 var(--accent),
+    inset 0 0 0 100px var(--bg-field);
+  -webkit-text-fill-color: var(--text);
+}
+/* The standard property, for engines that implement it (Firefox). Kept as its own block: a
+   selector list mixing a prefixed pseudo-class with a standard one is dropped whole by the
+   engines that don't know the prefixed half. */
+input:autofill,
+textarea:autofill,
+select:autofill {
+  box-shadow:
+    inset 2px 0 0 var(--accent),
+    inset 0 0 0 100px var(--bg-field);
+  caret-color: auto;
+  filter: none;
+}
+input:autofill:autofill:focus,
+textarea:autofill:autofill:focus,
+select:autofill:autofill:focus {
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--focus) 22%, transparent),
+    inset 2px 0 0 var(--accent),
+    inset 0 0 0 100px var(--bg-field);
+}
+
 /* B-272: visually hidden, still announced. For the live region that reports page arrivals to a
    screen reader (design/components/states.md §Announced to assistive technology). NOT
    `display:none` / `visibility:hidden` — either would remove it from the accessibility tree and

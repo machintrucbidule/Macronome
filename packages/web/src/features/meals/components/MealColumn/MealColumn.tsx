@@ -15,6 +15,7 @@ import { MealPhotoButton } from './MealPhotoButton';
 import { MealPhotoFeedback } from './MealPhotoFeedback';
 import { MealFooter } from './MealFooter';
 import { MealColumnConfirms } from './MealColumnConfirms';
+import { canClearMealLines, canZeroMealLines } from '../../logic/mealBulk';
 import styles from './meal-column.module.css';
 
 // One meal as a column: header + sub-header + the lines + footer totals. Each entry sits at
@@ -37,6 +38,28 @@ function editingPredicate(editing: EditTarget, mealIndex: number) {
 function swapMeals(mutations: ReturnType<typeof useMeals>['mutations'], a: Meal, b: Meal): void {
   void mutations.patchMeal.mutateAsync({ mealId: a.id, body: { order_index: b.order_index } });
   void mutations.patchMeal.mutateAsync({ mealId: b.id, body: { order_index: a.order_index } });
+}
+
+/** Move left/right: swap with the neighbour on that side. A missing neighbour disables the menu
+ *  entry, so the guard is only belt-and-braces. Module-level to keep MealColumn under its cap. */
+function moveMeal(
+  mutations: ReturnType<typeof useMeals>['mutations'],
+  meals: Meal[],
+  index: number,
+  delta: -1 | 1,
+): void {
+  const [meal, neighbour] = [meals[index], meals[index + delta]];
+  if (meal && neighbour) swapMeals(mutations, meal, neighbour);
+}
+
+/** Rename the meal through the browser prompt (this day's slot only, never the template). */
+function promptRename(
+  t: ReturnType<typeof useTranslation>['t'],
+  meal: Meal,
+  rename: ReturnType<typeof useMeals>['actions']['renameMeal'],
+): void {
+  const next = window.prompt(t('meals.meal.renamePrompt'), meal.slot_name);
+  if (next) void rename(meal.id, next);
 }
 
 interface MealColumnProps {
@@ -105,16 +128,16 @@ export function MealColumn(props: MealColumnProps) {
         name={meal.slot_name}
         canMoveLeft={index > 0}
         canMoveRight={index < meals.length - 1}
+        canClearLines={canClearMealLines(meal)}
+        canZeroLines={canZeroMealLines(meal)}
         onCook={() => actions.openCook(meal.id)}
         onCopyYesterday={() => (hasContent ? setCopying(true) : copyMeal())}
-        onRename={() => {
-          const next = window.prompt(t('meals.meal.renamePrompt'), meal.slot_name);
-          if (next) void actions.renameMeal(meal.id, next);
-        }}
-        onMoveLeft={() => index > 0 && swapMeals(mutations, meal, meals[index - 1] as Meal)}
-        onMoveRight={() =>
-          index < meals.length - 1 && swapMeals(mutations, meal, meals[index + 1] as Meal)
-        }
+        // MC-1/B-296: no confirmation, deliberately — the toast's Annuler is the safety net.
+        onClearLines={() => void actions.clearMealLines(meal.id, meal.order_index)}
+        onZeroLines={() => void actions.zeroMealLines(meal.id, meal.order_index)}
+        onRename={() => promptRename(t, meal, actions.renameMeal)}
+        onMoveLeft={() => moveMeal(mutations, meals, index, -1)}
+        onMoveRight={() => moveMeal(mutations, meals, index, 1)}
         onDelete={() => setConfirming(true)}
         extra={photo.ready ? <MealPhotoButton busy={photo.busy} onClick={photo.trigger} /> : null}
       />

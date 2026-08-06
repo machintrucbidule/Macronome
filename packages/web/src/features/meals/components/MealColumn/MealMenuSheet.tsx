@@ -7,12 +7,20 @@ import styles from './meal-menu-sheet.module.css';
 // Rendered only when useIsMobile() (MealHeader gates it), so desktop is untouched. Cook mode is
 // dropped on mobile, so it is absent here; the ⊟ Restes button stays in the meal footer (it is not
 // folded into this menu — owner correction 2026-06-11).
+//
+// Order (MC-1/B-296, D3): the copy stays FIRST — it is the entry this sheet was built around —
+// then the two bulk actions, then the moves, then rename + delete. Every row already draws its own
+// bottom border, so the grouping needs no extra separator here.
 interface Props {
   name: string;
   canMoveLeft: boolean;
   canMoveRight: boolean;
+  canClearLines: boolean;
+  canZeroLines: boolean;
   /** Copier le repas de la veille (CP-2/B-248) — the header button's mobile home. */
   onCopyYesterday: () => void;
+  onClearLines: () => void;
+  onZeroLines: () => void;
   onRename: () => void;
   onMoveLeft: () => void;
   onMoveRight: () => void;
@@ -24,7 +32,11 @@ export function MealMenuSheet({
   name,
   canMoveLeft,
   canMoveRight,
+  canClearLines,
+  canZeroLines,
   onCopyYesterday,
+  onClearLines,
+  onZeroLines,
   onRename,
   onMoveLeft,
   onMoveRight,
@@ -43,8 +55,21 @@ export function MealMenuSheet({
         <button type="button" className={styles.item} onClick={act(onCopyYesterday)}>
           {t('meals.copyMeal.action')}
         </button>
-        <button type="button" className={styles.item} onClick={act(onRename)}>
-          {t('meals.meal.rename')}
+        <button
+          type="button"
+          className={styles.item}
+          disabled={!canClearLines}
+          onClick={act(onClearLines)}
+        >
+          {t('meals.meal.clearLines')}
+        </button>
+        <button
+          type="button"
+          className={styles.item}
+          disabled={!canZeroLines}
+          onClick={act(onZeroLines)}
+        >
+          {t('meals.meal.zeroLines')}
         </button>
         <button
           type="button"
@@ -61,6 +86,9 @@ export function MealMenuSheet({
           onClick={act(onMoveRight)}
         >
           {t('meals.meal.moveRight')}
+        </button>
+        <button type="button" className={styles.item} onClick={act(onRename)}>
+          {t('meals.meal.rename')}
         </button>
         <button type="button" className={`${styles.item} ${styles.danger}`} onClick={act(onDelete)}>
           {t('meals.meal.delete')}

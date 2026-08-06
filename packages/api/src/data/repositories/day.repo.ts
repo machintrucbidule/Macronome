@@ -195,7 +195,11 @@ export const dayRepo = {
    *  cascade), delete the non-pinned entries, reset the pinned (garde-manger) lines to
    *  qty 0 — restoring each pin's stored prefill unit/portion (GM-2/B-092), not forcing g —
    *  and clear `verdict_override` (back to Auto). The caller (service) resolves which ids fall
-   *  in each bucket from the user-scoped aggregate + live pantry pins. */
+   *  in each bucket from the user-scoped aggregate + live pantry pins.
+   *
+   *  `resetVerdict` is false for the PER-MEAL clear (MC-1/B-296): emptying one meal is an edit of
+   *  the day's lines, and a line edit has never cleared a forced verdict (same rule as the
+   *  per-meal copy). Only the day-wide clear resets it. */
   async clearDay(
     userId: string,
     date: string,
@@ -204,6 +208,7 @@ export const dayRepo = {
       deleteEntryIds: string[];
       zeroEntries: { id: string; unit: string; portionId: string | null }[];
     },
+    resetVerdict = true,
   ): Promise<void> {
     await prisma.$transaction(async (tx) => {
       if (ids.groupIds.length > 0) {
@@ -235,10 +240,12 @@ export const dayRepo = {
           },
         });
       }
-      await tx.dayLog.updateMany({
-        where: { userId, date: toDate(date) },
-        data: { verdictOverride: null },
-      });
+      if (resetVerdict) {
+        await tx.dayLog.updateMany({
+          where: { userId, date: toDate(date) },
+          data: { verdictOverride: null },
+        });
+      }
     });
   },
 };

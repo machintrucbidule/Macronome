@@ -330,6 +330,16 @@ condition: the moment there is content to lose, the standard confirm-size modal 
 same shell and wording pattern as the day-level copy. Do not generalise the exception to any other
 destructive flow.
 
+**Second bounded exception — the per-meal bulk actions never confirm (MC-1 / B-296).** _Supprimer
+tous les aliments_ and _Tout remettre à zéro_, in a meal's ⋯ menu, apply **immediately**: no dialog,
+in either case, whatever the meal holds. Owner decision, taken against the house rule above and
+against the conditional variant. What makes it bounded: both are **scoped to one meal**, both are
+**disabled when they would change nothing**, and both capture a day restore point, so the _Annuler_
+in the toast puts the meal back exactly (`spec/api/days-meals-leftover.md` §`/undo`) — the undo is
+the safety net that the dialog would otherwise be. The day-level _Tout effacer_ keeps its confirm:
+it is the same gesture over the whole day, and there the blast radius earns the extra click. Like
+CP-2, this exception is named, not general: a new destructive flow still confirms by default.
+
 ## Typed-confirmation modal (irreversible actions)
 
 confirm-size. A stronger confirm for **irreversible, account-wide** actions (the Données

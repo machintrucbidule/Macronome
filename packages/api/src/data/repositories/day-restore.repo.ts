@@ -8,7 +8,7 @@ import { toDate } from './day-read.repo.js';
 // dayCopyRepo; this repo only stores and hands back the payload.
 
 /** Which action wrote the point — drives the confirmation copy the client shows. */
-export type RestoreAction = 'clear' | 'copy' | 'delete_meal';
+export type RestoreAction = 'clear' | 'copy' | 'delete_meal' | 'clear_meal';
 
 export interface RestorePointRow {
   action: RestoreAction;

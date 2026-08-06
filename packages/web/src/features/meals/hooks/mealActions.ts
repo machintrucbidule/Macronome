@@ -13,6 +13,7 @@ import type { Op } from '../history/op';
 import { findEntry, recordAdd, recordUpdate } from '../history/recordHelpers';
 import { toastDayAction } from './dayToasts';
 import { editLineActions, moveLineActions, pickActions } from './lineActions';
+import { mealBulkActions } from './mealBulkActions';
 import type { UseDay } from './useDay';
 
 // The default-unit-on-add helper lives with the line actions; re-exported for its co-located test.
@@ -296,6 +297,7 @@ export function createMealActions(d: MealActionDeps) {
     ...moveLineActions(d, run),
     ...customActions(d, run, resolveMealId),
     ...dayActions(d, run, resolveMealId),
+    ...mealBulkActions(d, run, resolveMealId),
   };
 }
 

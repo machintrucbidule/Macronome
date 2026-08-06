@@ -45,13 +45,20 @@ const MEAL = {
   totals: {},
 } as unknown as Meal;
 
+const clearMealLines = vi.fn();
+const zeroMealLines = vi.fn();
+
 function renderColumn(deleteMeal = vi.fn(), meal: Meal = MEAL, copyMealYesterday = vi.fn()) {
+  clearMealLines.mockClear();
+  zeroMealLines.mockClear();
   const ctrl = {
     editing: null,
     mutations: {},
     actions: {
       deleteMeal,
       copyMealYesterday,
+      clearMealLines,
+      zeroMealLines,
       openCook: vi.fn(),
       renameMeal: vi.fn(),
       reorderEntries: vi.fn(),
@@ -162,7 +169,11 @@ describe('MealColumn copy yesterday (B-248)', () => {
         name="Déjeuner"
         canMoveLeft={false}
         canMoveRight={false}
+        canClearLines
+        canZeroLines
         onCopyYesterday={onCopyYesterday}
+        onClearLines={vi.fn()}
+        onZeroLines={vi.fn()}
         onRename={vi.fn()}
         onMoveLeft={vi.fn()}
         onMoveRight={vi.fn()}
@@ -172,5 +183,106 @@ describe('MealColumn copy yesterday (B-248)', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: action() }));
     expect(onCopyYesterday).toHaveBeenCalledTimes(1);
+  });
+});
+
+// MC-1 / B-296: the ⋯ menu gained two bulk actions. They are the only destructive flow in the app
+// with NO confirmation dialog (owner decision) — the toast's Annuler is the safety net — and they
+// are disabled, not hidden, when they would change nothing.
+describe('MealColumn bulk actions (B-296)', () => {
+  const clearLabel = (): string => i18n.t('meals.meal.clearLines');
+  const zeroLabel = (): string => i18n.t('meals.meal.zeroLines');
+  const openMenu = (): void => {
+    fireEvent.click(screen.getByText('⋯'));
+  };
+  const entry = (name: string): HTMLButtonElement => screen.getByRole('button', { name });
+
+  /** A meal holding only a garde-manger placeholder at 0 — a delete would keep it exactly as is. */
+  const PINNED_ZERO = {
+    ...MEAL,
+    entries: [{ id: 'e1', served_quantity: 0, order_index: 0, is_pinned: true }],
+  } as unknown as Meal;
+
+  it('applies immediately, with no confirmation dialog', () => {
+    renderColumn(vi.fn(), FILLED);
+    openMenu();
+    fireEvent.click(entry(clearLabel()));
+
+    expect(clearMealLines).toHaveBeenCalledWith('m1', 0);
+    // Nothing to confirm: neither the meal-delete modal nor the copy one may appear.
+    expect(screen.queryByText(i18n.t('meals.meal.deleteTitle'))).toBeNull();
+    expect(screen.queryByText(i18n.t('meals.copyMeal.title'))).toBeNull();
+  });
+
+  it('sends the zero action from its own entry', () => {
+    renderColumn(vi.fn(), FILLED);
+    openMenu();
+    fireEvent.click(entry(zeroLabel()));
+    expect(zeroMealLines).toHaveBeenCalledWith('m1', 0);
+    expect(clearMealLines).not.toHaveBeenCalled();
+  });
+
+  it('disables both entries on an empty meal', () => {
+    renderColumn(vi.fn(), MEAL);
+    openMenu();
+    expect(entry(clearLabel()).disabled).toBe(true);
+    expect(entry(zeroLabel()).disabled).toBe(true);
+  });
+
+  it('disables both on a meal holding only a garde-manger line already at 0', () => {
+    // Deleting keeps that line at 0 (D1) and zeroing leaves it at 0 — both would write nothing.
+    renderColumn(vi.fn(), PINNED_ZERO);
+    openMenu();
+    expect(entry(clearLabel()).disabled).toBe(true);
+    expect(entry(zeroLabel()).disabled).toBe(true);
+  });
+});
+
+describe('MealColumn bulk actions — menu order (B-296)', () => {
+  const clearLabel = (): string => i18n.t('meals.meal.clearLines');
+  const zeroLabel = (): string => i18n.t('meals.meal.zeroLines');
+
+  it('orders the desktop menu: bulk · moves · rename/delete', () => {
+    renderColumn(vi.fn(), FILLED);
+    fireEvent.click(screen.getByText('⋯'));
+    const menu = screen.getByRole('menu');
+    const labels = [...menu.querySelectorAll('button')].map((b) => b.textContent);
+    expect(labels).toEqual([
+      clearLabel(),
+      zeroLabel(),
+      i18n.t('meals.meal.moveLeft'),
+      i18n.t('meals.meal.moveRight'),
+      i18n.t('meals.meal.rename'),
+      i18n.t('meals.meal.delete'),
+    ]);
+  });
+
+  it('orders the mobile sheet with the copy first, then the two bulk entries (D3)', () => {
+    const { container } = render(
+      <MealMenuSheet
+        name="Déjeuner"
+        canMoveLeft={false}
+        canMoveRight={false}
+        canClearLines
+        canZeroLines
+        onCopyYesterday={vi.fn()}
+        onClearLines={vi.fn()}
+        onZeroLines={vi.fn()}
+        onRename={vi.fn()}
+        onMoveLeft={vi.fn()}
+        onMoveRight={vi.fn()}
+        onDelete={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+    const labels = [...container.ownerDocument.querySelectorAll('[role="dialog"] button')]
+      .map((b) => b.textContent)
+      .filter((l) => l !== '');
+    expect(labels.slice(0, 3)).toEqual([
+      i18n.t('meals.copyMeal.action'),
+      clearLabel(),
+      zeroLabel(),
+    ]);
+    expect(labels.slice(-2)).toEqual([i18n.t('meals.meal.rename'), i18n.t('meals.meal.delete')]);
   });
 });

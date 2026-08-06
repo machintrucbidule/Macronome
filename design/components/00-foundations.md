@@ -49,6 +49,12 @@ Firefox, `::-webkit-scrollbar*` for Chromium). The token existed in both themes 
 deliberately (the Repas meal scroller and the mobile meal tabs); the global rule is declared on
 element selectors so their class-level rules keep winning.
 
+**`color-scheme` does not cover the autofill highlight [B-305].** The browser also repaints a field
+the password manager filled, and that paint is governed separately — it composites over the author
+background instead of taking the theme, which is how the login fields came to read olive/yellow. It
+is neutralised in `global.css` too, next to the scrollbars: same reasoning, same place, one rule for
+every field (`forms-inputs.md` §autofilled has the visual contract).
+
 ## Focus ring
 
 Inputs on focus: `border-color: var(--focus)`. The emphasised variant (login

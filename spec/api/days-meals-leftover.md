@@ -88,11 +88,14 @@ day's current Σ consumed kcal` **server-side**, then **drops the day's meals** 
   carried one. Another user's date → **404** (cross-tenant, `00-conventions.md`). → 200
   DayDetail.
 
-  **Which actions capture a point:** `POST /days/:date/clear`, `POST /days/:date/copy-from` and
-  `DELETE /days/:date/meals/:mealId` — the three destructive day-level actions. Each **overwrites**
-  the previous point for that date; points do not expire. `POST /meals/:mealId/copy-from` (the
-  per-meal copy) and `POST /days/:date/summary` are **deliberately excluded** — they are guarded
-  by their own strong confirmation and were not in scope for B-261.
+  **Which actions capture a point:** `POST /days/:date/clear`, `POST /days/:date/copy-from`,
+  `DELETE /days/:date/meals/:mealId` and `POST /meals/:mealId/clear` (both modes, MC-1/B-296) —
+  the destructive actions that remove logged content. Each **overwrites** the previous point for
+  that date; points do not expire. `POST /meals/:mealId/copy-from` (the per-meal copy) and
+  `POST /days/:date/summary` remain **deliberately excluded** — they are guarded by their own strong
+  confirmation and were not in scope for B-261. The per-meal **clear** is the one that had to join
+  the list: it is the only destructive action that runs with **no confirmation at all**, so the
+  undo is the sole safety net (`design/components/modals.md` §Conditional confirmation).
 
 **DayDetail** payload (detailed):
 
@@ -123,6 +126,28 @@ condition as `estimated_burn`.
 - `DELETE /days/:date/meals/:mealId` → 204. **Captures a restore point** for the whole day first
   (see `/undo`): the meal's entries and leftover groups cascade away, so nothing short of a
   day-level snapshot could bring them back.
+- `POST /meals/:mealId/clear` — **empty one meal, or reset all its quantities** (MC-1 / B-296).
+  Body `{mode:'delete'|'zero'}`. The per-meal counterpart of `POST /days/:date/clear`, for the
+  common case where one meal is wrong and the rest of the day is fine.
+  - **`mode:'delete'`** applies the **day-clear partition, scoped to this meal**: every line is
+    deleted **except** a garde-manger line — its own `pinned` flag set **and** its food still in the
+    live `pantry_item` set for the meal's slot — which is **kept at qty 0 with the pin's stored
+    prefill `unit`/`portion_id`** (the same rule as `/days/:date/clear`, one definition).
+  - **`mode:'zero'`** keeps **every** line and sets each served quantity to **0**, preserving the
+    line's food, `unit`, `portion_id` and pin. Nothing is deleted.
+  - **Both modes dissolve the meal's leftover groups** — the deduction is meaningless once the
+    quantities it prorated are gone, and an empty group holding a frozen container value must never
+    be left behind.
+  - **The day's `verdict_override` is kept**, unlike the day-level clear. Semantics inherited from
+    the per-meal copy above: editing one meal is an edit of the day's lines, and a line edit has
+    never cleared a forced verdict. `comment` and `activity_level` are untouched; `verdict_auto`
+    follows the new totals on read, like after any line write.
+  - **Captures a restore point** for the whole day first (see `/undo`), after the guards — so a
+    refused call leaves the previous point intact.
+  - A meal with nothing to change is a **no-op**, not an error (the client disables the entries).
+    Summary (Partiel) target → its meals are already gone, so the id **404**s; the
+    `summary_day_readonly` guard is kept server-side as an unreachable safety net. Unknown meal /
+    another user's meal → **404**. → **200 DayDetail**.
 - `POST /meals/:mealId/copy-from` — **replace one meal with a copy of the matching meal
   of another day** (CP-2 / B-248). Body `{from:"YYYY-MM-DD"}`. The day-level
   `/days/:date/copy-from` above replaces the **whole** day; this is its per-meal
