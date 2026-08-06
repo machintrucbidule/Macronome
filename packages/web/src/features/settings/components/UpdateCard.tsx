@@ -1,17 +1,20 @@
 import { useQuery } from '@tanstack/react-query';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../../../components/Button/Button';
 import { api } from '../../../api/client';
-import { forceUpdate } from '../../../lib/pwa/registerSw';
+import { toastAfterReload } from '../../../components/Toast/toast-store';
+import { BUILD_VERSION, IS_DEV_BUILD } from '../../../lib/build-version';
+import { reloadPage } from '../../../lib/reload';
+import { activateUpdate, checkForUpdate } from '../../../lib/pwa/registerSw';
 import { useInstallPrompt } from '../../../lib/pwa/useInstallPrompt';
 import { SettingsCard } from './SettingsCard';
 import styles from '../settings.module.css';
 
-// Mise à jour card (PWA-1, design/components/pwa.md): the running version (read from the public
-// /health endpoint — the web never decides the number, ADR-0002), a manual "force update" button
-// (new versions otherwise apply silently on next launch), and an install button shown only when
-// the browser offers installation. It renders; it never computes.
+// Mise à jour card (PWA-1, design/components/pwa.md): the version of the bundle you are running
+// (baked at build — B-286), the version the server serves when the two differ, a manual "force
+// update" button, and an install button shown only when the browser offers installation.
+// It renders; it never computes.
 interface Health {
   status: string;
   db: string;
@@ -34,20 +37,45 @@ export function UpdateCard() {
   const { t } = useTranslation();
   const { canInstall, promptInstall } = useInstallPrompt();
   const health = useQuery({ queryKey: ['health'], queryFn: () => api.get<Health>('/health') });
-  const version = health.data?.version;
+  const [busy, setBusy] = useState(false);
+
+  const served = health.data?.version;
+  // An unversioned local build can never claim to be stale (dev + e2e run both sides on 'dev').
+  const hasUpdate = !IS_DEV_BUILD && served !== undefined && served !== BUILD_VERSION;
+
+  // B-285: ask the server for a new build, activate it if there is one, then ALWAYS reload —
+  // the button is labelled "Forcer la mise à jour" and must be deterministic. The confirmation
+  // is stored BEFORE activation: the plugin may reload the document itself once the new worker
+  // takes control, so a toast raised later would be lost with it.
+  const runUpdate = async (): Promise<void> => {
+    setBusy(true);
+    const outcome = await checkForUpdate();
+    toastAfterReload(t(outcome === 'update-ready' ? 'toast.updateApplied' : 'toast.updateCurrent'));
+    if (outcome === 'update-ready') await activateUpdate();
+    reloadPage();
+  };
 
   return (
     <SettingsCard
       id="update"
       title={t('settings.update.title')}
       aside={
-        version && <span className={styles.meta}>{t('settings.update.version', { version })}</span>
+        <span className={styles.meta}>
+          {hasUpdate
+            ? t('settings.update.versionUpgrade', { running: BUILD_VERSION, served })
+            : t('settings.update.version', { version: BUILD_VERSION })}
+        </span>
       }
     >
       <Row label={t('settings.update.refresh.label')} desc={t('settings.update.refresh.desc')}>
-        <Button variant="ghost" onClick={() => void forceUpdate()}>
-          {t('settings.update.refresh.button')}
-        </Button>
+        <span className={styles.updRow}>
+          {hasUpdate && (
+            <span className={styles.updAvail}>{t('settings.update.refresh.available')}</span>
+          )}
+          <Button variant="ghost" disabled={busy} onClick={() => void runUpdate()}>
+            {t(busy ? 'settings.update.refresh.pending' : 'settings.update.refresh.button')}
+          </Button>
+        </span>
       </Row>
       {canInstall && (
         <Row label={t('settings.update.install.label')} desc={t('settings.update.install.desc')}>

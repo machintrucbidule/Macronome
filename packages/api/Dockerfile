@@ -19,6 +19,11 @@ COPY tsconfig.base.json tsconfig.json ./
 COPY packages/shared packages/shared
 COPY packages/api packages/api
 COPY packages/web packages/web
+# Build-args are per-stage: the runtime ARG below does not reach the web build. Declared here
+# too so Vite can bake the version into the SPA bundle (B-286, vite.config.ts `define`), which
+# is how the app knows whether the shell it is running is the one the server serves.
+ARG APP_VERSION=dev
+ENV APP_VERSION=${APP_VERSION}
 RUN npm run build -w @macronome/shared \
  && npx prisma generate --schema packages/api/prisma/schema.prisma \
  && npm run build -w @macronome/api \

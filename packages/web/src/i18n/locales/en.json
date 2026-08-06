@@ -95,6 +95,8 @@
     "dayCopied": "Day copied",
     "mealDeleted": "Meal deleted",
     "importDone": "Import complete",
+    "updateApplied": "Update applied",
+    "updateCurrent": "Already up to date",
     "exportDone": "Export complete",
     "targetsSaved": "Targets saved",
     "settingsSaved": "Settings saved",
@@ -1371,10 +1373,13 @@
     "update": {
       "title": "Updates",
       "version": "Version {{version}}",
+      "versionUpgrade": "Version {{running}} → {{served}}",
       "refresh": {
         "label": "Force update",
         "desc": "New versions apply on next launch; this button applies one right now.",
-        "button": "Update"
+        "button": "Update",
+        "pending": "Updating…",
+        "available": "New version available"
       },
       "install": {
         "label": "Install the app",

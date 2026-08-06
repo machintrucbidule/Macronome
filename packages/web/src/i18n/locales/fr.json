@@ -95,6 +95,8 @@
     "dayCopied": "Journée copiée",
     "mealDeleted": "Repas supprimé",
     "importDone": "Import terminé",
+    "updateApplied": "Mise à jour appliquée",
+    "updateCurrent": "Déjà à jour",
     "exportDone": "Export terminé",
     "targetsSaved": "Cibles enregistrées",
     "settingsSaved": "Paramètres enregistrés",
@@ -1371,10 +1373,13 @@
     "update": {
       "title": "Mise à jour",
       "version": "Version {{version}}",
+      "versionUpgrade": "Version {{running}} → {{served}}",
       "refresh": {
         "label": "Forcer la mise à jour",
         "desc": "Les nouvelles versions s'appliquent au prochain lancement ; ce bouton l'applique tout de suite.",
-        "button": "Mettre à jour"
+        "button": "Mettre à jour",
+        "pending": "Mise à jour…",
+        "available": "Nouvelle version disponible"
       },
       "install": {
         "label": "Installer l'app",

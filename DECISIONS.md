@@ -5971,3 +5971,49 @@ displays — but the contract now reads as what the product is.
 
 **Contract impact.** `design/tokens.css` + web copy, `design/tokens.md` §Type families,
 `design/NORMALIZATION_LOG.md`. No code change beyond the token values.
+
+---
+
+## PWA-2 / B-285, B-286, B-287 — the update path actually updates — RESOLVED (owner, 2026-08-06)
+
+**Observed:** "Forcer la mise à jour" did nothing — no reload, no feedback — and the new code
+appeared only after a manual Ctrl+R. Three causes, one subject.
+
+**B-285 (bug, no contract change needed).** The button called `updateSW(true)` and trusted the
+argument. In vite-plugin-pwa's build client that argument is **discarded**: the call only posts
+`SKIP_WAITING`, and the reload lives in a `controlling` listener registered solely when a
+`waiting` event fired during the current page session. Nothing asked the server for a new build
+at click time either. So the common case — deploy, click in the tab that was already open — posted
+a message nobody received and returned. The click now performs the sequence itself: check
+(`registration.update()`), activate if something is waiting, then reload.
+
+**Owner decision — always reload**, even when nothing new is found. The control says "forcer" and
+must be deterministic; a "déjà à jour" no-op branch would re-expose the exact symptom whenever
+detection failed. Two distinct confirmations are handed across the reload instead ("Mise à jour
+appliquée" / "Déjà à jour"), and the button takes a pending state while the check runs — which
+supersedes `pwa.md`'s "No loading state needed (activation is near-instant)": it is now a network
+round-trip, not an activation.
+
+**B-286 (improvement).** The card read its number from `GET /api/v1/health`, i.e. the **server's**
+version by construction, so right after a deploy it already showed the new number while the
+browser still ran the old bundle. That is what made B-285 invisible for so long. The running
+build's version is now baked into the SPA at build (`APP_VERSION` build-arg → Vite `define`),
+**display-only and non-authoritative** — the git tag stays the source of truth (ADR-0002).
+
+**Owner decision — show the running version, and the served one next to it when they differ**
+("Version 1.2.3 → 1.3.0"), plus a discreet accent mention "Nouvelle version disponible" beside the
+button. Rejected: showing the served number alone (the status quo, which lies about what you are
+running), and a pill or a promoted button (Paramètres is not an alert surface).
+
+**B-287 (improvement).** The SPA was served by a bare `express.static` — no cache directives at
+all, so `index.html`, `sw.js` and every content-hashed asset were treated identically and the real
+policy was left to whatever proxy the operator fronts the port with. Now `/assets/*` (Vite's
+content-hashed output, whose URLs cannot change meaning) is `public, max-age=31536000, immutable`
+and **everything else** is `no-cache`. Deliberately a superset of the reported need: a cached
+`sw.js` would freeze the update path itself.
+
+**Contract impact.** `design/components/pwa.md` §Update card + §States,
+`docs/architecture/decisions/0002-versioning.md` Decision 4 (second amendment),
+`docs/architecture/ops.md` §6b (update runbook + a new static cache policy paragraph).
+Deliberately **not** `spec/api/00-conventions.md`: that contract governs `/api/v1`, and serving
+static files is an ops concern.

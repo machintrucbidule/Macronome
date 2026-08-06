@@ -105,6 +105,14 @@ export default defineConfig({
       '@macronome/shared': fileURLToPath(new URL('../shared/src/index.ts', import.meta.url)),
     },
   },
+  // B-286: bake the version of THIS bundle into the client. /api/v1/health reports the server's
+  // version, so right after a deploy the card claimed to be up to date while the browser still
+  // ran the old shell. Fed by the same APP_VERSION build-arg the API image receives (ADR-0002);
+  // 'dev' everywhere else. Display-only and non-authoritative — the git tag stays the source
+  // of truth. Read it through lib/build-version.ts, never this global directly.
+  define: {
+    __APP_VERSION__: JSON.stringify(process.env.APP_VERSION ?? 'dev'),
+  },
   server: {
     // Bind on all IPv4 interfaces (loopback + LAN), IPv4-only — we do NOT bind ::1.
     // Why: `localhost` resolves to both 127.0.0.1 AND ::1; binding ::1 only (Vite's

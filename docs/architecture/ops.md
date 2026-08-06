@@ -224,6 +224,19 @@ shown prefixed by the stack name (e.g. `macronome_pgdata`, `macronome_appdata`).
   apply automatically on start.
 - CLI (in the compose dir): `docker compose pull && docker compose up -d`.
 - _Recommended first:_ take a backup (below) — a bad migration is the only real risk.
+- **In the browser, no Ctrl+R needed** (B-285). Open tabs keep running the old shell until they
+  are relaunched; Paramètres → **Mise à jour** → _Forcer la mise à jour_ fetches the new build,
+  activates it and reloads. While the running build and the deployed one differ, the card shows
+  `Version {running} → {served}` and flags "Nouvelle version disponible" (B-286).
+
+**Static cache policy (B-287).** The API serves the SPA itself (ADR-0001), and sets the headers:
+
+- `/assets/*` → `public, max-age=31536000, immutable`. Vite content-hashes everything it emits
+  there, so those URLs can never change meaning.
+- Everything else in the build — `index.html`, `sw.js`, `manifest.webmanifest`, the icons →
+  `no-cache` (always revalidated). This is not optional: a cached `sw.js` would freeze the
+  update path itself, and a cached `index.html` would keep pointing at the previous build's
+  hashed assets. A reverse proxy in front of the port must not weaken these.
 
 **Reset the database (start fresh — DELETES all data).**
 

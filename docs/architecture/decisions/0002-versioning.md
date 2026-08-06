@@ -45,6 +45,15 @@ in sync everywhere** — without hand-syncing the number across many files (the 
    _Amendment (PWA-1, 2026-06-11):_ this deferral is now **lifted**. The SPA surfaces the running
    version on the Paramètres "Mise à jour" card, read from `GET /api/v1/health` (the chosen path
    above). See ADR-0003 and DECISIONS.md → "PWA-1".
+   _Amendment (PWA-2 / B-286, 2026-08-06):_ **both** paths are now used, for different questions.
+   `/api/v1/health` answers "which version is **deployed**" and stays the authority. The Vite
+   build-time define answers "which version is the browser **running**": the same `APP_VERSION`
+   build-arg is declared in the Dockerfile's **build** stage (build-args are per-stage) and
+   injected as `__APP_VERSION__`, read through `packages/web/src/lib/build-version.ts`; it
+   defaults to `dev` outside the image. The baked value is **display-only and
+   non-authoritative** — it exists so the app can tell a stale shell from a fresh one, which is
+   what makes the "Forcer la mise à jour" button meaningful (B-285). The annotated git tag
+   remains the single source of truth for both.
 
 5. **Agent rule:** an agent may _propose_ a version bump (e.g. at the end of a batch) but **must
    never create/push a tag or pick the number** — that is the owner's call, like every push.
