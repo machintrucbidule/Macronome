@@ -5,6 +5,7 @@ import type {
 } from '@prisma/client';
 import type { RecipeListQuery } from '@macronome/shared';
 import { prisma } from '../prisma.js';
+import { pageWindow } from './page-window.js';
 
 // Repository for recipe + recipe_ingredient. Every method is scoped by the authenticated
 // `userId` (CLAUDE.md rule 3); a cross-tenant id resolves to null → 404 at the controller.
@@ -108,7 +109,7 @@ export const recipeRepo = {
         where,
         orderBy,
         take: query.limit + 1,
-        ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}),
+        ...pageWindow(query),
       }),
       prisma.recipe.count({ where }),
     ]);

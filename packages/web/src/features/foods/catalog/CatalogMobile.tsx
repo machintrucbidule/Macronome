@@ -49,15 +49,21 @@ function buildFilterSections(props: CatalogViewProps, t: TFunction): FilterSecti
 
 export function CatalogMobile(props: CatalogViewProps) {
   const { t } = useTranslation();
-  const reserve = useListReserve(props.refs.length, props.total, props.list, CARD_GAP);
+  const reserve = useListReserve(props.list, CARD_GAP);
 
   const body = ((): ReactNode => {
     if (props.loading) return <SkeletonRows />;
     if (props.refs.length === 0) return <EmptyState>{t('foods.catalog.empty')}</EmptyState>;
     return (
       <>
-        <CatalogCards refs={props.refs} onAdopt={props.onAdopt} rowsRef={reserve.listRef} />
-        <InfiniteScrollFooter query={props.list} {...reserve.footer} />
+        <CatalogCards
+          slots={props.list.slots}
+          head={props.list.firstPageCount}
+          pitch={reserve.pitch}
+          onAdopt={props.onAdopt}
+          rowsRef={reserve.listRef}
+        />
+        <InfiniteScrollFooter loadedCount={props.list.rows.length} />
       </>
     );
   })();

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { offsetField, rejectCursorWithOffset } from './pagination.js';
 
 // Food DTOs (spec/api/foods-recipes.md §Foods). One source for controller
 // validation and the web client's request/response types. Field names stay
@@ -158,27 +159,30 @@ export const FOOD_SORT_FIELDS = [
   'usage',
 ] as const;
 
-export const FoodListQuerySchema = z.object({
-  q: z.string().trim().max(255).optional(),
-  min_rating: z.coerce
-    .number()
-    .int()
-    .pipe(z.union([z.literal(1), z.literal(2), z.literal(3)]))
-    .optional(),
-  visibility: VisibilitySchema.optional(),
-  // Provenance filter (B-291). `recipe` is deliberately not accepted: recipe-derived foods are
-  // excluded from this list by construction, so it could only ever return nothing.
-  source: CreateFoodSourceSchema.optional(),
-  include_archived: z
-    .union([z.boolean(), z.enum(['true', 'false'])])
-    .optional()
-    .default(false)
-    .transform((v) => v === true || v === 'true'),
-  sort: z.enum(FOOD_SORT_FIELDS).optional().default('name'),
-  dir: z.enum(['asc', 'desc']).optional().default('asc'),
-  limit: z.coerce.number().int().positive().max(200).optional().default(50),
-  cursor: z.string().optional(),
-});
+export const FoodListQuerySchema = z
+  .object({
+    q: z.string().trim().max(255).optional(),
+    min_rating: z.coerce
+      .number()
+      .int()
+      .pipe(z.union([z.literal(1), z.literal(2), z.literal(3)]))
+      .optional(),
+    visibility: VisibilitySchema.optional(),
+    // Provenance filter (B-291). `recipe` is deliberately not accepted: recipe-derived foods are
+    // excluded from this list by construction, so it could only ever return nothing.
+    source: CreateFoodSourceSchema.optional(),
+    include_archived: z
+      .union([z.boolean(), z.enum(['true', 'false'])])
+      .optional()
+      .default(false)
+      .transform((v) => v === true || v === 'true'),
+    sort: z.enum(FOOD_SORT_FIELDS).optional().default('name'),
+    dir: z.enum(['asc', 'desc']).optional().default('asc'),
+    limit: z.coerce.number().int().positive().max(200).optional().default(50),
+    cursor: z.string().optional(),
+    offset: offsetField,
+  })
+  .superRefine(rejectCursorWithOffset);
 export type FoodListQuery = z.infer<typeof FoodListQuerySchema>;
 
 /** List response envelope (spec/api/00-conventions.md §List behaviour). */

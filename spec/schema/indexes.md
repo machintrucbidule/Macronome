@@ -55,7 +55,19 @@ CREATE INDEX idx_food_owner_normname ON food(owner_id, normalized_name) WHERE ar
 -- Ciqual reference catalog (global, not user-scoped; B-289)
 CREATE UNIQUE INDEX uq_foodref_dataset_code ON food_ref(dataset, code);
 CREATE INDEX idx_foodref_dataset_group      ON food_ref(dataset, group_label_fr); -- group filter
+
+-- Catalog default ordering (LD-1/B-303). The list's ORDER BY is (name, id) in the queried locale;
+-- without these, every page sorted the whole 3 400-row table — measured at 15 ms per page, against
+-- 0.3 ms with the index, and a scrollbar jump backfills ~68 pages. One btree per name column
+-- serves both directions. (At the very deepest offsets the planner still prefers the seq scan +
+-- sort, correctly: that is cheaper than 3 300 index entries plus their heap rows.)
+CREATE INDEX idx_foodref_name_fr  ON food_ref(name_fr,  id);
+CREATE INDEX idx_foodref_name_eng ON food_ref(name_eng, id);
 ```
+
+> The numeric sorts (kcal/L/G/P) are deliberately **not** indexed: measured at 4.7 ms per page on
+> the same table, they do not repay eight more indexes at this size. Revisit only if a catalog grows
+> by an order of magnitude.
 
 ## Stats query support
 

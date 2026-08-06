@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import type { Food } from '@macronome/shared';
 import { SortableTh, tableStyles } from '../../../components/DataTable/SortableTh';
 import { FoodRow } from './FoodRow';
+import { TableSlots } from '../../../components/states/ListSlotFillers';
+import type { Slot } from '../../../lib/usePagedList';
 import styles from '../foods.module.css';
 
 // Sortable foods table (specifications/screens/food-db.md). Sortable columns:
@@ -22,7 +24,12 @@ export type SortField =
   | 'usage';
 
 interface FoodTableProps {
-  foods: Food[];
+  /** The whole result set: loaded rows, loading placeholders and reserved gaps (LD-1/B-303). */
+  slots: Slot<Food>[];
+  /** Slots belonging to page 0 — the measured container holds those and nothing else. */
+  head: number;
+  /** Measured row height, sizing the placeholders and gaps. */
+  pitch: number;
   sort: SortField;
   dir: 'asc' | 'desc';
   onSort: (field: SortField) => void;
@@ -33,8 +40,12 @@ interface FoodTableProps {
   rowsRef?: RefObject<HTMLElement | null>;
 }
 
+const COLUMNS = 11;
+
 export function FoodTable({
-  foods,
+  slots,
+  head,
+  pitch,
   sort,
   dir,
   onSort,
@@ -44,6 +55,15 @@ export function FoodTable({
   rowsRef,
 }: FoodTableProps) {
   const { t } = useTranslation();
+  const row = (food: Food) => (
+    <FoodRow
+      key={food.id}
+      food={food}
+      onOpen={onOpen}
+      onArchive={onArchive}
+      onRestore={onRestore}
+    />
+  );
   const th = (field: SortField, align: 'left' | 'right' | 'center') => (
     <SortableTh
       field={field}
@@ -74,16 +94,16 @@ export function FoodTable({
             <th aria-label="actions" />
           </tr>
         </thead>
+        {/* Page 0 alone in the measured box: a placeholder inside it would corrupt the pitch. */}
         <tbody ref={rowsRef as RefObject<HTMLTableSectionElement>}>
-          {foods.map((food) => (
-            <FoodRow
-              key={food.id}
-              food={food}
-              onOpen={onOpen}
-              onArchive={onArchive}
-              onRestore={onRestore}
-            />
-          ))}
+          <TableSlots slots={slots.slice(0, head)} pitch={pitch} columns={COLUMNS}>
+            {row}
+          </TableSlots>
+        </tbody>
+        <tbody>
+          <TableSlots slots={slots.slice(head)} pitch={pitch} columns={COLUMNS} offset={head}>
+            {row}
+          </TableSlots>
         </tbody>
       </table>
     </div>

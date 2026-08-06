@@ -1,21 +1,19 @@
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
+import type { FoodRef } from '@macronome/shared';
 import { foodRefsApi, type FoodRefListParams } from '../../../api/foodRefs';
-import { LIST_GC_TIME } from '../../../lib/listCache';
+import { usePagedList, type PagedList } from '../../../lib/usePagedList';
 
-// Data hooks for the Catalogue Ciqual mode (B-292). Same keyset-lazy-loading shape as
-// useFoodsList: the view owns the filter state and passes it in.
+// Data hooks for the Catalogue Ciqual mode (B-292). The view owns the filter state and passes it
+// in. Paged by row offset since LD-1/B-303 — this is the 3 400-row list the change was for.
 export const FOOD_REFS_KEY = ['food-refs'] as const;
 
-export function useFoodRefsList(params: FoodRefListParams) {
-  return useInfiniteQuery({
+export function useFoodRefsList(params: FoodRefListParams): PagedList<FoodRef> {
+  return usePagedList<FoodRef>({
     queryKey: [...FOOD_REFS_KEY, params],
-    queryFn: ({ pageParam }) =>
-      foodRefsApi.list(pageParam ? { ...params, cursor: pageParam } : params),
-    initialPageParam: undefined as string | undefined,
-    getNextPageParam: (last) => last.next_cursor ?? undefined,
-    // Same reason as the foods list (B-268): keep the scrolled pages across a round trip
-    // into the food form, so the restored scroll offset still has rows under it.
-    gcTime: LIST_GC_TIME,
+    fetchPage: async (offset, limit) => {
+      const res = await foodRefsApi.list({ ...params, offset, limit });
+      return { data: res.data, total: res.total };
+    },
   });
 }
 

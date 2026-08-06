@@ -1,6 +1,7 @@
 import type { Food as FoodModel, FoodPortion as FoodPortionModel, Prisma } from '@prisma/client';
 import type { FoodListQuery } from '@macronome/shared';
 import { prisma } from '../prisma.js';
+import { pageStartIndex, pageWindow } from './page-window.js';
 import { foodUsageMap, rankByUsage } from './food-usage.js';
 
 // Repository for food + food_portion. Every method is scoped by the authenticated
@@ -131,8 +132,9 @@ async function syncPortions(
 type ListQuery = FoodListQuery & { normalized?: string };
 
 /** Usage-sorted list (FU-1/B-151): rank the full match set by 90-day usage, then paginate by
- *  cursor-id slicing over the deterministic order (no DB column for usage). Rows carry the count.
- *  The match set is a single user's bounded catalog, like the AI candidate read. */
+ *  slicing the deterministic order (no DB column for usage). Rows carry the count. The match set
+ *  is a single user's bounded catalog, like the AI candidate read. This path never was keyset, so
+ *  `offset` is simply where the slice starts (LD-1/B-303). */
 async function listByUsage(userId: string, query: ListQuery): Promise<ListPage> {
   const matches = await prisma.food.findMany({ where: buildWhere(userId, query) });
   const usage = await foodUsageMap(
@@ -140,8 +142,7 @@ async function listByUsage(userId: string, query: ListQuery): Promise<ListPage> 
     matches.map((f) => f.id),
   );
   const ranked = rankByUsage(matches, usage, query.dir);
-  const after = query.cursor ? ranked.findIndex((f) => f.id === query.cursor) : -1;
-  const begin = after >= 0 ? after + 1 : 0;
+  const begin = pageStartIndex(query, () => ranked.findIndex((f) => f.id === query.cursor));
   const page = ranked.slice(begin, begin + query.limit);
   const nextCursor = begin + query.limit < ranked.length ? (page.at(-1)?.id ?? null) : null;
   const rows = await withPortions(page);
@@ -176,7 +177,7 @@ export const foodRepo = {
         where,
         orderBy,
         take: query.limit + 1,
-        ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}),
+        ...pageWindow(query),
       }),
       prisma.food.count({ where }),
     ]);

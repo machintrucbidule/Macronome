@@ -6,6 +6,7 @@ import { EmptyState } from '../../../components/states/EmptyState';
 import { SkeletonTableRows } from '../../../components/states/SkeletonTableRows';
 import { InfiniteScrollFooter } from '../../../lib/InfiniteScrollFooter';
 import { useListReserve } from '../../../lib/useListReserve';
+import type { PagedList } from '../../../lib/usePagedList';
 import { FoodsToolbar } from './FoodsToolbar';
 import { FoodTable, type SortField } from './FoodTable';
 import { FiltersPopover, type MinRating, type VisibilityFilter } from './FiltersPopover';
@@ -18,7 +19,7 @@ interface FoodsDesktopProps {
   foods: Food[];
   loading: boolean;
   isError: boolean;
-  list: { hasNextPage: boolean; isFetchingNextPage: boolean; fetchNextPage: () => unknown };
+  list: PagedList<Food>;
   /** Rows matching the current filters, server-side (B-278); undefined until page 1 lands. */
   total: number | undefined;
   q: string;
@@ -48,7 +49,7 @@ export function FoodsDesktop(props: FoodsDesktopProps) {
   const { t } = useTranslation();
   // B-278: reserve the height of the rows the server has but we have not fetched, and keep pulling
   // pages while the scroll position asks for rows beyond the loaded ones.
-  const reserve = useListReserve(props.foods.length, props.total, props.list);
+  const reserve = useListReserve(props.list);
   return (
     <>
       <FoodsToolbar
@@ -82,7 +83,9 @@ export function FoodsDesktop(props: FoodsDesktopProps) {
       ) : (
         <>
           <FoodTable
-            foods={props.foods}
+            slots={props.list.slots}
+            head={props.list.firstPageCount}
+            pitch={reserve.pitch}
             sort={props.sort}
             dir={props.dir}
             onSort={props.onSort}
@@ -91,7 +94,7 @@ export function FoodsDesktop(props: FoodsDesktopProps) {
             onRestore={props.onRestore}
             rowsRef={reserve.listRef}
           />
-          <InfiniteScrollFooter query={props.list} {...reserve.footer} />
+          <InfiniteScrollFooter loadedCount={props.list.rows.length} />
         </>
       )}
     </>

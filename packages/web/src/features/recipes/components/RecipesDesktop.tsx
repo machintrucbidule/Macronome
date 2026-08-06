@@ -4,6 +4,7 @@ import { EmptyState } from '../../../components/states/EmptyState';
 import { SkeletonTableRows } from '../../../components/states/SkeletonTableRows';
 import { InfiniteScrollFooter } from '../../../lib/InfiniteScrollFooter';
 import { useListReserve } from '../../../lib/useListReserve';
+import type { PagedList } from '../../../lib/usePagedList';
 import { RecipesToolbar } from './RecipesToolbar';
 import { RecipesTable, type SortField } from './RecipesTable';
 import type { MinRating } from './FiltersPopover';
@@ -14,7 +15,7 @@ import type { MinRating } from './FiltersPopover';
 interface RecipesDesktopProps {
   recipes: RecipeSummary[];
   loading: boolean;
-  list: { hasNextPage: boolean; isFetchingNextPage: boolean; fetchNextPage: () => unknown };
+  list: PagedList<RecipeSummary>;
   /** Rows matching the current filters, server-side (B-278); undefined until page 1 lands. */
   total: number | undefined;
   q: string;
@@ -35,7 +36,7 @@ interface RecipesDesktopProps {
 export function RecipesDesktop(props: RecipesDesktopProps) {
   const { t } = useTranslation();
   // B-278: reserve the unloaded rows' height and chain pages when the scroll asks for them.
-  const reserve = useListReserve(props.recipes.length, props.total, props.list);
+  const reserve = useListReserve(props.list);
   return (
     <>
       <RecipesToolbar
@@ -56,7 +57,9 @@ export function RecipesDesktop(props: RecipesDesktopProps) {
       ) : (
         <>
           <RecipesTable
-            recipes={props.recipes}
+            slots={props.list.slots}
+            head={props.list.firstPageCount}
+            pitch={reserve.pitch}
             sort={props.sort}
             dir={props.dir}
             onSort={props.onSort}
@@ -65,7 +68,7 @@ export function RecipesDesktop(props: RecipesDesktopProps) {
             onRestore={props.onRestore}
             rowsRef={reserve.listRef}
           />
-          <InfiniteScrollFooter query={props.list} {...reserve.footer} />
+          <InfiniteScrollFooter loadedCount={props.list.rows.length} />
         </>
       )}
     </>

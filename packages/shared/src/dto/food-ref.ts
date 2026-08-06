@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { offsetField, rejectCursorWithOffset } from './pagination.js';
 
 // Ciqual reference-catalog DTOs (spec/api/foods-recipes.md §Food reference catalog, B-292).
 // Read-only: there is no create/update shape. Field names stay snake_case to match the API
@@ -29,16 +30,19 @@ export type FoodRef = z.infer<typeof FoodRefSchema>;
 
 export const FOOD_REF_SORT_FIELDS = ['name', 'kcal', 'fat', 'carb', 'protein'] as const;
 
-export const FoodRefListQuerySchema = z.object({
-  q: z.string().trim().max(255).optional(),
-  /** A level-1 food-group label, as returned by `GET /food-refs/groups`. */
-  group: z.string().trim().max(255).optional(),
-  locale: CatalogLocaleSchema.optional().default('fr'),
-  sort: z.enum(FOOD_REF_SORT_FIELDS).optional().default('name'),
-  dir: z.enum(['asc', 'desc']).optional().default('asc'),
-  limit: z.coerce.number().int().positive().max(200).optional().default(50),
-  cursor: z.string().optional(),
-});
+export const FoodRefListQuerySchema = z
+  .object({
+    q: z.string().trim().max(255).optional(),
+    /** A level-1 food-group label, as returned by `GET /food-refs/groups`. */
+    group: z.string().trim().max(255).optional(),
+    locale: CatalogLocaleSchema.optional().default('fr'),
+    sort: z.enum(FOOD_REF_SORT_FIELDS).optional().default('name'),
+    dir: z.enum(['asc', 'desc']).optional().default('asc'),
+    limit: z.coerce.number().int().positive().max(200).optional().default(50),
+    cursor: z.string().optional(),
+    offset: offsetField,
+  })
+  .superRefine(rejectCursorWithOffset);
 export type FoodRefListQuery = z.infer<typeof FoodRefListQuerySchema>;
 
 export const FoodRefGroupsQuerySchema = z.object({

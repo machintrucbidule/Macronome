@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { SEARCH_DEBOUNCE_MS, useDebouncedValue } from '../../lib/useDebouncedValue';
 import { useQueryClient } from '@tanstack/react-query';
 import type { Food, FoodRef } from '@macronome/shared';
 import { FoodsModeToggle, type FoodsMode } from './components/FoodsModeToggle';
@@ -37,10 +38,13 @@ export function FoodsPage() {
   const qc = useQueryClient();
   const [mode, setMode] = useState<FoodsMode>('library');
   const [q, setQ] = useState('');
+  // The field stays instant; the QUERY waits 300 ms (LD-1/B-303, the delay useChronoSearch
+  // already uses). Every keystroke used to discard every accumulated page and restart the list.
+  const debouncedQ = useDebouncedValue(q.trim(), SEARCH_DEBOUNCE_MS);
   const [modal, setModal] = useState<ModalState>(null);
   const [archiveTarget, setArchiveTarget] = useState<Food | null>(null);
 
-  const library = useFoodsLibrary(q);
+  const library = useFoodsLibrary(debouncedQ);
   const { archive, restore } = useFoodMutations();
 
   const editingId = modal?.mode === 'edit' ? modal.food.id : null;
@@ -72,6 +76,7 @@ export function FoodsPage() {
       ) : (
         <CatalogView
           q={q}
+          queryQ={debouncedQ}
           onQ={setQ}
           modeToggle={modeToggle}
           onAdd={() => setModal({ mode: 'add' })}

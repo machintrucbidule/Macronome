@@ -2,6 +2,8 @@ import type { RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { RecipeSummary } from '@macronome/shared';
 import { SortableTh, tableStyles } from '../../../components/DataTable/SortableTh';
+import { TableSlots } from '../../../components/states/ListSlotFillers';
+import type { Slot } from '../../../lib/usePagedList';
 import { RecipeRow } from './RecipeRow';
 import styles from '../recipes.module.css';
 
@@ -11,7 +13,12 @@ import styles from '../recipes.module.css';
 export type SortField = 'name' | 'batch' | 'servings' | 'rating';
 
 interface RecipesTableProps {
-  recipes: RecipeSummary[];
+  /** The whole result set: loaded rows, loading placeholders and reserved gaps (LD-1/B-303). */
+  slots: Slot<RecipeSummary>[];
+  /** Slots belonging to page 0 — the measured container holds those and nothing else. */
+  head: number;
+  /** Measured row height, sizing the placeholders and gaps. */
+  pitch: number;
   sort: SortField;
   dir: 'asc' | 'desc';
   onSort: (field: SortField) => void;
@@ -22,8 +29,12 @@ interface RecipesTableProps {
   rowsRef?: RefObject<HTMLElement | null>;
 }
 
+const COLUMNS = 10;
+
 export function RecipesTable({
-  recipes,
+  slots,
+  head,
+  pitch,
   sort,
   dir,
   onSort,
@@ -33,6 +44,15 @@ export function RecipesTable({
   rowsRef,
 }: RecipesTableProps) {
   const { t } = useTranslation();
+  const row = (recipe: RecipeSummary) => (
+    <RecipeRow
+      key={recipe.id}
+      recipe={recipe}
+      onOpen={onOpen}
+      onArchive={onArchive}
+      onRestore={onRestore}
+    />
+  );
   const th = (field: SortField, align: 'left' | 'right' | 'center') => (
     <SortableTh
       field={field}
@@ -62,16 +82,16 @@ export function RecipesTable({
             <th aria-label="actions" />
           </tr>
         </thead>
+        {/* Page 0 alone in the measured box: a placeholder inside it would corrupt the pitch. */}
         <tbody ref={rowsRef as RefObject<HTMLTableSectionElement>}>
-          {recipes.map((recipe) => (
-            <RecipeRow
-              key={recipe.id}
-              recipe={recipe}
-              onOpen={onOpen}
-              onArchive={onArchive}
-              onRestore={onRestore}
-            />
-          ))}
+          <TableSlots slots={slots.slice(0, head)} pitch={pitch} columns={COLUMNS}>
+            {row}
+          </TableSlots>
+        </tbody>
+        <tbody>
+          <TableSlots slots={slots.slice(head)} pitch={pitch} columns={COLUMNS} offset={head}>
+            {row}
+          </TableSlots>
         </tbody>
       </table>
     </div>

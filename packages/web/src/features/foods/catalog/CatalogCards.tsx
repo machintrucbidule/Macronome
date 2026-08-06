@@ -1,6 +1,8 @@
 import type { RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { FoodRef } from '@macronome/shared';
+import { CardSlots } from '../../../components/states/ListSlotFillers';
+import type { Slot } from '../../../lib/usePagedList';
 import { gramsDisplay, kcalDisplay } from '../format';
 import { refGroup, refName } from './refName';
 import cards from '../foods-mobile.module.css';
@@ -53,17 +55,28 @@ function CatalogCard({ ref_, onAdopt }: { ref_: FoodRef; onAdopt: (ref: FoodRef)
 }
 
 interface CatalogCardsProps {
-  refs: FoodRef[];
+  slots: Slot<FoodRef>[];
+  /** Slots of page 0 — the measured container holds those and nothing else (LD-1/B-303). */
+  head: number;
+  pitch: number;
   onAdopt: (ref: FoodRef) => void;
   rowsRef?: RefObject<HTMLElement | null>;
 }
 
-export function CatalogCards({ refs, onAdopt, rowsRef }: CatalogCardsProps) {
+export function CatalogCards({ slots, head, pitch, onAdopt, rowsRef }: CatalogCardsProps) {
+  const card = (ref_: FoodRef) => <CatalogCard key={ref_.id} ref_={ref_} onAdopt={onAdopt} />;
   return (
-    <div className={cards.cardList} ref={rowsRef as RefObject<HTMLDivElement>}>
-      {refs.map((ref_) => (
-        <CatalogCard key={ref_.id} ref_={ref_} onAdopt={onAdopt} />
-      ))}
-    </div>
+    <>
+      <div className={cards.cardList} ref={rowsRef as RefObject<HTMLDivElement>}>
+        <CardSlots slots={slots.slice(0, head)} pitch={pitch}>
+          {card}
+        </CardSlots>
+      </div>
+      <div className={cards.cardList}>
+        <CardSlots slots={slots.slice(head)} pitch={pitch} offset={head}>
+          {card}
+        </CardSlots>
+      </div>
+    </>
   );
 }

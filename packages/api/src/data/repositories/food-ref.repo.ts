@@ -1,6 +1,7 @@
 import type { FoodRef as FoodRefModel, Prisma } from '@prisma/client';
 import type { FoodRefListQuery } from '@macronome/shared';
 import { prisma } from '../prisma.js';
+import { pageWindow } from './page-window.js';
 
 // Repository for the global Ciqual reference catalog (spec/schema/tables-catalog.md → food_ref).
 //
@@ -90,7 +91,7 @@ export interface FoodRefPage {
   total: number;
 }
 
-/** One keyset page of the catalog. Same convention as `food.repo.list` (00-conventions §List). */
+/** One page of the catalog, by cursor or by offset. Same convention as `food.repo.list`. */
 export async function list(query: ListOpts): Promise<FoodRefPage> {
   const column = SORT_COLUMN[query.locale][query.sort];
   const where = buildWhere(query);
@@ -99,7 +100,7 @@ export async function list(query: ListOpts): Promise<FoodRefPage> {
       where,
       orderBy: [{ [column]: query.dir }, { id: query.dir }],
       take: query.limit + 1,
-      ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}),
+      ...pageWindow(query),
     }),
     prisma.foodRef.count({ where }),
   ]);

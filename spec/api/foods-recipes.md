@@ -10,7 +10,8 @@ See `00-conventions.md`. All scoped to the authenticated user.
   `recipe` is not accepted, those rows are excluded from this list by construction),
   `include_archived` (bool, default false),
   `sort` ∈ {name,kcal,fat,carb,protein,rating,source,visibility,usage} (Portion NOT sortable,
-  OPEN_GAPS #10), `dir`, `limit`, `cursor`. **`usage`** (FU-1) orders by the food's
+  OPEN_GAPS #10), `dir`, `limit`, `cursor` **or `offset`** (LD-1/B-303, mutually exclusive —
+  `00-conventions.md` §List behaviour). **`usage`** (FU-1) orders by the food's
   **meal-log count over the last 90 days** (most-used first for `dir=desc`), ties broken by
   most-recent use then name; usage is derived from `meal_entry` at query time (no stored
   column). Only **consumed** entries count — those with `served_quantity > 0`; quantity-0
@@ -87,8 +88,10 @@ the Aliments catalog prefills the food form (B-292), the search pickers call
 - `GET /food-refs` — browse the catalog. Query: `q` (autocomplete — matches the **French and
   English** normalized names at once, so "pomme" and "apple" find the same entry, D6), `group`
   (a level-1 food-group label, from `/food-refs/groups`), `locale` (`fr`|`en`, default `fr`),
-  `sort` ∈ {name,kcal,fat,carb,protein}, `dir`, `limit`, `cursor`.
-  → 200 `{data:[FoodRef], next_cursor, total}` (standard keyset list, `00-conventions.md`).
+  `sort` ∈ {name,kcal,fat,carb,protein}, `dir`, `limit`, `cursor` **or `offset`** (LD-1/B-303,
+  mutually exclusive). → 200 `{data:[FoodRef], next_cursor, total}` (standard list,
+  `00-conventions.md`). This is the catalogue `offset` was added for: 3 400 rows, so a scrollbar
+  drag lands thousands of rows past anything a cursor could name.
   **`locale` drives three things at once**: which name column `sort=name` orders by, which name the
   `already_owned` probe compares, and — by symmetry — which group labels `group` matches. It is not
   a display preference: the client receives both languages and picks. It exists because an adopted
@@ -119,7 +122,7 @@ surfaced** in v1 (owner decision, B-292): the catalog shows a homogeneous kcal c
 - `GET /recipes` — recipes only. Query: `q`, `min_rating` (1|2|3 — excludes Bof 0
   and unrated when ≥1, mirrors foods), `include_archived`, `sort` ∈
   {name,batch,servings,rating} (derived macro columns NOT sortable, cf. OPEN_GAPS #10),
-  `dir`, `limit`, `cursor`.
+  `dir`, `limit`, `cursor` **or `offset`** (LD-1/B-303, mutually exclusive).
   → 200 `{data:[RecipeSummary], next_cursor}` (incl. derived per-100 g, batch,
   `batch_weight_auto`, servings, weight/portion, rating).
 - `GET /recipes/:id` → 200 RecipeFull (ingredients + instructions + derived +

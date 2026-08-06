@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import type { RecipeSummary } from '@macronome/shared';
 import { RecipesDesktop } from './components/RecipesDesktop';
 import { RecipesMobile } from './components/RecipesMobile';
@@ -10,6 +10,7 @@ import { useRecipeMutations, useRecipesList } from './useRecipes';
 import { useRecipesContextMenu } from './useRecipesContextMenu';
 import { defaultDirFor } from '../../components/DataTable/sortDir';
 import { useIsMobile } from '../../lib/useIsMobile';
+import { SEARCH_DEBOUNCE_MS, useDebouncedValue } from '../../lib/useDebouncedValue';
 
 // Recettes page (specifications/screens/recipe.md): owns search/filter/sort/modal state,
 // fetches via TanStack Query (server-side search/filter/sort), and renders the desktop table or
@@ -52,11 +53,16 @@ export function RecipesPage() {
   const [modal, setModal] = useState<ModalState>(null);
   const [archiveTarget, setArchiveTarget] = useState<RecipeSummary | null>(null);
 
-  const list = useRecipesList(buildListParams({ q, minRating, showArchived, sort, dir }));
+  // The field stays instant; the query waits 300 ms (LD-1/B-303) — see FoodsPage.
+  const debouncedQ = useDebouncedValue(q.trim(), SEARCH_DEBOUNCE_MS);
+  const list = useRecipesList(
+    buildListParams({ q: debouncedQ, minRating, showArchived, sort, dir }),
+  );
   const { archive, restore } = useRecipeMutations();
-  const recipes = useMemo(() => list.data?.pages.flatMap((p) => p.data) ?? [], [list.data]);
-  // Rows matching the current filters, server-side (B-278) — see FoodsPage for why the newest page.
-  const total = list.data?.pages.at(-1)?.total;
+  const recipes = list.rows;
+  // Rows matching the current filters, server-side (B-278). Read from whichever page answered —
+  // since B-303 a scrollbar jump asks for the page under the thumb before page 1.
+  const total = list.total;
 
   // Same field → flip the direction; a new field starts in its useful direction (B-299).
   const onSort = (field: SortField): void => {
@@ -80,7 +86,7 @@ export function RecipesPage() {
   const common = {
     recipes,
     total,
-    loading: list.isLoading,
+    loading: list.loading,
     list,
     q,
     minRating,

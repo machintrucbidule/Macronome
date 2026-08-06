@@ -82,20 +82,19 @@ function useFoodsFilters() {
 export function useFoodsLibrary(q: string) {
   const filters = useFoodsFilters();
   const list = useFoodsList(buildListParams(filters.state, q));
-  const foods = useMemo(() => list.data?.pages.flatMap((p) => p.data) ?? [], [list.data]);
-  // Read from the newest page: every page of one query reports the same `total` (B-278) and the
-  // same `sources` (B-295), and the newest is the freshest. Undefined until page 1 lands, so the
+  // Every page of one query reports the same `total` (B-278) and the same `sources` (B-295), so
+  // the hook keeps whichever answered — since B-303 that is not necessarily page 1, because a
+  // scrollbar jump asks for the page under the thumb first. Undefined until one lands, so the
   // toolbar shows nothing rather than a number that would immediately change.
-  const latest = list.data?.pages.at(-1);
-  const sources: FoodSource[] = latest?.sources ?? [];
+  const sources: FoodSource[] = list.sources;
   return {
     ...filters.state,
     ...filters.handlers,
-    foods,
+    foods: list.rows,
     sources,
-    sourceOptions: useSourceFilterOptions(latest?.sources),
-    total: latest?.total,
-    loading: list.isLoading,
+    sourceOptions: useSourceFilterOptions(sources),
+    total: list.total,
+    loading: list.loading,
     isError: list.isError,
     list,
   };

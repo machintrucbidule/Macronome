@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
   CreateRecipeRequest,
   RecipePreviewRequest,
+  RecipeSummary,
   UpdateRecipeRequest,
 } from '@macronome/shared';
 import { recipesApi, type RecipeListParams } from '../../api/recipes';
 import { notifyUndoable } from '../../components/Toast/notify';
 import { loggableSearchApi } from '../../api/loggableSearch';
-import { LIST_GC_TIME } from '../../lib/listCache';
+import { usePagedList, type PagedList } from '../../lib/usePagedList';
 import { draftToPreviewBody, type RecipeDraft } from './modals/draft';
 import { useTranslation } from 'react-i18next';
 import { catalogLocale } from '../foods/catalog/refName';
@@ -17,21 +18,16 @@ import { catalogLocale } from '../foods/catalog/refName';
 // here; mutations invalidate the recipes cache so the list refetches.
 const RECIPES_KEY = ['recipes'] as const;
 
-// LL-1/B-122: the list lazy-loads by keyset cursor (the API caps a page at 50). Each
-// page appends; the page flattens `data.pages`. The query key keeps the `RECIPES_KEY`
-// prefix, so the mutation invalidations below still match and refetch all loaded pages.
-export function useRecipesList(params: RecipeListParams) {
-  return useInfiniteQuery({
+// LL-1/B-122, re-paged by row offset in LD-1/B-303 (see useFoodsList): pages are held in a map
+// keyed by page index. The query key keeps the `RECIPES_KEY` prefix, so the mutation invalidations
+// below still match every loaded page.
+export function useRecipesList(params: RecipeListParams): PagedList<RecipeSummary> {
+  return usePagedList<RecipeSummary>({
     queryKey: [...RECIPES_KEY, params],
-    queryFn: ({ pageParam }) =>
-      recipesApi.list(pageParam ? { ...params, cursor: pageParam } : params),
-    initialPageParam: undefined as string | undefined,
-    getNextPageParam: (last) => last.next_cursor ?? undefined,
-    // B-268: keep the pages the user scrolled through while they step into a recipe and back.
-    // With the default 5-minute GC only page 1 remains on Back, so the list is shorter than the
-    // saved scroll offset and the restore is clamped near the top. Scoped to this list, not the
-    // global default: nothing else accumulates pages this way.
-    gcTime: LIST_GC_TIME,
+    fetchPage: async (offset, limit) => {
+      const res = await recipesApi.list({ ...params, offset, limit });
+      return { data: res.data, total: res.total };
+    },
   });
 }
 

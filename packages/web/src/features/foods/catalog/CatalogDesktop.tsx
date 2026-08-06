@@ -6,6 +6,7 @@ import { EmptyState } from '../../../components/states/EmptyState';
 import { SkeletonTableRows } from '../../../components/states/SkeletonTableRows';
 import { InfiniteScrollFooter } from '../../../lib/InfiniteScrollFooter';
 import { useListReserve } from '../../../lib/useListReserve';
+import type { PagedList } from '../../../lib/usePagedList';
 import { FoodsToolbar } from '../components/FoodsToolbar';
 import { CatalogFilters } from './CatalogFilters';
 import { CatalogTable } from './CatalogTable';
@@ -18,7 +19,7 @@ export interface CatalogViewProps {
   refs: FoodRef[];
   loading: boolean;
   isError: boolean;
-  list: { hasNextPage: boolean; isFetchingNextPage: boolean; fetchNextPage: () => unknown };
+  list: PagedList<FoodRef>;
   total: number | undefined;
   q: string;
   group: string;
@@ -35,7 +36,7 @@ export interface CatalogViewProps {
 
 export function CatalogDesktop(props: CatalogViewProps) {
   const { t } = useTranslation();
-  const reserve = useListReserve(props.refs.length, props.total, props.list);
+  const reserve = useListReserve(props.list);
   return (
     <>
       <FoodsToolbar
@@ -60,14 +61,16 @@ export function CatalogDesktop(props: CatalogViewProps) {
       ) : (
         <>
           <CatalogTable
-            refs={props.refs}
+            slots={props.list.slots}
+            head={props.list.firstPageCount}
+            pitch={reserve.pitch}
             sort={props.sort}
             dir={props.dir}
             onSort={props.onSort}
             onAdopt={props.onAdopt}
             rowsRef={reserve.listRef}
           />
-          <InfiniteScrollFooter query={props.list} {...reserve.footer} />
+          <InfiniteScrollFooter loadedCount={props.list.rows.length} />
         </>
       )}
     </>

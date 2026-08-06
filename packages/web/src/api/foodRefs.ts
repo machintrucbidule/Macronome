@@ -13,6 +13,8 @@ export interface FoodRefListParams {
   sort?: string;
   dir?: 'asc' | 'desc';
   cursor?: string;
+  /** Row index the page starts at — the jump path (LD-1/B-303). Excludes `cursor`. */
+  offset?: number;
   limit?: number;
 }
 

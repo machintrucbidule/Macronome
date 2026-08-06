@@ -1,66 +1,63 @@
-import { useEffect, type RefObject } from 'react';
+import { useEffect, useRef, type RefObject } from 'react';
 import { ROW_OVERSCAN } from './useGrowingRows';
 import { rowsDemanded, useRowPitch } from './useRowPitch';
+import type { PagedList } from './usePagedList';
 
 /**
- * Scrollbar and page-loading for a **cursor-paginated** list (B-278): Aliments and Recettes fetch
- * 50 rows at a time, so unlike the Journal they cannot know their own length — the server now says
- * how many rows match (`total` on the list envelope).
+ * Turns the scroll position into "which page do I need" for a `usePagedList` list (LD-1/B-303,
+ * superseding the B-278 reserve).
  *
- * Two jobs, both needing the same measured row pitch (`useRowPitch`):
- *  - reserve `(total − loaded) × pitch` below the loaded rows, so the scrollbar spans the whole
- *    catalogue from the first page instead of growing as pages arrive;
- *  - **keep fetching while the scroll position demands rows beyond those loaded.** Without this the
- *    reserve would be a trap: the IntersectionObserver sentinel only fires when it is near the
- *    viewport, so dragging the scrollbar past it would leave a permanently empty area. Cursor pages
- *    are inherently sequential (each needs the previous one's cursor), so exactly one request is in
- *    flight at a time and the chain stops when the visible range is covered.
+ * Before, this hook chained cursor pages: it fired one `fetchNextPage`, waited, re-checked, fired
+ * again — the only thing a keyset list could do, and ~68 serial round trips to reach the end of the
+ * Ciqual catalog. Now it asks for the page **at** the position and lets `usePagedList` backfill.
+ *
+ * It still owns the measured row pitch, because that is what sizes the reserved gaps: the list
+ * spans its whole result set from the first page, so the scrollbar is right immediately and does
+ * not move as pages arrive.
+ *
+ * The pitch is measured from **page 0's rows only** — its container holds real rows and nothing
+ * else. Skeletons and gaps are siblings of that container, the same separation B-275 used for the
+ * Journal's trailing spacer, and for the same reason: a placeholder inside the measured box would
+ * silently corrupt the pitch every row after it depends on.
  */
-export interface ListReserveQuery {
-  hasNextPage: boolean;
-  isFetchingNextPage: boolean;
-  fetchNextPage: () => unknown;
-}
-
 export interface ListReserve {
-  /** Height to reserve after the last loaded row. */
-  padBottom: number;
-  /** Attach to the element that directly contains the rows. */
+  /** Measured height of one row; 0 until the first measurement. Sizes the gap slots. */
+  pitch: number;
+  /** Attach to the element that directly contains page 0's rows. */
   listRef: RefObject<HTMLElement | null>;
-  /** Spread straight into `<InfiniteScrollFooter>`: the reserve height it must render, and the
-   *  loaded count its live region announces page arrivals from (B-272). Bundled because every
-   *  call site passes both and neither is the caller's decision. */
-  footer: { padBottom: number; loadedCount: number };
 }
 
-export function useListReserve(
-  loaded: number,
-  total: number | undefined,
-  query: ListReserveQuery,
-  gap = 0,
-): ListReserve {
-  const [pitch, listRef] = useRowPitch(loaded, gap);
-  const missing = total === undefined ? 0 : Math.max(0, total - loaded);
-  const { hasNextPage, isFetchingNextPage, fetchNextPage } = query;
+export function useListReserve(list: PagedList<unknown>, gap = 0): ListReserve {
+  const [pitch, listRef] = useRowPitch(list.firstPageCount, gap);
+  const { requestRow } = list;
+  // Read the latest requester without re-binding the scroll listener on every render.
+  const requestRef = useRef(requestRow);
+  requestRef.current = requestRow;
 
   useEffect(() => {
-    if (pitch <= 0 || !hasNextPage || isFetchingNextPage || missing <= 0) return;
+    if (pitch <= 0) return;
+    let frame = 0;
 
     const pull = (): void => {
-      if (rowsDemanded(listRef.current, pitch, ROW_OVERSCAN) > loaded) fetchNextPage();
+      // One layout read per frame at most: `scroll` fires far more often than the answer changes,
+      // and `rowsDemanded` forces a reflow each time it runs.
+      if (frame !== 0) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        const demanded = rowsDemanded(listRef.current, pitch, ROW_OVERSCAN);
+        if (demanded > 0) requestRef.current(demanded);
+      });
     };
 
-    // Re-checked on every render of this effect's inputs, so a page landing immediately re-tests
-    // whether the position still demands more — that is what chains the pages.
     pull();
     window.addEventListener('scroll', pull, { passive: true });
-    window.addEventListener('resize', pull);
+    window.addEventListener('resize', pull, { passive: true });
     return () => {
+      if (frame !== 0) cancelAnimationFrame(frame);
       window.removeEventListener('scroll', pull);
       window.removeEventListener('resize', pull);
     };
-  }, [pitch, loaded, missing, hasNextPage, isFetchingNextPage, fetchNextPage, listRef]);
+  }, [pitch, listRef]);
 
-  const padBottom = pitch > 0 ? missing * pitch : 0;
-  return { padBottom, listRef, footer: { padBottom, loadedCount: loaded } };
+  return { pitch, listRef };
 }

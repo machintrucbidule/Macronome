@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { NamedPortionSchema, RatingSchema } from './food.js';
 import { CatalogLocaleSchema } from './food-ref.js';
+import { offsetField, rejectCursorWithOffset } from './pagination.js';
 
 // Recipe DTOs (spec/api/foods-recipes.md §Recipes). One source for controller
 // validation and the web client's types. Field names stay snake_case to match the API
@@ -169,23 +170,26 @@ export interface RecipePreviewResponse {
 // sortable", OPEN_GAPS #10); the screen shows them as non-sortable columns.
 export const RECIPE_SORT_FIELDS = ['name', 'batch', 'servings', 'rating'] as const;
 
-export const RecipeListQuerySchema = z.object({
-  q: z.string().trim().max(255).optional(),
-  min_rating: z.coerce
-    .number()
-    .int()
-    .pipe(z.union([z.literal(1), z.literal(2), z.literal(3)]))
-    .optional(),
-  include_archived: z
-    .union([z.boolean(), z.enum(['true', 'false'])])
-    .optional()
-    .default(false)
-    .transform((v) => v === true || v === 'true'),
-  sort: z.enum(RECIPE_SORT_FIELDS).optional().default('name'),
-  dir: z.enum(['asc', 'desc']).optional().default('asc'),
-  limit: z.coerce.number().int().positive().max(200).optional().default(50),
-  cursor: z.string().optional(),
-});
+export const RecipeListQuerySchema = z
+  .object({
+    q: z.string().trim().max(255).optional(),
+    min_rating: z.coerce
+      .number()
+      .int()
+      .pipe(z.union([z.literal(1), z.literal(2), z.literal(3)]))
+      .optional(),
+    include_archived: z
+      .union([z.boolean(), z.enum(['true', 'false'])])
+      .optional()
+      .default(false)
+      .transform((v) => v === true || v === 'true'),
+    sort: z.enum(RECIPE_SORT_FIELDS).optional().default('name'),
+    dir: z.enum(['asc', 'desc']).optional().default('asc'),
+    limit: z.coerce.number().int().positive().max(200).optional().default(50),
+    cursor: z.string().optional(),
+    offset: offsetField,
+  })
+  .superRefine(rejectCursorWithOffset);
 export type RecipeListQuery = z.infer<typeof RecipeListQuerySchema>;
 
 export interface RecipeListResponse {

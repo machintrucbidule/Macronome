@@ -1,41 +1,23 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SkeletonRows } from '../components/states/SkeletonRows';
-import { useInfiniteScroll } from './useInfiniteScroll';
 
-// Shared lazy-loading footer (LL-1/B-122): renders the IntersectionObserver sentinel
-// that pulls the next page, plus a discreet skeleton while a page is in flight. Used by
-// the Aliments and Recettes lists; takes the relevant fields off a `useInfiniteQuery`
-// result (a structural subset, so the whole query object can be passed through).
+// Live region for the lazy-loading lists (B-272): page arrivals are otherwise invisible to a
+// screen reader. Keeping it here rather than in each screen is what guarantees a single one per
+// screen — several competing live regions are worse than none.
 //
-// B-272: it also carries the ONE polite live region those screens get. Page arrivals are
-// otherwise invisible to a screen reader — the sentinel is aria-hidden and the skeleton only
-// reports `aria-busy`. Keeping the region here rather than in each screen is what guarantees a
-// single one per screen: several competing live regions are worse than none.
+// LD-1/B-303 emptied the rest of this component. It used to carry the IntersectionObserver
+// sentinel that pulled the next page AND the trailing reserve height, and both moved:
+//  - the sentinel was a **second loader** racing `useListReserve`'s scroll handler, so the two are
+//    now one — the reserve asks for the page at the scroll position and nothing else fetches;
+//  - the reserve is no longer a trailing block. A list can have a hole in the middle now, so the
+//    unloaded height is expressed as gap slots inside the rows themselves.
 interface InfiniteScrollFooterProps {
-  query: {
-    hasNextPage: boolean;
-    isFetchingNextPage: boolean;
-    fetchNextPage: () => unknown;
-  };
-  /**
-   * Height of the rows the server says exist but that are not loaded yet (B-278, from
-   * `useListReserve`). Reserving it makes the scrollbar span the whole catalogue from the first
-   * page instead of growing as pages arrive.
-   */
-  padBottom?: number;
-  /** Rows currently rendered — the live region announces how many just arrived (B-272). */
+  /** Rows currently rendered — the live region announces how many just arrived. */
   loadedCount?: number;
 }
 
-export function InfiniteScrollFooter({
-  query,
-  padBottom = 0,
-  loadedCount,
-}: InfiniteScrollFooterProps) {
+export function InfiniteScrollFooter({ loadedCount }: InfiniteScrollFooterProps) {
   const { t } = useTranslation();
-  const { hasNextPage, isFetchingNextPage, fetchNextPage } = query;
-  const sentinelRef = useInfiniteScroll({ hasNextPage, isFetchingNextPage, fetchNextPage });
   const [announcement, setAnnouncement] = useState('');
   const previous = useRef<number | undefined>(loadedCount);
 
@@ -50,13 +32,8 @@ export function InfiniteScrollFooter({
   }, [loadedCount, t]);
 
   return (
-    <>
-      {hasNextPage && <div ref={sentinelRef} aria-hidden="true" />}
-      {isFetchingNextPage && <SkeletonRows count={2} />}
-      {padBottom > 0 && <div aria-hidden="true" style={{ height: padBottom }} />}
-      <div role="status" aria-live="polite" className="sr-only">
-        {announcement}
-      </div>
-    </>
+    <div role="status" aria-live="polite" className="sr-only">
+      {announcement}
+    </div>
   );
 }

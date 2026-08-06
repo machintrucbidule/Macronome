@@ -16,6 +16,7 @@ import {
 import { Fab } from '../../../app/Fab';
 import { InfiniteScrollFooter } from '../../../lib/InfiniteScrollFooter';
 import { useListReserve } from '../../../lib/useListReserve';
+import type { PagedList } from '../../../lib/usePagedList';
 import { FoodCards } from './FoodCards';
 import type { SortField } from './FoodTable';
 import type { MinRating, VisibilityFilter } from './FiltersPopover';
@@ -28,7 +29,7 @@ interface FoodsMobileProps {
   foods: Food[];
   loading: boolean;
   isError: boolean;
-  list: { hasNextPage: boolean; isFetchingNextPage: boolean; fetchNextPage: () => unknown };
+  list: PagedList<Food>;
   /** Rows matching the current filters, server-side (B-278); undefined until page 1 lands. */
   total: number | undefined;
   q: string;
@@ -118,7 +119,7 @@ function buildFilterSections(props: FoodsMobileProps, t: TFunction): FilterSecti
 export function FoodsMobile(props: FoodsMobileProps) {
   const { t } = useTranslation();
   // B-278: reserve the unloaded rows' height and chain pages when the scroll asks for them.
-  const reserve = useListReserve(props.foods.length, props.total, props.list, CARD_GAP);
+  const reserve = useListReserve(props.list, CARD_GAP);
 
   const sortOptions = buildSortOptions(t);
   const filterSections = buildFilterSections(props, t);
@@ -133,8 +134,14 @@ export function FoodsMobile(props: FoodsMobileProps) {
     if (props.foods.length === 0) return <EmptyState>{t('foods.empty')}</EmptyState>;
     return (
       <>
-        <FoodCards foods={props.foods} onOpen={props.onOpen} rowsRef={reserve.listRef} />
-        <InfiniteScrollFooter query={props.list} {...reserve.footer} />
+        <FoodCards
+          slots={props.list.slots}
+          head={props.list.firstPageCount}
+          pitch={reserve.pitch}
+          onOpen={props.onOpen}
+          rowsRef={reserve.listRef}
+        />
+        <InfiniteScrollFooter loadedCount={props.list.rows.length} />
       </>
     );
   })();

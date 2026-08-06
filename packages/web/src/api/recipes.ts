@@ -21,6 +21,8 @@ export interface RecipeListParams {
   dir?: 'asc' | 'desc';
   // Keyset pagination (LL-1/B-122): the list lazy-loads page by page.
   cursor?: string;
+  /** Row index the page starts at — the jump path (LD-1/B-303). Excludes `cursor`. */
+  offset?: number;
   limit?: number;
 }
 

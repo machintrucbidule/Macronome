@@ -20,6 +20,9 @@ export function useRowPitch(shown: number, gap = 0): [number, RefObject<HTMLElem
   const listRef = useRef<HTMLElement | null>(null);
   const [pitch, setPitch] = useState(0);
 
+  // Deps, not every render (LD-1/B-303): the measurement only changes when the row count, the gap
+  // or the previous pitch does, and re-reading the layout on every render of a 3 400-row list is a
+  // forced reflow nobody asked for. The `> 0.5` epsilon still guards the feedback loop.
   useLayoutEffect(() => {
     const el = listRef.current;
     if (!el || shown <= 0) return;
@@ -28,7 +31,7 @@ export function useRowPitch(shown: number, gap = 0): [number, RefObject<HTMLElem
     const next = (height + gap) / shown;
     // Ignore sub-pixel noise: a total that keeps changing is exactly the bug this replaces.
     if (Math.abs(next - pitch) > 0.5) setPitch(next);
-  });
+  }, [shown, gap, pitch]);
 
   return [pitch, listRef];
 }

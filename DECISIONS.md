@@ -5553,6 +5553,13 @@ pages while the visible range is beyond what is loaded; without that, dragging t
 the sentinel would have left a permanently blank area. **This trade-off was stated and accepted
 before implementation.**
 
+> **Superseded on the chaining, not on the paging — LD-1 / B-303.** The trade-off above was struck
+> against a catalogue of a few hundred rows; the Ciqual catalogue that shipped later holds **3 400**,
+> and the chain then meant ~68 serial round trips before the rows under the thumb appeared. The
+> 50-row paging and the rejection of a whole-catalogue load both **stand**; what changed is that a
+> page can now be addressed by **row offset** as well as by cursor, so the page at the scroll
+> position is fetched first and the interval behind it filled afterwards. See "LD-1 / B-303" below.
+
 **The chip's meaning changes with a filter active**: it reads the number of **matches**, which is
 what the scrollbar agrees with. Before the first page lands there is no total, so it shows nothing
 rather than a number that would immediately change.
@@ -6447,3 +6454,64 @@ first-click rule; the food-line hover sentence is rewritten for the grip),
 `specifications/screens/meals.md` (§DayHeader, and a new drag-grip bullet beside B-107),
 `food-db.md`, `recipe.md`, `containers.md`, `users.md`, `history.md` (the same sentence, per
 screen). No schema change, no API change, no design-token change.
+
+---
+
+## LD-1 / B-303 — a scrollbar jump loads the rows it landed on — RESOLVED (owner, 2026-08-07)
+
+**Observed:** dropping the scrollbar to the end of the Ciqual catalogue took ages. Nothing was
+malfunctioning: the three long lists were **keyset-paginated**, so page N could not be asked for
+without page N−1's `next_cursor`, and the loader chained one request at a time until the visible
+range was covered — **~68 round trips in series** for a 3 400-row catalogue.
+
+**Decision — a page can be addressed by row `offset`, not only by cursor.** A cursor is a row id,
+so it can only ever mean "the page after this row"; a client that dropped its thumb into the middle
+of the catalogue cannot name the row it landed on. `offset` is that client's entry point; `cursor`
+remains the cheaper way to continue sequentially, and the two are **mutually exclusive** (both → 422) because they express two different start positions for one request. The page at
+`offset = k·limit` is exactly the page a cursor walk reaches after k steps — pinned by integration
+tests on all three lists, including the foods `usage` sort, which ranks in memory rather than in SQL.
+
+**Decision — the client holds a map of pages keyed by page index (D16, one mechanism for all three
+lists).** The single `useInfiniteQuery` chain became `usePagedList`, one query per page index, so
+pages can arrive out of order with holes between them. Consequences the owner chose explicitly:
+**D17** a loaded page is never released (scrolling back never refetches); **D18** the backfill
+completes the whole interval behind the jump, four requests at a time.
+
+**Decision (D29) — what an unfilled area looks like.** Grey placeholder rows appear **only where a
+page is actually coming** — the ones in flight and the one next in the queue — and plain reserved
+height everywhere else. The alternative, placeholders across the whole hole, would have materialised
+~3 300 rows in one commit after a jump to the end. This also keeps B-275's standing rule intact:
+nothing that has been rendered is ever unmounted, and a gap is space that was never rendered — the
+same thing the trailing reserve already was.
+
+**Decision (D30) — `total` keeps coming back with every page.** The triage proposed sending it only
+with the first page. Measured, the count is **0.46 ms** (index-only scan) — invisible next to the
+seconds this item removes — and the batch makes out-of-order arrival the normal case, which is
+exactly when a first-page-only total would leave the count chip and the scrollbar wrong.
+
+**Three of the six "aggravating factors" were measured rather than assumed, and two of them
+dissolved.** The per-page `count` is the 0.46 ms above (kept, D30). The missing index was real: the
+catalogue's default `ORDER BY (name, id)` sorted the whole table at **15 ms per page**, against
+**0.3 ms** with a btree — worth having when a backfill issues ~68 of them, so
+`idx_foodref_name_fr` / `idx_foodref_name_eng` were added (`spec/schema/indexes.md`). The numeric
+sorts measured 4.7 ms and are deliberately left unindexed. And **the third was contra-indicated**:
+"compute the usage scan only when sorting by usage" (`PERF_REPORT` L2) would have reintroduced the
+blank Utilisation column that FU-2/**B-156** exists to fix — dropped from the batch, and L2 marked
+superseded.
+
+**The three real ones stayed in:** the search box now waits 300 ms (every keystroke used to discard
+every accumulated page); the **two competing loaders** — the reserve's scroll handler and the
+`InfiniteScrollFooter` sentinel — became one, with the sentinel removed and the footer reduced to
+its live region; and the scroll handler is throttled to one layout read per frame, with
+`useRowPitch` given the dependency array it never had.
+
+**One structural rule worth recording, because it is silent when broken.** The pitch is measured by
+dividing a container's height by the row count the caller declares, so **only page 0's rows sit in
+the measured container**; placeholders and gaps are siblings. That is the same separation B-275 used
+for the Journal's trailing spacer, for the same reason — a placeholder inside the measured box would
+corrupt the pitch that every reserved gap after it depends on.
+
+**Contract impact.** `spec/api/00-conventions.md` §List behaviour (`offset`, mutual exclusion, the
+`total` rule), `spec/api/foods-recipes.md` (the three lists), `spec/schema/indexes.md` + a migration,
+`specifications/screens/food-db.md` and `recipe.md` (the lazy-loading bullets), plus the amendments
+to TOT-1/B-278 and `PERF_REPORT.md` L1/L2 above. No schema-column change.

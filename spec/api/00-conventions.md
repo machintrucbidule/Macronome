@@ -116,6 +116,18 @@ because the database is unreachable returns **503** `database_unavailable` inste
 
 - Pagination: `?limit=` (default 50, max 200) `&cursor=` (opaque, keyset on
   `(sort_key,id)`); responses include `{data:[...], next_cursor, total}`.
+- **`offset`** (LD-1/B-303) — an alternative to `cursor`, for **jumping** rather than walking:
+  `?offset=N` returns the page starting at row N of the same ordering. The two are **mutually
+  exclusive**; sending both is a **422** (`validation_error`), because they would express two
+  different start positions for one request. A cursor is a row id, so it can only ever say "the
+  page after this row" — a client that drops its scrollbar into the middle of a 3 400-row catalogue
+  cannot name the row it landed on, and had to walk every page to get there. `offset` is that
+  client's entry point; `cursor` remains the cheaper way to continue sequentially. Ordering,
+  `next_cursor` and `total` are identical either way: the page at `offset = k·limit` is exactly the
+  page a cursor walk would reach after `k` steps.
+- `total` is returned on **every** page, whichever of the two is used (B-303 kept this deliberately:
+  with jumps, the first page to arrive is often not page 1, and a client that only learned the total
+  from page 1 would size its scrollbar wrong until it caught up).
 - **`total`** (B-278) is the number of rows matching the query's **filters** — search, rating,
   visibility, archived — and is therefore independent of `limit` and `cursor`: every page of the
   same query reports the same figure. It lets a client size its scrollbar to the whole result set
