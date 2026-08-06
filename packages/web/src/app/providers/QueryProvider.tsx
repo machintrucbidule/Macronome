@@ -1,6 +1,7 @@
 import { QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState, type ReactNode } from 'react';
 import { isTransportFailure, reportReachable } from '../reachability';
+import { bindWindowFocus } from './focus-binding';
 
 // TanStack Query is the SPA's server-state layer (caching, mutations, invalidation).
 //
@@ -10,18 +11,21 @@ import { isTransportFailure, reportReachable } from '../reachability';
 // has already been given a second chance before its error lands here, so a single blip does not
 // flash the banner. Requests that merely got a refusal (401/404/409/422/500) are NOT outages and
 // leave the flag alone — that classification lives in `isTransportFailure`.
+//
+// B-294: the focus listener is widened to `focus` here (once, before the first client exists) so
+// `refetchOnWindowFocus` also fires in the installed window — see `focus-binding.ts`.
 export function QueryProvider({ children }: { children: ReactNode }) {
-  const [client] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
-        queryCache: new QueryCache({
-          onError: (error) => {
-            if (isTransportFailure(error)) reportReachable(false);
-          },
-          onSuccess: () => reportReachable(true),
-        }),
+  const [client] = useState(() => {
+    bindWindowFocus();
+    return new QueryClient({
+      defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
+      queryCache: new QueryCache({
+        onError: (error) => {
+          if (isTransportFailure(error)) reportReachable(false);
+        },
+        onSuccess: () => reportReachable(true),
       }),
-  );
+    });
+  });
   return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
 }

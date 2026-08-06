@@ -6,13 +6,13 @@ import { entriesApi } from '../../../api/entries';
 import { ApiError } from '../../../api/client';
 import { proposalToEntryBody } from '../logic/applyProposal';
 import { tap } from '../../../lib/haptics';
+import { invalidateDayScope } from '../../../lib/day-scope';
 
 // Apply a chosen AI proposal (B-123 / Slice 12, spec §2.5). Self-contained (no useMeals coupling,
 // so the dialog stays unit-testable in isolation): materialize the day if it is still a scaffold,
 // then write one referenced entry per item via the normal POST /meals/:id/entries flow. Both
-// mutations invalidate the day + journal queries so the Repas page refetches the server-recomputed
-// totals — the web never computes a nutrition figure here.
-const DAY_KEY = 'day';
+// mutations invalidate the day scope so the Repas page refetches the server-recomputed totals and
+// the app frame repaints — the web never computes a nutrition figure here.
 
 /** Map each proposal item's meal_id to a real meal id, materializing a scaffold day first.
  *  In practice the day is already materialized by apply time (the suggestions request rejects
@@ -34,10 +34,7 @@ export function useApplyProposal(date: string) {
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
 
-  const onSuccess = (): void => {
-    void qc.invalidateQueries({ queryKey: [DAY_KEY, date] });
-    void qc.invalidateQueries({ queryKey: ['journal'] });
-  };
+  const onSuccess = (): void => invalidateDayScope(qc, date);
   const createEntry = useMutation({
     mutationFn: (v: { mealId: string; item: MealProposal['items'][number] }) =>
       entriesApi.create(v.mealId, proposalToEntryBody(v.item)),

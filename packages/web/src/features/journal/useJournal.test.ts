@@ -45,3 +45,31 @@ describe('useJournal — PATCH error surfacing (B-098)', () => {
     await waitFor(() => expect(result.current.error).toBe('request_failed'));
   });
 });
+
+// B-294: a verdict override moves the day tone directly, so the PATCH must also refresh the
+// app-frame rule and icon badge — it used to invalidate the journal list and that day only.
+describe('useJournal — invalidation scope (B-294)', () => {
+  it('invalidates the app-frame tone after a verdict override', async () => {
+    vi.spyOn(journalApi, 'list').mockResolvedValue({ data: [], day_count: 0 } as never);
+    vi.spyOn(daysApi, 'patch').mockResolvedValue({} as never);
+
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const keys: unknown[][] = [];
+    vi.spyOn(client, 'invalidateQueries').mockImplementation((filters?: { queryKey?: unknown }) => {
+      keys.push(filters?.queryKey as unknown[]);
+      return Promise.resolve();
+    });
+    const spyWrapper = ({ children }: { children: ReactNode }) =>
+      createElement(QueryClientProvider, { client }, children);
+
+    const { result } = renderHook(() => useJournal(2026), { wrapper: spyWrapper });
+    await result.current.patch.mutateAsync({
+      date: '2026-01-01',
+      body: { verdict_override: 'OK' },
+    });
+
+    expect(keys).toContainEqual(['day-tone']);
+    expect(keys).toContainEqual(['journal']);
+    expect(keys).toContainEqual(['day', '2026-01-01']);
+  });
+});

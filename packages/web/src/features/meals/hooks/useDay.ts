@@ -15,11 +15,12 @@ import { mealsApi } from '../../../api/meals';
 import { entriesApi } from '../../../api/entries';
 import { leftoverApi } from '../../../api/leftover';
 import { tap } from '../../../lib/haptics';
+import { DAY_KEY, invalidateDayScope } from '../../../lib/day-scope';
 
 // Data layer for the Repas screen: the day aggregate query + every mutation, each
-// invalidating the day (so the server-recomputed totals/verdict/proration refetch) and
-// the journal (so the calendar's day-state dots stay fresh). The web renders; it never computes.
-const DAY_KEY = 'day';
+// invalidating the day (so the server-recomputed totals/verdict/proration refetch), the
+// journal (so the calendar's day-state dots stay fresh) and the app-frame tone — all three
+// through `invalidateDayScope` (B-294). The web renders; it never computes.
 
 /** Leftover-group mutations (split out to keep useDay within the per-function line cap). */
 function useLeftoverMutations(onSuccess: () => void) {
@@ -106,10 +107,7 @@ export function useDay(date: string) {
   const qc = useQueryClient();
   const query = useQuery({ queryKey: [DAY_KEY, date], queryFn: () => daysApi.get(date) });
 
-  const onSuccess = (): void => {
-    void qc.invalidateQueries({ queryKey: [DAY_KEY, date] });
-    void qc.invalidateQueries({ queryKey: ['journal'] });
-  };
+  const onSuccess = (): void => invalidateDayScope(qc, date);
 
   // Materialize without invalidating: the caller (scaffold add) immediately creates an entry,
   // and that mutation's invalidation drives the single refetch — avoiding a 0-entry scaffold flash.

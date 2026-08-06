@@ -14,3 +14,13 @@ export function effectiveTodayIso(now: Date = new Date()): string {
   const day = `${d.getDate()}`.padStart(2, '0');
   return `${d.getFullYear()}-${m}-${day}`;
 }
+
+/** Milliseconds until the next local 03:00 boundary — i.e. until `effectiveTodayIso` changes
+ *  (B-294). Before 03:00 that is today's boundary, from 03:00 on it is tomorrow's. Always > 0, so
+ *  a timer armed on it can never spin. Pure; DST is handled by the local-time Date arithmetic. */
+export function msUntilNextRollover(now: Date = new Date()): number {
+  const next = new Date(now);
+  next.setHours(DAY_ROLLOVER_HOUR, 0, 0, 0);
+  if (next.getTime() <= now.getTime()) next.setDate(next.getDate() + 1);
+  return next.getTime() - now.getTime();
+}

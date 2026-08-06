@@ -6,10 +6,16 @@ import type {
   WeightRange,
 } from '@macronome/shared';
 import { weightApi } from '../../api/weight';
+import { invalidateDayScope } from '../../lib/day-scope';
 
 // Data hooks for the Poids screen. GET /weight is the source of truth for every derived
 // series (EMA, trajectory, periods, cartouche); each write invalidates the cache so the
 // server-recomputed view refreshes (the web never recomputes — CLAUDE.md rule 2).
+//
+// A weigh-in also reaches beyond this screen (B-294): the body weight feeds the estimated burn,
+// so `constat.deficit` — and with it the day tone that separates `warn` from `nok` — moves with
+// it. Hence the day scope is invalidated too, for every day rather than one date: a back-dated
+// weigh-in changes the interval it lands in, not only today.
 export const WEIGHT_KEY = 'weight';
 
 export function useWeight(range: WeightRange) {
@@ -42,6 +48,7 @@ export function useWeightMutations() {
   const qc = useQueryClient();
   const invalidate = (): void => {
     void qc.invalidateQueries({ queryKey: [WEIGHT_KEY] });
+    invalidateDayScope(qc);
   };
   const create = useMutation({
     mutationFn: (body: CreateWeighInRequest) => weightApi.create(body),
