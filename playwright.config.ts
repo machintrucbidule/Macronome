@@ -8,6 +8,20 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
+  // Flakiness fix, measured not guessed. The suite failed roughly one local run in three, on a
+  // DIFFERENT test each time, always a `toBeVisible` expiring — never a wrong value. Isolation is
+  // not the cause: every spec already seeds its own user and its cleanups are scoped to it. The
+  // cause is over-subscription. Playwright defaults to cores/2 workers, which on a 24-core dev
+  // box is 12 browser contexts against ONE Vite **dev** server that transforms routes on demand
+  // and ONE Postgres; a lazily-loaded route's first paint can then exceed the 5s default budget.
+  //
+  // So: cap the local worker count, and give assertions a budget that fits a cold dev-server
+  // route. Neither hides a real failure — a genuinely broken assertion still fails, 10s later
+  // instead of 5. (Raising `retries` locally WOULD hide one, which is why it stays at 0.)
+  // CI is left on Playwright's own default: its runners have ~4 cores, so it never over-subscribed
+  // in the first place — that is why CI has been green while local runs were not.
+  workers: process.env.CI ? undefined : 4,
+  expect: { timeout: 10_000 },
   use: { baseURL: 'http://localhost:5173', trace: 'on-first-retry' },
   // The first-run spec needs a zero-user database (the setup endpoint is gated to it). It
   // truncates app_user, so it must not run concurrently with the other DB-backed specs:
