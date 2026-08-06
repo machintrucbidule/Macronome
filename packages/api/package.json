@@ -13,6 +13,7 @@
     "prisma:dev": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
     "prisma:generate": "prisma generate",
+    "build:ciqual": "tsx scripts/build-ciqual-seed.ts",
     "create-user": "tsx --env-file=.env scripts/create-user.ts",
     "perf:check": "tsx --env-file=.env scripts/perf-check.ts"
   },

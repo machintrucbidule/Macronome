@@ -139,29 +139,65 @@ external-integration connections. Keys (all optional; service supplies defaults)
 
 ## food
 
-| column                 | type        | notes                                                                                                               |
-| ---------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------- |
-| id                     | uuid PK     |                                                                                                                     |
-| owner_id               | uuid        | NOT NULL REFERENCES app_user(id) — creator                                                                          |
-| name                   | text        | NOT NULL                                                                                                            |
-| normalized_name        | text        | NOT NULL — unaccent+lower of name (generated/maintained); search key                                                |
-| kcal_per_100g          | numeric     | NOT NULL, CHECK ≥ 0                                                                                                 |
-| fat_per_100g           | numeric     | NOT NULL, CHECK ≥ 0                                                                                                 |
-| carb_per_100g          | numeric     | NOT NULL, CHECK ≥ 0                                                                                                 |
-| protein_per_100g       | numeric     | NOT NULL, CHECK ≥ 0                                                                                                 |
-| comment                | text        | NULL                                                                                                                |
-| rating                 | smallint    | NULL — null=unrated, CHECK (rating IS NULL OR rating IN (0,1,2,3))                                                  |
-| visibility             | text        | NOT NULL DEFAULT 'private', CHECK IN ('private','shared') — editable flag, independent of owner_id (OPEN_GAPS #6)   |
-| source                 | text        | NOT NULL DEFAULT 'manual', CHECK IN ('manual','recipe','imported')                                                  |
-| recipe_id              | uuid        | NULL REFERENCES recipe(id) — set when source='recipe' (the derived food)                                            |
-| ai_proposable          | boolean     | NOT NULL DEFAULT true — eligible for AI meal proposals (B-123 / feature D9; migration backfills existing rows true) |
-| archived_at            | timestamptz | NULL — soft delete                                                                                                  |
-| created_at, updated_at | timestamptz |                                                                                                                     |
+| column                 | type        | notes                                                                                                                                             |
+| ---------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| id                     | uuid PK     |                                                                                                                                                   |
+| owner_id               | uuid        | NOT NULL REFERENCES app_user(id) — creator                                                                                                        |
+| name                   | text        | NOT NULL                                                                                                                                          |
+| normalized_name        | text        | NOT NULL — unaccent+lower of name (generated/maintained); search key                                                                              |
+| kcal_per_100g          | numeric     | NOT NULL, CHECK ≥ 0                                                                                                                               |
+| fat_per_100g           | numeric     | NOT NULL, CHECK ≥ 0                                                                                                                               |
+| carb_per_100g          | numeric     | NOT NULL, CHECK ≥ 0                                                                                                                               |
+| protein_per_100g       | numeric     | NOT NULL, CHECK ≥ 0                                                                                                                               |
+| comment                | text        | NULL                                                                                                                                              |
+| rating                 | smallint    | NULL — null=unrated, CHECK (rating IS NULL OR rating IN (0,1,2,3))                                                                                |
+| visibility             | text        | NOT NULL DEFAULT 'private', CHECK IN ('private','shared') — editable flag, independent of owner_id (OPEN_GAPS #6)                                 |
+| source                 | text        | NOT NULL DEFAULT 'manual', CHECK IN ('manual','recipe','ciqual','chronodrive') — provenance, set at creation and never changed by an edit (B-290) |
+| recipe_id              | uuid        | NULL REFERENCES recipe(id) — set when source='recipe' (the derived food)                                                                          |
+| ai_proposable          | boolean     | NOT NULL DEFAULT true — eligible for AI meal proposals (B-123 / feature D9; migration backfills existing rows true)                               |
+| archived_at            | timestamptz | NULL — soft delete                                                                                                                                |
+| created_at, updated_at | timestamptz |                                                                                                                                                   |
 
 - Editing macros affects future logs only (history frozen via meal_entry
   snapshots).
 - Name-resolution (multi-user, inert in v1): a user's own food shadows a shared
   food of the same `normalized_name` owned by another user.
+- `source` vocabulary: `manual` (typed in, incl. the macro-label parser),
+  `recipe` (server-owned, the derived food of a recipe), `ciqual` (adopted from
+  the `food_ref` catalog), `chronodrive` (created from a Chronodrive product
+  prefill — it stays `chronodrive` even if the values are edited afterwards).
+  The never-written `imported` value was dropped in B-290; an import envelope
+  carrying it (or any unknown value) is mapped to `manual` on restore.
+
+## food_ref (global Ciqual reference catalog; B-289)
+
+Read-only reference data shipped inside the image, **not user data**: no
+`owner_id`, never exported, never wiped, never proposed to the AI. A row becomes
+a real `food` only when the user adopts it (which copies the values across). It
+is the one table whose repository takes no `userId` — see
+`docs/architecture/security.md` §6.
+
+| column              | type        | notes                                                                                                                         |
+| ------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| id                  | uuid PK     |                                                                                                                               |
+| dataset             | text        | NOT NULL — edition marker, e.g. 'ciqual_2025'; drives the boot re-seed                                                        |
+| code                | text        | NOT NULL — the source table's food code (Ciqual `alim_code`), kept as text (zero-padded)                                      |
+| name_fr             | text        | NOT NULL                                                                                                                      |
+| name_eng            | text        | NOT NULL                                                                                                                      |
+| normalized_name_fr  | text        | NOT NULL — unaccent+lower of name_fr, same normalization as food.normalized_name                                              |
+| normalized_name_eng | text        | NOT NULL — unaccent+lower of name_eng                                                                                         |
+| group_label_fr      | text        | NOT NULL — level-1 food group (filter + shown under the name)                                                                 |
+| group_label_eng     | text        | NOT NULL                                                                                                                      |
+| kcal_per_100g       | numeric     | NOT NULL, CHECK ≥ 0                                                                                                           |
+| fat_per_100g        | numeric     | NOT NULL, CHECK ≥ 0                                                                                                           |
+| carb_per_100g       | numeric     | NOT NULL, CHECK ≥ 0                                                                                                           |
+| protein_per_100g    | numeric     | NOT NULL, CHECK ≥ 0                                                                                                           |
+| energy_derived      | boolean     | NOT NULL DEFAULT false — true when kcal was derived from the macros rather than published (`spec/logic/ciqual-catalog.md` §4) |
+| created_at          | timestamptz |                                                                                                                               |
+|                     |             | UNIQUE (dataset, code)                                                                                                        |
+
+No `updated_at`: rows are never updated in place — a new edition replaces the
+whole table in one transaction (same shape as `day_restore_point`).
 
 ## food_portion
 

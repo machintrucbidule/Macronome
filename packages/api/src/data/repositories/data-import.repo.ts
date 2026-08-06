@@ -19,6 +19,13 @@ type Tx = Prisma.TransactionClient;
 const d = (v: string): Date => new Date(v);
 const dn = (v: string | null): Date | null => (v === null ? null : new Date(v));
 
+// The envelope types `source` as a loose string, and a file exported before B-290 carries the
+// retired value 'imported'. Inserted verbatim it would violate food_source_check and fail the
+// WHOLE restore with a blanket 422, not one food — so anything outside the current vocabulary
+// falls back to 'manual'.
+const KNOWN_SOURCES = new Set(['manual', 'recipe', 'ciqual', 'chronodrive']);
+const source = (v: string): string => (KNOWN_SOURCES.has(v) ? v : 'manual');
+
 async function restoreProfile(tx: Tx, userId: string, env: DataExportEnvelope): Promise<void> {
   await tx.appUser.update({
     where: { id: userId },
@@ -63,7 +70,7 @@ async function insertCatalog(tx: Tx, userId: string, env: DataExportEnvelope): P
         comment: f.comment,
         rating: f.rating,
         visibility: f.visibility,
-        source: f.source,
+        source: source(f.source),
         aiProposable: f.ai_proposable,
         recipeId: f.recipe_id,
         archivedAt: dn(f.archived_at),

@@ -9,6 +9,8 @@ Express 5 + Prisma. **The only place business logic lives.** Renders nothing.
   → call a service → serialize the response. No maths, no SQL.
 - `services/*` — orchestration: fetch via repositories, call `domain/*`, persist.
 - `data/repositories/*` — Prisma only. **Every method takes `userId` and scopes by it.**
+  One documented exception: a global reference table with no user data (`food-ref.repo`,
+  the Ciqual catalog) is read-only and takes no `userId` — see `security.md` §6.
 - `domain/*` — PURE functions, one folder per `spec/logic` area. No I/O, no Prisma,
   no request objects. Inputs in, outputs out. Co-located `*.test.ts` with the spec oracles.
 

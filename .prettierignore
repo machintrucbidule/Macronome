@@ -11,3 +11,7 @@ playwright-report/
 test-results/
 coverage/
 package-lock.json
+
+# Generated reference extract (scripts/build-ciqual-seed.ts): one entry per line on purpose,
+# so a future Ciqual edition produces a reviewable diff. Prettier would explode it.
+packages/api/data/

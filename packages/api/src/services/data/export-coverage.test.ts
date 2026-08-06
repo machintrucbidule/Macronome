@@ -41,7 +41,12 @@ const APP_USER_EXPORTED = new Set(['sex', 'birthdate', 'height_cm', 'settings'])
 //   transient UI recourse, not history: the day it describes no longer exists as such, and the
 //   only affordance that can reach it is a toast in the session that created it. Restoring it
 //   into another instance would resurrect a state the user had already discarded.
-const TABLE_EXCLUDE = new Set(['account_token', 'day_restore_point']);
+// · food_ref (B-289) is the global Ciqual reference catalog shipped inside the image. It has no
+//   owner_id and holds nothing the user wrote: it is reference data, re-seeded from the build on
+//   every boot. Exporting it would bloat every envelope with ~3 400 identical rows, and importing
+//   it would overwrite the target instance's own edition. Adopting an entry copies it into `food`,
+//   which IS exported — so nothing the user actually chose is lost.
+const TABLE_EXCLUDE = new Set(['account_token', 'day_restore_point', 'food_ref']);
 
 // Columns intentionally never exported. Global: regenerated timestamps + the tenant pointer
 // (re-pointed at the importing user). Per-table: the app_user identity/credentials, plus the

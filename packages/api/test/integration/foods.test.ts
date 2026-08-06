@@ -215,3 +215,55 @@ describe('foods — parse-label (PM-1/B-114)', () => {
     expect(res.body.error.code).toBe('reconstituted_label');
   });
 });
+
+// B-290: `food.source` was declared, CHECK-constrained and exposed, but never written — every
+// food landed as 'manual', including the ones built from a Chronodrive product. The create
+// endpoint now takes the provenance the client declares, and only the values a client may claim.
+describe('foods — source provenance (B-290)', () => {
+  it('persists a client-declared provenance', async () => {
+    const { agent, csrf } = await authedAgent('alice');
+
+    const created = await createFood(agent, csrf, { ...sampleFood, source: 'chronodrive' });
+    expect(created.status).toBe(201);
+    expect(created.body.data.source).toBe('chronodrive');
+
+    const read = await agent.get(`/api/v1/foods/${created.body.data.id as string}`);
+    expect(read.body.data.source).toBe('chronodrive');
+  });
+
+  it('accepts ciqual and defaults to manual when nothing is declared', async () => {
+    const { agent, csrf } = await authedAgent('alice');
+
+    const adopted = await createFood(agent, csrf, {
+      ...sampleFood,
+      name: 'Blé dur',
+      source: 'ciqual',
+    });
+    expect(adopted.status).toBe(201);
+    expect(adopted.body.data.source).toBe('ciqual');
+
+    const typed = await createFood(agent, csrf, { ...sampleFood, name: 'Yaourt' });
+    expect(typed.body.data.source).toBe('manual');
+  });
+
+  it('rejects the server-owned `recipe` provenance', async () => {
+    const { agent, csrf } = await authedAgent('alice');
+
+    const res = await createFood(agent, csrf, { ...sampleFood, source: 'recipe' });
+    expect(res.status).toBe(422);
+  });
+
+  it('keeps the provenance when the food is edited afterwards (D7)', async () => {
+    const { agent, csrf } = await authedAgent('alice');
+    const created = await createFood(agent, csrf, { ...sampleFood, source: 'chronodrive' });
+    const id = created.body.data.id as string;
+
+    const patched = await agent
+      .patch(`/api/v1/foods/${id}`)
+      .set('x-csrf-token', csrf)
+      .send({ name: 'Crème allégée', kcal_per_100g: 150, source: 'manual' });
+    expect(patched.status).toBe(200);
+    // The rename applied; the provenance did not move (PATCH has no `source` field at all).
+    expect(patched.body.data).toMatchObject({ name: 'Crème allégée', source: 'chronodrive' });
+  });
+});

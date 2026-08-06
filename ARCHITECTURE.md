@@ -90,6 +90,10 @@ Three invariants, enforced structurally:
    verdict, burn, proration, EMA, etc. The SPA reads computed values from the API.
 2. **`user_id` scoping is in the repository layer.** Controllers/services cannot
    issue an unscoped query; cross-tenant access returns 404 (no existence leak).
+   The single documented exception is a **global reference table that holds no user
+   data** — `food_ref`, the Ciqual catalog shipped inside the image — whose read-only
+   repository takes no `userId` because there is no tenant to scope to
+   (`docs/architecture/security.md` §6).
 3. **History is frozen by snapshots, not by logic.** `meal_entry` macro
    snapshots, `day_log.target_snapshot`, and the `leftover_group` frozen container
    value (`container_name` + `tare_g`) make past data immutable to later edits —

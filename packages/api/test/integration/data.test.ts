@@ -227,3 +227,43 @@ describe('data export / wipe / import (IMP-1)', () => {
     expect(malformed.body.error.code).toBe('import_invalid_format');
   });
 });
+
+// B-289/B-290: two things must hold around the global Ciqual catalog and the retired `imported`
+// source value — neither is covered by the round-trip above.
+describe('data import/wipe vs the reference catalog & legacy sources (B-289, B-290)', () => {
+  it('imports a pre-B-290 envelope carrying source:"imported" instead of failing the whole restore', async () => {
+    const { agent, csrf, userId } = await authedAgent(app, 'dave');
+    await seedFood(userId, 'Poulet', { kcal: 165, fat: 3.6, carb: 0, protein: 31 });
+    const env = (await agent.get('/api/v1/data/export')).body as Record<string, unknown>;
+
+    // Rewrite the envelope the way an export taken before this change looked. Inserted verbatim
+    // it violates food_source_check and 422s the ENTIRE account restore, not just this food.
+    const legacy = {
+      ...env,
+      foods: (env.foods as Record<string, unknown>[]).map((f) => ({ ...f, source: 'imported' })),
+    };
+
+    const imported = await agent.post('/api/v1/data/import').set('x-csrf-token', csrf).send(legacy);
+    expect(imported.status).toBe(200);
+
+    const restored = await prisma.food.findFirst({ where: { ownerId: userId, name: 'Poulet' } });
+    expect(restored?.source).toBe('manual');
+  });
+
+  it('leaves the global reference catalog out of the envelope and untouched by a wipe', async () => {
+    const { agent, csrf, userId } = await authedAgent(app, 'erin');
+    await seedFood(userId, 'Poulet', { kcal: 165, fat: 3.6, carb: 0, protein: 31 });
+
+    const before = await prisma.foodRef.count();
+    expect(before).toBeGreaterThan(0); // seeded by the suite's global setup, as at boot
+
+    const env = (await agent.get('/api/v1/data/export')).body as Record<string, unknown>;
+    expect(env).not.toHaveProperty('food_refs');
+    expect(JSON.stringify(env)).not.toContain('ciqual_2025');
+
+    const wiped = await csrfPost(agent, csrf, '/api/v1/data/wipe');
+    expect(wiped.status).toBe(200);
+    expect(await prisma.food.count({ where: { ownerId: userId } })).toBe(0);
+    expect(await prisma.foodRef.count()).toBe(before);
+  });
+});

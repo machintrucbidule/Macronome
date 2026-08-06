@@ -410,3 +410,22 @@ from `compose.dev.yml` is separate (**5434**) so both can run at once.
 The product is defined by fixed, git-synced **contracts**: `spec/` (data schema, API, domain
 logic with worked numeric examples), `design/` (design tokens + components), and `DECISIONS.md`.
 Architecture docs live in `ARCHITECTURE.md` + `docs/architecture/`.
+
+---
+
+## Data sources & licences
+
+Macronome ships a read-only reference catalog of the **Ciqual French food composition table**,
+browsable from the Aliments screen. An entry is copied into your own foods only when you add it;
+the reference catalog itself is never modified, exported or backed up.
+
+|          |                                                                                                        |
+| -------- | ------------------------------------------------------------------------------------------------------ |
+| Dataset  | **Ciqual 2025** — French food composition table, edition of 2025-11-03                                 |
+| Producer | **Anses** (Agence nationale de sécurité sanitaire de l'alimentation, de l'environnement et du travail) |
+| Licence  | **Licence Ouverte / Open Licence 2.0** (Etalab) — attribution to Anses is required                     |
+| DOI      | [10.57745/RDMHWY](https://doi.org/10.57745/RDMHWY)                                                     |
+
+Only a compact extract (food names, food group, and the four per-100 g figures Macronome uses) is
+redistributed here; the full table, with its 74 constituents, remains available from Anses. The
+same notice is shown in the app under **À propos**.

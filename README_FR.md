@@ -433,3 +433,23 @@ Le produit est défini par des **contrats** fixes, synchronisés via git : `spec
 données, API, logique métier avec exemples numériques travaillés), `design/` (tokens + composants
 de design) et `DECISIONS.md`. La documentation d'architecture vit dans `ARCHITECTURE.md` +
 `docs/architecture/`.
+
+---
+
+## Sources de données & licences
+
+Macronome embarque un catalogue de référence en lecture seule de la **table de composition
+nutritionnelle Ciqual**, consultable depuis l'écran Aliments. Une entrée n'est copiée dans vos
+propres aliments que lorsque vous l'ajoutez ; le catalogue de référence lui-même n'est jamais
+modifié, exporté ni sauvegardé.
+
+|                |                                                                                                        |
+| -------------- | ------------------------------------------------------------------------------------------------------ |
+| Jeu de données | **Ciqual 2025** — table de composition nutritionnelle française, édition du 2025-11-03                 |
+| Producteur     | **Anses** (Agence nationale de sécurité sanitaire de l'alimentation, de l'environnement et du travail) |
+| Licence        | **Licence Ouverte / Open Licence 2.0** (Etalab) — l'attribution à l'Anses est obligatoire              |
+| DOI            | [10.57745/RDMHWY](https://doi.org/10.57745/RDMHWY)                                                     |
+
+Seul un extrait compact est redistribué ici (noms des aliments, groupe alimentaire et les quatre
+valeurs pour 100 g utilisées par Macronome) ; la table complète, avec ses 74 constituants, reste
+disponible auprès de l'Anses. Le même avis est affiché dans l'application, sous **À propos**.

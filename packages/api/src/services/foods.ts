@@ -73,6 +73,9 @@ export async function create(
     comment: body.comment ?? null,
     rating: body.rating,
     visibility: body.visibility,
+    // How the draft was built (typed in / Chronodrive prefill / adopted Ciqual entry). Fixed
+    // here and never re-written by an edit, so a Chronodrive food stays one (B-290, D7).
+    source: body.source,
     aiProposable: body.ai_proposable,
     portions: body.named_portions,
   };

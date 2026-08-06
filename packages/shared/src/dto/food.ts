@@ -11,7 +11,13 @@ export const RatingSchema = z
   .nullable();
 
 export const VisibilitySchema = z.enum(['private', 'shared']);
-export const FoodSourceSchema = z.enum(['manual', 'recipe', 'imported']);
+
+/** Provenance of a food (B-290). `recipe` is server-owned (only the derived-food writer sets
+ * it), so it is excluded from what a client may declare — see `CreateFoodSourceSchema`. */
+export const FoodSourceSchema = z.enum(['manual', 'recipe', 'ciqual', 'chronodrive']);
+
+/** The subset a client may declare on `POST /foods`: how the draft was built. */
+export const CreateFoodSourceSchema = z.enum(['manual', 'ciqual', 'chronodrive']);
 
 // --- Named portions -------------------------------------------------------
 
@@ -82,6 +88,8 @@ export const CreateFoodSchema = z
     comment: z.string().max(2000).nullish(),
     rating: RatingSchema.optional().default(null),
     visibility: VisibilitySchema.optional().default('private'),
+    // Provenance, fixed at creation and not patchable afterwards (B-290).
+    source: CreateFoodSourceSchema.optional().default('manual'),
     ai_proposable: z.boolean().optional().default(true),
     named_portions: z.array(NamedPortionInputSchema).optional().default([]),
   })

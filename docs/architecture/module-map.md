@@ -12,17 +12,18 @@ Each `spec/logic/*` area becomes one **pure** module under `api/src/domain/`. Th
 worked examples in the spec are wired as unit-test oracles in the matching
 `*.test.ts` (see `testing.md`).
 
-| `spec/logic/` file             | `api/src/domain/` module                                | Key functions (illustrative)                                                                         |
-| ------------------------------ | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `metabolic-engine.md`          | `metabolic/`                                            | `age()`, `bmr()`, `estimatedBurn()`, `empiricalBurnPerDay()`, `deficitPerDay()`, `deficitAtTarget()` |
-| `targets-macros.md`            | `targets/`                                              | `proteinFloorG()`, `fatFloorG()`, `carbCeilingG()` (may be ≤0, never clamped), `suggestRange()`      |
-| `day-snapshot-verdict.md`      | `day-verdict/`                                          | `resolveSnapshot(date)`, `dayKcal()`, `autoVerdict()`, `effectiveVerdict()`                          |
-| `leftover-proration.md`        | `leftover/`                                             | `netLeftover()`, `validate()` (block rules), `prorate()`, `scaleMacros()`                            |
-| `recipes-derived-food.md`      | `recipes/`                                              | `aggregateMacros()`, `per100g()`, `perPortion()`, `hasCycle()` (transitive), `buildDerivedFood()`    |
-| `weight-periods-trajectory.md` | `weight/`                                               | `derivePeriods()`, `ema()`, `trajectory()` (broken line), `bmi()`, `projectGoalDate()`               |
-| `stats-adherence.md`           | `stats/`                                                | `rolling(window)`, `okRate()`, `heatmap()`, `monthlyPivot()`, `streak()`, `bestMonth()`, `signals()` |
-| `migration-etl.md`             | `packages/etl/src/transform/`                           | nb/poids merge, rating map, summary-day map, weight import                                           |
-| `00-conventions.md`            | `shared/src/constants/*` + `domain/search/normalize.ts` | rounding rules applied at display; constants single-sourced                                          |
+| `spec/logic/` file             | `api/src/domain/` module                                | Key functions (illustrative)                                                                           |
+| ------------------------------ | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `metabolic-engine.md`          | `metabolic/`                                            | `age()`, `bmr()`, `estimatedBurn()`, `empiricalBurnPerDay()`, `deficitPerDay()`, `deficitAtTarget()`   |
+| `targets-macros.md`            | `targets/`                                              | `proteinFloorG()`, `fatFloorG()`, `carbCeilingG()` (may be ≤0, never clamped), `suggestRange()`        |
+| `day-snapshot-verdict.md`      | `day-verdict/`                                          | `resolveSnapshot(date)`, `dayKcal()`, `autoVerdict()`, `effectiveVerdict()`                            |
+| `leftover-proration.md`        | `leftover/`                                             | `netLeftover()`, `validate()` (block rules), `prorate()`, `scaleMacros()`                              |
+| `recipes-derived-food.md`      | `recipes/`                                              | `aggregateMacros()`, `per100g()`, `perPortion()`, `hasCycle()` (transitive), `buildDerivedFood()`      |
+| `weight-periods-trajectory.md` | `weight/`                                               | `derivePeriods()`, `ema()`, `trajectory()` (broken line), `bmi()`, `projectGoalDate()`                 |
+| `stats-adherence.md`           | `stats/`                                                | `rolling(window)`, `okRate()`, `heatmap()`, `monthlyPivot()`, `streak()`, `bestMonth()`, `signals()`   |
+| `ciqual-catalog.md`            | `ciqual/` (+ `services/ciqual-seed.ts`)                 | `parseTeneur()`, `buildCatalogEntry()` (keep/derive/drop); the seeder orchestrates, the domain decides |
+| `migration-etl.md`             | `packages/etl/src/transform/`                           | nb/poids merge, rating map, summary-day map, weight import                                             |
+| `00-conventions.md`            | `shared/src/constants/*` + `domain/search/normalize.ts` | rounding rules applied at display; constants single-sourced                                            |
 
 Rule: a domain function takes **plain inputs and returns plain outputs** (no DB,
 no request). Anything needing rows is the **service**'s job (it fetches via a
@@ -112,7 +113,7 @@ They _reuse_ the `Modal/` shell and `Form/` primitives. See `modularity.md` for 
 
 | `spec/schema/`             | repositories (`api/src/data/repositories/`)                                                   |
 | -------------------------- | --------------------------------------------------------------------------------------------- |
-| `tables-catalog.md`        | `user.repo`, `food.repo`, `recipe.repo`, `container.repo`                                     |
+| `tables-catalog.md`        | `user.repo`, `food.repo`, `food-ref.repo`, `recipe.repo`, `container.repo`                    |
 | `tables-logging.md`        | `mealTemplate.repo`, `pantry.repo`, `day.repo` (day_log + meal + meal_entry + leftover_group) |
 | `tables-weight-targets.md` | `weight.repo`, `target.repo`                                                                  |
 | `indexes.md`               | enforced in `schema.prisma` + migration SQL (GIN trigram, unique constraints)                 |
@@ -120,3 +121,7 @@ They _reuse_ the `Modal/` shell and `Form/` primitives. See `modularity.md` for 
 `day.repo` owns the whole day aggregate (day_log → meal → meal_entry →
 leftover_group) because they cascade together and are always read/written as a
 unit; splitting them would scatter one transaction across files.
+
+`food-ref.repo` is the one repository whose methods take **no `userId`**: `food_ref`
+is global reference data with no owner (`security.md` §6). Its only writer is the
+boot seeder (`services/ciqual-seed.ts`).

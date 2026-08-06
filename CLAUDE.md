@@ -118,7 +118,11 @@ remains an admin fallback. See `docs/architecture/ops.md` §7.
    proration, totals, EMA, BMI, etc. — it reads them from the API. `web` imports
    `shared` constants only for labels/formatting, never to compute a nutrition figure.
 3. **Tenant scoping in the repository layer.** Every repository method takes the
-   authenticated `userId`. Never write an unscoped query. Cross-tenant → 404.
+   authenticated `userId`. Never write an unscoped query. Cross-tenant → 404. The
+   one documented exception is a **global reference table holding no user data**
+   (`food_ref`, the Ciqual catalog): `food-ref.repo` is read-only and takes no
+   `userId` because there is no tenant to scope to — see
+   `docs/architecture/security.md` §6. Do not extend that exception anywhere else.
 4. **History is frozen by snapshots.** Respect `meal_entry` macro snapshots,
    `day_log.target_snapshot`, and the `leftover_group` frozen container value. Editing
    a food/recipe/target/weigh-in must never alter past days that are already frozen.

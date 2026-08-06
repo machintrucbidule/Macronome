@@ -94,6 +94,9 @@ packages/api/
 ├─ prisma/
 │  ├─ schema.prisma          # faithful to spec/schema/* (2nd source kept in sync)
 │  └─ migrations/            # reviewable SQL; extensions + GIN trigram live here
+├─ data/                     # committed reference extracts (Ciqual), read by the
+│                            #   boot seeder; copied into the runtime image as-is
+├─ scripts/                  # tsx-run maintenance scripts (create-user, seed builder)
 └─ src/
    ├─ server.ts              # bootstrap (listen)
    ├─ app.ts                 # express app: middleware order, route mount
@@ -108,9 +111,11 @@ packages/api/
    ├─ data/
    │  ├─ prisma.ts           # single PrismaClient
    │  └─ repositories/       # ONE per aggregate; EVERY method takes userId
+   │                         #   (exception: food-ref.repo — global Ciqual reference
+   │                         #    data, read-only, no tenant; see security.md §6)
    ├─ domain/                # PURE calculations — ONE folder per spec/logic area
    │  ├─ metabolic/  targets/  day-verdict/  leftover/
-   │  ├─ recipes/    weight/   stats/
+   │  ├─ recipes/    weight/   stats/   ciqual/
    │  └─ search/             # normalize() for unaccent parity (display side)
    └─ i18n/                  # server returns error CODES; minimal strings only
 ```

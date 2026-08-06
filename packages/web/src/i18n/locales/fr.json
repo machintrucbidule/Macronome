@@ -1171,6 +1171,11 @@
       "heap": "Heap (utilisé / total)",
       "postgres": "PostgreSQL",
       "dbSize": "Taille de la base"
+    },
+    "credits": {
+      "title": "Sources de données",
+      "ciqual": "Catalogue de référence Ciqual 2025 (édition du 3 novembre 2025) — Anses, Table de composition nutritionnelle des aliments. Diffusé sous Licence Ouverte / Open Licence 2.0 (Etalab).",
+      "doi": "Voir le jeu de données"
     }
   },
   "settings": {

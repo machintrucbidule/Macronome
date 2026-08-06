@@ -14,7 +14,13 @@ Trigram indexes for fast accent-agnostic prefix/substring search:
 CREATE INDEX idx_food_normname_trgm   ON food   USING gin (normalized_name gin_trgm_ops);
 CREATE INDEX idx_recipe_normname_trgm ON recipe USING gin (normalized_name gin_trgm_ops);
 CREATE INDEX idx_container_normname_trgm ON container USING gin (normalized_name gin_trgm_ops);
+CREATE INDEX idx_foodref_normname_fr_trgm  ON food_ref USING gin (normalized_name_fr  gin_trgm_ops);  -- Ciqual catalog search, FR (B-289)
+CREATE INDEX idx_foodref_normname_eng_trgm ON food_ref USING gin (normalized_name_eng gin_trgm_ops);  -- ...and EN (B-289)
 ```
+
+The `food_ref` catalog is searched over **both** name columns at once (the same
+query matches "pomme" and "apple"), which is why it carries two trigram indexes
+where the user-owned tables carry one.
 
 The Daily-log/recipe ingredient autocomplete queries **food ∪ recipe** (both
 normalized columns); the Foods browse queries `food` only, Recipes browse
@@ -45,6 +51,10 @@ CREATE INDEX idx_weight_user_date  ON weight_entry(user_id, date ASC);
 
 -- food uniqueness for name-resolution / duplicate warning
 CREATE INDEX idx_food_owner_normname ON food(owner_id, normalized_name) WHERE archived_at IS NULL;
+
+-- Ciqual reference catalog (global, not user-scoped; B-289)
+CREATE UNIQUE INDEX uq_foodref_dataset_code ON food_ref(dataset, code);
+CREATE INDEX idx_foodref_dataset_group      ON food_ref(dataset, group_label_fr); -- group filter
 ```
 
 ## Stats query support

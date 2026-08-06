@@ -101,6 +101,26 @@ function InfoCard({ title, rows }: Group) {
   );
 }
 
+// Attribution for the bundled Ciqual reference catalog (B-289). Static text, no API call:
+// the Licence Ouverte 2.0 requires it wherever the data is reused, so it renders even while
+// the cards are loading or failed to load (specifications/screens/about.md).
+const CIQUAL_DOI = 'https://doi.org/10.57745/RDMHWY';
+
+function Credits() {
+  const { t } = useTranslation();
+  return (
+    <div className={styles.credits}>
+      <span className={styles.creditsTitle}>{t('about.credits.title')}</span>
+      <p>
+        {t('about.credits.ciqual')}{' '}
+        <a href={CIQUAL_DOI} target="_blank" rel="noreferrer noopener">
+          {t('about.credits.doi')}
+        </a>
+      </p>
+    </div>
+  );
+}
+
 export function AboutPage() {
   const { t, i18n } = useTranslation();
   const about = useAbout();
@@ -119,6 +139,7 @@ export function AboutPage() {
             <InfoCard key={g.title} title={g.title} rows={g.rows} />
           ))
         )}
+        <Credits />
       </div>
     </>
   );

@@ -46,6 +46,9 @@ RUN npm pkg delete scripts.prepare && npm ci --omit=dev
 COPY --from=build /app/packages/shared/dist packages/shared/dist
 COPY --from=build /app/packages/api/dist packages/api/dist
 COPY --from=build /app/packages/api/prisma packages/api/prisma
+# Committed reference extract (Ciqual catalog, B-289). A data file, so tsc never emits it into
+# dist/; services/ciqual-seed.ts walks up from its own module until it finds data/.
+COPY --from=build /app/packages/api/data packages/api/data
 COPY --from=build /app/packages/web/dist packages/web/dist
 COPY --from=build /app/node_modules/.prisma node_modules/.prisma
 COPY --from=build /app/node_modules/@prisma/client node_modules/@prisma/client

@@ -6077,3 +6077,103 @@ B-224); `inset 3px 0 0 color-mix(--accent 70%)` → **`inset 2px 0 0 var(--accen
 **Contract impact.** `design/components/data-tables.md` §Shared table conventions (new column-sizing
 bullet + the Aliments narrow band) and §Line-list grid instance A (padding, 229 → 217px, the three
 drift corrections). No spec/schema/API impact.
+
+---
+
+## CIQ-1 / B-289, B-290 — a global Ciqual reference catalog, and `food.source` made real — RESOLVED (owner, 2026-08-06)
+
+**Observed (B-289).** Macronome has no food database of its own: every aliment is typed in by
+hand, or prefilled one product at a time from Chronodrive. The published Ciqual table (Anses,
+edition 2025, 3 484 foods) is the obvious source, but the naive shape — insert ~3 400 rows into
+`food` — was rejected on four independent counts found in the code: `food.repo.ts` scopes the
+browse list to `{ownerId, source != 'recipe'}` (so rows owned by nobody are invisible anyway, and
+`visibility` is inert in v1); the `sort=usage` path materialises the **entire** matching catalog on
+every request, justified in its own comment by "a single user's bounded catalog"; the data-export
+envelope carries every food unbounded into one body and the import replays it inside a single 30 s
+transaction; and the AI candidate pool would gain ~3 400 unrated generic entries
+(`ai_proposable` defaults true).
+
+**Decision — a separate read-only reference table, not user foods (D1).** `food_ref` is global:
+no `owner_id`, no per-user copies, never exported, never wiped, never seen by the AI. A reference
+entry becomes a real `food` only when the user adopts it, which **copies** the values across and
+severs the link — so a future edition can change or drop a reference row without touching anything
+saved. All four paths above stay untouched, and the duplicate-management problem dissolves:
+nothing lands in the user's catalog unless they ask for it.
+
+**Decision — edition, licence, attribution (D2).** Ciqual **2025** (2025-11-03), source Recherche
+Data Gouv, `doi:10.57745/RDMHWY`. **Licence Ouverte Etalab 2.0 — attribution to Anses is
+mandatory.** Owner decision: the notice appears in **both READMEs and on the À propos screen** from
+this batch (the app is the reuser of the data, not just the repository); a third placement under
+the future Catalogue view was considered and left to that batch.
+
+**Decision — seeded automatically, nothing to undo (D3).** Not 3 400 INSERTs in a migration: an
+idempotent boot seeder keyed on a dataset marker (`ciqual_2025`) — same id → no-op, different id →
+the table is replaced in one transaction. This follows the zero-config boot doctrine already used
+by `config/session-secret.ts`, makes a future edition a one-line change, and needs no operator
+action. There is **no bulk-removal action**: the catalog is not user data, so there is nothing to
+undo.
+
+**Decision — extraction rules (D9).** `traces` and `< x` (any threshold, including `< 0`) → **0**;
+`-` → **unknown**. Energy is read from constituent **328** (the EU 1169/2011 kcal figure), never
+327 (kJ) or 333 ("with fibres", ambiguous and — measured — with zero coverage on exactly the rows
+that lack 328). When energy is unknown but fat, carb and protein are all known, energy is
+**derived** as `9·L + 4·G + 4·P` and flagged `energy_derived` — **except** in Ciqual group `06`
+(beverages), where the undetermined alcohol content would yield a false ~0 kcal, so the entry is
+dropped instead. A macro unknown while energy is published becomes **0** (losing the food over one
+unmeasured macro would be worse). Measured against the real 2025 dataset during triage: **3 341**
+foods with published energy + **59** derived = **3 400** kept, **84** dropped.
+
+**Decision — what is committed (D8).** The compact extract and its generator, never the raw XML
+(69 MB for `compo` alone). Owner decision: the extract is committed as **readable JSON, one entry
+per line** rather than gzipped — a future edition then produces a reviewable diff showing exactly
+which foods changed, and the image build stays reproducible byte-for-byte. It costs ~700 KB
+instead of ~250 KB, which is the accepted trade.
+
+**Deliberate exception to a CLAUDE.md rule, taken knowingly.** Rule 3 ("every repository method
+takes the authenticated `userId`; never write an unscoped query") does not fit a table with no
+owner. `food-ref.repo` is read-only and takes **no** `userId`; its only writer is the boot seeder.
+This is written down in five places rather than left implicit, so the next audit reads it as a
+documented exception and not as a tenancy bug. The exception is scoped to global reference data.
+
+**Observed (B-290) — the field already existed and was dead.** `food.source` is declared in the
+schema, CHECK-constrained to `('manual','recipe','imported')`, and exposed in the read DTO — but
+`foodRepo.create` never sets it and `FoodWriteData` has no such field, so **every** API-created
+food falls back to the DB default. `'imported'` has zero producers anywhere in the repo. The
+consequence is a real defect, not a missing feature: the Chronodrive path is prefill-only
+(controller returns a `food_prefill`, the web applies it locally, then POSTs a plain food), so **a
+food created from a Chronodrive product is persisted as `'manual'`**.
+
+**Decision — vocabulary `manual` / `ciqual` / `chronodrive` (+ the server-owned `recipe`) (D7).**
+`'imported'` is dropped: it was reserved and never written. A Chronodrive-prefilled food is
+`chronodrive` **even if the values are edited afterwards** — provenance is fixed at creation and is
+not patchable. The macro-label parser ("Parser macro") path stays `manual`: pasting a label is
+typing, faster. `POST /foods` therefore accepts an optional `source` restricted to
+`manual|ciqual|chronodrive`; `recipe` is rejected (422) because only `recipe-derived-food` may
+write it.
+
+**Decision — foods already created from Chronodrive stay `Manuel`.** The provenance was never
+recorded, so it cannot be reconstructed; no back-fill is attempted and none is backlogged.
+
+**Trap worth recording — the import path can 422 a whole account restore.** The export envelope
+types `source` as a loose `z.string()` and the import inserts it verbatim inside the single
+restore transaction. Any envelope exported **before** this change carries `source:'imported'`,
+which the new CHECK rejects — surfacing as a blanket `import_invalid_format` on the entire
+restore, not on one food. The import now maps any value outside the current vocabulary to
+`'manual'`, with a regression test.
+
+**Second trap — the export-coverage gate fails the build on sight.** `export-coverage.test.ts`
+diffs every Prisma scalar column against the export envelope and rejects any table that is neither
+exported nor whitelisted. `food_ref` must be whitelisted as non-user data in the same change, and
+symmetrically `data-wipe` must not touch it.
+
+**Contract impact.** `spec/schema/tables-catalog.md` (new `## food_ref`; `food.source` CHECK →
+`('manual','recipe','ciqual','chronodrive')`), `spec/schema/00-overview.md` (entity map + the two
+convention exceptions), `spec/schema/indexes.md` (two GIN trigram indexes, the unique
+`(dataset, code)`, the group btree), **new** `spec/logic/ciqual-catalog.md` (extraction contract +
+synthetic oracles — `00-conventions.md` forbids real values in a synced oracle),
+`spec/api/foods-recipes.md` §Foods (`POST /foods` optional `source`; `PATCH` cannot change it),
+`docs/architecture/module-map.md` §1 + §4, `docs/architecture/security.md` §6 (the exception's
+home) mirrored in `ARCHITECTURE.md` §3, `CLAUDE.md` rule 3,
+`docs/architecture/context-files/api-CLAUDE.md` and `docs/architecture/repo-structure.md`,
+`README.md` + `README_FR.md` (new final attribution section, both files),
+`specifications/screens/about.md`. No design-system impact.

@@ -1171,6 +1171,11 @@
       "heap": "Heap (used / total)",
       "postgres": "PostgreSQL",
       "dbSize": "Database size"
+    },
+    "credits": {
+      "title": "Data sources",
+      "ciqual": "Ciqual 2025 reference catalog (edition of 3 November 2025) — Anses, French food composition table. Distributed under the Licence Ouverte / Open Licence 2.0 (Etalab).",
+      "doi": "View the dataset"
     }
   },
   "settings": {

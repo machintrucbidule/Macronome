@@ -38,6 +38,10 @@ Used by the diacritic-insensitive autocomplete (see `indexes.md`).
 
 - Catalog: `app_user`, `food`, `food_portion`, `recipe`, `recipe_ingredient`,
   `container`.
+- Reference (global, not user-owned): `food_ref` — the Ciqual catalog shipped
+  with the image (`tables-catalog.md`, `spec/logic/ciqual-catalog.md`). The one
+  exception to the tenant-scoping and timestamp conventions above: no `user_id`,
+  no `updated_at`.
 - Logging: `meal_slot_template`, `pantry_item`, `day_log`, `meal`, `meal_entry`,
   `leftover_group`, `leftover_group_entry`.
 - Weight & targets: `weight_entry`, `target`.

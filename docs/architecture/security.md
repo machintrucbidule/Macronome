@@ -96,6 +96,15 @@ Choices favour boring, proven mechanisms over novelty.
 - Shared-catalog rows (`food.visibility = 'shared'`) are readable by any user but
   writable only by `owner_id`; the name-resolution shadowing rule is implemented
   though inert with one user.
+- **Documented exception — global reference tables (B-289).** `food_ref` (the Ciqual
+  catalog shipped inside the image) holds no user data: no `owner_id`, no per-user
+  rows, nothing a user ever wrote. `food-ref.repo` is therefore **read-only and takes
+  no `userId`** — there is no tenant to scope to, and adding a fake one would only
+  hide that fact. The rule still binds everything else: any method of that repository
+  that touches user data (the "do I already own a food with this name?" probe) takes
+  `userId` like every other, and writes to `food_ref` come only from the boot seeder,
+  never from a request. This exception is scoped to global reference data — it is not
+  a licence to write an unscoped query anywhere else.
 - Lint import-boundaries prevent controllers from reaching Prisma directly, so
   scoping can't be bypassed by accident (`modularity.md` §4).
 

@@ -78,6 +78,33 @@ model Food {
   @@map("food")
 }
 
+/// Global Ciqual reference catalog (spec/schema/tables-catalog.md → food_ref, B-289).
+/// NOT user data: no owner_id, never exported, never wiped, never proposed to the AI —
+/// a row becomes a real Food only when the user adopts it, which copies the values.
+/// Written solely by the boot seeder (services/ciqual-seed.ts), which replaces the whole
+/// table when the shipped `dataset` marker differs. No updated_at: rows are never updated
+/// in place. CHECKs (macros ≥ 0), UNIQUE(dataset,code) and the indexes live in migration SQL.
+model FoodRef {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  dataset           String
+  code              String
+  nameFr            String   @map("name_fr")
+  nameEng           String   @map("name_eng")
+  normalizedNameFr  String   @map("normalized_name_fr")
+  normalizedNameEng String   @map("normalized_name_eng")
+  groupLabelFr      String   @map("group_label_fr")
+  groupLabelEng     String   @map("group_label_eng")
+  kcalPer100g       Decimal  @map("kcal_per_100g") @db.Decimal
+  fatPer100g        Decimal  @map("fat_per_100g") @db.Decimal
+  carbPer100g       Decimal  @map("carb_per_100g") @db.Decimal
+  proteinPer100g    Decimal  @map("protein_per_100g") @db.Decimal
+  energyDerived     Boolean  @default(false) @map("energy_derived")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  @@unique([dataset, code])
+  @@map("food_ref")
+}
+
 /// Named portion of a food (spec/schema/tables-catalog.md → food_portion). The
 /// food_id FK (ON DELETE CASCADE) and UNIQUE(food_id,label) live in migration SQL.
 model FoodPortion {

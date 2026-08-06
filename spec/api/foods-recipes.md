@@ -19,11 +19,17 @@ See `00-conventions.md`. All scoped to the authenticated user.
 - `GET /foods/:id` → 200 Food | 404.
 - `POST /foods` — create. Body: `{name, kcal_per_100g, fat_per_100g,
 carb_per_100g, protein_per_100g, comment?, rating?(null|0..3),
-visibility?(default 'private'), named_portions:[{label,grams}]}`.
-  Validation: macros ≥ 0; grams > 0; labels unique per food. Duplicate active
+visibility?(default 'private'), source?(default 'manual'),
+named_portions:[{label,grams}]}`.
+  Validation: macros ≥ 0; grams > 0; labels unique per food. `source` ∈
+  {`manual`,`ciqual`,`chronodrive`} — provenance declared by the client that built the
+  draft (a Chronodrive product prefill, an adopted `food_ref` entry, or plain typing;
+  the macro-label parser is `manual`). **`recipe` is rejected (422)** — it is
+  server-owned and only `recipe-derived-food` writes it. Duplicate active
   name → 200/201 with `warnings:['duplicate_name']` (non-blocking). → 201 Food.
 - `PATCH /foods/:id` — edit. Editing macros affects **future** logs only (past
-  meal_entry snapshots untouched). → 200 Food.
+  meal_entry snapshots untouched). `source` is **not** patchable: provenance is
+  fixed at creation and survives later edits (B-290). → 200 Food.
 - `POST /foods/:id/archive` → 200 (sets archived_at; removed from search/list).
 - `POST /foods/:id/restore` → 200.
 - `POST /foods/parse-label` — **stateless** macro-label parser (PM-1/B-114). Body

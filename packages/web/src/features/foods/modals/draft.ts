@@ -7,6 +7,9 @@ import type {
 } from '@macronome/shared';
 import type { PortionDraft } from './NamedPortionsEditor';
 
+/** What the client may declare as provenance (B-290); `recipe` is server-owned. */
+type DraftSource = CreateFoodRequest['source'];
+
 // Editable form state for the food add/edit modal. Numeric fields are strings while
 // editing; converted to the request body on save.
 export interface Draft {
@@ -18,6 +21,8 @@ export interface Draft {
   comment: string;
   rating: Rating;
   visibility: 'private' | 'shared';
+  /** How the draft was built. Sent on create only — `PATCH /foods/:id` ignores it (B-290). */
+  source: DraftSource;
   aiProposable: boolean;
   portions: PortionDraft[];
 }
@@ -33,6 +38,7 @@ export function initialDraft(food: Food | null): Draft {
       comment: '',
       rating: null,
       visibility: 'private',
+      source: 'manual',
       aiProposable: true,
       portions: [],
     };
@@ -46,6 +52,9 @@ export function initialDraft(food: Food | null): Draft {
     comment: food.comment ?? '',
     rating: food.rating,
     visibility: food.visibility,
+    // Carried for completeness only: the edit path never sends it. A recipe-derived food
+    // cannot reach this modal (the browse list excludes source='recipe').
+    source: food.source === 'recipe' ? 'manual' : food.source,
     aiProposable: food.ai_proposable,
     portions: food.named_portions.map((p) => ({ label: p.label, grams: String(p.grams) })),
   };
@@ -65,9 +74,14 @@ export function parsedPatch(macros: FoodParseLabel): Partial<Draft> {
  * Chronodrive patch (B-182): name + macros + comment from the server-side prefill. A
  * null macro (undeclared by the manufacturer) EMPTIES its field — the "à compléter"
  * notice covers it. An empty prefill name keeps the current one.
+ *
+ * It also stamps the provenance (B-290): a food built from a Chronodrive product is saved as
+ * `chronodrive` and stays so even if the values are edited afterwards. The macro-label parser
+ * (`parsedPatch`) deliberately does NOT stamp anything — pasting a label is typing, faster.
  */
 export function chronoPatch(prefill: ChronoFoodPrefill, currentName: string): Partial<Draft> {
   return {
+    source: 'chronodrive',
     name: prefill.name || currentName,
     kcal: prefill.kcal_per_100g != null ? String(prefill.kcal_per_100g) : '',
     fat: prefill.fat_per_100g != null ? String(prefill.fat_per_100g) : '',
@@ -88,6 +102,7 @@ export function draftToBody(draft: Draft): CreateFoodRequest {
     comment: draft.comment.trim() || null,
     rating: draft.rating,
     visibility: draft.visibility,
+    source: draft.source,
     ai_proposable: draft.aiProposable,
     named_portions: draft.portions
       .map((p) => ({ label: p.label.trim(), grams: Number(p.grams) }))

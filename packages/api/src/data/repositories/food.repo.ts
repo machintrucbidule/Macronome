@@ -22,6 +22,8 @@ export interface FoodWriteData {
   comment: string | null;
   rating: number | null;
   visibility: string;
+  /** Provenance (B-290); create-only — `update` never touches it. */
+  source: string;
   aiProposable: boolean;
   portions: { label: string; grams: number }[];
 }
@@ -199,6 +201,7 @@ export const foodRepo = {
           comment: data.comment,
           rating: data.rating,
           visibility: data.visibility,
+          source: data.source,
           aiProposable: data.aiProposable,
         },
       });

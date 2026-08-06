@@ -37,6 +37,7 @@ function editableFood(aiProposable: boolean): Food {
     comment: null,
     rating: 2,
     visibility: 'private',
+    source: 'manual',
     ai_proposable: aiProposable,
     named_portions: [],
     archived_at: null,
@@ -159,6 +160,43 @@ describe('FoodModal — Chronodrive search (B-182)', () => {
     await waitFor(() => expect(macroValue(r, i18n.t('foods.field.kcal'))).toBe('361'));
     expect(macroValue(r, i18n.t('foods.field.fat'))).toBe('');
     expect(r.getByText(i18n.t('foods.chrono.incomplete'), { exact: false })).toBeTruthy();
+  });
+});
+
+// B-290: `food.source` used to be dead — every food was persisted as 'manual', including the
+// ones built from a Chronodrive product. The save payload now carries the provenance.
+describe('FoodModal — source provenance (B-290)', () => {
+  it('saves a Chronodrive-prefilled food as source: chronodrive', async () => {
+    vi.spyOn(settingsApi, 'get').mockResolvedValue({ data: settingsWith(true) });
+    vi.spyOn(integrationsApi, 'searchProducts').mockResolvedValue({
+      data: [chronoProduct({}).data],
+    });
+    vi.spyOn(integrationsApi, 'getProduct').mockResolvedValue(chronoProduct({}));
+    const createSpy = vi.spyOn(foodsApi, 'create').mockResolvedValue({ data: editableFood(true) });
+    const r = renderModal(null);
+    await waitFor(() =>
+      expect(r.getByRole('button', { name: i18n.t('foods.chrono.link') })).toBeTruthy(),
+    );
+
+    await searchAndChoose(r);
+    await waitFor(() => expect(macroValue(r, i18n.t('foods.field.kcal'))).toBe('361'));
+    fireEvent.click(r.getByRole('button', { name: i18n.t('common.save') }));
+
+    await waitFor(() => expect(createSpy).toHaveBeenCalledTimes(1));
+    expect(createSpy.mock.calls[0]?.[0]).toMatchObject({ source: 'chronodrive' });
+  });
+
+  it('saves a hand-typed food as source: manual', async () => {
+    const createSpy = vi.spyOn(foodsApi, 'create').mockResolvedValue({ data: editableFood(true) });
+    const { getByLabelText, getByRole } = renderModal(null);
+
+    fireEvent.change(getByLabelText(i18n.t('foods.field.name')), {
+      target: { value: 'Blanc de poulet' },
+    });
+    fireEvent.click(getByRole('button', { name: i18n.t('common.save') }));
+
+    await waitFor(() => expect(createSpy).toHaveBeenCalledTimes(1));
+    expect(createSpy.mock.calls[0]?.[0]).toMatchObject({ source: 'manual' });
   });
 });
 

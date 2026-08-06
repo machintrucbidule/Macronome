@@ -63,3 +63,26 @@
   text-align: right;
   word-break: break-word;
 }
+
+/* Ciqual attribution footnote (B-289) — a licence obligation, so it is quieter than a card
+   but always present. Not a card: it carries no server data. */
+.credits {
+  margin-top: var(--sp-7);
+  font-size: var(--fs-12);
+  color: var(--text-faint);
+  line-height: var(--lh-normal);
+}
+.creditsTitle {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  color: var(--text-dim);
+  margin-bottom: var(--sp-2);
+}
+.credits a {
+  color: inherit;
+  text-decoration: underline;
+}
+.credits a:hover {
+  color: var(--text-dim);
+}
