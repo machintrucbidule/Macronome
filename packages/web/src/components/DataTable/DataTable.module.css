@@ -24,6 +24,10 @@
   letter-spacing: 0.04em;
   color: var(--text-faint);
   font-weight: var(--fw-regular);
+  /* B-258: column headers are furniture — dragging across them must not paint a selection.
+     Previously only `.sortable` carried this, so the non-sortable headers still highlighted.
+     The BODY cells are untouched: every value in the table stays copyable. */
+  user-select: none;
   padding: 9px 10px;
   border-bottom: var(--bw) solid var(--border-strong);
   text-align: left;

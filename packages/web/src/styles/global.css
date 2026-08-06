@@ -96,6 +96,37 @@ select,
   min-height: 100vh;
 }
 
+/* B-257 — scrollbars follow the theme. `--scrollbar` existed in both themes but was consumed in
+   exactly ONE place (the Repas meal scroller's thumb), so every other scroll area rendered the raw
+   OS scrollbar: a bright system bar down the side of a dark app. `color-scheme` in tokens.css
+   already hands the native layer the theme; this styles the bar itself where the browser lets us.
+
+   Firefox honours `scrollbar-color`; Chromium needs the ::-webkit-scrollbar pseudo-elements.
+   Declared on the ELEMENT selectors, not `*`, so the two deliberate scrollbar-HIDING cases —
+   MealTabs and the Repas `.scroller`, which set `scrollbar-width: none` on their own class — keep
+   winning: a class beats an element selector, and their ::-webkit rule sets `display: none`. */
+html {
+  scrollbar-color: var(--scrollbar) transparent;
+  scrollbar-width: thin;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar);
+  border-radius: var(--r-pill);
+  /* Inset the thumb from the track without changing the bar's width (no layout shift). */
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
 /* B-272: visually hidden, still announced. For the live region that reports page arrivals to a
    screen reader (design/components/states.md §Announced to assistive technology). NOT
    `display:none` / `visibility:hidden` — either would remove it from the accessibility tree and

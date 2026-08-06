@@ -81,6 +81,8 @@
 }
 
 .menu {
+  /* B-258: menu furniture — labels inside inherit and are not selectable. */
+  user-select: none;
   position: absolute;
   right: 0;
   top: calc(100% + 4px);
@@ -95,7 +97,7 @@
   background: var(--bg-elev-2);
   border: 1px solid var(--border-strong);
   border-radius: var(--r-md);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-md);
 }
 .menu button {
   display: block;

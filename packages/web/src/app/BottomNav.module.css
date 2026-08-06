@@ -2,6 +2,8 @@
    Hidden by default → absent from the desktop layout + a11y/tab tree; shown only at the
    phone breakpoint. Desktop byte-identical. */
 .bottomnav {
+  /* B-258: furniture, never selectable text. */
+  user-select: none;
   display: none;
 }
 

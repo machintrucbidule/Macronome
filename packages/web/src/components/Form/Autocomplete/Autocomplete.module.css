@@ -32,7 +32,7 @@
   background: var(--bg-elev-2);
   border: 1px solid var(--border-strong);
   border-radius: var(--r-md);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-md);
 }
 
 /* B-233: flip above the field when there is no room below, set by useMenuPlacement — a food line near

@@ -19,6 +19,36 @@ Borders: `--border` default hairline (`1px`); `--border-strong` for emphasis
 `background:var(--bg-elev); border:1px solid var(--border); border-radius:var(--r-lg)`.
 Inner tiles inside a card step down to `--r-md` + `--bg-elev-2`.
 
+### Shadow ladder (floating layers) — [B-255]
+
+Surface stacking says **which plane** a thing sits on. It cannot say **how far above the page** it
+floats, and every floating layer lands on the same `--bg-elev-2` — so with a single `--shadow`
+(50px blur) a small tooltip carried the same weight as a modal, flattening the hierarchy the
+stacking was meant to express. Three tiers, both themes:
+
+| token         | for                                                           |
+| ------------- | ------------------------------------------------------------- |
+| `--shadow-sm` | tooltips — barely off the page                                |
+| `--shadow-md` | menus, popovers, autocomplete, the calendar and filter pops   |
+| `--shadow`    | modals, bottom sheets, toasts, the FAB, cook mode, auth cards |
+
+`--shadow` **keeps its name and its value**: that is what let the ladder land without touching the
+~20 existing consumers — only the layers that should soften were re-pointed. The ladder is
+elevation, not decoration: a layer's tier follows how far it floats, never how important it feels.
+
+### Native surfaces follow the theme — [B-257]
+
+The browser draws scrollbars, `<select>` popups, date pickers and form widgets itself, and in a
+dark-by-default app they painted **light** — the loudest "this is a browser, not an application"
+tell in the installed window. Both `[data-theme]` blocks therefore declare **`color-scheme`**
+(`dark` / `light`), which hands that whole native layer the app's theme in one property.
+
+Scrollbars are additionally styled from `--scrollbar` in `global.css` (`scrollbar-color` for
+Firefox, `::-webkit-scrollbar*` for Chromium). The token existed in both themes but had exactly
+**one** consumer, so every other scroll area showed the raw OS bar. Two scrollers hide their bar
+deliberately (the Repas meal scroller and the mobile meal tabs); the global rule is declared on
+element selectors so their class-level rules keep winning.
+
 ## Focus ring
 
 Inputs on focus: `border-color: var(--focus)`. The emphasised variant (login

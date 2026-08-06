@@ -116,3 +116,22 @@ set in this folder, not any single mockup.
   "—" with **no star widget**; `0`/Bof → the 3-star widget showing 0 filled.
   Visually distinct (dash vs empty-star control). Mapped in
   `components/rating-stars.md` (no longer deferred — DECISIONS.md present).
+
+---
+
+## Correction — the fonts were never delivered — [B-263]
+
+The type families in `tokens.css` were normalised from mockups rendered on a machine that had the
+designer's fonts. The **delivery step was never part of any milestone**: there is no `@font-face`,
+no `.woff2` and no font link anywhere in `packages/web`. On every machine without those faces
+installed — i.e. essentially all of them, Söhne being commercial — the stacks fell straight through
+to `ui-monospace` / `system-ui`.
+
+The fallbacks worked, which is exactly why nobody noticed: the app looked fine while the contract
+described a brand typography **the product has never displayed**.
+
+**Resolution (owner): system fonts, stated as such.** Self-hosting free substitutes (Space Mono +
+Inter Tight) and providing licensed Söhne files were both declined. The stacks are reordered so the
+family that actually renders leads, with the named faces kept at the tail as an opportunistic
+upgrade — no visual change whatsoever, since that is already what every machine shows. See
+`tokens.md` §Type families.

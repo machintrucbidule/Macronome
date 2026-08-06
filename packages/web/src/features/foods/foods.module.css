@@ -51,6 +51,8 @@
   }
 }
 .filterpop {
+  /* B-258: menu furniture — labels inside inherit and are not selectable. */
+  user-select: none;
   position: absolute;
   top: calc(var(--control-h-md) + 6px);
   right: 0;
@@ -59,7 +61,7 @@
   background: var(--bg-elev-2);
   border: var(--bw) solid var(--border-strong);
   border-radius: var(--r-md);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-md);
   padding: var(--sp-6);
   display: flex;
   flex-direction: column;

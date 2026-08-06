@@ -3,6 +3,8 @@
    Per spec §5.3 the bar is a full-width band integrated with the page chrome (same construction
    language as the bottom nav — `--bg-elev` + top border), NOT the mockup's detached chips. */
 .tabs {
+  /* B-258: furniture, never selectable text. */
+  user-select: none;
   display: none;
 }
 

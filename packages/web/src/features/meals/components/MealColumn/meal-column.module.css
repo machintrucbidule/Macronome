@@ -210,6 +210,8 @@
   }
 }
 .popmenu {
+  /* B-258: menu furniture — labels inside inherit and are not selectable. */
+  user-select: none;
   position: absolute;
   right: 0;
   top: 30px;
@@ -224,7 +226,7 @@
   background: var(--bg-elev-2);
   border: 1px solid var(--border-strong);
   border-radius: var(--r-md);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-md);
 }
 .popmenu button {
   display: block;

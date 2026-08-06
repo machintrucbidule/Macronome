@@ -32,14 +32,20 @@ update** and **install** — plus the version line. Reuses `buttons.md` (ghost b
   height (B-204), and the runtime `theme-color` is set to **`--bg-elev`** so the strip the browser
   paints behind the native window buttons matches the header — the title band is one uniform colour
   across the full width, no seam (B-205; semantic tokens only, WCO-mode only).
-- **App shortcuts (B-183)** — the manifest exposes five `shortcuts`, in this order:
+- **App shortcuts (B-183, icons B-259)** — the manifest exposes five `shortcuts`, in this order:
   **Repas du jour** (`/`) · **Ajouter une pesée** (`/weight?action=add`) · **Journal**
   (`/history`) · **Stats** (`/stats`) · **Paramètres** (`/settings`). Shown by the OS
-  on taskbar right-click (Windows) / icon long-press (Android). No per-shortcut icons
-  (the OS falls back to the app icon). `/weight?action=add` opens Poids with the
-  add-weigh-in sheet already open; the param is **consumed once** (stripped with a
-  `replace` navigation) so refresh/back never re-opens the sheet. Logged out, the
-  shortcut lands on Poids after login without the sheet (intent not preserved).
+  on taskbar right-click (Windows) / icon long-press (Android). **Each carries its own 96px
+  icon**: without them the OS drew the app icon five times over and the jump list was
+  unreadable. The glyphs are the **mobile bottom nav's own** — same mark in the jump list and in
+  the phone tab bar — except **Paramètres**, which has no counterpart there (the bar carries only
+  the six primary routes) and is the single glyph drawn for this set. Sources in
+  `packages/web/icons/`, rasterised by `gen:pwa-assets` and committed; a guard test fails the
+  build if a shortcut glyph and its bottom-nav original ever drift apart.
+  `/weight?action=add` opens Poids with the add-weigh-in sheet already open; the param is
+  **consumed once** (stripped with a `replace` navigation) so refresh/back never re-opens the
+  sheet. Logged out, the shortcut lands on Poids after login without the sheet (intent not
+  preserved).
 - **App-icon badge (B-262)** — while the app runs, `navigator.setAppBadge()` marks the installed
   icon whenever the **current day is not compliant** (tone ≠ `ok`, including `none` — a day with
   nothing logged is exactly when the reminder earns its keep), and `clearAppBadge()` removes it
@@ -56,6 +62,25 @@ update** and **install** — plus the version line. Reuses `buttons.md` (ghost b
   in-app light/dark theme (updated whenever the theme changes). It reads **`--bg`** in a browser tab
   and on the mobile status bar, and **`--bg-elev`** in the installed WCO window (so the native-button
   strip matches the header — B-205).
+
+- **Install-dialog presentation (B-259)** — the manifest carries `description`, `categories`
+  (`health`, `fitness`, `lifestyle`) and three **`screenshots`** (two `wide`, one `narrow`), so
+  Edge's install card shows what the app looks like instead of a bare name + icon. The
+  screenshots are downscaled WebP re-encodes of the README previews — nothing new is exposed —
+  and are **excluded from the service-worker precache** (`globIgnores`): they are seen once, at
+  install time. `index.html` carries the matching `<meta name="description">`.
+- **`id` (B-259)** — the manifest declares `id: '/'`. Without it the browser keys the install on
+  `start_url`, so any future change there would register as a **different app**: a second icon,
+  and the existing install orphaned. Set while `start_url` is still `/`, it costs nothing and
+  removes that trap permanently.
+- **Manifest changes need a refreshed install.** An installed PWA keeps its frozen manifest — the
+  shipped `dist/manifest.webmanifest` still listed the pre-B-240 `/parametres` shortcut long after
+  the route was renamed. Everything above therefore takes effect only once the install refreshes.
+- **Pull-to-refresh is deliberately KEPT (B-258, owner decision).** There is no document-level
+  `overscroll-behavior`, so Android's native pull-to-refresh still works — and can still reload
+  the SPA if a list is dragged down past its top. That cost was weighed and accepted against
+  losing the gesture. Scroll containers that must not chain keep their own `overscroll-behavior:
+contain`; that is a different rule and stays.
 
 ## Update card (Paramètres → "Mise à jour")
 

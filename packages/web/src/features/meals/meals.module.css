@@ -85,6 +85,8 @@
 
 /* ---- Calendar popover ---- */
 .cal {
+  /* B-258: menu furniture — labels inside inherit and are not selectable. */
+  user-select: none;
   position: absolute;
   top: 36px;
   left: 0;
@@ -94,7 +96,7 @@
   background: var(--bg-elev-2);
   border: 1px solid var(--border-strong);
   border-radius: var(--r-md);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-md);
 }
 .calHead {
   display: flex;
@@ -248,6 +250,8 @@
   }
 }
 .actHelpPop {
+  /* B-258: menu furniture — labels inside inherit and are not selectable. */
+  user-select: none;
   position: absolute;
   top: calc(100% + 5px);
   right: 0;
@@ -257,7 +261,7 @@
   background: var(--bg-elev-2);
   border: 1px solid var(--border-strong);
   border-radius: var(--r-md);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-md);
   text-align: left;
   cursor: default;
 }

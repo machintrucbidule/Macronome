@@ -2,6 +2,8 @@
    recipe shared with the SelectMenu dropdown / MealHeader "⋯" menu — semantic tokens
    only. Mouse-first surface (standalone desktop): 32px items. */
 .panel {
+  /* B-258: menu furniture — labels inside inherit and are not selectable. */
+  user-select: none;
   position: fixed;
   /* B-261: was --z-toast, now reserved for real confirmations; the menu keeps its position
      above every other layer, only below a toast. */
@@ -11,7 +13,7 @@
   background: var(--bg-elev-2);
   border: 1px solid var(--border);
   border-radius: var(--r-md);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-md);
 }
 
 .item {
@@ -68,7 +70,7 @@
   background: var(--bg-elev-2);
   border: 1px solid var(--border);
   border-radius: var(--r-md);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-md);
 }
 .subLeft {
   left: auto;

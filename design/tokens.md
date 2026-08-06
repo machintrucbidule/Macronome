@@ -12,6 +12,26 @@ where it shows up in the mockups, so the build applies them consistently.
   `transition: background var(--dur-theme) var(--ease), color var(--dur-theme) var(--ease)`.
 - See `theming.md` for the full strategy (system/light/dark resolution).
 
+## Type families — [B-263]
+
+**Macronome ships no webfont, by design.** There is no `@font-face`, no `.woff2` and no font link
+anywhere in the app: the delivered typography is the **system stack**, and always has been.
+
+The stacks were normalised from mockups rendered on a machine that had the designer's fonts, so
+they used to _lead_ with `'Space Mono'` and `'Söhne'` — naming a brand typography the product has
+never displayed, because the fallback silently absorbed the miss on every other machine. The order
+is now honest: the family that actually renders comes **first**, and the named faces stay at the
+tail as an opportunistic upgrade for a machine that happens to have them.
+
+| token            | delivered      | opportunistic tail         |
+| ---------------- | -------------- | -------------------------- |
+| `--font-display` | `ui-monospace` | JetBrains Mono, Space Mono |
+| `--font-body`    | `system-ui`    | Inter Tight, Söhne         |
+| `--font-num`     | `ui-monospace` | Space Mono                 |
+
+Self-hosting was considered and declined (owner): Söhne is commercial, and shipping free
+substitutes would add weight for a look the product has never had. See `NORMALIZATION_LOG.md`.
+
 ## Type scale (px)
 
 | Token     | Use                                                              |
@@ -31,7 +51,8 @@ where it shows up in the mockups, so the build applies them consistently.
 
 Rules: anything numeric (kcal, grams, kg, %, dates, table figures) uses
 `--font-num` with `font-variant-numeric: tabular-nums`. Titles/wordmark use
-`--font-display` (Space Mono, weight 700). Prose/labels use `--font-body`.
+`--font-display` at weight 700 — **the system monospace**, not Space Mono (B-263 above).
+Prose/labels use `--font-body`.
 
 **Mobile type layer (≤`--bp-phone`).** The values above are the dense desktop scale.
 At `@media (max-width: 560px)` a `:root` override bumps every `--fs-*` toward

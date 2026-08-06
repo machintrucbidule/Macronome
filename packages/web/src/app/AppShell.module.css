@@ -1,4 +1,11 @@
+/* B-258 — chrome text is not selectable. Dragging across the app's furniture used to paint a
+   blue text highlight, which is the single clearest "this is a web page, not an app" tell in the
+   installed window. Declared on the CONTAINERS and inherited, never as a blanket `*` rule: the
+   boundary between furniture and DATA is the whole risk here, and it is enumerated rather than
+   guessed. Everything the user might want to copy — food and recipe names, quantities, comments,
+   totals, dates, the login/error diagnostic codes — stays selectable. */
 .appbar {
+  user-select: none;
   display: flex;
   align-items: center;
   gap: var(--sp-7);
@@ -251,7 +258,7 @@
   background: var(--bg-elev-2);
   border: var(--bw) solid var(--border-strong);
   border-radius: var(--r-md);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-md);
   min-width: 172px;
   padding: var(--sp-1);
   z-index: 80;

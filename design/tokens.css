@@ -6,10 +6,16 @@
    ============================================================================ */
 
 :root {
-  /* ---- Type families ---- */
-  --font-display: 'Space Mono', 'JetBrains Mono', ui-monospace, monospace;
-  --font-body: 'Söhne', 'Inter Tight', -apple-system, system-ui, sans-serif;
-  --font-num: 'Space Mono', ui-monospace, monospace; /* tabular figures */
+  /* ---- Type families ----
+     B-263: Macronome ships NO webfont by design — no @font-face, no .woff2, no font link.
+     The delivered typography is therefore the SYSTEM stack, and these lists now lead with the
+     family that actually renders. The named faces stay at the tail as an opportunistic upgrade
+     for a machine that happens to have them (Söhne is commercial; self-hosting free substitutes
+     was declined). Previously they led, so the contract read as a brand typography the product
+     has never displayed. See design/tokens.md + NORMALIZATION_LOG.md. */
+  --font-display: ui-monospace, 'JetBrains Mono', 'Space Mono', monospace;
+  --font-body: system-ui, -apple-system, 'Inter Tight', 'Söhne', sans-serif;
+  --font-num: ui-monospace, 'Space Mono', monospace; /* tabular figures */
 
   /* ---- Type scale (px) ---- dense desktop UI; numbers use --font-num/tabular */
   --fs-9: 9px; /* micro labels, table sub-headers, tags */
@@ -155,7 +161,17 @@
 
   /* Misc */
   --scrollbar: #4a525e;
-  --shadow: 0 18px 50px -12px rgba(0, 0, 0, 0.7);
+  /* Elevation ladder (B-255, 00-foundations.md). Surface stacking says WHICH plane a thing is
+     on; these say how far ABOVE the page it floats. `--shadow` keeps its name and its value so
+     the ~20 existing consumers stay valid — only the layers that should soften are re-pointed. */
+  --shadow-sm: 0 2px 6px -1px rgba(0, 0, 0, 0.55); /* tooltips: barely off the page */
+  --shadow-md: 0 8px 22px -6px rgba(0, 0, 0, 0.62); /* menus, popovers, autocomplete */
+  --shadow: 0 18px 50px -12px rgba(0, 0, 0, 0.7); /* modals, sheets, toasts, FAB */
+
+  /* B-257: hand the native layer the theme. Scrollbars, <select> popups, date pickers and
+     form widgets are drawn by the OS/browser, not by us — without this they paint light over
+     a dark UI, which is the loudest "this is a browser" tell in the installed window. */
+  color-scheme: dark;
 }
 
 /* ============================================================================
@@ -213,7 +229,11 @@
   --waistc: #8a4fc0;
 
   --scrollbar: #b3aa97;
+  --shadow-sm: 0 2px 6px -1px rgba(40, 35, 20, 0.16);
+  --shadow-md: 0 8px 22px -6px rgba(40, 35, 20, 0.19);
   --shadow: 0 18px 50px -16px rgba(40, 35, 20, 0.22);
+
+  color-scheme: light;
 }
 
 /* ============================================================================

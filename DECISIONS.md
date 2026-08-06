@@ -5852,3 +5852,122 @@ the app is a drop surface.
 
 **Contract impact.** `design/components/ai-dish-analysis.md` (the desktop entry point) and
 `specifications/screens/meals.md` (the drop affordance). No API or schema change.
+
+---
+
+## LF-1 / B-255 — an elevation ladder for floating layers — RESOLVED (owner, 2026-08-06)
+
+**Root cause was a deliberate design choice reaching its limit.** `00-foundations.md` expresses
+elevation through **surface stacking** (`--bg` → `--bg-elev` → `--bg-elev-2`), so only **one**
+`--shadow` was ever normalised — a 50px blur, consumed in ~20 places. That works for inline cards;
+it cannot distinguish floating layers, which all land on `--bg-elev-2`. A small tooltip therefore
+carried a modal's weight and flattened the hierarchy the stacking was meant to express.
+
+**Decision — three tiers, and `--shadow` keeps its name.** `--shadow-sm` for tooltips,
+`--shadow-md` for menus/popovers/autocomplete/calendar/filter pops, `--shadow` unchanged for
+modals, sheets, toasts, the FAB, cook mode and the auth cards. Keeping the existing token's name
+**and value** is what let the ladder land without touching ~20 consumers: only the layers that
+should soften were re-pointed, each resolved to its actual selector first rather than guessed from
+the file name.
+
+**Contract impact.** `design/tokens.css` + the web copy (byte-identical pair re-verified),
+`design/components/00-foundations.md` §Shadow ladder.
+
+---
+
+## LF-1 / B-257 — the native layer follows the theme — RESOLVED (owner, 2026-08-06)
+
+**Observed:** `--scrollbar` was defined in both themes and consumed **once** (the Repas meal
+scroller's thumb), so every other scroll area rendered the raw OS bar. `color-scheme` was absent
+entirely, so `<select>` popups, date pickers and form widgets painted **light** over a dark UI.
+
+**Decision — `color-scheme` first, then the bar.** Declaring `color-scheme: dark|light` in the two
+`[data-theme]` blocks hands the whole native layer the app's theme in one property, and that alone
+removes most of the "this is a browser" tell. A global scrollbar rule in `global.css` then styles
+the bar from `--scrollbar` (`scrollbar-color` for Firefox, `::-webkit-scrollbar*` for Chromium).
+
+**The two deliberate scrollbar-hiding cases are protected by specificity, not by luck**: the Repas
+`.scroller` and the mobile meal tabs hide their bar on their own class, and the global rule is
+declared on element selectors so those class rules keep winning.
+
+**Contract impact.** `design/tokens.css` + web copy, `design/components/00-foundations.md`
+§Native surfaces.
+
+---
+
+## LF-1 / B-258 — chrome stops behaving like a web page — RESOLVED (owner, 2026-08-06)
+
+**Half of this item was deliberately NOT delivered.** It bundled two gestures; the owner kept one.
+
+**Delivered — chrome text is not selectable.** `user-select` existed at only 7 sites, so dragging
+across the appbar, the navs or a column header painted a blue highlight. It is now declared on the
+**enumerated containers** and inherited — appbar, primary nav, bottom nav, meal tabs, table column
+headers, menu panels — never as a blanket `*` rule. Getting that boundary wrong was the accepted
+risk, so it was enumerated: everything the user might copy stays selectable (food and recipe names,
+quantities, comments, totals, dates, container names, and the deliberately `user-select: all`
+diagnostic codes). Two table stylesheets already carried the rule; the shared `DataTable` had it on
+`.sortable` only, so **non-sortable** headers still highlighted — now every `th` does.
+
+**Not delivered — `overscroll-behavior` (owner decision).** The item proposed suppressing Android's
+pull-to-refresh, which can reload the whole SPA when a list is dragged past its top. **The owner
+chose to keep the gesture**, accepting that risk. There is therefore no document-level rule. The
+item's premise was also stale: `overscroll-behavior` no longer had "zero occurrences" — 7 exist,
+all `contain` on scroll containers, which is a different rule and stays.
+
+**Contract impact.** `design/components/top-nav.md` (the enumeration), `bottom-nav.md`,
+`design/components/pwa.md` (pull-to-refresh recorded as deliberately kept).
+
+---
+
+## LF-1 / B-259 — the install card and the jump list — RESOLVED (owner, 2026-08-06)
+
+**Two of the item's own assumptions did not survive contact.** (1) It proposed generating shortcut
+icons "the same way as the existing set… from `public/icon.svg`" — but that yields **five identical
+icons**, which is exactly what Windows already falls back to; per-shortcut icons only buy something
+if the glyphs differ. (2) It cited `scripts/gen-favicon.mjs` as the pattern to follow; **that file
+does not exist**.
+
+**Decision — reuse the mobile bottom nav's glyphs** (owner). Four of the five shortcuts have a
+counterpart there (Repas, Poids, Journal, Stats) and take those paths verbatim, so the same mark
+identifies a destination in the jump list and in the phone tab bar. **Paramètres has no counterpart
+and is the single glyph drawn for this set** — the owner chose that over leaving one entry on the
+generic fallback. A **guard test** compares each shortcut SVG's paths to its `BottomNav.tsx`
+original, so the reuse is enforced rather than merely claimed.
+
+**Screenshots — downscaled and re-encoded.** The owner chose to reuse the README previews rather
+than shoot new ones. They live in `docs/`, outside the bundle, and are 3838px / ~900 KB. Downscaled
+to 1280px they were still ~580 KB as PNG (a UI screenshot compresses poorly), so they are
+**WebP at quality 82 → ~144 KB for the three**, and **excluded from the service-worker precache**:
+they are seen once, at install time.
+
+**`id: '/'`** is the quiet win: without it the browser keys the install on `start_url`, so any
+future change there would register as a different app — a second icon, the existing install
+orphaned. Set now, while `start_url` is still `/`.
+
+**Standing caveat, unchanged:** an installed PWA keeps its frozen manifest, so none of this appears
+until the install refreshes.
+
+**Contract impact.** `design/components/pwa.md`, `design/components/bottom-nav.md` (the glyph
+reuse), `docs/architecture/decisions/0003-pwa.md` (precache addendum). New
+`packages/web/scripts/gen-shortcut-assets.mjs` + `gen:pwa-assets`; outputs committed, so CI and
+Docker still never need `sharp`.
+
+---
+
+## LF-1 / B-263 — the contract stops promising a typography the product never had — RESOLVED (owner, 2026-08-06)
+
+**Observed:** `tokens.css` declared `--font-display: 'Space Mono', …` and `--font-body: 'Söhne', …`,
+and the app is disciplined about them (316 `font-family` declarations, all `var(--font-*)` bar one
+`inherit`). But there is **no `@font-face`, no `.woff2`, no font link** anywhere in
+`packages/web` — so on every machine without those faces installed (essentially all of them, Söhne
+being commercial) the stacks fell straight through to `ui-monospace` / `system-ui`. The fallbacks
+worked, which is precisely why it went unnoticed for so long.
+
+**Decision — system fonts, and the stacks say so** (owner). Self-hosting free substitutes and
+providing licensed Söhne files were both declined. Beyond documenting it, the owner chose to
+**reorder the stacks** so the family that actually renders leads, with the named faces kept at the
+tail as an opportunistic upgrade. **Zero visual change** — that is already what every machine
+displays — but the contract now reads as what the product is.
+
+**Contract impact.** `design/tokens.css` + web copy, `design/tokens.md` §Type families,
+`design/NORMALIZATION_LOG.md`. No code change beyond the token values.

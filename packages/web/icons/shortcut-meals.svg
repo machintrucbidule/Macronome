@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="96" height="96">
+  <!-- Taskbar shortcut icon (B-259). The glyph is COPIED VERBATIM from the mobile bottom nav
+       (app/BottomNav.tsx → ICON.meals) so the jump list and the phone tab bar show the same
+       mark; shortcut-icons.test.ts fails the build if the two ever drift.
+       Brand disc + amber stroke, matching public/icon.svg. -->
+  <rect width="24" height="24" rx="5" fill="#0d0f12" />
+  <g fill="none" stroke="#e0b341" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6 3v8m0 0a2 2 0 0 0 2-2V3M4 3v6m12-6c-1.5 0-2 4-2 6h2m0-6v18" />
+  </g>
+</svg>

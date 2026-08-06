@@ -56,6 +56,16 @@ recipe / weigh-in — the `Modal mobile="fullscreen"` variant).
   (wired in S6 Recettes / S7 Aliments / S8 Poids), so `AppShell` is not touched again
   after S3.
 
+## Chrome text is not selectable — [B-258]
+
+`.bottomnav` and the Repas meal-tab band set `user-select: none`; their labels inherit it. On a
+phone this also stops the long-press text-selection callout from firing on a tab. The enumeration
+of what counts as furniture — and what stays copyable — lives in `top-nav.md`.
+
+**Its glyphs are reused by the taskbar shortcuts** (B-259): four of the five jump-list icons are
+these exact paths, so the same mark identifies a destination in the tab bar and in the OS menu. A
+guard test fails the build if one is redrawn without the other.
+
 ## States
 
 - **App-bar title**: reflects the active route; hidden ≥561px.

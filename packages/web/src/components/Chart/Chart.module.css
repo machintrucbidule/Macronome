@@ -39,7 +39,7 @@
   background: var(--bg-elev-2);
   border: var(--bw) solid var(--border);
   border-radius: var(--r-md);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-sm);
   padding: 6px 9px;
   font-family: var(--font-num);
   font-size: var(--fs-11);

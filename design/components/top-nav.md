@@ -40,6 +40,19 @@ primitive yet — this establishes the appbar-icon pattern; the row-hover icon a
   must stay on the bar at every width. In the installed WCO window it inherits
   `app-region:no-drag` (it is interactive chrome), like the other right-cluster controls.
 
+## Chrome text is not selectable — [B-258]
+
+`.appbar` sets `user-select: none`, inherited by the brand, the wordmark, the mobile screen
+title, the nav links and the right cluster. Dragging across the header used to paint a blue text
+highlight — the clearest "this is a web page" tell in the installed window.
+
+**The boundary is the whole point, and it is enumerated, never a blanket `*` rule.** Furniture:
+the appbar, both navigations, the meal tabs, table **column headers**, and menu panels (their
+labels inherit). Data stays selectable everywhere: food and recipe names, quantities, comments,
+totals, dates, container names, and the deliberately `user-select: all` diagnostic codes on the
+login and error screens. A data region that lives inside a marked container re-enables
+`user-select: text` explicitly.
+
 ## Day-tone rule (under the title strip) — [B-262]
 
 A **2px full-bleed rule** immediately below `.appbar`, carrying the **current day's** compliance
