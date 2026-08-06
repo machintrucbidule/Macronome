@@ -162,11 +162,26 @@
       "ciqual": "Ciqual",
       "chronodrive": "Chronodrive"
     },
+    "mode": {
+      "label": "Contenu affiché",
+      "library": "Mes aliments",
+      "catalog": "Catalogue Ciqual (Anses)"
+    },
+    "catalog": {
+      "count": "{{count}} entrée",
+      "count_other": "{{count}} entrées",
+      "add": "Ajouter à mes aliments",
+      "owned": "déjà ajouté",
+      "empty": "Aucune entrée du catalogue ne correspond.",
+      "group": "Groupe",
+      "allGroups": "Tous les groupes"
+    },
     "filters": {
       "title": "Filtres",
       "minRating": "Note minimale",
       "visibility": "Visibilité",
       "source": "Source",
+      "group": "Groupe alimentaire",
       "all": "Toutes",
       "showArchived": "Afficher les archivés"
     },

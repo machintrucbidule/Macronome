@@ -64,6 +64,44 @@ named_portions:[{label,grams}]}`.
   "named_portions":[{"id","label","grams"}],"archived_at":null }
 ```
 
+## Food reference catalog
+
+Read-only browse over `food_ref`, the global Ciqual catalog shipped inside the image
+(`spec/schema/tables-catalog.md` §food_ref, `spec/logic/ciqual-catalog.md`). Reference data, not
+user data: nothing here is owned, created or edited through the API. A reference entry becomes a
+real food only when the user adopts it, which **copies** the values through the ordinary
+`POST /foods` with `source:'ciqual'` — there is no server-side adoption endpoint in B-292.
+
+- `GET /food-refs` — browse the catalog. Query: `q` (autocomplete — matches the **French and
+  English** normalized names at once, so "pomme" and "apple" find the same entry, D6), `group`
+  (a level-1 food-group label, from `/food-refs/groups`), `locale` (`fr`|`en`, default `fr`),
+  `sort` ∈ {name,kcal,fat,carb,protein}, `dir`, `limit`, `cursor`.
+  → 200 `{data:[FoodRef], next_cursor, total}` (standard keyset list, `00-conventions.md`).
+  **`locale` drives three things at once**: which name column `sort=name` orders by, which name the
+  `already_owned` probe compares, and — by symmetry — which group labels `group` matches. It is not
+  a display preference: the client receives both languages and picks. It exists because an adopted
+  food takes its name **in the UI locale current at adoption time** (D6), so "do I already have
+  this?" must ask about the name that _would_ be created.
+- `GET /food-refs/groups` — the level-1 food-group labels present in the catalog, sorted, in the
+  requested `locale` (default `fr`). Feeds the catalog's group filter. Includes the `non classé` /
+  `unclassified` label of `spec/logic/ciqual-catalog.md` §5. → 200 `{data:[string]}`.
+
+Both require authentication. **`already_owned` is the only user-scoped field of this resource** —
+true when the user has an **active** (non-archived) food whose `normalized_name` equals the
+reference entry's normalized name in the requested locale. It never blocks: an owned entry stays
+addable, it is only marked (D11).
+
+**FoodRef** payload:
+
+```json
+{ "id","code","name_fr","name_eng","group_label_fr","group_label_eng",
+  "kcal_per_100g","fat_per_100g","carb_per_100g","protein_per_100g",
+  "energy_derived": false, "already_owned": false }
+```
+
+`energy_derived` is carried for provenance (`spec/logic/ciqual-catalog.md` §4.2) but **not
+surfaced** in v1 (owner decision, B-292): the catalog shows a homogeneous kcal column.
+
 ## Recipes
 
 - `GET /recipes` — recipes only. Query: `q`, `min_rating` (1|2|3 — excludes Bof 0

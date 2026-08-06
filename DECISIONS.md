@@ -6244,3 +6244,67 @@ Aliments sortable set although FU-1 made it sortable.
 conventions (sortable set, and the single narrow band becomes two),
 `specifications/screens/food-db.md`. No schema change: `food.source` and its CHECK are unchanged
 since CIQ-1. No design-token change.
+
+---
+
+## CIQ-3 / B-292 — the Ciqual catalog becomes reachable, and adoption reuses the food form — RESOLVED (owner, 2026-08-06)
+
+**Observed.** CIQ-1 loaded 3 400 Ciqual entries into `food_ref` and CIQ-2 made provenance visible,
+but no screen read the catalog and no endpoint exposed it. B-292 is what puts it in the user's
+hands: a second mode on the Aliments screen.
+
+**Decision — a read-only resource, and no adoption endpoint.** `GET /food-refs` + `GET
+/food-refs/groups`, nothing else. Adopting goes through the ordinary `POST /foods` with
+`source:'ciqual'`: an adopted entry is a **copy**, not a link (CIQ-1, D1), so there is nothing for
+a dedicated endpoint to do that the food resource does not already do — and the user gets the
+normal duplicate-name warning, portions and rating for free.
+
+**Decision — one `locale` parameter rather than three implicit behaviours.** D6 says an adopted
+food takes its name in the UI language of the moment. Three things follow from that: which name
+the list sorts by, which group labels the filter matches, and — the subtle one — which name
+`already_owned` compares. That last is the point: "do I already have this?" must ask about the name
+that **would be created**, not about the French name in an English UI. Search stays deliberately
+bilingual (D6): one query matches both columns.
+
+**Decision — `already_owned` is a marker, never a gate (D11).** It is also the **only** user-scoped
+field of the resource, which is why the split is deliberate: the catalog is read through
+`food-ref.repo` (no `userId`, the documented tenancy exception of CIQ-1) while the probe lives in
+`food.repo.activeNormalizedNames` (takes `userId`, like every other method there). One query per
+page, not one per row. The integration suite proves the scoping on that field specifically.
+
+**Owner decisions on the interaction**, each taken against a stated alternative:
+
+- **The whole row adopts**, not just the "+" button — the same gesture as a row of Mes aliments.
+  Safe because nothing is written until the prefilled form is saved.
+- **You stay in the catalog** after saving, rather than being thrown back to Mes aliments: adding
+  several entries in a row is the normal case, and the row you just adopted immediately reads
+  "déjà ajouté" (the catalog query is invalidated on close).
+- **Adoption arrives as `Partagé`**, not the `Privé` of a hand-typed food: a food copied from a
+  public table has nothing personal in it. Accepted consequence: two foods created the same day
+  can default differently depending on where they came from.
+- **The group filter is a dropdown**, not the chip rows the other filters use — twelve labels,
+  several long ("fruits, légumes, légumineuses et oléagineux"), would fill the 240px popover with a
+  dozen wrapped lines. On **mobile** it stays chips: the bottom sheet is full-width and scrolls,
+  and every other mobile filter on this screen is chips.
+- **No marker on the 59 derived-energy entries.** `energy_derived` is carried on the payload for
+  provenance but not surfaced: a homogeneous kcal column, at the cost of not distinguishing a
+  measured calorie from a reconstituted one. Fewer than 2 % of entries.
+- **The search text survives a mode switch.** The typical move is "I don't have chickpeas → let me
+  look in the catalog", and retyping it would be the only thing standing in the way.
+- **`+ Ajouter un aliment` is greyed in the catalog, not hidden** (owner, explicitly): adding is
+  per row there, but removing the button would shift the toolbar on every switch.
+
+**Decision — the mode switch sits on its own band under the toolbar.** The first proposal put it
+"under the title, before the search field", which the owner corrected: the toolbar is a single flex
+row, so those are the same line. Its label reads **"Catalogue Ciqual (Anses)"** — the dedicated
+band has room to name the producer, which doubles as an attribution exactly where the data is
+consulted (Licence Ouverte).
+
+**Correction to CIQ-2, shipped here.** In the food form the source selector moves out of the
+Note / Visibilité / Dispo IA row onto **its own row** below it (owner): with up to three options it
+did not sit well in a three-up grid.
+
+**Contract impact.** `spec/api/foods-recipes.md` (new §Food reference catalog),
+`design/components/data-tables.md` (second Aliments table instance + the page mode-switch
+convention), `docs/architecture/module-map.md` §2, `specifications/screens/food-db.md`. No schema
+change: `food_ref` is unchanged since CIQ-1. No design-token change.

@@ -23,15 +23,18 @@ interface FoodModalProps {
   food: Food | null;
   /** Provenances present in the catalog — gates the Chronodrive option (B-295). */
   presentSources: FoodSource[];
+  /** Seed applied AT MOUNT (B-292 adoption). Unlike the Chronodrive prefill, which arrives
+   *  later from a sub-dialog, this one is what the form opens with. */
+  prefill?: Partial<Draft>;
   isDuplicate: (name: string) => boolean;
   onClose: () => void;
   onArchive: (food: Food) => void;
 }
 
 export function FoodModal(props: FoodModalProps) {
-  const { food, presentSources, isDuplicate, onClose, onArchive } = props;
+  const { food, presentSources, prefill, isDuplicate, onClose, onArchive } = props;
   const { t } = useTranslation();
-  const [draft, setDraft] = useState<Draft>(() => initialDraft(food));
+  const [draft, setDraft] = useState<Draft>(() => ({ ...initialDraft(food), ...prefill }));
   const [showParse, setShowParse] = useState(false);
   const [showChrono, setShowChrono] = useState(false);
   const [parseWarnings, setParseWarnings] = useState<FoodParseWarning[]>([]);

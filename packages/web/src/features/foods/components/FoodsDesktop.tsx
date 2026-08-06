@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Food } from '@macronome/shared';
 import { Banner } from '../../../components/Banner/Banner';
@@ -7,7 +8,7 @@ import { InfiniteScrollFooter } from '../../../lib/InfiniteScrollFooter';
 import { useListReserve } from '../../../lib/useListReserve';
 import { FoodsToolbar } from './FoodsToolbar';
 import { FoodTable, type SortField } from './FoodTable';
-import type { MinRating, VisibilityFilter } from './FiltersPopover';
+import { FiltersPopover, type MinRating, type VisibilityFilter } from './FiltersPopover';
 import type { SourceFilter } from '../sourceFilter';
 
 // Desktop Aliments view (mobile-responsive S7): the dense table + toolbar extracted verbatim
@@ -29,6 +30,8 @@ interface FoodsDesktopProps {
   showArchived: boolean;
   sort: SortField;
   dir: 'asc' | 'desc';
+  /** The shared mode switch, rendered under the toolbar (B-292). */
+  modeToggle: ReactNode;
   onQ: (q: string) => void;
   onMinRating: (r: MinRating) => void;
   onVisibility: (v: VisibilityFilter) => void;
@@ -50,19 +53,25 @@ export function FoodsDesktop(props: FoodsDesktopProps) {
     <>
       <FoodsToolbar
         count={props.total}
+        countKey="foods.count"
         q={props.q}
-        minRating={props.minRating}
-        visibility={props.visibility}
-        source={props.source}
-        sourceOptions={props.sourceOptions}
-        showArchived={props.showArchived}
         onQ={props.onQ}
-        onMinRating={props.onMinRating}
-        onVisibility={props.onVisibility}
-        onSource={props.onSource}
-        onShowArchived={props.onShowArchived}
         onAdd={props.onAdd}
+        filters={
+          <FiltersPopover
+            minRating={props.minRating}
+            visibility={props.visibility}
+            source={props.source}
+            sourceOptions={props.sourceOptions}
+            showArchived={props.showArchived}
+            onMinRating={props.onMinRating}
+            onVisibility={props.onVisibility}
+            onSource={props.onSource}
+            onShowArchived={props.onShowArchived}
+          />
+        }
       />
+      {props.modeToggle}
 
       {props.isError && <Banner tone="warning">{t('common.loadError')}</Banner>}
 

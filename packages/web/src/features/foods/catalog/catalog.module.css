@@ -1,0 +1,91 @@
+/* Catalogue Ciqual view (specifications/screens/food-db.md §Catalogue Ciqual, B-292).
+   Its own module rather than more of foods.module.css, which is already 537 lines.
+   Semantic tokens only (CLAUDE.md rule 6). */
+
+/* Same declared-width discipline as the Aliments table (data-tables.md §column sizing): a
+   paginated list must not re-solve its layout as pages arrive. Six columns here, of which
+   only Nom is undeclared and absorbs the remainder — the macro columns total 17.75rem, so
+   the name keeps room at every window width and this table needs NO narrow band, unlike the
+   Aliments one. */
+.catalogTable {
+  table-layout: fixed;
+}
+.catalogTable tbody td {
+  white-space: nowrap;
+}
+.catalogTable td:nth-child(1) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.catalogTable th:nth-child(2),
+.catalogTable td:nth-child(2) {
+  width: 5rem;
+}
+.catalogTable th:nth-child(3),
+.catalogTable td:nth-child(3),
+.catalogTable th:nth-child(4),
+.catalogTable td:nth-child(4),
+.catalogTable th:nth-child(5),
+.catalogTable td:nth-child(5) {
+  width: 3.25rem;
+}
+.catalogTable th:nth-child(6),
+.catalogTable td:nth-child(6) {
+  width: 2.75rem;
+}
+
+/* The row is a whole tap target (it opens the prefilled form), so the name cell keeps the
+   sub-line the Aliments table gives the comment — here the Ciqual food group. */
+.row td:nth-child(1) {
+  line-height: var(--lh-tight);
+}
+.group {
+  font-size: var(--fs-11);
+  color: var(--text-faint);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* "déjà ajouté" — a marker, never a block: the entry stays addable (D11). */
+.owned {
+  margin-left: var(--sp-4);
+  font-family: var(--font-num);
+  font-size: var(--fs-9);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-caps);
+  color: var(--accent);
+}
+.groupValue {
+  white-space: normal;
+}
+
+/* Per-row add button — the visible affordance for what a row click already does. */
+.addbtnRow {
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-dim);
+  font-family: var(--font-num);
+  font-size: var(--fs-13);
+  line-height: 1;
+  padding: 3px 8px;
+  cursor: pointer;
+}
+@media (hover: hover) {
+  .addbtnRow:hover {
+    color: var(--accent-ink);
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+}
+
+/* Per-row L/G/P colour coding, as in the Aliments table (B-175). */
+.mFat {
+  color: var(--c-fat);
+}
+.mCarb {
+  color: var(--c-carb);
+}
+.mProt {
+  color: var(--c-prot);
+}

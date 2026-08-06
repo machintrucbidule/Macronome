@@ -162,11 +162,26 @@
       "ciqual": "Ciqual",
       "chronodrive": "Chronodrive"
     },
+    "mode": {
+      "label": "Shown content",
+      "library": "My foods",
+      "catalog": "Ciqual catalog (Anses)"
+    },
+    "catalog": {
+      "count": "{{count}} entry",
+      "count_other": "{{count}} entries",
+      "add": "Add to my foods",
+      "owned": "already added",
+      "empty": "No catalog entry matches.",
+      "group": "Group",
+      "allGroups": "All groups"
+    },
     "filters": {
       "title": "Filters",
       "minRating": "Minimum rating",
       "visibility": "Visibility",
       "source": "Source",
+      "group": "Food group",
       "all": "All",
       "showArchived": "Show archived"
     },

@@ -73,7 +73,7 @@ API resources:
 
 | `spec/api/` file                   | `web/src/api/` modules                                                                            |
 | ---------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `foods-recipes.md`                 | `foods.ts`, `recipes.ts`, `containers.ts`, `loggableSearch.ts`                                    |
+| `foods-recipes.md`                 | `foods.ts`, `foodRefs.ts`, `recipes.ts`, `containers.ts`, `loggableSearch.ts`                     |
 | `days-meals-leftover.md`           | `days.ts`, `meals.ts`, `entries.ts`, `leftover.ts`, `journal.ts`                                  |
 | `weight-targets-stats-settings.md` | `weight.ts`, `target.ts`, `profile.ts`, `stats.ts`, `settings.ts`, `mealTemplate.ts`, `pantry.ts` |
 | `00-conventions.md`                | `client.ts` (fetch wrapper: cookies, CSRF header, error envelope)                                 |

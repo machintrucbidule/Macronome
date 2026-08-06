@@ -1,3 +1,5 @@
+import type { FoodRef as FoodRefModel, Prisma } from '@prisma/client';
+import type { FoodRefListQuery } from '@macronome/shared';
 import { prisma } from '../prisma.js';
 
 // Repository for the global Ciqual reference catalog (spec/schema/tables-catalog.md → food_ref).
@@ -39,6 +41,78 @@ export async function currentDataset(): Promise<string | null> {
 /** How many reference entries are stored (all editions — there is only ever one). */
 export async function count(): Promise<number> {
   return prisma.foodRef.count();
+}
+
+/** Sort key → column, per locale: `name` follows the language, the macros do not. */
+const SORT_COLUMN: Record<
+  FoodRefListQuery['locale'],
+  Record<FoodRefListQuery['sort'], keyof FoodRefModel>
+> = {
+  fr: {
+    name: 'nameFr',
+    kcal: 'kcalPer100g',
+    fat: 'fatPer100g',
+    carb: 'carbPer100g',
+    protein: 'proteinPer100g',
+  },
+  en: {
+    name: 'nameEng',
+    kcal: 'kcalPer100g',
+    fat: 'fatPer100g',
+    carb: 'carbPer100g',
+    protein: 'proteinPer100g',
+  },
+};
+
+/** The group-label column of a locale — also what `GET /food-refs/groups` lists. */
+function groupColumn(locale: FoodRefListQuery['locale']): 'groupLabelFr' | 'groupLabelEng' {
+  return locale === 'en' ? 'groupLabelEng' : 'groupLabelFr';
+}
+
+type ListOpts = FoodRefListQuery & { normalized?: string };
+
+function buildWhere(q: ListOpts): Prisma.FoodRefWhereInput {
+  const where: Prisma.FoodRefWhereInput = {};
+  // D6: one query matches both languages, so "pomme" and "apple" find the same entry.
+  if (q.normalized) {
+    where.OR = [
+      { normalizedNameFr: { contains: q.normalized } },
+      { normalizedNameEng: { contains: q.normalized } },
+    ];
+  }
+  if (q.group) where[groupColumn(q.locale)] = q.group;
+  return where;
+}
+
+export interface FoodRefPage {
+  rows: FoodRefModel[];
+  nextCursor: string | null;
+  total: number;
+}
+
+/** One keyset page of the catalog. Same convention as `food.repo.list` (00-conventions §List). */
+export async function list(query: ListOpts): Promise<FoodRefPage> {
+  const column = SORT_COLUMN[query.locale][query.sort];
+  const where = buildWhere(query);
+  const [rows, total] = await Promise.all([
+    prisma.foodRef.findMany({
+      where,
+      orderBy: [{ [column]: query.dir }, { id: query.dir }],
+      take: query.limit + 1,
+      ...(query.cursor ? { cursor: { id: query.cursor }, skip: 1 } : {}),
+    }),
+    prisma.foodRef.count({ where }),
+  ]);
+  const hasMore = rows.length > query.limit;
+  const page = hasMore ? rows.slice(0, query.limit) : rows;
+  return { rows: page, nextCursor: hasMore ? (page.at(-1)?.id ?? null) : null, total };
+}
+
+/** The level-1 group labels present, sorted — the catalog's group filter (B-292). */
+export async function groups(locale: FoodRefListQuery['locale']): Promise<string[]> {
+  const column = groupColumn(locale);
+  const found = await prisma.foodRef.groupBy({ by: [column] });
+  return found.map((g) => g[column]).sort((a, b) => a.localeCompare(b, locale));
 }
 
 /**

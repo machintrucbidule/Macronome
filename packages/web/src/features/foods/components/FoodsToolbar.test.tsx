@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import i18n from '../../../i18n/config';
 import { sourceFilterOptions, type SourceFilter } from '../sourceFilter';
+import { FiltersPopover } from './FiltersPopover';
 import { FoodsToolbar } from './FoodsToolbar';
 
 // B-279: the chip used to read "N affichés" — the rows fetched so far, which the owner judged
@@ -9,22 +10,32 @@ import { FoodsToolbar } from './FoodsToolbar';
 // figure the scrollbar is sized on (B-278).
 afterEach(cleanup);
 
-function toolbar(count: number | undefined, sourceOptions: SourceFilter[] = []) {
+function toolbar(
+  count: number | undefined,
+  sourceOptions: SourceFilter[] = [],
+  addDisabled = false,
+) {
   return render(
     <FoodsToolbar
       count={count}
+      countKey="foods.count"
       q=""
-      minRating={0}
-      visibility="all"
-      source="all"
-      sourceOptions={sourceOptions}
-      showArchived={false}
       onQ={vi.fn()}
-      onMinRating={vi.fn()}
-      onVisibility={vi.fn()}
-      onSource={vi.fn()}
-      onShowArchived={vi.fn()}
       onAdd={vi.fn()}
+      addDisabled={addDisabled}
+      filters={
+        <FiltersPopover
+          minRating={0}
+          visibility="all"
+          source="all"
+          sourceOptions={sourceOptions}
+          showArchived={false}
+          onMinRating={vi.fn()}
+          onVisibility={vi.fn()}
+          onSource={vi.fn()}
+          onShowArchived={vi.fn()}
+        />
+      }
     />,
   );
 }
@@ -80,5 +91,22 @@ describe('FoodsToolbar source filter availability (B-295)', () => {
       'ciqual',
       'manual',
     ]);
+  });
+});
+
+// B-292: in Catalogue Ciqual mode, adding happens per row — the toolbar's "+ Ajouter un aliment"
+// is greyed rather than removed, so switching mode does not move the toolbar's geometry.
+describe('FoodsToolbar add button across modes (B-292)', () => {
+  it('is enabled in Mes aliments and disabled in the catalog', () => {
+    const enabled = toolbar(3);
+    expect(
+      (enabled.getByRole('button', { name: i18n.t('foods.add') }) as HTMLButtonElement).disabled,
+    ).toBe(false);
+    cleanup();
+
+    const disabled = toolbar(3, [], true);
+    expect(
+      (disabled.getByRole('button', { name: i18n.t('foods.add') }) as HTMLButtonElement).disabled,
+    ).toBe(true);
   });
 });

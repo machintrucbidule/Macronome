@@ -535,3 +535,30 @@
 .mProt {
   color: var(--c-prot);
 }
+
+/* Mode switch band (B-292): Mes aliments ↔ Catalogue Ciqual (Anses). Its own row under the
+   toolbar — the toolbar is one flex row already carrying title, count, search, filters and the
+   add button, and on mobile it is sticky and tighter still. Same aria-pressed segmented look as
+   the form fields above, one size up because this one steers the whole screen. */
+.modeBand {
+  margin-bottom: var(--sp-6);
+}
+.modeseg {
+  display: inline-flex;
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+.modeseg button {
+  border: none;
+  background: var(--bg-field);
+  color: var(--text-dim);
+  font-family: var(--font-num);
+  font-size: var(--fs-12);
+  padding: 8px 16px;
+  cursor: pointer;
+}
+.modeseg button[aria-pressed='true'] {
+  background: var(--accent);
+  color: var(--accent-ink);
+}

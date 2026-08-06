@@ -3,8 +3,10 @@ import type {
   CreateFoodRequest,
   Food,
   FoodParseLabel,
+  FoodRef,
   Rating,
 } from '@macronome/shared';
+import { refName } from '../catalog/refName';
 import type { PortionDraft } from './NamedPortionsEditor';
 
 /** What the client may declare as provenance (B-290); `recipe` is server-owned. */
@@ -88,6 +90,27 @@ export function chronoPatch(prefill: ChronoFoodPrefill, currentName: string): Pa
     carb: prefill.carb_per_100g != null ? String(prefill.carb_per_100g) : '',
     protein: prefill.protein_per_100g != null ? String(prefill.protein_per_100g) : '',
     comment: prefill.comment ?? '',
+  };
+}
+
+/**
+ * Adoption patch (B-292): a Ciqual reference entry becomes an ordinary food draft. The name is
+ * taken in the CURRENT UI language (D6) — the catalog carries both, and this is the one place
+ * that decides, so the row the user read is the food they get. `visibility:'shared'` is the
+ * owner's call: a food copied from a public table has nothing personal in it.
+ *
+ * No named portion and no rating: the whole point of opening the form rather than saving
+ * silently is that "Blé dur précuit, cuit" wants renaming, and a portion is worth adding.
+ */
+export function ciqualPatch(ref: FoodRef, language: string): Partial<Draft> {
+  return {
+    source: 'ciqual',
+    visibility: 'shared',
+    name: refName(ref, language),
+    kcal: String(ref.kcal_per_100g),
+    fat: String(ref.fat_per_100g),
+    carb: String(ref.carb_per_100g),
+    protein: String(ref.protein_per_100g),
   };
 }
 

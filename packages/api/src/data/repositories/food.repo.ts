@@ -226,6 +226,20 @@ export const foodRepo = {
     return match !== null;
   },
 
+  /**
+   * Which of `names` the user already has as an ACTIVE food, as normalized names (B-292).
+   * One query per catalog page rather than one per row — and it lives here, not in
+   * `food-ref.repo`, precisely because it is the user-scoped half of the catalog view.
+   */
+  async activeNormalizedNames(userId: string, names: string[]): Promise<Set<string>> {
+    if (names.length === 0) return new Set();
+    const rows = await prisma.food.findMany({
+      where: { ownerId: userId, archivedAt: null, normalizedName: { in: names } },
+      select: { normalizedName: true },
+    });
+    return new Set(rows.map((r) => r.normalizedName));
+  },
+
   async create(userId: string, data: FoodWriteData): Promise<FoodWithPortions> {
     const food = await prisma.$transaction(async (tx) => {
       const created = await tx.food.create({

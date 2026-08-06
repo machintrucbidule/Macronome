@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { ChronoFoodPrefill, FoodParseLabel } from '@macronome/shared';
-import { chronoPatch, draftToBody, initialDraft, parsedPatch } from './draft';
+import type { ChronoFoodPrefill, FoodParseLabel, FoodRef } from '@macronome/shared';
+import { chronoPatch, ciqualPatch, draftToBody, initialDraft, parsedPatch } from './draft';
 
 // B-290: provenance is stamped by the reducer that built the draft, and only there. The two
 // prefill paths must not be confused — a Chronodrive product is `chronodrive`, a pasted
@@ -34,5 +34,50 @@ describe('food draft provenance (B-290)', () => {
     const draft = { ...initialDraft(null), ...chronoPatch(prefill, '') };
     const edited = { ...draft, ...parsedPatch(parsed), name: 'Spaghetti maison' };
     expect(draftToBody(edited).source).toBe('chronodrive');
+  });
+});
+
+// B-292: adopting a Ciqual entry is an ordinary food draft, seeded from the reference row.
+const ref = {
+  id: 'r1',
+  code: '13039',
+  name_fr: 'Pomme, chair et peau, crue',
+  name_eng: 'Apple, flesh and skin, raw',
+  group_label_fr: 'fruits, légumes, légumineuses et oléagineux',
+  group_label_eng: 'fruits, vegetables, legumes and nuts',
+  kcal_per_100g: 54,
+  fat_per_100g: 0.1,
+  carb_per_100g: 11.3,
+  protein_per_100g: 0.3,
+  energy_derived: false,
+  already_owned: false,
+} satisfies FoodRef;
+
+describe('ciqual adoption patch (B-292)', () => {
+  it('takes the name in the current UI language (D6)', () => {
+    expect(ciqualPatch(ref, 'fr').name).toBe(ref.name_fr);
+    expect(ciqualPatch(ref, 'en-GB').name).toBe(ref.name_eng);
+  });
+
+  it('stamps the adoption defaults the owner chose', () => {
+    expect(ciqualPatch(ref, 'fr')).toMatchObject({ source: 'ciqual', visibility: 'shared' });
+  });
+
+  it('copies the macros and leaves the rest of the form to the user', () => {
+    const draft = { ...initialDraft(null), ...ciqualPatch(ref, 'fr') };
+    const body = draftToBody(draft);
+    expect(body).toMatchObject({
+      name: ref.name_fr,
+      kcal_per_100g: 54,
+      fat_per_100g: 0.1,
+      carb_per_100g: 11.3,
+      protein_per_100g: 0.3,
+      source: 'ciqual',
+      visibility: 'shared',
+      ai_proposable: true,
+      rating: null,
+    });
+    // Nothing invented: no named portion, no rating — that is why the form opens at all.
+    expect(body.named_portions).toEqual([]);
   });
 });

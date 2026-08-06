@@ -19,6 +19,7 @@ import authRoutes from './http/routes/auth.js';
 import containersRoutes from './http/routes/containers.js';
 import dataRoutes from './http/routes/data.js';
 import daysRoutes from './http/routes/days.js';
+import foodRefsRoutes from './http/routes/food-refs.js';
 import foodsRoutes from './http/routes/foods.js';
 import healthRoutes from './http/routes/health.js';
 import integrationsRoutes from './http/routes/integrations.js';
@@ -69,6 +70,7 @@ export function createApp(): Express {
   app.use('/api/v1/about', aboutRoutes);
   app.use('/api/v1/auth', authRoutes);
   app.use('/api/v1/foods', foodsRoutes);
+  app.use('/api/v1/food-refs', foodRefsRoutes);
   app.use('/api/v1/recipes', recipesRoutes);
   app.use('/api/v1/search', searchRoutes);
   app.use('/api/v1/target', targetRoutes);

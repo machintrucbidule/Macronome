@@ -26,6 +26,61 @@ interface FoodModalFieldsProps {
   onChrono: () => void;
 }
 
+/** The three small controls, then the provenance on its own row (owner, B-292): with up to
+ *  three options the source segmented does not sit well inside the three-up grid. */
+function Attributes({
+  draft,
+  presentSources,
+  set,
+}: Pick<FoodModalFieldsProps, 'draft' | 'presentSources' | 'set'>) {
+  const { t } = useTranslation();
+  const sourceOptions = useSourceOptions(presentSources, draft.source);
+  return (
+    <>
+      <div className={styles.grid3}>
+        <div>
+          <div className={styles.segLabel}>{t('foods.field.rating')}</div>
+          <RatingSelect
+            value={draft.rating}
+            onChange={(rating) => set({ rating })}
+            ariaLabel={t('foods.field.rating')}
+          />
+        </div>
+        <Segmented
+          label={t('foods.field.visibility')}
+          value={draft.visibility}
+          options={[
+            { value: 'private', label: t('foods.visibility.private') },
+            { value: 'shared', label: t('foods.visibility.shared') },
+          ]}
+          onChange={(visibility) => set({ visibility })}
+        />
+        <Segmented
+          label={t('foods.field.aiProposable')}
+          value={draft.aiProposable}
+          options={[
+            { value: true, label: t('common.yes') },
+            { value: false, label: t('common.no') },
+          ]}
+          onChange={(aiProposable) => set({ aiProposable })}
+        />
+      </div>
+
+      {/* Provenance (B-295): stamped automatically by the Chronodrive prefill or an adoption,
+      but always correctable by hand — an edit never moves it on its own. On its own row
+      (owner): with up to three options it does not fit the three-up grid above. */}
+      <div>
+        <Segmented
+          label={t('foods.field.source')}
+          value={draft.source}
+          options={sourceOptions}
+          onChange={(source) => set({ source })}
+        />
+      </div>
+    </>
+  );
+}
+
 export function FoodModalFields({
   draft,
   presentSources,
@@ -38,7 +93,6 @@ export function FoodModalFields({
   onChrono,
 }: FoodModalFieldsProps) {
   const { t } = useTranslation();
-  const sourceOptions = useSourceOptions(presentSources, draft.source);
 
   return (
     <>
@@ -61,42 +115,7 @@ export function FoodModalFields({
 
       <NamedPortionsEditor portions={draft.portions} onChange={(portions) => set({ portions })} />
 
-      <div className={styles.grid4}>
-        <div>
-          <div className={styles.segLabel}>{t('foods.field.rating')}</div>
-          <RatingSelect
-            value={draft.rating}
-            onChange={(rating) => set({ rating })}
-            ariaLabel={t('foods.field.rating')}
-          />
-        </div>
-        <Segmented
-          label={t('foods.field.visibility')}
-          value={draft.visibility}
-          options={[
-            { value: 'private', label: t('foods.visibility.private') },
-            { value: 'shared', label: t('foods.visibility.shared') },
-          ]}
-          onChange={(visibility) => set({ visibility })}
-        />
-        {/* Provenance (B-295): stamped automatically by the Chronodrive prefill, but always
-            correctable by hand — an edit never moves it on its own. */}
-        <Segmented
-          label={t('foods.field.source')}
-          value={draft.source}
-          options={sourceOptions}
-          onChange={(source) => set({ source })}
-        />
-        <Segmented
-          label={t('foods.field.aiProposable')}
-          value={draft.aiProposable}
-          options={[
-            { value: true, label: t('common.yes') },
-            { value: false, label: t('common.no') },
-          ]}
-          onChange={(aiProposable) => set({ aiProposable })}
-        />
-      </div>
+      <Attributes draft={draft} presentSources={presentSources} set={set} />
 
       <TextInput
         label={

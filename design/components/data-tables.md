@@ -61,6 +61,18 @@ tabular-nums; white-space:nowrap`; first/name cell left, `--font-body`. The **Jo
     whole body one column left (B-284). A band that hides a column must therefore be re-checked
     against the declared-width budget whenever a column is added: the arithmetic, not the eye,
     decides where a band goes.
+- **second Aliments table instance — the Ciqual catalog (B-292)**: the screen's `Catalogue Ciqual`
+  mode renders its own table under the same column-sizing rule, in its own CSS module and behind
+  its own source guard (`catalog-columns.test.ts`). Six columns — Nom (the one undeclared, elastic,
+  carrying the food group on the comment sub-line), kcal, L, G, P, add — total 17.75rem of declared
+  width, so it needs **no narrow band at all**: the arithmetic that forced two bands on the Aliments
+  table leaves this one comfortable at every width. Add a column here and redo that arithmetic.
+- **page mode switch (Aliments, B-292)**: when a screen has two list modes, the switch is an
+  `aria-pressed` segmented control on **its own band under the toolbar**, identical desktop and
+  mobile. Not inside the toolbar: that is a single flex row already carrying the title, the count,
+  the search field, the filters and the primary action, and on mobile it is sticky and tighter
+  still. A primary action that means nothing in the other mode is **disabled, never removed**, so
+  the toolbar keeps its geometry across a switch (owner).
 - **archived row**: `opacity:.45`; name suffixed `· archivé` via `::after`
   (`--font-num; --fs-10; --text-faint`).
 - **row icon actions**: hidden until hover (see foundations icon buttons);

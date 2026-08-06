@@ -40,6 +40,8 @@ interface FoodsMobileProps {
   showArchived: boolean;
   sort: SortField;
   dir: 'asc' | 'desc';
+  /** The shared mode switch, rendered under the sticky toolbar (B-292). */
+  modeToggle: ReactNode;
   onQ: (q: string) => void;
   onMinRating: (r: MinRating) => void;
   onVisibility: (v: VisibilityFilter) => void;
@@ -157,6 +159,8 @@ export function FoodsMobile(props: FoodsMobileProps) {
         />
         <FiltersSheet sections={filterSections} active={filtersActive} fabSafe />
       </ListToolbar>
+
+      {props.modeToggle}
 
       {props.isError && <Banner tone="warning">{t('common.loadError')}</Banner>}
 

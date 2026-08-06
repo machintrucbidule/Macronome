@@ -47,6 +47,7 @@ export type { AiPriceModel, TaskCostEstimate } from './constants/ai-pricing.js';
 export { ErrorCode } from './errors.js';
 export * from './dto/auth.js';
 export * from './dto/food.js';
+export * from './dto/food-ref.js';
 export * from './dto/recipe.js';
 export * from './dto/profile.js';
 export * from './dto/target.js';
