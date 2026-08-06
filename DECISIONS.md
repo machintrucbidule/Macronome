@@ -6422,6 +6422,17 @@ shared helper instead of keeping a private copy of it.
 the other three; either way only the **initial direction chosen by the client** moved. The mobile
 Trier sheets route through the same state, so they follow for free.
 
+**Correction, same batch — the Note column needed one server-side change after all.** The first
+delivery sent `dir=desc` correctly and still looked ascending, because **Postgres orders NULLS
+FIRST on DESC**: "Note ↓" opened on every « Pas noté » row, i.e. the exact opposite of the
+best-first the descending click promises, and indistinguishable from the bug the item set out to
+fix. `rating` is the only nullable sortable column in the app (`food.rating`, `recipe.rating`), and
+it now orders **NULLS LAST in both directions** — an unrated row carries no grade, so it belongs at
+the bottom whether you asked for the best or the worst first. Ascending is unchanged (Postgres
+already put nulls last there). Fixed in `food.repo` and `recipe.repo`; the client-side sorts were
+already null-safe (`UsersPage.sortRows` maps a missing stamp to `''`, which lands last on desc).
+Contract: the §Sort bullets of `food-db.md` and `recipe.md` say so explicitly.
+
 **Contract impact.** `design/components/data-tables.md` (the sortable-header bullet gains the
 first-click rule; the food-line hover sentence is rewritten for the grip),
 `specifications/screens/meals.md` (§DayHeader, and a new drag-grip bullet beside B-107),

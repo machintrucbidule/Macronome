@@ -43,6 +43,13 @@ const SORT_COLUMN: Record<RecipeListQuery['sort'], keyof RecipeModel> = {
   rating: 'rating',
 };
 
+/** Unrated recipes sink to the bottom whichever way Note is sorted — same rule, same reason as
+ *  `food.repo` (B-299 follow-up): Postgres defaults to NULLS FIRST on DESC, so "Note ↓" opened on
+ *  the « Pas noté » rows. `rating` is the only nullable sortable column here. */
+function orderFor(column: keyof RecipeModel, dir: 'asc' | 'desc') {
+  return column === 'rating' ? { sort: dir, nulls: 'last' as const } : dir;
+}
+
 type ListQuery = RecipeListQuery & { normalized?: string };
 
 function buildWhere(userId: string, q: ListQuery): Prisma.RecipeWhereInput {
@@ -90,7 +97,7 @@ export const recipeRepo = {
   ): Promise<{ rows: RecipeModel[]; nextCursor: string | null; total: number }> {
     const column = SORT_COLUMN[query.sort];
     const orderBy: Prisma.RecipeOrderByWithRelationInput[] = [
-      { [column]: query.dir },
+      { [column]: orderFor(column, query.dir) },
       { id: query.dir },
     ];
     const where = buildWhere(userId, query);

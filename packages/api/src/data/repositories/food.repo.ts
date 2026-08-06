@@ -41,6 +41,14 @@ const SORT_COLUMN: Record<Exclude<FoodListQuery['sort'], 'usage'>, keyof FoodMod
   visibility: 'visibility',
 };
 
+/** Unrated foods sink to the bottom whichever way Note is sorted (B-299 follow-up). Postgres
+ *  defaults to NULLS FIRST on DESC, which filled the first page of "Note ↓" with « Pas noté »
+ *  rows — the opposite of the best-first the descending click promises. `rating` is the only
+ *  nullable sortable column on this table. */
+function orderFor(column: keyof FoodModel, dir: 'asc' | 'desc') {
+  return column === 'rating' ? { sort: dir, nulls: 'last' as const } : dir;
+}
+
 /** Recipe-derived foods (source='recipe') live on the Recettes screen and the combined
  *  /search/loggable, never in the Aliments catalog (spec/api §Foods). */
 const BROWSABLE: Prisma.StringFilter<'Food'> = { not: 'recipe' };
@@ -157,7 +165,7 @@ export const foodRepo = {
     if (query.sort === 'usage') return listByUsage(userId, query);
     const column = SORT_COLUMN[query.sort];
     const orderBy: Prisma.FoodOrderByWithRelationInput[] = [
-      { [column]: query.dir },
+      { [column]: orderFor(column, query.dir) },
       { id: query.dir },
     ];
     const where = buildWhere(userId, query);
