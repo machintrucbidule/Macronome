@@ -79,11 +79,13 @@
   color: var(--text-faint);
   font-size: 11px;
 }
-/* Drag handle on an entry row (B-029): a grip glyph revealed on hover; the line dims while
-   it is the one being dragged. */
+/* Drag handle on an entry row (B-029): permanently visible, faint at rest and full on hover
+   (B-298) — a row that holds a food always advertises that it can be reordered. Only entry rows
+   carry `.gripDrag`; the empty "+ aliment" and inline-editing rows carry a bare `.grip`, which has
+   no glyph, so they stay blank. `.zero`'s .45 (above) now genuinely dims it. */
 .gripDrag {
   cursor: grab;
-  opacity: 0;
+  opacity: 0.55;
   user-select: none;
   text-align: center;
   line-height: 1;
@@ -407,10 +409,9 @@
     grid-row: 1;
     grid-column: 2 / -1;
   }
-  /* Touch reorder (S9): no hover on touch, so the grip is always visible as a drag handle, and
-     `touch-action: none` lets a long-press drag start without the page scrolling. */
+  /* Touch reorder (S9): `touch-action: none` lets a long-press drag start without the page
+     scrolling. The resting opacity is the shared one (B-298) — no hover to reveal it here. */
   .gripDrag {
-    opacity: 0.55;
     touch-action: none;
   }
   /* The held line during a long-press reorder: accent tint + lift, so the drag is legible. */

@@ -74,6 +74,12 @@ export function useOverlayDismiss(id: string, onClose: () => void): void {
 
     const onPop = (): void => {
       if (!owning.has(id) || !isTopOverlay(id)) return;
+      // B-300: a nested overlay that closed by any non-Back path consumes ITS entry with a
+      // history.back(), which lands the browser on OUR entry and emits this popstate. Being on our
+      // own mark means the stack came back down to us — not that Back reached us — so we stay open.
+      // A real Back on the top-most overlay pops our entry and lands on the one below, whose mark
+      // is not our id, so that path is unaffected.
+      if (currentMark() === id) return;
       owning.delete(id); // the browser already left our entry — nothing left to consume
       onCloseRef.current();
     };

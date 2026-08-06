@@ -1,32 +1,24 @@
-import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { shiftIso } from '../../format';
 import { CalendarPopover } from './CalendarPopover';
+import type { CalendarPopoverState } from './useCalendarPopover';
 import styles from '../../meals.module.css';
 
 // Date navigator: prev/next day arrows + a calendar popover. Picking/shifting navigates the
-// screen to that date (the parent updates the route).
+// screen to that date (the parent updates the route). The popover's open-state is owned by the
+// parent (B-297) so the date label can drive it too; it still renders inside `.dateNav`, which is
+// its positioning context.
 interface DateNavigatorProps {
   date: string;
   onNavigate: (date: string) => void;
+  cal: CalendarPopoverState;
 }
 
-export function DateNavigator({ date, onNavigate }: DateNavigatorProps) {
+export function DateNavigator({ date, onNavigate, cal }: DateNavigatorProps) {
   const { t } = useTranslation();
-  const [calOpen, setCalOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!calOpen) return;
-    const onDoc = (e: MouseEvent): void => {
-      if (!ref.current?.contains(e.target as Node)) setCalOpen(false);
-    };
-    document.addEventListener('mousedown', onDoc);
-    return () => document.removeEventListener('mousedown', onDoc);
-  }, [calOpen]);
 
   return (
-    <div className={styles.dateNav} ref={ref}>
+    <div className={styles.dateNav} ref={cal.navRef}>
       <button
         type="button"
         title={t('meals.nav.prev')}
@@ -41,14 +33,14 @@ export function DateNavigator({ date, onNavigate }: DateNavigatorProps) {
       >
         ›
       </button>
-      <button type="button" title={t('meals.nav.calendar')} onClick={() => setCalOpen((o) => !o)}>
+      <button type="button" title={t('meals.nav.calendar')} onClick={cal.toggle}>
         ▦
       </button>
-      {calOpen && (
+      {cal.open && (
         <CalendarPopover
           selected={date}
           onPick={(d) => {
-            setCalOpen(false);
+            cal.close();
             onNavigate(d);
           }}
         />

@@ -13,6 +13,7 @@ import { ResetLinkModal } from './modals/ResetLinkModal';
 import { useUserMutations, useUsers } from './useUsers';
 import { useTokenMutations, useTokens } from './useTokens';
 import { notify } from '../../components/Toast/notify';
+import { defaultDirFor } from '../../components/DataTable/sortDir';
 
 // Utilisateurs screen (specifications/screens/users.md, B-192..194): admin-only
 // account management. Sort is client-side; role change behind a simple confirm,
@@ -26,6 +27,13 @@ type ModalState =
   | { kind: 'invite' }
   | { kind: 'resetLink'; user: AdminUser; link: CreatedToken }
   | null;
+
+/** Columns that start descending on a first click (B-299): the three date ones (most recent first). */
+export const USERS_DESC_FIRST: ReadonlySet<SortKey> = new Set<SortKey>([
+  'created',
+  'lastLogin',
+  'lastSeen',
+]);
 
 function errorKeyOf(err: unknown): string {
   if (err instanceof ApiError) {
@@ -115,11 +123,12 @@ export function UsersPage() {
   const { createResetToken, revoke } = useTokenMutations();
   const rows = useMemo(() => sortRows(list.data?.data ?? [], sort, dir), [list.data, sort, dir]);
 
+  // Same field → flip the direction; a new field starts in its useful direction (B-299).
   const onSort = (key: SortKey): void => {
     if (key === sort) setDir((d) => (d === 'asc' ? 'desc' : 'asc'));
     else {
       setSort(key);
-      setDir('asc');
+      setDir(defaultDirFor(key, USERS_DESC_FIRST));
     }
   };
 

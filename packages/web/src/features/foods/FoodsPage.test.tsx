@@ -101,6 +101,43 @@ describe('FoodsPage — mode switch (B-292)', () => {
   });
 });
 
+// B-299: a first click on a numeric column used to list the smallest values first.
+describe('FoodsPage — first click sorts in the useful direction (B-299)', () => {
+  const clickHeader = async (r: RenderResult, field: string): Promise<void> => {
+    const th = await waitFor(() =>
+      r.getByRole('button', { name: new RegExp(`^${i18n.t(`foods.col.${field}`)}`) }),
+    );
+    fireEvent.click(th);
+  };
+  const sortedBy = async (sort: string, dir: string): Promise<void> => {
+    await waitFor(() =>
+      expect(foodsApi.list).toHaveBeenCalledWith(expect.objectContaining({ sort, dir })),
+    );
+  };
+
+  it('starts a numeric column descending and a text column ascending', async () => {
+    mockApis();
+    // The sortable headers only render with rows — the empty state replaces the table.
+    vi.mocked(foodsApi.list).mockResolvedValue({
+      data: [{ id: 'f1', name: 'Pomme', named_portions: [] } as unknown as Food],
+      next_cursor: null,
+      total: 1,
+      sources: ['manual'],
+    });
+    const r = render(<FoodsPage />, { wrapper });
+
+    await clickHeader(r, 'kcal');
+    await sortedBy('kcal', 'desc');
+
+    // Re-clicking the active column still toggles.
+    await clickHeader(r, 'kcal');
+    await sortedBy('kcal', 'asc');
+
+    await clickHeader(r, 'source');
+    await sortedBy('source', 'asc');
+  });
+});
+
 describe('FoodsPage — adopting a catalog entry (B-292)', () => {
   it('opens the food form prefilled, and saving keeps the user in the catalog', async () => {
     mockApis();

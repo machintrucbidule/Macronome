@@ -6363,3 +6363,67 @@ Aliments screen remains where a food is renamed, and the adopted food is editabl
 `design/components/forms-inputs.md` (a second, neutral provenance badge alongside the classifying
 one, and the sheet/dropdown parity clause), `specifications/screens/meals.md`, `recipe.md`,
 `settings.md`. No schema change. No design-token change.
+
+---
+
+## UI-1 / B-297, B-298, B-299 — three interface rules made explicit — RESOLVED (owner, 2026-08-06)
+
+Batch UI-1 also carried **B-300** (a sub-dialog closing the modal beneath it), which is a **bug**
+against `design/components/modals.md` §Nested overlays and needed no decision: the code was made to
+conform. The three entries below changed what the contracts _say_, so they are recorded here.
+
+**Decision — the date label opens the calendar (B-297).** On Repas, only the ▦ button opened the
+`CalendarPopover`; the date text beside it ("Jeudi 6 août 2026") was inert. It now opens the same
+popover, **on desktop and mobile** (owner, against "desktop only"), and clicking it again closes it.
+The popover stays anchored on the navigator — it did not move under the label.
+
+_Constraint that shaped the implementation, not a preference._ The label is a `role="button"` div,
+**not** a `<button>`: the mobile day-swipe hook deliberately ignores gestures that start on a real
+button, so promoting the label would have killed swipe-to-change-day across the widest part of the
+date row. A completed swipe is followed by a synthesized click, which the label ignores — the two
+gestures coexist rather than one shadowing the other.
+
+**Decision — the drag grip is always visible on a filled line (B-298).** The reported behaviour
+("the handle only shows on rows with no quantity") was an **inverted side effect**: the grip rested
+at `opacity: 0` and the B-107 muting block, written to _dim_ three controls it assumed visible,
+_revealed_ it on quantity-0 rows. Owner call: the **grip only** becomes permanently visible — faint
+at rest, full on hover — on every row that holds a food; **📌 and × keep their hover reveal**. The
+blank spacer grips of the empty "+ aliment" row and of the row being edited inline stay invisible,
+which is what makes the handle mean "this row can be reordered". This revises the
+`design/components/data-tables.md` line that read "Hover reveals grip/pin/del"; the B-107/B-224
+`.zero` and `.used` wording is unchanged, and with a non-zero resting value the `.zero` rule finally
+does what it always claimed to do.
+
+**Decision — one first-click sort rule for every table (B-299).** A new sort column always started
+ascending, so a first click on kcal listed the least caloric food, on Note the worst-rated, on
+Utilisation the least-used, on a date the oldest account. The rule is now: **a column carrying a
+number or a date starts descending; a text column starts alphabetical.** Re-clicking still toggles,
+and the **default sort on load is unchanged** everywhere (Aliments Nom A→Z, Historique Jour desc,
+Utilisateurs Créé le).
+
+Per screen, as arbitrated column by column — descending first / alphabetical first:
+
+| Screen           | Descending                                       | Alphabetical              |
+| ---------------- | ------------------------------------------------ | ------------------------- |
+| Aliments         | kcal · L · G · P · Note · Utilisation            | Nom · Source · Visibilité |
+| Catalogue Ciqual | kcal · L · G · P                                 | Nom                       |
+| Recettes         | Poids du lot · Portions · Note                   | Nom                       |
+| Contenants       | Poids                                            | Nom                       |
+| Utilisateurs     | Créé le · Dernière connexion · Dernière activité | Utilisateur               |
+| Historique       | Jour _(already)_ · Calories                      | Verdict · Activité        |
+
+**Historique is in scope, deliberately.** It was not among the five screens of the initial decision,
+but it already carried half the rule (`Jour` descending, B-066) and its Calories column did not —
+the owner extended the rule rather than leave one table half-aligned. `useJournalSort`'s
+"field's natural default" was the precedent the whole change generalises, so it now consumes the
+shared helper instead of keeping a private copy of it.
+
+**No API change.** Sorting is server-side for Aliments / Catalogue / Recettes and client-side for
+the other three; either way only the **initial direction chosen by the client** moved. The mobile
+Trier sheets route through the same state, so they follow for free.
+
+**Contract impact.** `design/components/data-tables.md` (the sortable-header bullet gains the
+first-click rule; the food-line hover sentence is rewritten for the grip),
+`specifications/screens/meals.md` (§DayHeader, and a new drag-grip bullet beside B-107),
+`food-db.md`, `recipe.md`, `containers.md`, `users.md`, `history.md` (the same sentence, per
+screen). No schema change, no API change, no design-token change.

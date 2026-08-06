@@ -44,10 +44,17 @@
     border-color: var(--border-strong);
   }
 }
+/* The label opens the calendar too (B-297) — same affordance as the ▦ button beside it. */
 .dateLabel {
   font-family: var(--font-display);
   font-weight: var(--fw-bold);
   font-size: var(--fs-16);
+  cursor: pointer;
+  border-radius: var(--r-sm);
+}
+.dateLabel:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
 }
 .dateLabel small {
   font-family: var(--font-num);

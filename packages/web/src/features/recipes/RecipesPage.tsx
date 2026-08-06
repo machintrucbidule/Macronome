@@ -8,6 +8,7 @@ import { RecipeBuilderModal } from './modals/RecipeBuilderModal';
 import { RecipeArchiveConfirm } from './modals/RecipeArchiveConfirm';
 import { useRecipeMutations, useRecipesList } from './useRecipes';
 import { useRecipesContextMenu } from './useRecipesContextMenu';
+import { defaultDirFor } from '../../components/DataTable/sortDir';
 import { useIsMobile } from '../../lib/useIsMobile';
 
 // Recettes page (specifications/screens/recipe.md): owns search/filter/sort/modal state,
@@ -15,6 +16,13 @@ import { useIsMobile } from '../../lib/useIsMobile';
 // the mobile card list (useIsMobile render-switch, S6) + the shared builder / archive confirm.
 // It renders; it never computes (derived figures come from the API).
 type ModalState = { mode: 'add' } | { mode: 'edit'; id: string } | null;
+
+/** Columns that start descending on a first click (B-299): every numeric one. */
+export const RECIPES_DESC_FIRST: ReadonlySet<SortField> = new Set<SortField>([
+  'batch',
+  'servings',
+  'rating',
+]);
 
 interface FilterState {
   q: string;
@@ -50,11 +58,12 @@ export function RecipesPage() {
   // Rows matching the current filters, server-side (B-278) — see FoodsPage for why the newest page.
   const total = list.data?.pages.at(-1)?.total;
 
+  // Same field → flip the direction; a new field starts in its useful direction (B-299).
   const onSort = (field: SortField): void => {
     if (field === sort) setDir((d) => (d === 'asc' ? 'desc' : 'asc'));
     else {
       setSort(field);
-      setDir('asc');
+      setDir(defaultDirFor(field, RECIPES_DESC_FIRST));
     }
   };
 

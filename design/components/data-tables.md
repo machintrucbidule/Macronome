@@ -25,6 +25,11 @@ tabular-nums; white-space:nowrap`; first/name cell left, `--font-body`. The **Jo
   sorted state `.sorted` shows the arrow (`.arr`) in `--accent`; arrow flips ▼/▲.
   (Aliments: Nom·kcal·L·G·P·Note·Source·Visib·Util. sortable; **Portion not sortable** —
   DECISIONS Gap #10.)
+  **First-click direction (B-299)** — one rule for every table: a column carrying a **number or a
+  date** starts **descending** (the useful direction: most calories, best note, most-used, most
+  recent); a **text** column starts **alphabetical**. Re-clicking the active column toggles, and
+  the **default sort on load is unchanged** (Aliments Nom A→Z, Historique Jour desc, Utilisateurs
+  Créé le). The mobile Trier sheet routes through the same state, so it obeys the same rule.
 - **scroll container**: a contained-scroll variant (`max-height` + its own `overflow`, header
   pinned to the box top rather than the appbar) is **not implemented** (B-273): the two long
   tables have divergent sticky-header needs — Poids viewport-anchored, Utilisateurs contained —
@@ -267,7 +272,10 @@ keeps its own 📌 glyph), `.editing`
 `.selected` (**B-207 desktop selection-sum** — a full-row `--select` **blue** background tint,
 **no checkbox and no extra column**; deliberately distinct from `.used`'s amber left edge, so a
 line that is both used **and** selected shows both — the blue fill + the amber edge).
-Hover reveals grip/pin/del. A meal keeps ≥2 trailing empty lines, ≥15 lines min.
+Hover reveals pin/del. The **drag grip is permanently visible** on any row that holds a food —
+faint at rest, full opacity on hover (B-298); the blank spacer grips of the empty "+ aliment" row
+and of the inline-editing row stay invisible, which is what makes the handle read as "this row can
+be reordered". A meal keeps ≥2 trailing empty lines, ≥15 lines min.
 
 **Macro values colour-coded.** The per-line **L/G/P** macros **and** the meal-total
 L/G/P are tinted with the macro tokens (`--c-fat`/`--c-carb`/`--c-prot`), matching the

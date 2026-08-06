@@ -3,6 +3,7 @@ import type { Food, FoodSource } from '@macronome/shared';
 import type { SortField } from './components/FoodTable';
 import type { MinRating, VisibilityFilter } from './components/FiltersPopover';
 import { sourceFilterOptions, type SourceFilter } from './sourceFilter';
+import { defaultDirFor } from '../../components/DataTable/sortDir';
 import { useFoodsList } from './useFoods';
 
 // Filter/sort state of the "Mes aliments" mode, and the query it produces. Extracted from
@@ -10,6 +11,16 @@ import { useFoodsList } from './useFoods';
 //
 // The search text is NOT owned here: it is shared with the Catalogue Ciqual mode and lives on
 // the page, so switching mode keeps what the user typed (B-292).
+
+/** Columns that start descending on a first click (B-299): every numeric one. */
+export const FOODS_DESC_FIRST: ReadonlySet<SortField> = new Set<SortField>([
+  'kcal',
+  'fat',
+  'carb',
+  'protein',
+  'rating',
+  'usage',
+]);
 
 export interface FoodsFilterState {
   minRating: MinRating;
@@ -41,12 +52,12 @@ function useFoodsFilters() {
   const [sort, setSort] = useState<SortField>('name');
   const [dir, setDir] = useState<'asc' | 'desc'>('asc');
 
-  // Same field → flip the direction; a new field always starts ascending.
+  // Same field → flip the direction; a new field starts in its useful direction (B-299).
   const onSort = (field: SortField): void => {
     if (field === sort) setDir((d) => (d === 'asc' ? 'desc' : 'asc'));
     else {
       setSort(field);
-      setDir('asc');
+      setDir(defaultDirFor(field, FOODS_DESC_FIRST));
     }
   };
 

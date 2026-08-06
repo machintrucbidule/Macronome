@@ -8,6 +8,7 @@ import { ContainerModal } from './modals/ContainerModal';
 import { DeleteConfirm } from './modals/DeleteConfirm';
 import { useContainerMutations, useContainers } from './useContainers';
 import { notifyUndoable } from '../../components/Toast/notify';
+import { defaultDirFor } from '../../components/DataTable/sortDir';
 
 // Contenants screen (specifications/screens/containers.md): the tare catalog. Search +
 // sort are client-side over the full list; the built-in "Rien" stays pinned first and
@@ -16,6 +17,9 @@ import { notifyUndoable } from '../../components/Toast/notify';
 // (ContainersDesktop — byte-identical to before) or the mobile tree (ContainersMobile — search
 // toolbar + card list + FAB, like Aliments/Recettes); the modals are shared (bottom sheets ≤560px).
 type ModalState = { mode: 'add' } | { mode: 'edit'; container: Container } | null;
+
+/** Columns that start descending on a first click (B-299): every numeric one. */
+export const CONTAINERS_DESC_FIRST: ReadonlySet<SortKey> = new Set<SortKey>(['weight']);
 
 const norm = (s: string): string => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
@@ -50,11 +54,12 @@ export function ContainersPage() {
     return sortRows(filtered, sort, dir);
   }, [all, q, sort, dir]);
 
+  // Same field → flip the direction; a new field starts in its useful direction (B-299).
   const onSort = (key: SortKey): void => {
     if (key === sort) setDir((d) => (d === 'asc' ? 'desc' : 'asc'));
     else {
       setSort(key);
-      setDir('asc');
+      setDir(defaultDirFor(key, CONTAINERS_DESC_FIRST));
     }
   };
 
