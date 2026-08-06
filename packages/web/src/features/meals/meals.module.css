@@ -767,3 +767,14 @@
     width: 100%;
   }
 }
+
+/* B-253 follow-up: the calendar day cell and the scroller thumb are divs, so the global
+   element-level transition misses them too (see food-line.module.css). */
+@media (hover: hover) {
+  .day,
+  .hthumb {
+    transition:
+      background-color var(--dur-fast) var(--ease),
+      color var(--dur-fast) var(--ease);
+  }
+}

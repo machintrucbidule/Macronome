@@ -409,3 +409,18 @@
     box-shadow: inset 2px 0 0 var(--accent);
   }
 }
+
+/* B-253 follow-up (motion.md §D). Repas is the one dense surface built from DIVS, not a <table>,
+   so the global element-level transition in styles/global.css — which reaches `tr`, `button`,
+   `input`… — never touched its rows: the gating landed but nothing settled. A hashed CSS-module
+   class cannot be reached from the global sheet, so the row tint is declared here instead.
+   `background-color`/`color` only: the grid is dense and must not move by a pixel (§B). */
+@media (hover: hover) {
+  .line,
+  .unit {
+    transition:
+      background-color var(--dur-fast) var(--ease),
+      color var(--dur-fast) var(--ease),
+      border-color var(--dur-fast) var(--ease);
+  }
+}

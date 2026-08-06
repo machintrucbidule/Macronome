@@ -57,8 +57,16 @@ as latency rather than polish; the route fade in particular is deliberately at t
   class) **must be split** before gating, or the media query would take the keyboard and
   active states down with it.
 - The transition for interactive state changes is declared **once, globally**, on the
-  interactive elements — not repeated on every hover block. One declaration cannot drift,
-  and restricting it to non-structural properties there makes §B unbreakable by default.
+  interactive **elements** (`a`, `button`, `input`, `tr`, …) — not repeated on every hover
+  block. One declaration cannot drift, and restricting it to non-structural properties there
+  makes §B unbreakable by default.
+- **That global rule only reaches native elements**, and a CSS-module class is hashed, so it
+  cannot be selected from the global sheet. A surface built from `div`/`span` therefore
+  declares its own transition locally. **Repas is exactly that case** — its rows, unit chips,
+  calendar cells and scroller thumb are divs, not a `<table>` — and it was missed on the first
+  pass: the hover gating landed everywhere while nothing on the app's densest screen actually
+  settled. When adding a hover rule, check what element carries it before assuming it is
+  covered.
 - **Dense tables** (Repas, Aliments, Recettes, Journal, Contenants, Utilisateurs): the row
   tint transitions `background-color` **only**. No borders growing, no rows resizing.
 - Focus rings appear instantly — a focus ring that fades in is a focus ring you miss.
