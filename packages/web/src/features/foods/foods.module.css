@@ -97,6 +97,59 @@
   accent-color: var(--accent);
 }
 
+/* B-284: fixed layout with a declared width per column, the shared rule for any paginated table
+   (data-tables.md §Shared table conventions; the Journal did it first in B-276). With `auto`, a
+   column is as wide as the widest row *currently rendered*, so every 50-row page appended by the
+   infinite scroll re-solved the whole table and the columns visibly jumped. Widths are sized to
+   each column's real maximum, which for most of them is the uppercase `--fs-10` HEADER, not the
+   value: "UTIL. (90 J)" is wider than any usage count, and Note holds three `--fs-13` stars + gaps.
+   Nom is deliberately left undeclared — in a fixed layout it absorbs the remainder — and truncates,
+   the full name already being exposed via `title` on the cell. */
+.foodsTable {
+  table-layout: fixed;
+}
+/* Rows must stay a uniform height: the scroll reserve measures the pitch of the rows already
+   drawn (useRowPitch), and a wrapped cell would break both that and the scan-down alignment. */
+.foodsTable tbody td {
+  white-space: nowrap;
+}
+.foodsTable td:nth-child(1) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.foodsTable th:nth-child(2),
+.foodsTable td:nth-child(2) {
+  width: 5rem;
+}
+.foodsTable th:nth-child(3),
+.foodsTable td:nth-child(3),
+.foodsTable th:nth-child(4),
+.foodsTable td:nth-child(4),
+.foodsTable th:nth-child(5),
+.foodsTable td:nth-child(5) {
+  width: 3.25rem;
+}
+.foodsTable th:nth-child(6),
+.foodsTable td:nth-child(6) {
+  width: 11rem;
+}
+.foodsTable th:nth-child(7),
+.foodsTable td:nth-child(7) {
+  width: 4.25rem;
+}
+.foodsTable th:nth-child(8),
+.foodsTable td:nth-child(8) {
+  width: 5.25rem;
+}
+.foodsTable th:nth-child(9),
+.foodsTable td:nth-child(9) {
+  width: 6rem;
+}
+.foodsTable th:nth-child(10),
+.foodsTable td:nth-child(10) {
+  width: 2.75rem;
+}
+
 /* table cells */
 .nameLabel {
   font-family: var(--font-body);
@@ -105,11 +158,15 @@
   font-size: var(--fs-11);
   color: var(--text-faint);
   margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .portion {
   font-family: var(--font-num);
   font-size: var(--fs-12);
   color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .vis {
   text-align: center;
@@ -147,9 +204,16 @@
   }
 }
 
+/* Narrow desktop band (561-820px): Portion and Visibilité step aside. Hidden by column index,
+   HEADER AND CELL TOGETHER — the previous rule hid the `.portion`/`.vis` <td> classes only, which
+   the <th>s do not carry, so the body cells slid one column left and the stars rendered under
+   "PORTION" (found during B-284; owner-approved fix). The fixed layout above needs the band
+   coherent anyway: it reclaims 16.25rem, which is what keeps the table inside a 561px window. */
 @media (max-width: 820px) {
-  .portion,
-  .vis,
+  .foodsTable th:nth-child(6),
+  .foodsTable td:nth-child(6),
+  .foodsTable th:nth-child(8),
+  .foodsTable td:nth-child(8),
   .comment {
     display: none;
   }

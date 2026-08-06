@@ -106,6 +106,56 @@
   accent-color: var(--accent);
 }
 
+/* B-284: fixed layout with a declared width per column, the shared rule for any paginated table
+   (data-tables.md §Shared table conventions; the Journal did it first in B-276). Under `auto` each
+   50-row page appended by the infinite scroll re-solved every column against the rows currently
+   rendered, and the table visibly jumped. The widths are sized to each column's real maximum —
+   usually the uppercase `--fs-10` header ("G/PORTION", "PORTIONS"), not the value. Nom is left
+   undeclared so it absorbs the remainder, and truncates; the full name is already on `title`. */
+.recipesTable {
+  table-layout: fixed;
+}
+/* Uniform row height: the scroll reserve measures the pitch of the rows already drawn. */
+.recipesTable tbody td {
+  white-space: nowrap;
+}
+.recipesTable td:nth-child(1) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.recipesTable th:nth-child(2),
+.recipesTable td:nth-child(2) {
+  width: 5rem;
+}
+.recipesTable th:nth-child(3),
+.recipesTable td:nth-child(3),
+.recipesTable th:nth-child(4),
+.recipesTable td:nth-child(4),
+.recipesTable th:nth-child(5),
+.recipesTable td:nth-child(5) {
+  width: 3.25rem;
+}
+.recipesTable th:nth-child(6),
+.recipesTable td:nth-child(6) {
+  width: 4.5rem;
+}
+.recipesTable th:nth-child(7),
+.recipesTable td:nth-child(7) {
+  width: 5rem;
+}
+.recipesTable th:nth-child(8),
+.recipesTable td:nth-child(8) {
+  width: 5.25rem;
+}
+.recipesTable th:nth-child(9),
+.recipesTable td:nth-child(9) {
+  width: 4.25rem;
+}
+.recipesTable th:nth-child(10),
+.recipesTable td:nth-child(10) {
+  width: 2.75rem;
+}
+
 /* table cells */
 .iconbtn {
   background: none;

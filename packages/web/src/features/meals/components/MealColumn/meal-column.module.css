@@ -265,7 +265,10 @@
 }
 .totalRow {
   composes: row from '../FoodLine/food-line.module.css';
-  padding: 7px 10px;
+  /* Re-declares the padding, so it does NOT follow `.row` on its own: the horizontal values must
+     be kept in step with it (B-288, 5 left / 3 right) or the totals stop lining up with the
+     columns of the lines above. Only the vertical padding is the footer's own. */
+  padding: 7px 3px 7px 5px;
 }
 /* Selection-sum (B-207): a selected meal footer gets the same blue `--select` tint as a selected
    line, mixed over the footer's own `--bg-elev-2` so it reads over the darker footer. The footer's

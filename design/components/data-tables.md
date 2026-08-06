@@ -33,6 +33,26 @@ tabular-nums; white-space:nowrap`; first/name cell left, `--font-body`. The **Jo
   normal page flow with the standard appbar-sticky header (B-189); when the 15-column table
   is wider than a narrow desktop window, the **page** scrolls sideways (a contained
   horizontal scroll and an appbar-sticky header can't coexist in one wrapper).
+- **column sizing (any paginated / progressively-rendered table)**: lay out on **declared
+  widths, not on rendered content**. `table-layout: fixed`; **one declared width per column**,
+  sized to that column's real maximum — which for most columns is the uppercase `--fs-10`
+  **header** (it is `nowrap`), not the value; **exactly one** column left undeclared, the
+  name/free-text one, so a fixed layout gives it the remainder; `white-space: nowrap` on
+  `tbody td` so every row keeps the same height (the scroll reserve measures the pitch of the
+  rows already drawn); and `overflow:hidden; text-overflow:ellipsis` + the full value on
+  `title` for the elastic column and any other free-text cell. Under the default `auto`
+  layout a column is as wide as the widest row **currently rendered**, so each arriving page
+  re-solves the whole table and the columns — and the sticky header cells above them — visibly
+  jump. **Screen-local, never in `DataTable.module.css`**: the shared sheet serves tables with
+  different column counts. Applies to **Journal** (B-276, where the rule was first worked out),
+  **Aliments** and **Recettes** (B-284); **Utilisateurs, Contenants and Poids stay on `auto`**
+  — short, unpaginated lists (owner scope). Guarded per screen by a source-level test
+  (`*-columns.test.ts`), since jsdom cannot catch a layout regression. Accepted consequence:
+  declared columns cannot squeeze, so on a narrow desktop window the table overflows and the
+  **page scrolls sideways** — the same behaviour as the Poids period table above.
+- **narrow desktop band (Aliments, 561–820px)**: Portion and Visibilité step aside, and the
+  second comment line under the name is dropped. Hidden **by column index, header and cell
+  together** — hiding the cell class alone slides the whole body one column left (B-284).
 - **archived row**: `opacity:.45`; name suffixed `· archivé` via `::after`
   (`--font-num; --fs-10; --text-faint`).
 - **row icon actions**: hidden until hover (see foundations icon buttons);
@@ -204,20 +224,29 @@ own content at maximum, not to a round number** (GR-1 / B-252): kcal holds 4 mon
 (27.6px in 28), each macro 3 digits (20.7px in 21), and qty+unit holds the 36px input + 2px
 inner gap + the **18px** unit chip (`g`/`ml`/`kg`/`nb`) — the chip was previously squeezed to
 16px and ellipsised "nb" into "n…". Everything left over goes to the `1fr` name column
-(longer food names show before ellipsis); the incompressible width is **229px**
-(tracks 185 + 8 gutters 24 + side padding 20). The value cells deliberately carry **no
+(longer food names show before ellipsis); the incompressible width is **217px**
+(tracks 185 + 8 gutters 24 + **side padding 8**). Side padding is **`0 3px 0 5px`** (B-288):
+the meal column is the densest surface in the app and 20px of it was going to empty gutters;
+the left keeps 5px because `.used` paints its 2px accent **inside** the padding box. The 12px
+reclaimed goes **entirely to the name column** — `MIN_VIABLE_COL_WIDTH` deliberately stays
+**275px** (`logic/columnFit.ts`), so the number of meal columns at a given window width is
+unchanged and the guaranteed name allowance grows 46 → 58px. The padding is declared once on
+the shared row, but the **footer total re-declares it** (`.totalRow`) and must be kept in step
+or the totals stop lining up with the columns above. The value cells deliberately carry **no
 `overflow: hidden`**, so a sub-pixel overrun spills into the gutter rather than truncating.
 `.lhead` row `--fs-9`
-uppercase. Line `min-height:32px`. Footer `.meal-foot` = totals on `--bg-elev-2`.
+uppercase. Line `min-height:28px`. Footer `.meal-foot` = totals on `--bg-elev-2`.
 Line states: `.empty` (italic faint "+ aliment"), `.zero` (**whole-line muted**:
 text cells name/qty/unit/macros in `--text-faint`, grip/📌/× at `opacity:.45` — a
 quantity-0 line, e.g. a garde-manger placeholder, reads as inactive; reverts to normal
-the instant qty > 0; B-107), `.pinned`
-(`box-shadow: inset 3px 0 0 color-mix(--accent 70%)` + accent 📌), `.editing`
+the instant qty > 0; B-107), `.used`
+(`box-shadow: inset 2px 0 0 var(--accent)`; **renamed from `.pinned` and re-keyed on quantity > 0
+rather than on pin state by B-224** — the accent marks a line that is actually used, and the pin
+keeps its own 📌 glyph), `.editing`
 (`background:var(--bg-field)`, inline search input), `.dragging` (`opacity:.4`),
 `.selected` (**B-207 desktop selection-sum** — a full-row `--select` **blue** background tint,
-**no checkbox and no extra column**; deliberately distinct from `.pinned`'s amber left edge, so a
-line that is both pinned **and** selected shows both — the blue fill + the amber edge).
+**no checkbox and no extra column**; deliberately distinct from `.used`'s amber left edge, so a
+line that is both used **and** selected shows both — the blue fill + the amber edge).
 Hover reveals grip/pin/del. A meal keeps ≥2 trailing empty lines, ≥15 lines min.
 
 **Macro values colour-coded.** The per-line **L/G/P** macros **and** the meal-total

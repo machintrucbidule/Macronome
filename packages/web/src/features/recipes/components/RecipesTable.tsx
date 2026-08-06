@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { RecipeSummary } from '@macronome/shared';
 import { SortableTh, tableStyles } from '../../../components/DataTable/SortableTh';
 import { RecipeRow } from './RecipeRow';
+import styles from '../recipes.module.css';
 
 // Sortable recipes table (specifications/screens/recipe.md). Server-sortable columns:
 // Nom · Lot · Portions · Note (recipe-native). Derived macro columns (kcal/L/G/P,
@@ -45,7 +46,8 @@ export function RecipesTable({
   );
   return (
     <div className={tableStyles.wrap}>
-      <table className={tableStyles.table}>
+      {/* B-284: the feature class carries the declared column widths (recipes.module.css). */}
+      <table className={`${tableStyles.table} ${styles.recipesTable}`}>
         <thead>
           <tr>
             {th('name', 'left')}

@@ -17,6 +17,7 @@ interface FoodRowProps {
 export function FoodRow({ food, onOpen, onArchive, onRestore }: FoodRowProps) {
   const { t } = useTranslation();
   const archived = food.archived_at !== null;
+  const portions = portionSummary(food.named_portions);
   return (
     <tr
       className={`${styles.row} ${tableStyles.clickable} ${archived ? tableStyles.archived : ''}`}
@@ -36,7 +37,10 @@ export function FoodRow({ food, onOpen, onArchive, onRestore }: FoodRowProps) {
       <td className={`${tableStyles.numc} ${styles.mProt}`}>
         {gramsDisplay(food.protein_per_100g)}
       </td>
-      <td className={styles.portion}>{portionSummary(food.named_portions)}</td>
+      {/* B-284: unbounded free text in a declared-width column — truncated, full value on hover. */}
+      <td className={styles.portion} title={portions}>
+        {portions}
+      </td>
       <td className={tableStyles.numc}>
         <Stars rating={food.rating} />
       </td>

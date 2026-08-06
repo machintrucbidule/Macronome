@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { Food } from '@macronome/shared';
 import { SortableTh, tableStyles } from '../../../components/DataTable/SortableTh';
 import { FoodRow } from './FoodRow';
+import styles from '../foods.module.css';
 
 // Sortable foods table (specifications/screens/food-db.md). Sortable columns:
 // Nom·kcal·L·G·P·Note·Visib·Utilisation. The Portion column is display-only (DECISIONS Gap #10).
@@ -53,7 +54,8 @@ export function FoodTable({
   );
   return (
     <div className={tableStyles.wrap}>
-      <table className={tableStyles.table}>
+      {/* B-284: the feature class carries the declared column widths (foods.module.css). */}
+      <table className={`${tableStyles.table} ${styles.foodsTable}`}>
         <thead>
           <tr>
             {th('name', 'left')}

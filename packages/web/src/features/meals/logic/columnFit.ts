@@ -6,10 +6,13 @@ export const TARGET_COL_WIDTH = 400;
 // B-244: the plain rounding needs 1400px of usable width for 4 columns, so a 1280px window laid
 // out 3 columns for 4 meals and hid the last one behind a scroll. `minColumns` (a user setting)
 // raises the count — but only while each column still gets MIN_VIABLE_COL_WIDTH: the meal line is
-// a 9-column grid of which 229px are incompressible (255px before the GR-1 / B-252 retune),
-// everything above that being the food-name column, which would go negative and break the grid on
-// a narrow window. The minimum therefore never applies below this floor, and never *reduces* the
-// automatic count. The floor keeps the same ~46px of name the B-244 allowance did: 229 + 46.
+// a 9-column grid of which 217px are incompressible (229 before B-288 trimmed the side gutters,
+// 255 before the GR-1 / B-252 retune), everything above that being the food-name column, which
+// would go negative and break the grid on a narrow window. The minimum therefore never applies
+// below this floor, and never *reduces* the automatic count.
+// The floor is deliberately LEFT AT 275 (owner decision, B-288): the 12px B-288 reclaimed goes to
+// the name rather than to fitting one more column, so the count at a given window width does not
+// move. The guaranteed name allowance therefore grew from 46px (229 + 46) to 58px (217 + 58).
 export const MIN_VIABLE_COL_WIDTH = 275;
 
 // Fallback used while the user setting loads — mirrors the server default (services/settings.ts

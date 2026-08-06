@@ -8,11 +8,18 @@
      the 36px input + the 2px inner gap + the 18px unit chip — at 54px that chip was squeezed
      to 16px and ellipsised `nb` into `n…`. Everything left over goes to the 1fr name column
      (data-tables.md §meal column grid). The value cells carry no `overflow: hidden`, so a
-     sub-pixel overrun spills into the gutter instead of truncating. */
+     sub-pixel overrun spills into the gutter instead of truncating.
+     B-288: side padding 20 → 8px (5 left / 3 right), so the incompressible width is 217px
+     (tracks 185 + 8 gutters 24 + padding 8), down from 229. Left keeps 5px because `.used`
+     paints its 2px amber accent INSIDE this padding box. The 12px reclaimed all goes to the
+     name column: MIN_VIABLE_COL_WIDTH stays 275 (logic/columnFit.ts), so the number of meal
+     columns at a given window width is unchanged — only names get longer before ellipsis.
+     `.lhead` and `.line` inherit this padding; `.totalRow` re-declares it and was updated with
+     it (meal-column.module.css), or the footer totals would stop aligning with the columns. */
   grid-template-columns: 7px 1fr 57px 28px 21px 21px 21px 15px 15px;
   gap: 3px;
   align-items: center;
-  padding: 0 10px;
+  padding: 0 3px 0 5px;
 }
 
 .lhead {
@@ -324,7 +331,8 @@
       'grip mac  mac';
     row-gap: 3px;
     min-height: 0;
-    padding: 7px 10px;
+    /* B-288: same horizontal gutters as desktop (5 left for the `.used` accent, 3 right). */
+    padding: 7px 3px 7px 5px;
   }
   /* The grip spans both rows (full line height) so the drag anchor is centered against the
      whole food item and the macro cluster aligns under the name (col 2), not under the grip. */

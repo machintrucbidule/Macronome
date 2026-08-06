@@ -6017,3 +6017,63 @@ and **everything else** is `no-cache`. Deliberately a superset of the reported n
 `docs/architecture/ops.md` §6b (update runbook + a new static cache policy paragraph).
 Deliberately **not** `spec/api/00-conventions.md`: that contract governs `/api/v1`, and serving
 static files is an ops concern.
+
+---
+
+## GR-2 / B-284, B-288 — table & line geometry — RESOLVED (owner, 2026-08-06)
+
+**B-284 — the columns jumped while the list loaded more rows** (Aliments, Recettes). Both screens
+render a real `<table>` styled only by the shared `DataTable.module.css` — `width:100%`,
+`border-collapse:collapse` and **no `table-layout`**, i.e. the CSS default `auto` — with no
+`<colgroup>` and no per-column width anywhere. The infinite scroll appends each 50-row page into
+the **same** `<tbody>`, and under `auto` the browser re-solves every column against the max-content
+of the rows _currently rendered_, so each arriving page moved them. Aggravated by numeric cells
+that cannot shrink (`white-space:nowrap`) next to a name cell with no width, wrap or truncation
+rule at all, and by Portion being unbounded free text.
+
+**Decision — promote the B-276 Journal fix to a shared, written rule.** The Journal had hit exactly
+this under progressive rendering and solved it with `table-layout: fixed` + a declared width per
+column, but that decision **only ever existed as a CSS comment** — never written into `design/` or
+here. It is now a bullet in `data-tables.md` §Shared table conventions: declared widths, sized to
+each column's real maximum (usually the uppercase header, not the value); exactly one undeclared
+column — the name — absorbing the remainder and ellipsised with the full value on `title`;
+`nowrap` on `tbody td` for a uniform row height; **screen-local, never in the shared sheet**, whose
+tables have different column counts. Owner scoped it to Journal + Aliments + Recettes; Utilisateurs,
+Contenants and Poids stay on `auto` (short, unpaginated lists).
+
+**Owner decision — ellipsis + tooltip, not wrapping:** wrapping would break the uniform row height
+the infinite-scroll reserve depends on. **Owner decision — a narrow desktop window scrolls
+sideways** rather than hiding Recettes columns: declared columns cannot squeeze, and the Poids
+period table already behaves that way (same section, B-189).
+
+**Defect found in the same analysis, not reported** (owner: fix it here). Between 561 and 820px
+Aliments hid the `.portion` / `.vis` **`<td>` classes only** — the matching `<th>`s never carried
+them, so the header row kept ten cells while the body had eight and every value slid one column
+left (the stars rendered under "PORTION"). Now hidden **by column index, header and cell together**.
+
+**B-288 — the Repas food lines wasted 20px of the densest column in the app** on empty side
+gutters. Not a regression: `padding: 0 10px` came straight from the original mockup and was
+explicitly budgeted by the contract ("incompressible width 229px = tracks 185 + gutters 24 + side
+padding 20"). Now `0 3px 0 5px` → **217px**.
+
+**Owner decision — 5px left / 3px right**, over a symmetric 3px (which would leave the 2px amber
+`.used` accent, painted inside the padding box, 1px of room) or 6px. **Owner decision — the 7px
+grip track is left alone**: shrinking it would put the drag handle over the first letters of the
+food name on hover, for ~7px. **Owner decision — `MIN_VIABLE_COL_WIDTH` stays 275px**: the 12px
+reclaimed goes entirely to the food name, so the number of meal columns at any window width is
+rigorously unchanged (the guaranteed name allowance grows 46 → 58px instead). Only the arithmetic
+comment in `logic/columnFit.ts` moved; the value did not, and `columnFit.test.ts` stayed green
+untouched as the proof.
+
+**Trap worth recording:** `.totalRow` (the meal footer) `composes` the shared `.row` but then
+**re-declares** `padding`, so it does not follow it. Its horizontal values must be changed in step
+or the footer totals stop lining up with the columns above.
+
+**Contract drift corrected in the same amendment** (owner: align the contract on the code — no
+visual change): `.pinned` → **`.used`** (renamed and re-keyed on quantity > 0, not pin state, by
+B-224); `inset 3px 0 0 color-mix(--accent 70%)` → **`inset 2px 0 0 var(--accent)``; line
+`min-height` **32 → 28px\*\*.
+
+**Contract impact.** `design/components/data-tables.md` §Shared table conventions (new column-sizing
+bullet + the Aliments narrow band) and §Line-list grid instance A (padding, 229 → 217px, the three
+drift corrections). No spec/schema/API impact.
