@@ -1,5 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { CreateWeighInRequest, PatchWeighInRequest, WeightRange } from '@macronome/shared';
+import type {
+  CreateWeighInRequest,
+  PatchWeighInRequest,
+  WeighIn,
+  WeightRange,
+} from '@macronome/shared';
 import { weightApi } from '../../api/weight';
 
 // Data hooks for the Poids screen. GET /weight is the source of truth for every derived
@@ -17,6 +22,20 @@ export function useIntervalDays(start: string, end: string) {
     queryKey: [WEIGHT_KEY, 'interval-days', start, end],
     queryFn: () => weightApi.intervalDays(start, end),
   });
+}
+
+/** Every field a stored weigh-in carries (B-261): the create endpoint accepts exactly the five
+ *  the response exposes, so an undo restores the waist measurement and the note too — not just the
+ *  weight. Periods, EMA, trajectory and the cartouche are derived server-side and recompute on
+ *  their own. Only the internal id differs from the deleted row. */
+export function weighInRestoreBody(w: WeighIn): CreateWeighInRequest {
+  return {
+    date: w.date,
+    weight_kg: w.weight_kg,
+    waist_cm: w.waist_cm,
+    diet_flag: w.diet_flag,
+    note: w.note,
+  };
 }
 
 export function useWeightMutations() {

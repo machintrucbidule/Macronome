@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { EntryUnit, PantryItem } from '@macronome/shared';
+import type { CreatePantryRequest, EntryUnit, PantryItem } from '@macronome/shared';
 import { ApiError } from '../../../api/client';
 import { Autocomplete } from '../../../components/Form/Autocomplete/Autocomplete';
 import { useIsMobile } from '../../../lib/useIsMobile';
 import { usePantryMutations } from '../usePantry';
+import { notifyUndoable } from '../../../components/Toast/notify';
 import { useFoodSearch } from '../useFoodPicker';
 import { PantryFoodChip } from './PantryFoodChip';
 import { PantryPickerSheet } from './PantryPickerSheet';
@@ -25,6 +26,34 @@ interface Props {
   items: PantryItem[];
 }
 
+/** B-095: clicking outside the food picker closes it (no food added), mirroring the Repas
+ *  InlineFoodSearch / recipes IngredientSearch outside-click (B-049). The caller passes
+ *  `active: false` on mobile — the sheet is portalled outside this card, so the listener would
+ *  otherwise fire on the first tap inside it. `setOpen` is a useState setter, hence stable. */
+function useOutsideClose(
+  active: boolean,
+  ref: RefObject<HTMLDivElement | null>,
+  setOpen: (open: boolean) => void,
+): void {
+  useEffect(() => {
+    if (!active) return;
+    const onDown = (e: MouseEvent): void => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [active, ref, setOpen]);
+}
+
+/** The pin exactly as it was, so an undo re-creates it in place (B-261). */
+const restoreBody = (item: PantryItem): CreatePantryRequest => ({
+  meal_slot_name: item.meal_slot_name,
+  food_id: item.food_id,
+  unit: item.unit,
+  portion_id: item.portion_id,
+  order_index: item.order_index,
+});
+
 export function PantryEditor({ mealSlotName, items }: Props) {
   const { t } = useTranslation();
   const { create, update, remove } = usePantryMutations();
@@ -35,17 +64,7 @@ export function PantryEditor({ mealSlotName, items }: Props) {
   const search = useFoodSearch(q, picking);
   const pickerRef = useRef<HTMLDivElement>(null);
 
-  // B-095: clicking outside the food picker closes it (no food added), mirroring the Repas
-  // InlineFoodSearch / recipes IngredientSearch outside-click (B-049). Not on mobile: the sheet is
-  // portalled outside this card, so this listener would fire on the first tap inside it.
-  useEffect(() => {
-    if (!picking || isMobile) return;
-    const onDown = (e: MouseEvent): void => {
-      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) setPicking(false);
-    };
-    document.addEventListener('mousedown', onDown);
-    return () => document.removeEventListener('mousedown', onDown);
-  }, [picking, isMobile]);
+  useOutsideClose(picking && !isMobile, pickerRef, setPicking);
 
   const pinnedIds = new Set(items.map((i) => i.food_id));
   const options = (search.data?.data ?? [])
@@ -67,6 +86,14 @@ export function PantryEditor({ mealSlotName, items }: Props) {
     update.mutate({ id, body: { unit, portion_id: portionId } });
   };
 
+  // B-261: undo re-pins the food with its prefill unit AND its position — POST /pantry gained
+  // order_index for exactly this (owner-approved), so the chip does not come back at the end.
+  const unpin = (item: PantryItem): void =>
+    remove.mutate(item.id, {
+      onSuccess: () =>
+        notifyUndoable('pantryPinRemoved', () => create.mutateAsync(restoreBody(item))),
+    });
+
   return (
     <div className={styles.pantry}>
       <div className={styles.pantryHead}>{t('settings.pantry.title')}</div>
@@ -75,7 +102,7 @@ export function PantryEditor({ mealSlotName, items }: Props) {
           <PantryFoodChip
             key={item.id}
             item={item}
-            onRemove={() => remove.mutate(item.id)}
+            onRemove={() => unpin(item)}
             onSetUnit={(unit, portionId) => setUnit(item.id, unit, portionId)}
           />
         ))}

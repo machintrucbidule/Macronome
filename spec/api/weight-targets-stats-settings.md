@@ -197,11 +197,15 @@ min_meal_columns?, ai?, integrations?}`.
 - `GET /meal-template` · `POST /meal-template` (add) ·
   `PATCH /meal-template/:id` (rename/reorder) · `DELETE /meal-template/:id`.
 - `GET /pantry?meal_slot_name=` — list (each item carries `unit` + `portion_id`). `POST /pantry`
-  `{meal_slot_name,food_id,unit?,portion_id?}` (dedup → 409 `pantry_duplicate`) — pins and runs the
+  `{meal_slot_name,food_id,unit?,portion_id?,order_index?}` (dedup → 409 `pantry_duplicate`) — pins
+  and runs the
   **add cascade** (qty-0 line on today + future days lacking the food; `logic/pantry-pin.md`,
   B-045). `unit` defaults to `g`; a `unit='portion'` whose `portion_id` is not one of the food's
   named portions → 422 (`portion_id: invalid_portion`). The prefilled qty-0 line carries the stored
-  `unit`/`portion_id` (GM-2/B-092). `PATCH /pantry/:id` `{unit,portion_id}` — change a pin's prefill
+  `unit`/`portion_id` (GM-2/B-092). **`order_index` is optional and defaults to "append"** — supplying
+  it puts the pin at an explicit position within its slot, which is what lets an undo restore a
+  removed pin exactly where it was rather than at the end of the list (B-261; mirrors the meal
+  template's create). `PATCH /pantry/:id` `{unit,portion_id}` — change a pin's prefill
   unit; persists then runs the **unit cascade** over today + future qty-0 placeholder lines
   (past + qty>0 lines untouched; `logic/pantry-pin.md` §3, GM-2/B-094). `DELETE /pantry/:id` —
   unpins and runs the **delete cascade** (drops qty-0 lines for (slot, food) everywhere, keeps

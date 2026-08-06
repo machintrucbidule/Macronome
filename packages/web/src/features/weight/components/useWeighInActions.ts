@@ -3,7 +3,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import type { CreateWeighInRequest, WeighIn } from '@macronome/shared';
 import { ApiError } from '../../../api/client';
 import { useSettingsMutation } from '../../settings/useSettings';
-import { useWeightMutations, WEIGHT_KEY } from '../useWeight';
+import { useWeightMutations, weighInRestoreBody, WEIGHT_KEY } from '../useWeight';
+import { notifyUndoable } from '../../../components/Toast/notify';
 import type { WeighInDraft } from './WeighInFields';
 import type { WeighInModalTarget } from '../useWeightController';
 
@@ -87,7 +88,11 @@ export function useWeighInActions(
     onClose();
   };
   const del = async (): Promise<void> => {
-    if (initial) await remove.mutateAsync(initial.id);
+    if (initial) {
+      const deleted = initial; // captured before the modal closes and clears it
+      await remove.mutateAsync(deleted.id);
+      notifyUndoable('weightDeleted', () => create.mutateAsync(weighInRestoreBody(deleted)));
+    }
     onClose();
   };
 

@@ -66,7 +66,9 @@ export async function create(userId: string, body: CreatePantryRequest): Promise
     throw new ApiError(409, ErrorCode.PantryDuplicate);
   }
   const prefill = resolvePrefillUnit(food, body.unit ?? 'g', body.portion_id ?? null);
-  const orderIndex = await pantryRepo.nextOrderIndex(userId, body.meal_slot_name);
+  // An explicit position restores a removed pin exactly where it was (B-261); otherwise append.
+  const orderIndex =
+    body.order_index ?? (await pantryRepo.nextOrderIndex(userId, body.meal_slot_name));
   const item = await pantryRepo.create(
     userId,
     body.meal_slot_name,

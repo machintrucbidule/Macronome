@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { MealTemplateItem as Item, PantryItem } from '@macronome/shared';
 import { useMealTemplate, useMealTemplateMutations } from '../useMealTemplate';
+import { notifyUndoable } from '../../../components/Toast/notify';
 import { usePantry } from '../usePantry';
 import { MealLinesFields } from './MealLinesFields';
 import { MealTemplateItem } from './MealTemplateItem';
@@ -31,7 +32,14 @@ export function MealTemplateCard() {
     update.mutate({ id: b.id, body: { order_index: a.order_index } });
   };
   const rename = (item: Item, name: string): void => update.mutate({ id: item.id, body: { name } });
-  const del = (item: Item): void => remove.mutate(item.id);
+  // B-261: undo re-creates the slot at its original position (the create takes order_index).
+  const del = (item: Item): void =>
+    remove.mutate(item.id, {
+      onSuccess: () =>
+        notifyUndoable('mealSlotDeleted', () =>
+          create.mutateAsync({ name: item.name, order_index: item.order_index }),
+        ),
+    });
   const add = (): void => {
     const name = newName.trim();
     if (!name) return;

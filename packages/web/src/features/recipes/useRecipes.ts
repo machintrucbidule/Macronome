@@ -6,6 +6,7 @@ import type {
   UpdateRecipeRequest,
 } from '@macronome/shared';
 import { recipesApi, type RecipeListParams } from '../../api/recipes';
+import { notifyUndoable } from '../../components/Toast/notify';
 import { loggableSearchApi } from '../../api/loggableSearch';
 import { LIST_GC_TIME } from '../../lib/listCache';
 import { draftToPreviewBody, type RecipeDraft } from './modals/draft';
@@ -91,7 +92,14 @@ export function useRecipeMutations() {
   });
   const archive = useMutation({
     mutationFn: (id: string) => recipesApi.archive(id),
-    onSuccess: invalidate,
+    // B-261: exactly reversible, same id (see useFoods).
+    onSuccess: (_data, id) => {
+      void invalidate();
+      notifyUndoable('recipeArchived', async () => {
+        await recipesApi.restore(id);
+        await invalidate();
+      });
+    },
   });
   const restore = useMutation({
     mutationFn: (id: string) => recipesApi.restore(id),

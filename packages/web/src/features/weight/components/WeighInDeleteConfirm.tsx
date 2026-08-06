@@ -2,7 +2,8 @@ import { useTranslation } from 'react-i18next';
 import type { WeighIn } from '@macronome/shared';
 import { Modal, modalStyles } from '../../../components/Modal/Modal';
 import { Button } from '../../../components/Button/Button';
-import { useWeightMutations } from '../useWeight';
+import { useWeightMutations, weighInRestoreBody } from '../useWeight';
+import { notifyUndoable } from '../../../components/Toast/notify';
 
 // Styled confirm for the context menu's "Supprimer la pesée" (B-195 — destructive flows
 // use the shared confirm modal, like MealDeleteConfirm/B-074). Deletes directly through
@@ -15,9 +16,16 @@ interface Props {
 
 export function WeighInDeleteConfirm({ weighIn, onClose }: Props) {
   const { t } = useTranslation();
-  const { remove } = useWeightMutations();
+  const { remove, create } = useWeightMutations();
   const confirm = (): void => {
-    void remove.mutateAsync(weighIn.id).finally(onClose);
+    void remove
+      .mutateAsync(weighIn.id)
+      .then(() => {
+        // B-261: undo re-creates the weigh-in from every field it carried. It can fail with
+        // 409 weigh_in_date_occupied if that date was refilled meanwhile — notifyUndoable says so.
+        notifyUndoable('weightDeleted', () => create.mutateAsync(weighInRestoreBody(weighIn)));
+      })
+      .finally(onClose);
   };
   return (
     <Modal title={t('contextMenu.deleteWeighInTitle')} size="confirm" onClose={onClose}>

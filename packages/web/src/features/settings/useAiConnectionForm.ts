@@ -7,8 +7,7 @@ import {
   type AiTaskKey,
 } from '@macronome/shared';
 import { ApiError } from '../../api/client';
-import { showToast } from '../../components/Toast/toast-store';
-import i18n from '../../i18n/config';
+import { notify } from '../../components/Toast/notify';
 import { useAiModelsMutation, useSettingsMutation, useSettingsQuery } from './useSettings';
 
 // State + handlers for the Assistant IA card (design/components/ai-connection.md). Seeds a
@@ -110,7 +109,7 @@ export function useAiConnectionForm() {
   // shows its own result, so only the bare save toasts.
   const onSave = (): void => {
     void persist().then((ok) => {
-      if (ok) showToast({ message: i18n.t('toast.settingsSaved') });
+      if (ok) notify('settingsSaved');
     });
   };
 

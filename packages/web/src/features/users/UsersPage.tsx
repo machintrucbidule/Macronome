@@ -12,6 +12,7 @@ import { InviteModal } from './modals/InviteModal';
 import { ResetLinkModal } from './modals/ResetLinkModal';
 import { useUserMutations, useUsers } from './useUsers';
 import { useTokenMutations, useTokens } from './useTokens';
+import { notify } from '../../components/Toast/notify';
 
 // Utilisateurs screen (specifications/screens/users.md, B-192..194): admin-only
 // account management. Sort is client-side; role change behind a simple confirm,
@@ -77,7 +78,10 @@ function PageModals({
         onCancel={close}
         onConfirm={() =>
           mut.run((onError) =>
-            mut.setRole.mutate({ id: modal.user.id, is_admin: !modal.user.is_admin }, { onError }),
+            mut.setRole.mutate(
+              { id: modal.user.id, is_admin: !modal.user.is_admin },
+              { onError, onSuccess: () => notify('roleChanged') },
+            ),
           )
         }
       />
@@ -88,7 +92,11 @@ function PageModals({
       user={modal.user}
       pending={mut.remove.isPending}
       onCancel={close}
-      onConfirm={() => mut.run((onError) => mut.remove.mutate(modal.user.id, { onError }))}
+      onConfirm={() =>
+        mut.run((onError) =>
+          mut.remove.mutate(modal.user.id, { onError, onSuccess: () => notify('userDeleted') }),
+        )
+      }
     />
   );
 }
@@ -144,7 +152,7 @@ export function UsersPage() {
     tokens: tokens.data?.data ?? [],
     onRevoke: (id: string) => {
       setErrorKey(null);
-      revoke.mutate(id, { onError });
+      revoke.mutate(id, { onError, onSuccess: () => notify('tokenRevoked') });
     },
   };
 

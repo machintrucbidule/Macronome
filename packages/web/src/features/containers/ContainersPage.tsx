@@ -7,6 +7,7 @@ import { ContainersMobile } from './components/ContainersMobile';
 import { ContainerModal } from './modals/ContainerModal';
 import { DeleteConfirm } from './modals/DeleteConfirm';
 import { useContainerMutations, useContainers } from './useContainers';
+import { notifyUndoable } from '../../components/Toast/notify';
 
 // Contenants screen (specifications/screens/containers.md): the tare catalog. Search +
 // sort are client-side over the full list; the built-in "Rien" stays pinned first and
@@ -39,7 +40,7 @@ export function ContainersPage() {
   const isMobile = useIsMobile();
 
   const list = useContainers();
-  const { remove } = useContainerMutations();
+  const { remove, create } = useContainerMutations();
   const all = useMemo(() => list.data?.data ?? [], [list.data]);
   const editable = all.filter((c) => !c.is_builtin).length;
 
@@ -93,7 +94,18 @@ export function ContainersPage() {
           container={deleteTarget}
           onCancel={() => setDeleteTarget(null)}
           onConfirm={() => {
-            remove.mutate(deleteTarget.id);
+            const deleted = deleteTarget; // captured before the confirm clears it
+            remove.mutate(deleted.id, {
+              // B-261: undo re-creates it. Leftover history is unaffected either way — it froze
+              // the container's name and tare as values, never a reference (DECISIONS Gap 13).
+              onSuccess: () =>
+                notifyUndoable('containerDeleted', () =>
+                  create.mutateAsync({
+                    name: deleted.name,
+                    empty_weight_g: deleted.empty_weight_g,
+                  }),
+                ),
+            });
             setDeleteTarget(null);
           }}
         />

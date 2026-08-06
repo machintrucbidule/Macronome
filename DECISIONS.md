@@ -5695,3 +5695,50 @@ every navigation, are worse than none.
 announcing it as a status fires on pointer movement — noise, not information.
 
 **Contract impact.** `design/components/states.md` (loading-states section). No API or schema change.
+
+---
+
+## STATE-1 follow-up / B-261 — the confirmations cover every explicit action, not just Repas — RESOLVED (owner, 2026-08-06)
+
+**The first delivery was too narrow.** B-261's scope was agreed from a four-option list (line
+deletion · the destructive day actions · import/export · "Cibles/Paramètres save"), and that last
+item was implemented literally — the two Paramètres cards with an explicit save button — leaving
+the profile update, the password change, the Intégrations saves, the manual Google Drive backup,
+the CSV exports and every deletion outside Repas silent. The owner rightly called it out. The
+operative rule is the one already written in `toasts-warnings.md` §E and is now applied uniformly:
+**a toast is for an explicit action whose result is off-screen or invisible.**
+
+**Added:** profile update · password change · Home Assistant save · Gateway save · integration
+disconnect · Google Drive "Sauvegarder maintenant" · Journal and Poids CSV export (one shared
+hook) · food and recipe deletion · weigh-in deletion · container deletion · meal-template slot
+deletion · garde-manger unpin · advice deletion · the three admin actions (delete user, role
+change, revoke link).
+
+**Still deliberately excluded**, owner-confirmed: auto-saving Paramètres fields (theme, locale,
+number settings — one bubble per keystroke); **creating or editing** a food, recipe, container or
+weigh-in, whose result appears in the list under the user's eyes; the AI dish analysis
+(`ai-dish-analysis.md` forbids it); AI advice generation; the "Tester la connexion" buttons; and
+invite / reset-link creation, where the generated link is displayed in a modal — in every one of
+those the result **is** the feedback.
+
+**Undo fidelity, decided per surface rather than assumed:**
+
+- **Exact** — food and recipe deletion are archives: `restore` brings the row back with the **same
+  id**, so the undo is a true reversal.
+- **Re-creation** (owner chose this over toast-only) — weigh-in, container, meal-template slot and
+  garde-manger pin are hard-deleted; the undo re-creates them from what the screen held. The row
+  returns with a **new internal id**. A re-creation can also legitimately fail on the unique key if
+  the freed slot was retaken meanwhile (`weigh_in_date_occupied`, a reused container name); the
+  toast helper reports that instead of silently swallowing it, so the user is never left believing
+  their data came back.
+- **None** — an archived AI advice cannot be reproduced; the admin actions are security decisions
+  where an "Annuler" would be a dangerous affordance.
+
+**One contract amendment, owner-approved on the spot.** A weigh-in was verified to round-trip in
+full — `CreateWeighInSchema` accepts exactly the five fields the response exposes, so the waist
+measurement and the note come back too, and the periods/EMA/trajectory/cartouche are derived
+server-side and recompute on their own. But **`POST /pantry` did not accept `order_index`**, so a
+restored pin would have reappeared at the end of its meal instead of in place. Rather than accept
+that, the owner had the endpoint extended: `order_index` is now optional and defaults to "append",
+mirroring the meal template's create. `spec/api/weight-targets-stats-settings.md` and
+`packages/shared/src/dto/pantry.ts` updated; no schema change (the column already existed).

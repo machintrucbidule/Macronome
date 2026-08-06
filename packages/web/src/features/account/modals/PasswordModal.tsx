@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { authApi } from '../../../api/auth';
+import { notify } from '../../../components/Toast/notify';
 import { Button } from '../../../components/Button/Button';
 import { Modal } from '../../../components/Modal/Modal';
 import { TextInput } from '../../../components/Form/TextInput';
@@ -24,6 +25,8 @@ export function PasswordModal({ onClose }: { onClose: () => void }) {
     setPending(true);
     try {
       await authApi.changePassword({ current_password: current, new_password: next });
+      // B-261: the modal's own "done" state vanishes with the modal 900ms later.
+      notify('passwordChanged');
       setDone(true);
       setTimeout(onClose, 900);
     } catch {

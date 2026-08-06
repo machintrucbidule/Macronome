@@ -5,6 +5,7 @@ import type {
   UpdateFoodRequest,
 } from '@macronome/shared';
 import { foodsApi, type FoodListParams } from '../../api/foods';
+import { notifyUndoable } from '../../components/Toast/notify';
 import { LIST_GC_TIME } from '../../lib/listCache';
 
 // Data hooks for the Aliments screen. The page owns filter/sort state and passes it
@@ -44,7 +45,15 @@ export function useFoodMutations() {
   });
   const archive = useMutation({
     mutationFn: (id: string) => foodsApi.archive(id),
-    onSuccess: invalidate,
+    // B-261: archiving is exactly reversible — `restore` brings the food back with the SAME id,
+    // so the undo is faithful, not a re-creation.
+    onSuccess: (_data, id) => {
+      void invalidate();
+      notifyUndoable('foodArchived', async () => {
+        await foodsApi.restore(id);
+        await invalidate();
+      });
+    },
   });
   const restore = useMutation({
     mutationFn: (id: string) => foodsApi.restore(id),

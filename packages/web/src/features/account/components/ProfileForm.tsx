@@ -5,6 +5,7 @@ import { NumberInput } from '../../../components/Form/NumberInput';
 import { Button } from '../../../components/Button/Button';
 import { SelectMenu } from '../../../components/SelectMenu/SelectMenu';
 import { useProfileMutation } from '../useProfile';
+import { notify } from '../../../components/Toast/notify';
 import styles from '../account.module.css';
 
 // Metabolic profile (sex / birth date / height) — the Compte screen is its home (B-060). Edits
@@ -25,11 +26,15 @@ export function ProfileForm({ profile }: { profile: Profile }) {
   });
 
   const save = (): void => {
-    mutation.mutate({
-      sex: draft.sex,
-      birthdate: draft.birthdate,
-      height_cm: Number(draft.heightCm),
-    });
+    mutation.mutate(
+      {
+        sex: draft.sex,
+        birthdate: draft.birthdate,
+        height_cm: Number(draft.heightCm),
+      },
+      // B-261: the form keeps showing the same values, so nothing on screen says it landed.
+      { onSuccess: () => notify('profileSaved') },
+    );
   };
 
   return (

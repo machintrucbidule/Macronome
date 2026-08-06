@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import type { BarclaudeGatewayPatch, BarclaudeGatewayRead } from '@macronome/shared';
 import { ApiError } from '../../api/client';
+import { notify } from '../../components/Toast/notify';
 import { integrationsApi } from '../../api/integrations';
 import { useSettingsMutation, useSettingsQuery } from '../settings/useSettings';
 
@@ -60,7 +61,10 @@ export function useGatewayForm() {
   };
 
   const onSave = (): void => {
-    void persist();
+    // B-261: an explicit save whose effect is invisible until the next proxied call.
+    void persist().then((ok) => {
+      if (ok) notify('integrationSaved');
+    });
   };
 
   const runTest = (): void => {
@@ -71,7 +75,10 @@ export function useGatewayForm() {
 
   const onDisconnect = (): void => {
     test.reset();
-    save.mutate({ integrations: { barclaude_gateway: null } });
+    save.mutate(
+      { integrations: { barclaude_gateway: null } },
+      { onSuccess: () => notify('disconnected') },
+    );
   };
 
   const testError =

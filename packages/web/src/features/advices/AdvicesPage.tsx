@@ -5,6 +5,7 @@ import { AdviceDashboard } from './components/AdviceDashboard';
 import { AdviceGenerate } from './components/AdviceGenerate';
 import { AdviceArchive } from './components/AdviceArchive';
 import { useAdviceList, useAdviceMutations } from './useAdvice';
+import { notify } from '../../components/Toast/notify';
 import styles from './advices.module.css';
 
 // Advices page (specifications/screens/conseils.md, B-202): the aggregated-data dashboard (what the
@@ -41,7 +42,10 @@ export function AdvicesPage() {
         ) : (
           <AdviceArchive
             advices={list.data?.data ?? []}
-            onDelete={(id) => remove.mutate(id)}
+            onDelete={(id) =>
+              // B-261: no undo — an archived AI output cannot be reproduced.
+              remove.mutate(id, { onSuccess: () => notify('adviceDeleted') })
+            }
             justGeneratedId={generate.data?.data.id ?? null}
           />
         )}

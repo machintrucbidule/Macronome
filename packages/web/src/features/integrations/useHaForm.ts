@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import type { HomeAssistantPatch, HomeAssistantRead } from '@macronome/shared';
 import { ApiError } from '../../api/client';
+import { notify } from '../../components/Toast/notify';
 import { integrationsApi } from '../../api/integrations';
 import { useSettingsMutation, useSettingsQuery } from '../settings/useSettings';
 
@@ -92,7 +93,10 @@ export function useHaForm() {
   };
 
   const onSave = (): void => {
-    void persist();
+    // B-261: an explicit save whose effect is invisible until the next import.
+    void persist().then((ok) => {
+      if (ok) notify('integrationSaved');
+    });
   };
 
   // "Tester" persists the typed config first, then proves the link against it.
@@ -104,7 +108,10 @@ export function useHaForm() {
 
   const onDisconnect = (): void => {
     test.reset();
-    save.mutate({ integrations: { home_assistant: null } });
+    save.mutate(
+      { integrations: { home_assistant: null } },
+      { onSuccess: () => notify('disconnected') },
+    );
   };
 
   const testError =

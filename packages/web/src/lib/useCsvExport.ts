@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { notify } from '../components/Toast/notify';
 
 // Shared CSV-export trigger (EX-1 / B-132): kicks off a file download and tracks a transient
 // error flag so the page can show a dismissible warning banner. The download itself is the
@@ -15,7 +16,10 @@ export function useCsvExport(run: () => Promise<void>): CsvExport {
     error,
     start: () => {
       setError(false);
-      void run().catch(() => setError(true));
+      // B-261: the file lands in the browser's downloads, off-screen. No undo — nothing changed.
+      void run()
+        .then(() => notify('exportDone'))
+        .catch(() => setError(true));
     },
     dismiss: () => setError(false),
   };

@@ -19,6 +19,9 @@ export const CreatePantrySchema = z.object({
   food_id: z.string().uuid(),
   unit: EntryUnitSchema.optional(),
   portion_id: z.string().uuid().nullish(),
+  /** Explicit position within the slot; omitted = appended (B-261). Mirrors the meal template's
+   *  create. It exists so undoing a removed pin puts it back where it was, instead of at the end. */
+  order_index: z.number().int().min(0).optional(),
 });
 export type CreatePantryRequest = z.infer<typeof CreatePantrySchema>;
 
