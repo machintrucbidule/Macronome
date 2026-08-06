@@ -138,8 +138,10 @@
 .periodRow:first-child {
   background: var(--bg-elev-2);
 }
-.periodRow:hover {
-  background: var(--bg-elev);
+@media (hover: hover) {
+  .periodRow:hover {
+    background: var(--bg-elev);
+  }
 }
 .periodRow td {
   padding: var(--sp-3) var(--sp-4);
@@ -165,8 +167,10 @@
   line-height: 1;
   opacity: 0.6;
 }
-.recapBtn:hover {
-  opacity: 1;
+@media (hover: hover) {
+  .recapBtn:hover {
+    opacity: 1;
+  }
 }
 
 /* Period-table colour coding (WV-1 / B-115) — server-fact-driven, existing tokens only. */
@@ -286,8 +290,10 @@
   font-size: var(--fs-11);
   padding: 0;
 }
-.haImportBtn:hover {
-  text-decoration: underline;
+@media (hover: hover) {
+  .haImportBtn:hover {
+    text-decoration: underline;
+  }
 }
 .haImportBtn:disabled {
   color: var(--text-faint);

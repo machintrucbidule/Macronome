@@ -124,8 +124,10 @@
   color: var(--accent);
   text-decoration: none;
 }
-.notConfigured a:hover {
-  text-decoration: underline;
+@media (hover: hover) {
+  .notConfigured a:hover {
+    text-decoration: underline;
+  }
 }
 
 /* Block D — archive. */
@@ -183,8 +185,10 @@
   cursor: pointer;
   padding: 0 var(--sp-2);
 }
-.del:hover {
-  color: var(--nok);
+@media (hover: hover) {
+  .del:hover {
+    color: var(--nok);
+  }
 }
 .empty {
   color: var(--text-faint);

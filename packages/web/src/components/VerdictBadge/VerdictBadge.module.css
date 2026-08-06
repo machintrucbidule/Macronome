@@ -22,8 +22,10 @@
   background: transparent;
   color: var(--text);
 }
-.badge:hover {
-  filter: brightness(1.08);
+@media (hover: hover) {
+  .badge:hover {
+    filter: brightness(1.08);
+  }
 }
 /* Uniform fixed width on desktop so all OK/NOK selectors line up across Journal + Repas (B-165).
    99.12px = the measured natural "NOK Auto" border-box width (the pre-B-165 footprint the owner
@@ -41,8 +43,10 @@
   cursor: default;
   color: var(--text-faint);
 }
-.muted:hover {
-  filter: none;
+@media (hover: hover) {
+  .muted:hover {
+    filter: none;
+  }
 }
 
 .ok {
@@ -105,8 +109,10 @@
   cursor: pointer;
   text-align: left;
 }
-.menu button:hover {
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
+@media (hover: hover) {
+  .menu button:hover {
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+  }
 }
 .menu button.cur {
   color: var(--accent);

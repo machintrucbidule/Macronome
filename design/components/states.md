@@ -128,7 +128,10 @@ Driven by a `data-state` on the body: `idle | loading | error | lockout | succes
   (`opacity:.4–.5; pointer-events:none`) until the timer elapses, then returns to
   idle.
 - **success**: form body hidden; a `.success` flash (ok ring + check, redirect
-  hint "→ JOURNAL DU JOUR") animates in (`rise`).
+  hint "→ JOURNAL DU JOUR") replaces it. It does **not** animate: the `rise` keyframe this
+  line used to name was never implemented, and the flash is on screen for the moment before
+  the redirect — motion there would only delay the screen the user asked for
+  (`motion.md` §E, B-253).
   Copy avoids gendered/agreement forms so FR↔EN translation stays clean.
   (The bottom demo state-switcher in the mockup is **not** part of the product.)
 

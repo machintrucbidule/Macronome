@@ -62,8 +62,10 @@
   cursor: pointer;
   text-align: inherit;
 }
-.sortBtn:hover {
-  color: var(--text);
+@media (hover: hover) {
+  .sortBtn:hover {
+    color: var(--text);
+  }
 }
 .sortBtn:focus-visible {
   outline: none;
@@ -105,8 +107,10 @@
   /* keep a row clear of the sticky header when scrolled/anchored to */
   scroll-margin-top: 140px;
 }
-.clickable:hover {
-  background: var(--bg-elev-2);
+@media (hover: hover) {
+  .clickable:hover {
+    background: var(--bg-elev-2);
+  }
 }
 
 .archived {

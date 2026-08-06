@@ -107,9 +107,11 @@
   line-height: 1;
   padding: 0;
 }
-.stepper button:hover {
-  color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
+@media (hover: hover) {
+  .stepper button:hover {
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+  }
 }
 .stepper button:first-child {
   border-top-right-radius: 6px;

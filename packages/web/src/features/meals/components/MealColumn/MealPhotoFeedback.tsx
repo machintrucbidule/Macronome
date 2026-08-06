@@ -8,10 +8,13 @@ import styles from './meal-column.module.css';
 // (MealPhotoButton); both are driven by the same useMealPhotoEntry instance held in MealColumn.
 export function MealPhotoFeedback({ photo }: { photo: MealPhotoEntry }) {
   const { t } = useTranslation();
-  if (!photo.ready) return null;
+  // B-271: the banner is needed on DESKTOP too now — it carries the drop/paste busy notice and
+  // the wrong-type refusal — so it is gated on `configured`, not on the phone-only `ready`.
+  // The hidden capture input stays mobile-only: it is the 📷 button's input.
+  if (!photo.configured) return null;
   return (
     <>
-      <input ref={photo.inputRef} {...photo.inputProps} />
+      {photo.ready && <input ref={photo.inputRef} {...photo.inputProps} />}
       {photo.message && (
         <Banner
           tone={photo.message.tone}

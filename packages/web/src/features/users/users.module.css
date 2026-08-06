@@ -78,8 +78,10 @@
 .table tbody tr:last-child td {
   border-bottom: 0;
 }
-.table tbody tr:hover {
-  background: var(--bg-elev-2);
+@media (hover: hover) {
+  .table tbody tr:hover {
+    background: var(--bg-elev-2);
+  }
 }
 .num {
   font-family: var(--font-num);
@@ -107,9 +109,11 @@
   padding: var(--sp-1) var(--sp-3);
   border-radius: var(--r-sm);
 }
-.action:hover:not(:disabled) {
-  color: var(--text);
-  background: var(--bg-elev-2);
+@media (hover: hover) {
+  .action:hover:not(:disabled) {
+    color: var(--text);
+    background: var(--bg-elev-2);
+  }
 }
 .del {
   border: 0;
@@ -120,9 +124,11 @@
   padding: var(--sp-1) var(--sp-3);
   border-radius: var(--r-sm);
 }
-.del:hover:not(:disabled) {
-  color: var(--nok);
-  background: var(--bg-elev-2);
+@media (hover: hover) {
+  .del:hover:not(:disabled) {
+    color: var(--nok);
+    background: var(--bg-elev-2);
+  }
 }
 .action:disabled,
 .del:disabled {

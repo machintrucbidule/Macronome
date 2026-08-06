@@ -668,6 +668,7 @@
       "imagesHint": "Jusqu'à 4 photos (JPEG, PNG, WebP) — dépôt de fichiers et Ctrl+V acceptés.",
       "hintCap": "Maximum 4 photos — les photos en trop ont été ignorées.",
       "hintType": "Format non supporté (JPEG, PNG ou WebP uniquement).",
+      "notAnImage": "Ce fichier n'est pas une image (JPEG, PNG ou WebP uniquement).",
       "note": "Description",
       "notePlaceholder": "ex. 3 tranches de saucisson, 2 tranches de pain…",
       "analyze": "Analyser",

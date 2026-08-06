@@ -28,8 +28,10 @@
   color: var(--accent-ink);
   border-color: var(--accent);
 }
-.primary:hover {
-  filter: brightness(1.06);
+@media (hover: hover) {
+  .primary:hover {
+    filter: brightness(1.06);
+  }
 }
 .primary:disabled {
   filter: saturate(0.4) brightness(0.8);
@@ -39,9 +41,11 @@
   background: transparent;
   color: var(--text-dim);
 }
-.ghost:hover {
-  color: var(--text);
-  border-color: var(--border-strong);
+@media (hover: hover) {
+  .ghost:hover {
+    color: var(--text);
+    border-color: var(--border-strong);
+  }
 }
 
 .danger {
@@ -49,6 +53,8 @@
   color: var(--nok);
   border-color: color-mix(in srgb, var(--nok) 45%, transparent);
 }
-.danger:hover {
-  background: var(--nok-soft);
+@media (hover: hover) {
+  .danger:hover {
+    background: var(--nok-soft);
+  }
 }

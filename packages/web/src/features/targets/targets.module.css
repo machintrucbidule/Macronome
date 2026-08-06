@@ -129,9 +129,11 @@
     border-color 0.12s var(--ease),
     background 0.12s var(--ease);
 }
-.presetBtn:hover {
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 8%, transparent);
+@media (hover: hover) {
+  .presetBtn:hover {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+  }
 }
 .presetVal {
   font-family: var(--font-num);
@@ -346,8 +348,10 @@
   font-size: var(--fs-12);
   color: var(--accent);
 }
-.linkBtn:hover {
-  text-decoration: underline;
+@media (hover: hover) {
+  .linkBtn:hover {
+    text-decoration: underline;
+  }
 }
 
 /* Effective-date field (mirrors the weigh-in date field). */
@@ -424,8 +428,10 @@
 .activeRow {
   background: color-mix(in srgb, var(--accent) 12%, transparent);
 }
-.activeRow:hover {
-  background: color-mix(in srgb, var(--accent) 16%, transparent);
+@media (hover: hover) {
+  .activeRow:hover {
+    background: color-mix(in srgb, var(--accent) 16%, transparent);
+  }
 }
 
 /* Row delete affordance (revealed on row hover, like the other data tables). */
@@ -437,11 +443,15 @@
   line-height: 1;
   color: var(--text-faint);
   opacity: 0;
-  transition: opacity 0.12s var(--ease);
+  transition: opacity var(--dur-fast) var(--ease);
 }
-tr:hover .iconbtn {
-  opacity: 1;
+@media (hover: hover) {
+  tr:hover .iconbtn {
+    opacity: 1;
+  }
 }
-.iconbtn:hover {
-  color: var(--nok);
+@media (hover: hover) {
+  .iconbtn:hover {
+    color: var(--nok);
+  }
 }

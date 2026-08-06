@@ -49,10 +49,16 @@
   padding: 0 12px;
   cursor: pointer;
 }
-.filterbtn:hover,
+/* Split from the hover rule (B-253): an applied filter must read as "on" on touch too. */
 .filterbtn.on {
   border-color: var(--accent);
   color: var(--accent);
+}
+@media (hover: hover) {
+  .filterbtn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
 }
 .filterpop {
   position: absolute;
@@ -107,11 +113,15 @@
   opacity: 0;
   color: var(--text-dim);
 }
-.row:hover .iconbtn {
-  opacity: 1;
+@media (hover: hover) {
+  .row:hover .iconbtn {
+    opacity: 1;
+  }
 }
-.iconbtn:hover {
-  color: var(--nok);
+@media (hover: hover) {
+  .iconbtn:hover {
+    color: var(--nok);
+  }
 }
 
 /* ---- builder ---- */
@@ -172,8 +182,10 @@
   white-space: nowrap;
   cursor: pointer;
 }
-.ingName:hover {
-  color: var(--accent);
+@media (hover: hover) {
+  .ingName:hover {
+    color: var(--accent);
+  }
 }
 .qtyCell {
   position: relative;
@@ -204,9 +216,11 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.unitChip:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+@media (hover: hover) {
+  .unitChip:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
 }
 .unitMenu {
   position: absolute;
@@ -237,9 +251,11 @@
   padding: 7px 11px;
   cursor: pointer;
 }
-.unitMenu button:hover {
-  background: var(--accent);
-  color: var(--accent-ink);
+@media (hover: hover) {
+  .unitMenu button:hover {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
 }
 .rm {
   background: none;
@@ -248,8 +264,10 @@
   cursor: pointer;
   font-size: var(--fs-14);
 }
-.rm:hover {
-  color: var(--nok);
+@media (hover: hover) {
+  .rm:hover {
+    color: var(--nok);
+  }
 }
 .addIng {
   font-family: var(--font-num);
@@ -346,9 +364,11 @@
   cursor: pointer;
   font-size: var(--fs-14);
 }
-.stepper button:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+@media (hover: hover) {
+  .stepper button:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
 }
 .perPortion {
   border-top: var(--bw) dashed var(--border);

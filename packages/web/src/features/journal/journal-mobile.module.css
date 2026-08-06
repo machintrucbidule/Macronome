@@ -24,8 +24,10 @@
   font: inherit;
   cursor: pointer;
 }
-.card:hover {
-  border-color: var(--border-strong);
+@media (hover: hover) {
+  .card:hover {
+    border-color: var(--border-strong);
+  }
 }
 /* Day-state left band, mirroring the desktop row (JR-1 / B-077): green Complet, yellow
    Partiel, red Rien (also a soft full-card tint); none → no band. Same tokens, no new one. */
@@ -250,6 +252,8 @@
   font-size: var(--fs-13);
   cursor: pointer;
 }
-.openDay:hover {
-  border-color: var(--border-strong);
+@media (hover: hover) {
+  .openDay:hover {
+    border-color: var(--border-strong);
+  }
 }

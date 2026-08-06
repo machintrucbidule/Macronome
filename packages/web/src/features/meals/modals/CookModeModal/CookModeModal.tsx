@@ -1,7 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { useId, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Meal } from '@macronome/shared';
 import { useFocusTrap } from '../../../../components/Modal/useFocusTrap';
+import { useOverlayDismiss } from '../../../../components/Modal/useOverlayDismiss';
 import { useMeals } from '../../MealsContext';
 import { useCookSession } from './useCookSession';
 import { useFontAutosize } from './useFontAutosize';
@@ -26,13 +27,10 @@ export function CookModeModal({ meal }: CookModeModalProps) {
   useFocusTrap(panelRef);
   const fontSize = useFontAutosize(listRef, Math.max(s.lines.length, 1));
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape') actions.closeCook();
-    };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [actions]);
+  // B-269: the takeover joins the shared overlay stack, so Escape AND Back both leave cook mode —
+  // on a phone in a kitchen, Back would otherwise quit the app instead of leaving the mode. It is
+  // not a `Modal`, which is exactly why the stack had to move out of Modal.tsx.
+  useOverlayDismiss(useId(), () => actions.closeCook());
 
   const validate = (): void => {
     void actions.applyCookEdits(meal.id, s.diff());

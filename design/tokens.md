@@ -70,8 +70,15 @@ toast 1000.
 
 ## Motion
 
+**`components/motion.md` is the authority** — what animates, what never does, and why.
+This section lists only the tokens.
+
 - `--ease: cubic-bezier(.2,.7,.2,1)` everywhere.
-- `--dur-fast .15s` hover/focus; `--dur-bar .2s` progress fills; `--dur-theme
-.35s` theme cross-fade.
+- `--dur-fast .15s` interactive state changes; **`--dur-enter .18s` floating-surface
+  entrance + route content fade (B-253)**; `--dur-bar .2s` progress fills; `--dur-theme
+.35s` theme cross-fade. No stylesheet may hard-code a duration.
 - Named keyframes used by the brand/login (kept as component-local, not tokens):
-  `swing` 2.6s (tick needle), `spin` .7s (submit spinner), `rise` (card entrance).
+  `swing` 2.6s (tick needle), `spin` .7s (submit spinner).
+- **`rise` is withdrawn** (B-253). It was contracted here for a login card entrance that was
+  never implemented, and the login already has its own success animation — the contract
+  described motion the product never had. Removed rather than built, so the two agree.

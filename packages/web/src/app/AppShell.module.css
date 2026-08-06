@@ -144,9 +144,11 @@
   padding: 6px 10px;
   border-radius: var(--r-sm);
 }
-.nav a:not(.active):hover {
-  color: var(--text);
-  background: var(--bg-elev-2);
+@media (hover: hover) {
+  .nav a:not(.active):hover {
+    color: var(--text);
+    background: var(--bg-elev-2);
+  }
 }
 .nav a.active {
   color: var(--accent-ink);
@@ -155,6 +157,22 @@
 
 .page {
   padding: var(--sp-7) var(--page-gutter);
+}
+
+/* Route content fade (B-253, motion.md §F). Applied to <main> and keyed on the pathname, so it
+   replays on navigation. Opacity ONLY — no movement, no delay before render: the screen draws
+   exactly when it always did, it just does not snap in. The appbar, the day-tone rule and the
+   navigation are outside <main> and deliberately do not participate. */
+.routeFade {
+  animation: route-in var(--dur-enter) var(--ease);
+}
+@keyframes route-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 /* Flush pages (Repas) self-pad their sections to the gutter and need a full-bleed sticky
    header, so the page wrapper adds no padding of its own (B-036). */
@@ -182,9 +200,15 @@
   color: var(--text-dim);
   text-decoration: none;
 }
-.bulb:hover,
+/* Split from the hover rule below (B-253): the active-route tint must survive on touch, so it
+   cannot share a selector list with :hover once that list is gated to pointer devices. */
 .bulbActive {
   color: var(--accent);
+}
+@media (hover: hover) {
+  .bulb:hover {
+    color: var(--accent);
+  }
 }
 
 /* Account menu (top-right avatar dropdown). */
@@ -246,8 +270,10 @@
   border-radius: var(--r-sm);
   cursor: pointer;
 }
-.acctItem:hover {
-  background: var(--bg-elev);
+@media (hover: hover) {
+  .acctItem:hover {
+    background: var(--bg-elev);
+  }
 }
 .acctSep {
   height: var(--bw);
@@ -339,6 +365,8 @@
   cursor: pointer;
   text-align: left;
 }
-.sheetItem:hover {
-  background: var(--bg-elev-2);
+@media (hover: hover) {
+  .sheetItem:hover {
+    background: var(--bg-elev-2);
+  }
 }

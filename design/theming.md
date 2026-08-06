@@ -11,10 +11,11 @@ single attribute change with zero per-component work.
 
 **Resolution (three settings, two rendered themes).** Paramètres offers
 `Système · Clair · Sombre`:
+
 - `dark` → `data-theme="dark"`.
 - `light` → `data-theme="light"`.
 - `système` → resolve at runtime from `prefers-color-scheme` (light → light,
-  otherwise dark) and re-resolve on OS change. Persisted value is the *mode*
+  otherwise dark) and re-resolve on OS change. Persisted value is the _mode_
   (`system|light|dark`), not the resolved theme. Default mode = `dark`
   (masterplan §6).
 
@@ -23,7 +24,14 @@ single attribute change with zero per-component work.
 surfaces need it); borders/text inherit instantly via inheritance + the body
 fade reads as a global cross-fade.
 
+> This used to be the app's **only** cross-cutting motion rule, and it is a restriction —
+> it says what not to do, never what should move. **`components/motion.md` is now the
+> authority** on that (B-253): what animates, what never does, the duration ladder, the
+> touch rule and the single reduced-motion layer. The paragraph above remains the
+> theme-switch case of it.
+
 **Where the control lives (CONFIRMED ①A).**
+
 - **Appbar:** the theme **segmented toggle only**, on **every** in-app screen
   (incl. Paramètres and Compte, which the mockups omitted it from). 2-button
   segmented: `●` dark / `○` light. The appbar control is the binary
@@ -53,6 +61,7 @@ strings. Build for the **longer** of the two and let the shorter reflow.
 (`padding`-based), labels wrap or truncate with ellipsis — never clip.
 
 **Known expansion risks (flag for the build):**
+
 - **Nav tabs** (`Repas · Journal · Poids · Aliments · Recettes · Stats`). EN
   (`Meals · Log · Weight · Foods · Recipes · Stats`) is comparable; the row is
   already `display:flex; gap:2px` and hides under `lg`. Safe, but keep tabs
@@ -72,7 +81,7 @@ strings. Build for the **longer** of the two and let the shorter reflow.
   `+ Add a food`. Buttons are padding-sized; fine. Avoid icon-only buttons that
   rely on a fixed width.
 - **Login alerts.** `Trop de tentatives. Réessayez dans 30 s.` vs `Too many
-  attempts. Try again in 30 s.` Banner is full-width, `line-height:1.4`, wraps.
+attempts. Try again in 30 s.` Banner is full-width, `line-height:1.4`, wraps.
   Keep the countdown number (`--font-num`) as a separate inline token so only the
   digit updates.
 - **Tooltips/hints** (`.hint`, `.row .lab .d`) are the longest FR strings; they
@@ -86,6 +95,7 @@ column widths stay stable across locales. Date formatting is locale-driven
 free-width.
 
 **Hard fixed-width spots to audit (potential breakage):**
+
 - Meal-log column grid (`74px` qty, `26px` macro columns in meals): macro
   headers are single letters (`L/G/P`) in both languages — safe. Quantity unit
   chips (`œuf`, `vaporisation`) can be long; the unit chip already has

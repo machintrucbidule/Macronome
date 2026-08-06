@@ -35,6 +35,38 @@ a {
   color: var(--accent);
 }
 
+/* B-253 (design/components/motion.md §D) — interactive state changes settle instead of snapping.
+   ONE declaration rather than a transition repeated on each of the ~120 hover blocks: a single
+   rule cannot drift, and listing only non-structural properties here makes §B ("structure never
+   animates") true by construction — nothing declared below can move layout.
+
+   Scoped to `@media (hover: hover)` for the same reason every hover rule now is: on a touch
+   screen there is no hover to settle into, and the transition would only pay for a state that
+   should not fire at all.
+
+   `box-shadow` is deliberately ABSENT: it draws the focus ring, and a focus ring that fades in
+   is a focus ring you miss (§D). `tr` is included so dense table rows tint smoothly — colour
+   only, so the Repas grid cannot jitter. */
+@media (hover: hover) {
+  a,
+  button,
+  summary,
+  label,
+  input,
+  select,
+  textarea,
+  tr,
+  [role='button'],
+  [role='menuitem'] {
+    transition:
+      color var(--dur-fast) var(--ease),
+      background-color var(--dur-fast) var(--ease),
+      border-color var(--dur-fast) var(--ease),
+      filter var(--dur-fast) var(--ease),
+      opacity var(--dur-fast) var(--ease);
+  }
+}
+
 /* B-199: Chromium/Edge paint a blinking text caret on selectable text and on focusable
    non-input elements (e.g. the food-name cell role="button" tabindex=0). Hide it globally,
    then re-enable it on genuine editable fields. No `user-select` change → text selection and

@@ -25,8 +25,10 @@
   font: inherit;
   cursor: pointer;
 }
-.card:hover {
-  border-color: var(--border-strong);
+@media (hover: hover) {
+  .card:hover {
+    border-color: var(--border-strong);
+  }
 }
 /* Archived foods read dimmed, mirroring the desktop row's archived styling. */
 .archived {

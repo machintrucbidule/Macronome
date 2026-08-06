@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import styles from './Modal.module.css';
 import { useFocusTrap } from './useFocusTrap';
+import { useOverlayDismiss } from './useOverlayDismiss';
 import { lockBodyScroll, unlockBodyScroll } from './bodyScrollLock';
 import { useIsMobile } from '../../lib/useIsMobile';
 
@@ -39,10 +40,6 @@ interface ModalProps {
   children: ReactNode;
 }
 
-// Mount-order stack so a nested sub-dialog (e.g. the macro-label paste dialog over the
-// food modal) gets Escape, not the modal beneath it — without it both close at once.
-const modalStack: string[] = [];
-
 export function Modal({
   title,
   size = 'md',
@@ -55,8 +52,6 @@ export function Modal({
   const { t } = useTranslation();
   const panelRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
-  const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
   useFocusTrap(panelRef, initialFocusRef);
   // On mobile every modal is a bottom sheet (MS-1); ≥561px `variant` is undefined → no extra
   // class, no close button → desktop markup unchanged.
@@ -66,20 +61,15 @@ export function Modal({
   // ≥561px it is inert so desktop layout is unchanged.
   const fillClass = fillBody && variant ? styles.fill : '';
 
+  // Escape + Back, off the shared mount-order stack (B-269). The nesting behaviour that used to
+  // live here as a local `modalStack` moved to useOverlayDismiss so the cook-mode takeover — the
+  // one overlay that is not a Modal — obeys exactly the same rule.
+  useOverlayDismiss(titleId, onClose);
+
   useEffect(() => {
-    modalStack.push(titleId);
     lockBodyScroll();
-    const onKey = (e: KeyboardEvent): void => {
-      if (e.key === 'Escape' && modalStack[modalStack.length - 1] === titleId) onCloseRef.current();
-    };
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      unlockBodyScroll();
-      const i = modalStack.lastIndexOf(titleId);
-      if (i >= 0) modalStack.splice(i, 1);
-    };
-  }, [titleId]);
+    return unlockBodyScroll;
+  }, []);
 
   const scrimVariant = variant === 'sheet' ? styles.scrimSheet : '';
   // Portal to <body> so the scrim escapes any ancestor stacking context (e.g. the sticky day bar's

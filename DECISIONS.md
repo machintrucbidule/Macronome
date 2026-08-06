@@ -5742,3 +5742,113 @@ restored pin would have reappeared at the end of its meal instead of in place. R
 that, the owner had the endpoint extended: `order_index` is now optional and defaults to "append",
 mirroring the meal template's create. `spec/api/weight-targets-stats-settings.md` and
 `packages/shared/src/dto/pantry.ts` updated; no schema change (the column already existed).
+
+---
+
+## UX-1 / B-253 — the motion layer gets a contract before it gets code — RESOLVED (owner, 2026-08-06)
+
+**The gap was a missing chapter, not missing CSS.** `theming.md` carried the only cross-cutting
+motion rule and it is a **restriction** ("avoid transitioning every element"). Nothing ever said
+what _should_ move, so each component decided alone and most decided nothing: **12 `transition`
+declarations** against hover rules spread over **39 stylesheets**, the motion tokens used once
+each, several literal `0.12s`/`100ms`/`180ms`, and `@media (hover: hover)` with **zero**
+occurrences — so hover styles fired on touch and **latched** after a tap.
+
+**Decision — write `design/components/motion.md` first.** It fixes three lists: what animates
+(interactive states, floating-surface entrance, route content), what **never** does (structure,
+data values, the app frame), and the duration ladder — with `--dur-enter` added to `tokens.css`.
+The "never structure" rule is not theoretical: the day-tone rule regression (B-262 follow-up) was
+exactly a height added inside a shared sticky offset.
+
+**Owner decisions:** route content fades briefly on navigation; desktop modals enter with a fade
+**plus a short lift** (the mobile `sheet-up` vocabulary at smaller amplitude, so one language
+covers both form factors); dense table rows animate **colour only**; hover effects are
+**neutralised on touch**.
+
+**Two implementation findings worth keeping.** (1) Gating only the _transitions_ would have left
+the sticky-hover bug intact — it is the **rules** that must sit inside `@media (hover: hover)`, so
+all 118 top-level hover blocks were wrapped. Four selector lists mixing `:hover` with an
+active-route class, an applied-filter class or `:focus-within` had to be **split** first, or the
+media query would have taken the keyboard and active states down with the hover. (2) The
+transition itself is declared **once, globally**, on the interactive elements rather than repeated
+on each block: one declaration cannot drift, and listing only non-structural properties there makes
+"structure never animates" true by construction. `box-shadow` is deliberately excluded — it draws
+the focus ring, and a focus ring that fades in is one you miss.
+
+**Also corrected:** the chart tooltip's entrance animated `margin-top` (a structural property the
+new chapter forbids) → `translateY`, identical result. And **`rise` is withdrawn** from
+`design/tokens.md`: it was contracted for a login card entrance that was never implemented, and
+`states.md` claimed the success flash "animates in (`rise`)" — the contract described motion the
+product never had. Removed rather than built, so the two now agree.
+
+**Contract impact.** `design/components/motion.md` (new), `design/tokens.css` + the web copy
+(`--dur-enter`, byte-identical pair re-verified), `design/tokens.md`, `design/theming.md`,
+`design/components/states.md`. No API or schema change.
+
+---
+
+## UX-1 / B-269 — Back closes the top overlay, everywhere — RESOLVED (owner, 2026-08-06)
+
+**Observed:** `popstate` / `history.pushState` had **zero** occurrences. An open overlay had
+exactly two dismissal paths — the scrim and Escape — so Back navigated the SPA away and the
+overlay unmounted as collateral, taking whatever was being typed with it. On Android and in the
+installed window, Back _is_ the dismissal gesture, so the most natural way to dismiss a sheet was
+also the most destructive.
+
+**Decision — one stack, three keys.** The mount-order stack that already gave Escape to the
+top-most overlay moved out of `Modal.tsx` into `useOverlayDismiss`, and Back now reads **the same
+array**, so the two cannot drift. Coverage came almost free: `SearchSheet`, `DayMenu` and the
+ListChrome sheets are `Modal`s, and the two picker sheets are adapters of `SearchSheet`. Only the
+**cook-mode takeover** had to be registered by hand — and the owner chose to include it, because on
+a phone in a kitchen Back would otherwise quit the app instead of leaving the mode.
+
+**Owner decision: everywhere**, including a desktop browser tab — one rule rather than a
+per-form-factor exception. The accepted consequence is that on desktop, with an overlay open, Back
+closes it before it navigates.
+
+**Finding that shaped the implementation.** The first version consumed its history entry
+synchronously on cleanup. Under `StrictMode` (mount → cleanup → mount) that `history.back()` fired
+a popstate which landed **after** the re-mount and closed the overlay the user had just opened —
+the food modal never stayed open, and the first-run e2e caught it. The consume is now deferred a
+tick and cancelled if the same overlay re-registers, with a regression test that renders inside
+`StrictMode`. The `/weight?action=add` deep link (B-183) is unaffected: its `replace` runs before
+the sheet's Modal mounts, and its e2e case stays green.
+
+**Contract impact.** `design/components/modals.md` (the dismissal rule + the stack) and
+`design/components/mobile.md` (the overlay taxonomy named only the scrim and the `×`). No API or
+schema change.
+
+---
+
+## UX-1 / B-271 — a photo reaches a meal by drop or paste — RESOLVED (owner, 2026-08-06)
+
+**Observed:** image drop and clipboard paste existed in exactly one place, _inside_ the "Analyse
+par IA" dialog. Reaching it meant opening the dialog first, and no meal column, Journal row or list
+was a drop target. On mobile the entry point is the 📷 button, so the desktop gesture had no
+equivalent at all.
+
+**Decision — the same flow, a second file source.** The owner chose **immediate analysis** over
+"open the dialog pre-seeded": dropping a photo on a meal column runs the analysis at once and opens
+the custom-line form pre-filled — exactly what the phone button already does. That made the
+implementation a **refactor rather than a feature**: `useMealPhotoEntry` already did
+file → `readAsDataUrl` → analysis → `macrosToCustomValues` → open the form at `firstFreeSlot`; only
+its file source was mobile-only. Extracting `analyseFile(file)` and splitting the conflated `ready`
+flag into `configured` + `isMobile` was the whole of it. `imageFilesOf` moved to `lib/imagePick.ts`
+to be shared — it reads `files` then falls back to `items`, which is what makes a pasted screenshot
+work at all.
+
+**Paste is gated, never a guess** (owner decision): it acts only when the focus is inside a meal
+column, no text field has focus, and no overlay is open — the last of which reuses B-269's stack.
+Otherwise it is a no-op and the paste stays native. Each column runs its own listener, so exactly
+one can act.
+
+**A wrong-type drop is refused visibly** through the same per-column message channel as the
+analysis errors, which is why the feedback banner is now gated on `configured` rather than the
+phone-only `ready`. The drag highlight is an **inset ring**, not a border: a border would relayout
+every line underneath, which `motion.md` §B forbids.
+
+**Declined by the owner:** dropping the JSON backup on the Paramètres data card. Nothing else in
+the app is a drop surface.
+
+**Contract impact.** `design/components/ai-dish-analysis.md` (the desktop entry point) and
+`specifications/screens/meals.md` (the drop affordance). No API or schema change.

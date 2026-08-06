@@ -29,8 +29,10 @@
 .tappable {
   cursor: pointer;
 }
-.tappable:hover {
-  border-color: var(--border-strong);
+@media (hover: hover) {
+  .tappable:hover {
+    border-color: var(--border-strong);
+  }
 }
 
 .left {

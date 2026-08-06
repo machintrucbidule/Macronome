@@ -92,9 +92,11 @@
   cursor: pointer;
   box-shadow: inset 3px 0 0 var(--band, transparent);
 }
-.day:hover {
-  border-color: var(--border-strong);
-  background: var(--bg-elev-2);
+@media (hover: hover) {
+  .day:hover {
+    border-color: var(--border-strong);
+    background: var(--bg-elev-2);
+  }
 }
 .weekend {
   background: color-mix(in srgb, var(--bg-elev-2) 60%, var(--bg-elev));

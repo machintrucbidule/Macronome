@@ -30,8 +30,10 @@
   padding: 5px 8px;
   cursor: pointer;
 }
-.trigger:hover {
-  border-color: var(--border-strong);
+@media (hover: hover) {
+  .trigger:hover {
+    border-color: var(--border-strong);
+  }
 }
 .trigger:focus-visible {
   outline: none;
@@ -41,8 +43,10 @@
   color: var(--text-faint);
   cursor: not-allowed;
 }
-.trigger:disabled:hover {
-  border-color: var(--sm-trigger-border, var(--border));
+@media (hover: hover) {
+  .trigger:disabled:hover {
+    border-color: var(--sm-trigger-border, var(--border));
+  }
 }
 /* The canonical text-field box (Form.module.css `.input`), so a list field sits flush with the
    text and number fields around it. */
@@ -121,8 +125,10 @@
      (e.g. "Pas noté" when --sm-menu-min is shrunk to 0 — B-121). */
   white-space: nowrap;
 }
-.menu button:hover {
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
+@media (hover: hover) {
+  .menu button:hover {
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+  }
 }
 /* Keyboard-highlighted option (↑/↓ from the trigger) — same tint as hover. */
 .menu button.active {

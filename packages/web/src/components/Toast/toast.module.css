@@ -37,8 +37,10 @@
   font: inherit;
   cursor: pointer;
 }
-.undo:hover {
-  background: var(--bg-elev);
+@media (hover: hover) {
+  .undo:hover {
+    background: var(--bg-elev);
+  }
 }
 
 .close {
@@ -51,8 +53,10 @@
   line-height: 1;
   cursor: pointer;
 }
-.close:hover {
-  color: var(--text);
+@media (hover: hover) {
+  .close:hover {
+    color: var(--text);
+  }
 }
 
 /* Mobile: bottom-centred and lifted clear of the fixed bottom nav (its 56px) plus the safe

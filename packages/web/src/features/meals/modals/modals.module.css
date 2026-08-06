@@ -84,8 +84,10 @@
 .loRow:last-child {
   border-bottom: 0;
 }
-.loRow:hover {
-  background: color-mix(in srgb, var(--accent) 8%, transparent);
+@media (hover: hover) {
+  .loRow:hover {
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+  }
 }
 .loRow input {
   width: 18px;
@@ -267,9 +269,11 @@
   font-size: var(--fs-13);
   cursor: pointer;
 }
-.aiDrop:hover {
-  border-color: var(--accent);
-  color: var(--text);
+@media (hover: hover) {
+  .aiDrop:hover {
+    border-color: var(--accent);
+    color: var(--text);
+  }
 }
 /* Live drop zone while an image drag hovers the gallery button (B-184). */
 .aiDropOver {
@@ -321,8 +325,10 @@
   line-height: 1;
   font-size: var(--fs-12);
 }
-.aiThumb button:hover {
-  color: var(--nok);
+@media (hover: hover) {
+  .aiThumb button:hover {
+    color: var(--nok);
+  }
 }
 /* The box, label and counter now come from the shared Textarea primitive
    (components/Form/Textarea, forms-inputs.md §Textarea); only the spacing is local. */
@@ -388,8 +394,10 @@
 .mealPickRow:last-child {
   border-bottom: 0;
 }
-.mealPickRow:hover {
-  background: color-mix(in srgb, var(--accent) 7%, transparent);
+@media (hover: hover) {
+  .mealPickRow:hover {
+    background: color-mix(in srgb, var(--accent) 7%, transparent);
+  }
 }
 .mealPickRow input {
   width: 18px;
@@ -712,8 +720,10 @@
   line-height: 1;
   font-family: var(--font-num);
 }
-.stepper button:hover {
-  background: color-mix(in srgb, var(--accent) 18%, transparent);
+@media (hover: hover) {
+  .stepper button:hover {
+    background: color-mix(in srgb, var(--accent) 18%, transparent);
+  }
 }
 .stepVal {
   min-width: 48px;
@@ -752,9 +762,11 @@
   line-height: 1;
   font-size: var(--fs-11);
 }
-.rfEx:hover {
-  color: var(--nok);
-  border-color: color-mix(in srgb, var(--nok) 45%, transparent);
+@media (hover: hover) {
+  .rfEx:hover {
+    color: var(--nok);
+    border-color: color-mix(in srgb, var(--nok) 45%, transparent);
+  }
 }
 .consList {
   display: flex;
@@ -800,6 +812,8 @@
   font-size: var(--fs-13);
   line-height: 1;
 }
-.consX:hover {
-  color: var(--nok);
+@media (hover: hover) {
+  .consX:hover {
+    color: var(--nok);
+  }
 }

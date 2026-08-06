@@ -46,8 +46,10 @@
   color: var(--text);
   cursor: pointer;
 }
-.toolBtn:hover {
-  border-color: var(--border-strong);
+@media (hover: hover) {
+  .toolBtn:hover {
+    border-color: var(--border-strong);
+  }
 }
 .toolBtn svg {
   width: 18px;
@@ -96,8 +98,10 @@
   text-align: left;
   cursor: pointer;
 }
-.sheetItem:hover {
-  background: var(--bg-elev-2);
+@media (hover: hover) {
+  .sheetItem:hover {
+    background: var(--bg-elev-2);
+  }
 }
 .sheetItemActive {
   color: var(--accent);

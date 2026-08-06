@@ -47,6 +47,12 @@ Desktop (≥561px) keeps every modal's centered `size` dialog unchanged. The `fu
 centered-on-mobile variants were retired in MS-1. See `modals.md` for the sheet CSS, the shared
 picker sheet and the nested-overlay rules, and `bottom-nav.md` for the shell pieces.
 
+**Dismissal includes the hardware/gesture Back** (B-269): it closes the top-most sheet and leaves
+the screen underneath in place, instead of navigating away and unmounting the sheet as collateral.
+Nested sheets close one at a time. This taxonomy previously named only the scrim tap and the
+header `×` — on the form factor where Back _is_ the dismissal gesture, that was the omission that
+cost the user whatever they were typing. The rule and its stack live in `modals.md`.
+
 ## Mobile horizontal-overflow safety net (S3)
 
 The shell root (`AppShell` `.root`) gets **`overflow-x: clip`** at ≤560px. A screen whose

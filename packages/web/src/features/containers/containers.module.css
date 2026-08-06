@@ -75,8 +75,10 @@
 .clickable {
   cursor: pointer;
 }
-.clickable:hover {
-  background: var(--bg-elev-2);
+@media (hover: hover) {
+  .clickable:hover {
+    background: var(--bg-elev-2);
+  }
 }
 .num {
   font-family: var(--font-num);
@@ -105,9 +107,11 @@
   padding: var(--sp-1) var(--sp-3);
   border-radius: var(--r-sm);
 }
-.del:hover {
-  color: var(--nok);
-  background: var(--bg-elev-2);
+@media (hover: hover) {
+  .del:hover {
+    color: var(--nok);
+    background: var(--bg-elev-2);
+  }
 }
 .modalBody {
   padding: var(--sp-6);

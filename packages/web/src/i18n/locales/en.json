@@ -668,6 +668,7 @@
       "imagesHint": "Up to 4 photos (JPEG, PNG, WebP) — file drop and Ctrl+V accepted.",
       "hintCap": "Maximum 4 photos — extra photos were ignored.",
       "hintType": "Unsupported format (JPEG, PNG or WebP only).",
+      "notAnImage": "That file is not an image (JPEG, PNG or WebP only).",
       "note": "Description",
       "notePlaceholder": "e.g. 3 slices of saucisson, 2 slices of bread…",
       "analyze": "Analyze",

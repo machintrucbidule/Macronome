@@ -63,8 +63,10 @@
   cursor: pointer;
   font-size: var(--fs-11);
 }
-.yearNav button:hover:not(:disabled) {
-  border-color: var(--border-strong);
+@media (hover: hover) {
+  .yearNav button:hover:not(:disabled) {
+    border-color: var(--border-strong);
+  }
 }
 .yearNav button:disabled {
   opacity: 0.4;

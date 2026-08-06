@@ -76,9 +76,11 @@
   min-width: 40px;
   cursor: pointer;
 }
-.unitChip:hover {
-  color: var(--accent);
-  border-color: var(--accent);
+@media (hover: hover) {
+  .unitChip:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
 }
 
 /* Move-to-meal row (B-188): label + the SelectMenu dropdown, same layout as .qtyRow. */

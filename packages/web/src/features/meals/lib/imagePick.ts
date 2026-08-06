@@ -29,3 +29,21 @@ export function macrosToCustomValues(r: DishPhotoMacros): CustomValues {
     snap: { kcal: r.kcal, fat: r.fat_g, carb: r.carb_g, protein: r.protein_g },
   };
 }
+
+/** Image files of a drop/paste payload; some sources expose them via `items` only — which is what
+ *  makes a pasted screenshot work at all, since the clipboard often carries no `files` entry.
+ *  Shared by the "Analyse par IA" dialog and the meal-column drop/paste (B-271). */
+export function imageFilesOf(data: DataTransfer | null): File[] {
+  const files = data?.files ? [...data.files] : [];
+  if (files.length > 0) return files;
+  if (!data?.items) return [];
+  return [...data.items]
+    .filter((it) => it.kind === 'file')
+    .map((it) => it.getAsFile())
+    .filter((f): f is File => f !== null);
+}
+
+/** The first file the AI dish analysis will accept, or null. `ACCEPT` is the contract's list. */
+export function firstAcceptedImage(files: File[]): File | null {
+  return files.find((f) => ACCEPT.includes(f.type)) ?? null;
+}

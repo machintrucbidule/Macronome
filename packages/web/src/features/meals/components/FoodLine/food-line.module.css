@@ -35,8 +35,10 @@
   min-height: 28px;
   position: relative;
 }
-.line:hover {
-  background: color-mix(in srgb, var(--bg-elev-2) 70%, transparent);
+@media (hover: hover) {
+  .line:hover {
+    background: color-mix(in srgb, var(--bg-elev-2) 70%, transparent);
+  }
 }
 /* Quantity-0 line = clearly muted across the WHOLE line (B-107), so unused garde-manger
    placeholder lines read as inactive; reverts to normal the moment qty > 0 (the row drops
@@ -85,8 +87,10 @@
 .gripDrag:active {
   cursor: grabbing;
 }
-.line:hover .gripDrag {
-  opacity: 1;
+@media (hover: hover) {
+  .line:hover .gripDrag {
+    opacity: 1;
+  }
 }
 .dragging {
   opacity: 0.4;
@@ -136,8 +140,10 @@
   color: var(--text);
   padding: 3px 2px;
 }
-.qty:hover {
-  border-color: var(--border);
+@media (hover: hover) {
+  .qty:hover {
+    border-color: var(--border);
+  }
 }
 .qty:focus {
   outline: none;
@@ -157,9 +163,11 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.unit:hover {
-  color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
+@media (hover: hover) {
+  .unit:hover {
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+  }
 }
 .qtyCustom {
   display: flex;
@@ -188,8 +196,10 @@
   text-align: center;
   filter: grayscale(1);
 }
-.pin:hover {
-  opacity: 0.85;
+@media (hover: hover) {
+  .pin:hover {
+    opacity: 0.85;
+  }
 }
 .pinOn {
   opacity: 1;
@@ -207,8 +217,10 @@
 .selected {
   background: color-mix(in srgb, var(--select) 16%, transparent);
 }
-.selected:hover {
-  background: color-mix(in srgb, var(--select) 22%, transparent);
+@media (hover: hover) {
+  .selected:hover {
+    background: color-mix(in srgb, var(--select) 22%, transparent);
+  }
 }
 /* Cursor cue while selection mode is on (only added to eligible desktop rows). */
 .selectable {
@@ -224,9 +236,11 @@
   color: var(--text-faint);
   opacity: 0.65;
 }
-.del:hover {
-  color: var(--nok);
-  opacity: 1;
+@media (hover: hover) {
+  .del:hover {
+    color: var(--nok);
+    opacity: 1;
+  }
 }
 
 .unitMenu {
@@ -258,8 +272,10 @@
   text-align: left;
   white-space: nowrap;
 }
-.unitMenu button:hover {
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
+@media (hover: hover) {
+  .unitMenu button:hover {
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+  }
 }
 .unitMenu button.cur {
   color: var(--accent);

@@ -195,8 +195,10 @@
   line-height: 1;
   padding: 1px;
 }
-.ord button:hover {
-  color: var(--accent);
+@media (hover: hover) {
+  .ord button:hover {
+    color: var(--accent);
+  }
 }
 .nm {
   flex: 1;
@@ -211,9 +213,11 @@
   padding: 2px var(--sp-2);
   border-radius: var(--r-sm);
 }
-.iconbtn:hover {
-  color: var(--nok);
-  background: var(--bg-elev);
+@media (hover: hover) {
+  .iconbtn:hover {
+    color: var(--nok);
+    background: var(--bg-elev);
+  }
 }
 .add {
   display: flex;
@@ -270,8 +274,10 @@
   font-size: var(--fs-13);
   padding: 0;
 }
-.chip button:hover {
-  color: var(--nok);
+@media (hover: hover) {
+  .chip button:hover {
+    color: var(--nok);
+  }
 }
 /* per-food prefill unit chip + its popover anchor (GM-2/B-094) */
 .unitWrap {
@@ -289,9 +295,11 @@
   border-radius: var(--r-sm);
   padding: 0 var(--sp-2);
 }
-.chip button.unitChip:hover {
-  color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
+@media (hover: hover) {
+  .chip button.unitChip:hover {
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+  }
 }
 .addChip {
   border: var(--bw) dashed var(--border-strong);
@@ -302,9 +310,11 @@
   font-size: var(--fs-12);
   cursor: pointer;
 }
-.addChip:hover {
-  color: var(--text);
-  border-color: var(--accent);
+@media (hover: hover) {
+  .addChip:hover {
+    color: var(--text);
+    border-color: var(--accent);
+  }
 }
 .picker {
   position: relative;
@@ -406,8 +416,10 @@
   font-size: var(--fs-11);
   padding: 0;
 }
-.aiReset:hover {
-  text-decoration: underline;
+@media (hover: hover) {
+  .aiReset:hover {
+    text-decoration: underline;
+  }
 }
 .aiFetch {
   display: flex;
@@ -442,8 +454,10 @@
   font-size: var(--fs-11);
   padding: 0;
 }
-.aiFillUrl:hover {
-  text-decoration: underline;
+@media (hover: hover) {
+  .aiFillUrl:hover {
+    text-decoration: underline;
+  }
 }
 .aiHelp {
   font-size: var(--fs-12);

@@ -54,8 +54,10 @@
   cursor: pointer;
   line-height: 1;
 }
-.close:hover {
-  color: var(--text);
+@media (hover: hover) {
+  .close:hover {
+    color: var(--text);
+  }
 }
 
 .body {
@@ -141,8 +143,10 @@
 .cqty {
   cursor: pointer;
 }
-.cqty:hover {
-  border-color: var(--border-strong);
+@media (hover: hover) {
+  .cqty:hover {
+    border-color: var(--border-strong);
+  }
 }
 .cqtyFixed {
   opacity: 0.7;
@@ -164,9 +168,11 @@
   border: var(--bw) solid var(--border);
   background: transparent;
 }
-.cunit:hover {
-  color: var(--text);
-  border-color: var(--border-strong);
+@media (hover: hover) {
+  .cunit:hover {
+    color: var(--text);
+    border-color: var(--border-strong);
+  }
 }
 .cunitFixed {
   border-color: transparent;
@@ -205,8 +211,10 @@
   border-radius: var(--r-md);
   cursor: pointer;
 }
-.numpad button:hover {
-  border-color: var(--accent);
+@media (hover: hover) {
+  .numpad button:hover {
+    border-color: var(--accent);
+  }
 }
 .numpad button:active {
   background: var(--accent);
@@ -240,8 +248,10 @@
   border-radius: var(--r-md);
   cursor: pointer;
 }
-.azkb button:hover {
-  border-color: var(--accent);
+@media (hover: hover) {
+  .azkb button:hover {
+    border-color: var(--accent);
+  }
 }
 .azkb button:active {
   background: var(--accent);
@@ -275,8 +285,10 @@
 .result:last-child {
   border-bottom: 0;
 }
-.result:hover {
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
+@media (hover: hover) {
+  .result:hover {
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+  }
 }
 .noFoods {
   padding: 13px 18px;
@@ -304,15 +316,19 @@
   background: transparent;
   color: var(--text-dim);
 }
-.cancel:hover {
-  color: var(--text);
-  border-color: var(--border-strong);
+@media (hover: hover) {
+  .cancel:hover {
+    color: var(--text);
+    border-color: var(--border-strong);
+  }
 }
 .ok {
   background: var(--accent);
   color: var(--accent-ink);
   border-color: var(--accent);
 }
-.ok:hover {
-  filter: brightness(1.06);
+@media (hover: hover) {
+  .ok:hover {
+    filter: brightness(1.06);
+  }
 }

@@ -172,11 +172,13 @@
   cursor: pointer;
   display: grid;
   place-items: center;
-  transition: filter 0.15s var(--ease);
+  transition: filter var(--dur-fast) var(--ease);
 }
 
-.submit:hover {
-  filter: brightness(1.06);
+@media (hover: hover) {
+  .submit:hover {
+    filter: brightness(1.06);
+  }
 }
 
 .submit:disabled {
@@ -274,9 +276,11 @@
   cursor: pointer;
 }
 
-.refCopy:hover {
-  color: var(--text);
-  border-color: var(--border-strong);
+@media (hover: hover) {
+  .refCopy:hover {
+    color: var(--text);
+    border-color: var(--border-strong);
+  }
 }
 
 .count {

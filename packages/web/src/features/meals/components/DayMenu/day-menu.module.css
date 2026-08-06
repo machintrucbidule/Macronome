@@ -18,9 +18,11 @@
   line-height: 1;
   cursor: pointer;
 }
-.trigger:hover {
-  color: var(--text);
-  border-color: var(--border-strong);
+@media (hover: hover) {
+  .trigger:hover {
+    color: var(--text);
+    border-color: var(--border-strong);
+  }
 }
 
 .menu {

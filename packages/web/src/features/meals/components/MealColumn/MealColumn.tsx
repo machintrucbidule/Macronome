@@ -8,6 +8,7 @@ import { eligibleIds } from '../../logic/selectionSum';
 import { useLineDnd } from '../../hooks/useLineDnd';
 import { useTouchReorder } from '../../hooks/useTouchReorder';
 import { useMealPhotoEntry } from '../../hooks/useMealPhotoEntry';
+import { useMealPhotoDrop } from '../../hooks/useMealPhotoDrop';
 import { MealLines } from './MealLines';
 import { MealHeader } from './MealHeader';
 import { MealPhotoButton } from './MealPhotoButton';
@@ -83,13 +84,18 @@ export function MealColumn(props: MealColumnProps) {
   const touch = useTouchReorder(isMobile, byRow, (o) => void actions.reorderEntries(meal.id, o));
   // Mobile one-tap photo → AI → custom line (QP-1/B-158); wiring + state live in the hook.
   const photo = useMealPhotoEntry(meal);
+  // B-271: on desktop the column itself takes a dropped/pasted image, feeding the same analysis
+  // as the phone's 📷 button. Gated on !isMobile like the native line drag (FoodLine).
+  const drop = useMealPhotoDrop(photo, !isMobile && photo.configured);
 
   const isEditing = editingPredicate(editing, meal.order_index);
 
   return (
     <div
-      className={styles.col}
+      ref={drop.ref}
+      className={`${styles.col} ${drop.dragOver ? styles.photoDropOver : ''}`}
       style={{ width, flexBasis: width }}
+      {...drop.dropProps}
       data-meal-col={active ? 'active' : 'idle'}
       // Context-menu meal identity (B-195): lets the delegated resolver map a row to its meal.
       data-ctx-meal={meal.id}

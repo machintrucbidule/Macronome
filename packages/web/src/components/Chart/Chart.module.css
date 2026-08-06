@@ -47,7 +47,7 @@
   /* B-261: was --z-toast, which is now reserved for real confirmations — a hover tooltip must
      never cover one. Same relative position as before against every other layer. */
   z-index: var(--z-chart-tip);
-  animation: tipIn 120ms ease-out;
+  animation: tipIn var(--dur-enter) var(--ease);
 }
 .tipTitle {
   font-weight: var(--fw-bold);
@@ -98,14 +98,17 @@
   border-bottom-color: var(--bg-elev-2);
 }
 
+/* B-253: this used to animate `margin-top`, a structural property motion.md §B forbids — on a
+   position:fixed card it happened to be harmless, but it is exactly the habit the chapter exists
+   to stop. `translateY` produces the identical 2px lift without touching layout. */
 @keyframes tipIn {
   from {
     opacity: 0;
-    margin-top: 2px;
+    transform: translateY(2px);
   }
   to {
     opacity: 1;
-    margin-top: 0;
+    transform: translateY(0);
   }
 }
 /* The tooltip entrance is frozen under prefers-reduced-motion (charts.md §Entrance) by the

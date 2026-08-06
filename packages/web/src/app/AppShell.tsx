@@ -119,7 +119,14 @@ export function AppShell() {
       </header>
       {/* B-260: one global "server unreachable" banner, above the page body. */}
       <OfflineBanner />
-      <main className={flush ? styles.pageFlush : styles.page}>
+      {/* B-253 (motion.md §F): the route content fades in on navigation. `key={pathname}` is what
+          replays the animation — React reuses the same <main> across routes otherwise. Opacity
+          only, and nothing outside <main> participates, so the appbar, the day-tone rule and the
+          navigation stay perfectly still while the page arrives. */}
+      <main
+        key={pathname}
+        className={`${flush ? styles.pageFlush : styles.page} ${styles.routeFade}`}
+      >
         {/* B-265: one screen may fail without taking the frame with it. Keyed on the pathname
             because React never resets a boundary on its own — otherwise a crashed screen would
             keep showing the recovery card after you navigated away.

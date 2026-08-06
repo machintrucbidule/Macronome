@@ -29,8 +29,10 @@
   cursor: pointer;
   opacity: 0.7;
 }
-.close:hover {
-  opacity: 1;
+@media (hover: hover) {
+  .close:hover {
+    opacity: 1;
+  }
 }
 
 .warning {

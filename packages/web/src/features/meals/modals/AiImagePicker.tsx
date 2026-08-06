@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ChangeEvent, type DragEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '../../../lib/useIsMobile';
-import { ACCEPT, readAsDataUrl } from '../lib/imagePick';
+import { ACCEPT, imageFilesOf, readAsDataUrl } from '../lib/imagePick';
 import styles from './modals.module.css';
 
 // Image picker for the "Analyse par IA" dialog (design/components/ai-dish-analysis.md, B-118 +
@@ -40,17 +40,6 @@ function Thumbnails({
       ))}
     </div>
   );
-}
-
-/** Image files of a drop/paste payload; some sources expose them via `items` only. */
-function imageFilesOf(data: DataTransfer | null): File[] {
-  const files = data?.files ? [...data.files] : [];
-  if (files.length > 0) return files;
-  if (!data?.items) return [];
-  return [...data.items]
-    .filter((it) => it.kind === 'file')
-    .map((it) => it.getAsFile())
-    .filter((f): f is File => f !== null);
 }
 
 /** Import state + the three input paths' shared core (split out of the component for the

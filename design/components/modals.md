@@ -144,6 +144,27 @@ labels, so the three keep their own data sources and wording while behaving iden
   outside-click listener bound to the host's own subtree would fire on the first tap _inside_ the
   sheet. Hosts therefore mount the inline dropdown **or** the sheet, never both.
 
+### Back closes the top overlay — [B-269]
+
+Before this, an open overlay had exactly two dismissal paths — a scrim tap and Escape — and
+**Back navigated the SPA away**, unmounting the overlay as collateral and taking whatever was
+being typed with it. On Android and in the installed window that is the primary gesture, so the
+most natural way to dismiss a sheet was also the most destructive.
+
+- **Every overlay is covered, everywhere**: mobile, the installed window **and** a desktop
+  browser tab (owner decision — one rule, not a per-form-factor exception). On desktop this means
+  Back closes the dialog before it navigates: with an overlay open you press it twice.
+- **One stack, three keys.** Back reads the same mount-order stack as Escape. Nested overlays
+  close **one at a time**, top first, exactly as Escape already does.
+- **The history must not accumulate.** Opening an overlay pushes one entry; closing it by any
+  other path (Escape, scrim, the header `×`, a save) **consumes** that entry, so a session of
+  opening and closing sheets leaves no phantom entries to walk back through.
+- **The cook-mode takeover is included** (owner decision). It is full-screen and, on a phone in a
+  kitchen, Back would otherwise quit the app instead of leaving the mode.
+- **Deep links keep their own rule.** `/weight?action=add` consumes its parameter with a
+  `replace` navigation so refresh/back never re-opens the sheet (B-183, `pwa.md`); the overlay's
+  history entry must not fight it.
+
 ### Overlay taxonomy (one interaction language across screens)
 
 | Overlay          | Used for                                                                                                                                                                                                                                                                                                                                                                         | Basis                                 |
@@ -166,6 +187,9 @@ satisfied by the shared `Modal` with no per-overlay work:
   z-index layer and none is needed; do not invent one.
 - **Escape** — a mount-order stack means Escape closes only the **top-most** overlay. The one
   beneath stays open.
+- **Back** — the hardware/gesture Back and the browser's Back button close the **top-most**
+  overlay too, reading the **same stack as Escape** so the two can never disagree (B-269). See
+  "Back closes the top overlay" below.
 - **Focus** — each focus trap binds its Tab handler to **its own panel**, not to the document, so
   the two traps never fight: Tab cycles inside the top overlay only. On close, the trap restores
   focus to whatever was focused before it opened, i.e. back into the overlay beneath.

@@ -24,8 +24,10 @@
   gap: 5px;
   cursor: pointer;
 }
-.chip:hover {
-  filter: brightness(1.08);
+@media (hover: hover) {
+  .chip:hover {
+    filter: brightness(1.08);
+  }
 }
 
 .complet {
@@ -81,8 +83,10 @@
   cursor: pointer;
   text-align: left;
 }
-.menu button:hover {
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
+@media (hover: hover) {
+  .menu button:hover {
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+  }
 }
 .menu button.cur {
   color: var(--accent);

@@ -28,6 +28,28 @@ when the `dish_photo_macros` task is configured** (link + key + model, `ai-conne
 is **hidden on desktop** (which keeps the in-modal "Analyse par IA" path unchanged). Tap target ≥44px;
 semantic tokens only.
 
+### Desktop drop / paste entry point (B-271)
+
+The **desktop counterpart of the mobile one-tap button**, and deliberately the _same_ flow rather
+than a second one: drop an image from Explorer onto a **meal column**, or paste a screenshot with a
+meal focused, and the analysis runs immediately and opens the **custom-entry modal pre-filled** —
+skipping the sub-dialog exactly as the phone button does (owner decision). Until now a photo could
+only reach a meal by opening the sub-dialog first; on desktop there was no gesture at all.
+
+- **Drop target: the meal column**, `≥561px` only (the phone has its 📷 button). The column
+  highlights while a drag is over it and un-highlights on leave or drop. Nothing else on the app is
+  a drop surface — not the Journal, not the lists (owner declined dropping the JSON backup on the
+  Paramètres data card).
+- **Paste is gated, never a guess** (owner decision): it acts **only** when the focus is inside a
+  meal column, **no** text field has focus, and **no** overlay is open. Otherwise it is a no-op and
+  the paste stays native. The app never picks a meal on the user's behalf.
+- **A non-image drop is refused visibly**, through the same per-column message channel as the
+  analysis errors — never a silent nothing-happened.
+- **Same gates as the phone button**: shown only when the `dish_photo_macros` task is configured
+  (link + key + model). Same busy notice, same error mapping, same "no food detected" behaviour
+  (DS-1/B-160) — because it is the same code path with a different file source.
+- Accepted types are the contract's `image/jpeg, image/png, image/webp`.
+
 ## Analysis sub-dialog
 
 A `modals.md` **sm/md** panel titled "Analyse par IA":

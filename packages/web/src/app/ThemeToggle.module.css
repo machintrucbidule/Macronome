@@ -18,8 +18,10 @@
   height: 100%;
   cursor: pointer;
 }
-.segBtn:not([aria-pressed='true']):hover {
-  color: var(--text);
+@media (hover: hover) {
+  .segBtn:not([aria-pressed='true']):hover {
+    color: var(--text);
+  }
 }
 .segBtn[aria-pressed='true'] {
   background: var(--accent);

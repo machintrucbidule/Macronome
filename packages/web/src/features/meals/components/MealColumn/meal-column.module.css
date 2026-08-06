@@ -8,6 +8,14 @@
   flex-direction: column;
   min-height: 200px;
 }
+/* B-271: an image dragged over the column. Inset ring rather than a border, so the column's own
+   frame and the dense line grid never shift by a pixel — motion.md §B forbids animating structure,
+   and a border here would relayout every row underneath. */
+.photoDropOver {
+  box-shadow: inset 0 0 0 2px var(--accent);
+  background: color-mix(in srgb, var(--accent) 6%, var(--bg-elev));
+}
+
 /* B-201: the table's outer frame (continuous border + 4 rounded corners) now lives on the container
    (.scroller, meals.module.css). Columns keep only the inter-column dividers (`border-right`). On
    desktop the last column drops its right divider (the container draws that edge, else a double
@@ -84,8 +92,10 @@
   justify-content: center;
 }
 /* Border only: the colour is already --accent at rest, so a colour hover would be a no-op. */
-.cookBtn:hover {
-  border-color: var(--accent);
+@media (hover: hover) {
+  .cookBtn:hover {
+    border-color: var(--accent);
+  }
 }
 
 /* Copy-yesterday button (CP-2/B-248): the exact .cookBtn box, immediately RIGHT of it since
@@ -103,9 +113,11 @@
   padding: 5px 8px;
   cursor: pointer;
 }
-.copyBtn:hover {
-  color: var(--accent);
-  border-color: var(--accent);
+@media (hover: hover) {
+  .copyBtn:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
 }
 
 /* Mobile one-tap photo entry (QP-1/B-158): same size as .cookBtn (never taller; may be a touch
@@ -121,9 +133,11 @@
   padding: 5px 8px;
   cursor: pointer;
 }
-.photoBtn:hover {
-  color: var(--accent);
-  border-color: var(--accent);
+@media (hover: hover) {
+  .photoBtn:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
 }
 .photoBtn:disabled {
   opacity: 0.6;
@@ -189,9 +203,11 @@
   border-radius: var(--r-sm);
   cursor: pointer;
 }
-.menuBtn:hover {
-  color: var(--text);
-  border-color: var(--border-strong);
+@media (hover: hover) {
+  .menuBtn:hover {
+    color: var(--text);
+    border-color: var(--border-strong);
+  }
 }
 .popmenu {
   position: absolute;
@@ -221,8 +237,10 @@
   cursor: pointer;
   text-align: left;
 }
-.popmenu button:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
+@media (hover: hover) {
+  .popmenu button:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+  }
 }
 .popmenu button:disabled {
   color: var(--text-faint);
@@ -273,9 +291,11 @@
   cursor: pointer;
   white-space: nowrap;
 }
-.rbtn:hover {
-  color: var(--accent);
-  border-color: var(--accent);
+@media (hover: hover) {
+  .rbtn:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
 }
 .tlabel {
   font-family: var(--font-num);

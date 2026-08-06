@@ -115,8 +115,10 @@
   color: var(--accent);
   cursor: pointer;
 }
-.customOpt:hover {
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
+@media (hover: hover) {
+  .customOpt:hover {
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+  }
 }
 
 /* B-230: this stylesheet hard-codes its type sizes, so the responsive type layer

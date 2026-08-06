@@ -26,7 +26,7 @@
   pointer-events: none;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 100ms ease-out;
+  transition: opacity var(--dur-fast) var(--ease);
 }
 /* Down-caret: outline (::before) + fill (::after, 1px inset), matching the chart tooltip look. */
 .bubble::before,
@@ -47,8 +47,14 @@
   border-top-color: var(--bg-elev-2);
 }
 
-.wrap:hover .bubble,
+/* Split from the hover rule (B-253): keyboard focus must still reveal the bubble on touch. */
 .wrap:focus-within .bubble {
   opacity: 1;
   visibility: visible;
+}
+@media (hover: hover) {
+  .wrap:hover .bubble {
+    opacity: 1;
+    visibility: visible;
+  }
 }

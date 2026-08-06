@@ -35,6 +35,22 @@
      unlike align-items:center, keeps the top reachable when the panel overflows the viewport
      (the scrim scrolls). Fixes the panel hugging the top under the sticky nav. */
   margin: auto;
+  /* Desktop entrance (B-253, motion.md §E): fade plus a short lift — the same vocabulary as the
+     mobile `sheet-up` at a smaller amplitude, so one motion language covers both form factors.
+     `transform`/`opacity` only, so the panel's own layout never animates. The mobile sheet
+     overrides this with `sheet-up` at the ≤560px breakpoint below. Exit is not animated: the
+     user has already decided (§E). */
+  animation: modal-in var(--dur-enter) var(--ease);
+}
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 /* The panel takes focus on open (focus trap) as a fallback target; no visible ring. */
 .modal:focus {
@@ -122,7 +138,7 @@
     /* The sheet now rests on the bottom nav, which already clears the safe-area inset, so the
        sheet itself needs no extra bottom inset. */
     padding-bottom: 0;
-    animation: sheet-up 180ms ease-out;
+    animation: sheet-up var(--dur-enter) var(--ease);
   }
 
   /* fillBody (B-206): the panel becomes a flex column whose body owns the scroll — the search sheets
@@ -192,8 +208,12 @@
     cursor: pointer;
     padding: 0;
   }
-  .close:hover {
-    color: var(--text);
+  /* Nested gate (B-253): this block is the mobile sheet, i.e. the touch context where a hover
+     style latches after a tap. The breakpoint alone does not imply a pointer. */
+  @media (hover: hover) {
+    .close:hover {
+      color: var(--text);
+    }
   }
 }
 

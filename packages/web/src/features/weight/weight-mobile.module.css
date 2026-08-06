@@ -27,8 +27,10 @@
   font: inherit;
   cursor: pointer;
 }
-.row:hover {
-  border-color: var(--border-strong);
+@media (hover: hover) {
+  .row:hover {
+    border-color: var(--border-strong);
+  }
 }
 /* Emphasise the most-recent (first) row — a real latest period or the B-176 open interval, which
    already leads the list (B-178). Same neutral --bg-elev-2 emphasis as the desktop table. */
@@ -166,6 +168,8 @@
   font-weight: var(--fw-bold);
   cursor: pointer;
 }
-.recapBtn:hover {
-  border-color: var(--border-strong);
+@media (hover: hover) {
+  .recapBtn:hover {
+    border-color: var(--border-strong);
+  }
 }
