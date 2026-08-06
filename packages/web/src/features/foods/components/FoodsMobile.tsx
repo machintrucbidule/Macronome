@@ -1,4 +1,5 @@
 import { type ReactNode } from 'react';
+import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import type { Food } from '@macronome/shared';
 import { Banner } from '../../../components/Banner/Banner';
@@ -18,6 +19,7 @@ import { useListReserve } from '../../../lib/useListReserve';
 import { FoodCards } from './FoodCards';
 import type { SortField } from './FoodTable';
 import type { MinRating, VisibilityFilter } from './FiltersPopover';
+import type { SourceFilter } from '../sourceFilter';
 
 // Mobile Aliments view (mobile-responsive S7, spec §4.3 — same pattern as Recettes S6).
 // Sticky list chrome (search + Trier + Filtres) over a card list, with a FAB that opens the
@@ -32,12 +34,16 @@ interface FoodsMobileProps {
   q: string;
   minRating: MinRating;
   visibility: VisibilityFilter;
+  source: SourceFilter;
+  /** Chips the Source filter may offer; empty hides the section entirely (B-295). */
+  sourceOptions: SourceFilter[];
   showArchived: boolean;
   sort: SortField;
   dir: 'asc' | 'desc';
   onQ: (q: string) => void;
   onMinRating: (r: MinRating) => void;
   onVisibility: (v: VisibilityFilter) => void;
+  onSource: (s: SourceFilter) => void;
   onShowArchived: (v: boolean) => void;
   onSort: (field: SortField) => void;
   onAdd: () => void;
@@ -47,25 +53,28 @@ interface FoodsMobileProps {
 /** The card list's own `gap: var(--sp-5)`, which a measured container excludes (B-278). */
 const CARD_GAP = 10;
 
-export function FoodsMobile(props: FoodsMobileProps) {
-  const { t } = useTranslation();
-  // B-278: reserve the unloaded rows' height and chain pages when the scroll asks for them.
-  const reserve = useListReserve(props.foods.length, props.total, props.list, CARD_GAP);
+const SORT_KEYS: SortField[] = [
+  'name',
+  'kcal',
+  'fat',
+  'carb',
+  'protein',
+  'rating',
+  'source',
+  'visibility',
+  'usage',
+];
 
-  const sortOptions: SortOption<SortField>[] = [
-    { key: 'name', label: t('foods.col.name') },
-    { key: 'kcal', label: t('foods.col.kcal') },
-    { key: 'fat', label: t('foods.col.fat') },
-    { key: 'carb', label: t('foods.col.carb') },
-    { key: 'protein', label: t('foods.col.protein') },
-    { key: 'rating', label: t('foods.col.rating') },
-    { key: 'visibility', label: t('foods.col.visibility') },
-    { key: 'usage', label: t('foods.col.usage') },
-  ];
+/** The Trier sheet mirrors the desktop table's sortable headers, in column order. */
+function buildSortOptions(t: TFunction): SortOption<SortField>[] {
+  return SORT_KEYS.map((key) => ({ key, label: t(`foods.col.${key}`) }));
+}
 
+/** The Filtres sheet mirrors the desktop popover, section for section. */
+function buildFilterSections(props: FoodsMobileProps, t: TFunction): FilterSection[] {
   const ratings: MinRating[] = [0, 1, 2, 3];
   const visibilities: VisibilityFilter[] = ['all', 'private', 'shared'];
-  const filterSections: FilterSection[] = [
+  return [
     {
       kind: 'chips',
       label: t('foods.filters.minRating'),
@@ -83,6 +92,18 @@ export function FoodsMobile(props: FoodsMobileProps) {
       options: visibilities.map((v) => ({ key: v, label: t(`foods.visibility.${v}`) })),
       onChange: (k) => props.onVisibility(k as VisibilityFilter),
     },
+    // Same rule as the desktop popover: no Source section below two provenances present (B-295).
+    ...(props.sourceOptions.length > 0
+      ? [
+          {
+            kind: 'chips' as const,
+            label: t('foods.filters.source'),
+            value: props.source,
+            options: props.sourceOptions.map((s) => ({ key: s, label: t(`foods.source.${s}`) })),
+            onChange: (k: string) => props.onSource(k as SourceFilter),
+          },
+        ]
+      : []),
     {
       kind: 'toggle',
       label: t('foods.filters.showArchived'),
@@ -90,7 +111,20 @@ export function FoodsMobile(props: FoodsMobileProps) {
       onChange: props.onShowArchived,
     },
   ];
-  const filtersActive = props.minRating > 0 || props.visibility !== 'all' || props.showArchived;
+}
+
+export function FoodsMobile(props: FoodsMobileProps) {
+  const { t } = useTranslation();
+  // B-278: reserve the unloaded rows' height and chain pages when the scroll asks for them.
+  const reserve = useListReserve(props.foods.length, props.total, props.list, CARD_GAP);
+
+  const sortOptions = buildSortOptions(t);
+  const filterSections = buildFilterSections(props, t);
+  const filtersActive =
+    props.minRating > 0 ||
+    props.visibility !== 'all' ||
+    props.source !== 'all' ||
+    props.showArchived;
 
   const body = ((): ReactNode => {
     if (props.loading) return <SkeletonRows />;

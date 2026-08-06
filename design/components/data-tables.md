@@ -23,7 +23,7 @@ tabular-nums; white-space:nowrap`; first/name cell left, `--font-body`. The **Jo
 - **clickable row**: `cursor:pointer` + `title`.
 - **sortable header**: `cursor:pointer; user-select:none`; hover `color:var(--text)`;
   sorted state `.sorted` shows the arrow (`.arr`) in `--accent`; arrow flips ▼/▲.
-  (Aliments: Nom·kcal·L·G·P·Note·Visib sortable; **Portion not sortable** —
+  (Aliments: Nom·kcal·L·G·P·Note·Source·Visib·Util. sortable; **Portion not sortable** —
   DECISIONS Gap #10.)
 - **scroll container**: a contained-scroll variant (`max-height` + its own `overflow`, header
   pinned to the box top rather than the appbar) is **not implemented** (B-273): the two long
@@ -50,9 +50,17 @@ tabular-nums; white-space:nowrap`; first/name cell left, `--font-body`. The **Jo
   (`*-columns.test.ts`), since jsdom cannot catch a layout regression. Accepted consequence:
   declared columns cannot squeeze, so on a narrow desktop window the table overflows and the
   **page scrolls sideways** — the same behaviour as the Poids period table above.
-- **narrow desktop band (Aliments, 561–820px)**: Portion and Visibilité step aside, and the
-  second comment line under the name is dropped. Hidden **by column index, header and cell
-  together** — hiding the cell class alone slides the whole body one column left (B-284).
+- **narrow desktop bands (Aliments)** — two, because the columns do not all cost the same:
+  - **below 960px**: Source steps aside (B-291). It is the widest chip column (`CHRONODRIVE`
+    sets its width), and the table is already at the edge of its budget just above 820px —
+    without its own band, adding it would have pushed the elastic Nom column to a negative
+    width between 821 and ~900px, i.e. a table overflowing its page.
+  - **below 820px**: Portion and Visibilité step aside too, and the second comment line under
+    the name is dropped.
+    Hidden **by column index, header and cell together** — hiding the cell class alone slides the
+    whole body one column left (B-284). A band that hides a column must therefore be re-checked
+    against the declared-width budget whenever a column is added: the arithmetic, not the eye,
+    decides where a band goes.
 - **archived row**: `opacity:.45`; name suffixed `· archivé` via `::after`
   (`--font-num; --fs-10; --text-faint`).
 - **row icon actions**: hidden until hover (see foundations icon buttons);

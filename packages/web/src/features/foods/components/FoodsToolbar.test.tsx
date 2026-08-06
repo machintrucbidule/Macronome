@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import i18n from '../../../i18n/config';
+import { sourceFilterOptions, type SourceFilter } from '../sourceFilter';
 import { FoodsToolbar } from './FoodsToolbar';
 
 // B-279: the chip used to read "N affichés" — the rows fetched so far, which the owner judged
@@ -8,17 +9,20 @@ import { FoodsToolbar } from './FoodsToolbar';
 // figure the scrollbar is sized on (B-278).
 afterEach(cleanup);
 
-function toolbar(count: number | undefined) {
+function toolbar(count: number | undefined, sourceOptions: SourceFilter[] = []) {
   return render(
     <FoodsToolbar
       count={count}
       q=""
       minRating={0}
       visibility="all"
+      source="all"
+      sourceOptions={sourceOptions}
       showArchived={false}
       onQ={vi.fn()}
       onMinRating={vi.fn()}
       onVisibility={vi.fn()}
+      onSource={vi.fn()}
       onShowArchived={vi.fn()}
       onAdd={vi.fn()}
     />,
@@ -45,5 +49,36 @@ describe('FoodsToolbar count (B-279)', () => {
   it('shows zero when nothing matches, rather than staying blank', () => {
     toolbar(0);
     expect(screen.getByText(i18n.t('foods.count', { count: 0 }))).toBeTruthy();
+  });
+});
+
+// B-295: a provenance is offered only when a food carries it, and the whole Source block stays
+// out of the popover below two — filtering on the single source everything already has could
+// not change the list.
+describe('FoodsToolbar source filter availability (B-295)', () => {
+  it('offers no Source block while every food shares one provenance', () => {
+    expect(sourceFilterOptions(['manual'])).toEqual([]);
+    const { getByRole, queryByText } = toolbar(3, sourceFilterOptions(['manual']));
+    fireEvent.click(getByRole('button', { name: /Filtres/ }));
+    expect(queryByText(i18n.t('foods.filters.source'))).toBeNull();
+  });
+
+  it('offers the block, and only the provenances present, once a second one appears', () => {
+    const options = sourceFilterOptions(['ciqual', 'manual']);
+    expect(options).toEqual(['all', 'ciqual', 'manual']);
+    const { getByRole, getByText, queryByText } = toolbar(3, options);
+    fireEvent.click(getByRole('button', { name: /Filtres/ }));
+    expect(getByText(i18n.t('foods.filters.source'))).toBeTruthy();
+    expect(getByText(i18n.t('foods.source.ciqual'))).toBeTruthy();
+    expect(queryByText(i18n.t('foods.source.chronodrive'))).toBeNull();
+  });
+
+  it('never offers `recipe`, which the Aliments list cannot show anyway', () => {
+    expect(sourceFilterOptions(['manual', 'recipe'])).toEqual([]);
+    expect(sourceFilterOptions(['ciqual', 'manual', 'recipe'])).toEqual([
+      'all',
+      'ciqual',
+      'manual',
+    ]);
   });
 });

@@ -45,8 +45,17 @@ function toDto(row: FoodWithPortions): Food {
 
 export async function list(userId: string, query: FoodListQuery): Promise<FoodListResponse> {
   const opts = query.q ? { ...query, normalized: normalize(query.q) } : query;
-  const { rows, nextCursor, total } = await foodRepo.list(userId, opts);
-  return { data: rows.map(toDto), next_cursor: nextCursor, total };
+  // `sources` is filter-independent (B-295), so it runs alongside the page rather than after it.
+  const [page, sources] = await Promise.all([
+    foodRepo.list(userId, opts),
+    foodRepo.distinctSources(userId),
+  ]);
+  return {
+    data: page.rows.map(toDto),
+    next_cursor: page.nextCursor,
+    total: page.total,
+    sources: sources as FoodListResponse['sources'],
+  };
 }
 
 export async function get(userId: string, id: string): Promise<Food | null> {
@@ -98,6 +107,9 @@ function buildUpdateData(
     ...(body.comment !== undefined ? { comment: body.comment } : {}),
     ...(body.rating !== undefined ? { rating: body.rating } : {}),
     ...(body.visibility !== undefined ? { visibility: body.visibility } : {}),
+    // Provenance is deliberately correctable by the user (B-295); nothing else writes it here,
+    // so editing a food's values never moves it on its own.
+    ...(body.source !== undefined ? { source: body.source } : {}),
     ...(body.ai_proposable !== undefined ? { aiProposable: body.ai_proposable } : {}),
     ...(body.named_portions !== undefined ? { portions: body.named_portions } : {}),
   };

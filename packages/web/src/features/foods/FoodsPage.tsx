@@ -2,39 +2,18 @@ import { useMemo, useState } from 'react';
 import type { Food } from '@macronome/shared';
 import { FoodsDesktop } from './components/FoodsDesktop';
 import { FoodsMobile } from './components/FoodsMobile';
-import type { SortField } from './components/FoodTable';
-import type { MinRating, VisibilityFilter } from './components/FiltersPopover';
 import { FoodModal } from './modals/FoodModal';
 import { ArchiveConfirm } from './modals/ArchiveConfirm';
 import { useFoodMutations, useFoodsList } from './useFoods';
 import { useFoodsContextMenu } from './useFoodsContextMenu';
+import { useFoodsFilters, useSourceFilterOptions } from './useFoodsFilters';
 import { useIsMobile } from '../../lib/useIsMobile';
 
-// Aliments page (specifications/screens/food-db.md): owns filter/sort/modal state, fetches via
-// TanStack Query (server-side search/filter/sort), and switches between the desktop table
-// (FoodsDesktop) and the mobile card list (FoodsMobile, mobile-responsive S7) via useIsMobile().
-// It renders; it never computes.
+// Aliments page (specifications/screens/food-db.md): owns modal state, fetches via TanStack Query
+// (server-side search/filter/sort), and switches between the desktop table (FoodsDesktop) and the
+// mobile card list (FoodsMobile, mobile-responsive S7) via useIsMobile(). It renders; it never
+// computes. The filter/sort state and the params it produces live in useFoodsFilters.
 type ModalState = { mode: 'add' } | { mode: 'edit'; food: Food } | null;
-
-interface FilterState {
-  q: string;
-  minRating: MinRating;
-  visibility: VisibilityFilter;
-  showArchived: boolean;
-  sort: SortField;
-  dir: 'asc' | 'desc';
-}
-
-function buildListParams(s: FilterState) {
-  return {
-    ...(s.q.trim() ? { q: s.q.trim() } : {}),
-    ...(s.minRating > 0 ? { min_rating: s.minRating as 1 | 2 | 3 } : {}),
-    ...(s.visibility !== 'all' ? { visibility: s.visibility } : {}),
-    ...(s.showArchived ? { include_archived: true } : {}),
-    sort: s.sort,
-    dir: s.dir,
-  };
-}
 
 /** Live (non-authoritative) duplicate-name hint; the server returns the real warning. */
 function isDuplicateName(foods: Food[], name: string, editingId: string | null): boolean {
@@ -48,30 +27,18 @@ function isDuplicateName(foods: Food[], name: string, editingId: string | null):
 
 export function FoodsPage() {
   const isMobile = useIsMobile();
-  const [q, setQ] = useState('');
-  const [minRating, setMinRating] = useState<MinRating>(0);
-  const [visibility, setVisibility] = useState<VisibilityFilter>('all');
-  const [showArchived, setShowArchived] = useState(false);
-  const [sort, setSort] = useState<SortField>('name');
-  const [dir, setDir] = useState<'asc' | 'desc'>('asc');
+  const filters = useFoodsFilters();
   const [modal, setModal] = useState<ModalState>(null);
   const [archiveTarget, setArchiveTarget] = useState<Food | null>(null);
 
-  const list = useFoodsList(buildListParams({ q, minRating, visibility, showArchived, sort, dir }));
+  const list = useFoodsList(filters.params);
   const { archive, restore } = useFoodMutations();
   const foods = useMemo(() => list.data?.pages.flatMap((p) => p.data) ?? [], [list.data]);
-  // Rows matching the current filters, server-side (B-278). Read from the newest page: every page
-  // of the same query reports the same figure, and the newest is the freshest. Undefined until the
-  // first page lands, so the toolbar shows nothing rather than a number that would change.
-  const total = list.data?.pages.at(-1)?.total;
-
-  const onSort = (field: SortField): void => {
-    if (field === sort) setDir((d) => (d === 'asc' ? 'desc' : 'asc'));
-    else {
-      setSort(field);
-      setDir('asc');
-    }
-  };
+  // Read from the newest page: every page of one query reports the same `total` (B-278) and the
+  // same `sources` (B-295), and the newest is the freshest. Undefined until page 1 lands, so the
+  // toolbar shows nothing rather than a number that would immediately change.
+  const latest = list.data?.pages.at(-1);
+  const sourceOptions = useSourceFilterOptions(latest?.sources);
 
   const editingId = modal?.mode === 'edit' ? modal.food.id : null;
   const isDuplicate = (name: string): boolean => isDuplicateName(foods, name, editingId);
@@ -81,21 +48,13 @@ export function FoodsPage() {
 
   const common = {
     foods,
-    total,
+    total: latest?.total,
     loading: list.isLoading,
     isError: list.isError,
     list,
-    q,
-    minRating,
-    visibility,
-    showArchived,
-    sort,
-    dir,
-    onQ: setQ,
-    onMinRating: setMinRating,
-    onVisibility: setVisibility,
-    onShowArchived: setShowArchived,
-    onSort,
+    ...filters.state,
+    sourceOptions,
+    ...filters.handlers,
     onAdd: () => setModal({ mode: 'add' }),
     onOpen: openFood,
   };
@@ -115,6 +74,7 @@ export function FoodsPage() {
       {modal && (
         <FoodModal
           food={modal.mode === 'edit' ? modal.food : null}
+          presentSources={latest?.sources ?? []}
           isDuplicate={isDuplicate}
           onClose={() => setModal(null)}
           onArchive={(food) => {

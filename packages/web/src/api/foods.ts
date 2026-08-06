@@ -17,6 +17,7 @@ export interface FoodListParams {
   q?: string;
   min_rating?: 1 | 2 | 3;
   visibility?: 'private' | 'shared';
+  source?: 'manual' | 'ciqual' | 'chronodrive';
   include_archived?: boolean;
   sort?: string;
   dir?: 'asc' | 'desc';

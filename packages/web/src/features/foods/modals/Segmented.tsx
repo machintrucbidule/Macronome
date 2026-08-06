@@ -1,7 +1,9 @@
 import styles from '../foods.module.css';
 
-// A small two-option segmented control (the `aria-pressed` pattern used by the food
-// modal's Visibility and "Dispo IA" fields). Presentational over a value + setter.
+// A small segmented control (the `aria-pressed` pattern used by the food modal's Visibility,
+// "Dispo IA" and Source fields). Presentational over a value + setter. Two options was the
+// original shape; Source (B-295) can offer three, so the tuple became a list — the buttons
+// already share the row equally, so nothing about the two-option instances changes.
 interface SegmentedOption<T> {
   value: T;
   label: string;
@@ -9,7 +11,7 @@ interface SegmentedOption<T> {
 interface SegmentedProps<T extends string | boolean> {
   label: string;
   value: T;
-  options: [SegmentedOption<T>, SegmentedOption<T>];
+  options: SegmentedOption<T>[];
   onChange: (value: T) => void;
 }
 

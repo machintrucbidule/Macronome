@@ -28,6 +28,8 @@ export function FoodCard({ food, onOpen }: FoodCardProps) {
         </span>
         <span className={styles.topRight}>
           {archived && <span className={styles.archivedTag}>{t('foods.archivedTag')}</span>}
+          {/* Provenance (B-291) — the desktop table's Source column, folded into the card. */}
+          <span className={styles.archivedTag}>{t(`foods.source.${food.source}`)}</span>
           <Stars rating={food.rating} />
         </span>
       </div>

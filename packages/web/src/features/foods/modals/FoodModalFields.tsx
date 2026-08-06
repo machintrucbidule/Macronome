@@ -1,11 +1,12 @@
 import { useTranslation } from 'react-i18next';
-import type { FoodParseWarning } from '@macronome/shared';
+import type { FoodParseWarning, FoodSource } from '@macronome/shared';
 import { TextInput } from '../../../components/Form/TextInput';
 import { RatingSelect } from '../../../components/RatingStars/RatingSelect';
 import { NamedPortionsEditor } from './NamedPortionsEditor';
 import { MacroInputs } from './MacroInputs';
 import { ChronoSearchLink } from './ChronoSearchLink';
 import { Segmented } from './Segmented';
+import { useSourceOptions } from './useSourceOptions';
 import type { Draft } from './draft';
 import styles from '../foods.module.css';
 
@@ -13,6 +14,8 @@ import styles from '../foods.module.css';
 // owns the header/actions). Pure presentational over the draft + a setter.
 interface FoodModalFieldsProps {
   draft: Draft;
+  /** Provenances present in the catalog — gates the Chronodrive option (B-295). */
+  presentSources: FoodSource[];
   isEdit: boolean;
   showDup: boolean;
   set: (patch: Partial<Draft>) => void;
@@ -25,6 +28,7 @@ interface FoodModalFieldsProps {
 
 export function FoodModalFields({
   draft,
+  presentSources,
   isEdit,
   showDup,
   set,
@@ -34,6 +38,7 @@ export function FoodModalFields({
   onChrono,
 }: FoodModalFieldsProps) {
   const { t } = useTranslation();
+  const sourceOptions = useSourceOptions(presentSources, draft.source);
 
   return (
     <>
@@ -56,7 +61,7 @@ export function FoodModalFields({
 
       <NamedPortionsEditor portions={draft.portions} onChange={(portions) => set({ portions })} />
 
-      <div className={styles.grid3}>
+      <div className={styles.grid4}>
         <div>
           <div className={styles.segLabel}>{t('foods.field.rating')}</div>
           <RatingSelect
@@ -73,6 +78,14 @@ export function FoodModalFields({
             { value: 'shared', label: t('foods.visibility.shared') },
           ]}
           onChange={(visibility) => set({ visibility })}
+        />
+        {/* Provenance (B-295): stamped automatically by the Chronodrive prefill, but always
+            correctable by hand — an edit never moves it on its own. */}
+        <Segmented
+          label={t('foods.field.source')}
+          value={draft.source}
+          options={sourceOptions}
+          onChange={(source) => set({ source })}
         />
         <Segmented
           label={t('foods.field.aiProposable')}

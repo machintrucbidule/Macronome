@@ -1,6 +1,12 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { ChronoFoodPrefill, Food, FoodParseLabel, FoodParseWarning } from '@macronome/shared';
+import type {
+  ChronoFoodPrefill,
+  Food,
+  FoodParseLabel,
+  FoodParseWarning,
+  FoodSource,
+} from '@macronome/shared';
 import { Modal, modalStyles } from '../../../components/Modal/Modal';
 import { Button } from '../../../components/Button/Button';
 import { FoodModalFields } from './FoodModalFields';
@@ -15,12 +21,15 @@ import { useFoodMutations } from '../useFoods';
 // warning on save (non-blocking). The body fields live in FoodModalFields.
 interface FoodModalProps {
   food: Food | null;
+  /** Provenances present in the catalog — gates the Chronodrive option (B-295). */
+  presentSources: FoodSource[];
   isDuplicate: (name: string) => boolean;
   onClose: () => void;
   onArchive: (food: Food) => void;
 }
 
-export function FoodModal({ food, isDuplicate, onClose, onArchive }: FoodModalProps) {
+export function FoodModal(props: FoodModalProps) {
+  const { food, presentSources, isDuplicate, onClose, onArchive } = props;
   const { t } = useTranslation();
   const [draft, setDraft] = useState<Draft>(() => initialDraft(food));
   const [showParse, setShowParse] = useState(false);
@@ -63,6 +72,7 @@ export function FoodModal({ food, isDuplicate, onClose, onArchive }: FoodModalPr
       <div className={modalStyles.body}>
         <FoodModalFields
           draft={draft}
+          presentSources={presentSources}
           isEdit={isEdit}
           showDup={showDup}
           set={set}

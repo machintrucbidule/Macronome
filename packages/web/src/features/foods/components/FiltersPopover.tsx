@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Chip } from '../../../components/Form/Chip';
+import type { SourceFilter } from '../sourceFilter';
 import styles from '../foods.module.css';
 
 // Filters popover (specifications/screens/food-db.md): minimum-rating chips,
-// visibility chips, show-archived toggle. min-rating 0 = "Toutes" (no filter);
+// visibility chips, source chips, show-archived toggle. min-rating 0 = "Toutes" (no filter);
 // ≥1 excludes both Bof(0) and unrated.
 export type MinRating = 0 | 1 | 2 | 3;
 export type VisibilityFilter = 'all' | 'private' | 'shared';
@@ -12,9 +13,13 @@ export type VisibilityFilter = 'all' | 'private' | 'shared';
 interface FiltersPopoverProps {
   minRating: MinRating;
   visibility: VisibilityFilter;
+  source: SourceFilter;
+  /** Chips to offer; empty means the Source block is not rendered at all (B-295). */
+  sourceOptions: SourceFilter[];
   showArchived: boolean;
   onMinRating: (r: MinRating) => void;
   onVisibility: (v: VisibilityFilter) => void;
+  onSource: (s: SourceFilter) => void;
   onShowArchived: (v: boolean) => void;
 }
 
@@ -62,6 +67,18 @@ export function FiltersPopover(props: FiltersPopoverProps) {
               </Chip>
             ))}
           </div>
+          {props.sourceOptions.length > 0 && (
+            <>
+              <h4>{t('foods.filters.source')}</h4>
+              <div className={styles.chipRow}>
+                {props.sourceOptions.map((s) => (
+                  <Chip key={s} pressed={props.source === s} onClick={() => props.onSource(s)}>
+                    {t(`foods.source.${s}`)}
+                  </Chip>
+                ))}
+              </div>
+            </>
+          )}
           <label className={styles.archivedToggle}>
             <input
               type="checkbox"

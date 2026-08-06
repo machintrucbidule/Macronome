@@ -44,6 +44,11 @@ export function FoodRow({ food, onOpen, onArchive, onRestore }: FoodRowProps) {
       <td className={tableStyles.numc}>
         <Stars rating={food.rating} />
       </td>
+      {/* Provenance (B-291). Every food carries its chip, 'manual' included, so the column reads
+          as a column and sorts visually — a blank cell would have to be decoded. */}
+      <td className={styles.vis}>
+        <span className={styles.vistag}>{t(`foods.source.${food.source}`)}</span>
+      </td>
       <td className={styles.vis}>
         <span className={`${styles.vistag} ${food.visibility === 'shared' ? styles.shared : ''}`}>
           {t(`foods.visibility.${food.visibility}`)}

@@ -6177,3 +6177,70 @@ home) mirrored in `ARCHITECTURE.md` §3, `CLAUDE.md` rule 3,
 `docs/architecture/context-files/api-CLAUDE.md` and `docs/architecture/repo-structure.md`,
 `README.md` + `README_FR.md` (new final attribution section, both files),
 `specifications/screens/about.md`. No design-system impact.
+
+---
+
+## CIQ-2 / B-291, B-295 — the provenance becomes visible, filterable and correctable — RESOLVED (owner, 2026-08-06)
+
+**Observed.** CIQ-1 made `food.source` real but nothing displayed it: the provenance existed only
+in the database. B-291 asked for a Source column and a Source filter on the Aliments screen.
+
+**Decision — the column exists but has to buy its width (B-291).** The Aliments table is
+`table-layout: fixed`: nine declared columns already occupy 704 px, and at 821 px — just above the
+existing narrow band — the elastic Nom column is down to ~66 px. Adding a Source column of ~84 px
+would have driven Nom **negative between 821 and ~900 px**, i.e. a table overflowing its page. Three
+ways out were put to the owner: raise the single existing band to 900 px (which would have made
+Portion and Visibilité disappear _earlier_ than today), shrink Portion from 176 to ~92 px (which
+would truncate portion labels at every width), or give Source its **own** band. **Owner decision:
+its own band at 960 px.** Nothing visible today disappears any earlier; the 561–820 px range is
+byte-for-byte what it was. Recorded because the arithmetic, not the eye, is what places a band —
+the next column added to this table faces the same test.
+
+**Owner decision — `CHRONODRIVE` written out in full**, over the compact `CHRONO`. It costs a
+6.25 rem column, which is precisely why the band sits at 960 px rather than 900 px: at 900 px the
+full label would have left the food name ~46 px.
+
+**Owner decision — every food carries its chip, `manual` included.** A blank cell meaning "manual"
+would have to be decoded, and sorting by Source would show a large empty block.
+
+**Decision — a provenance is offered only when a food carries it (B-295, owner).** `GET /foods`
+gains a **`sources`** facet. **Owner decision on its scope: the whole catalog, archived foods
+included, and deliberately independent of the query's own filters.** A facet that followed the
+filters would make chips appear and disappear while the user types; a stable set is worth the one
+edge case it allows (a provenance whose only foods are archived can be picked and return nothing).
+`recipe` is excluded, as everywhere on this screen.
+
+**Owner decision — below two provenances, the whole Source filter block is not rendered.** Filtering
+on the single source everything already has cannot change the list. Today that means the block is
+simply absent; it appears on its own the day a second provenance shows up.
+
+**Decision — the provenance is correctable by hand (B-295, owner). This reverses a line written in
+CIQ-1.** `spec/api/foods-recipes.md` stated "`source` is **not** patchable: provenance is fixed at
+creation". `PATCH /foods/:id` now accepts it, with the same restricted vocabulary as create
+(`recipe` rejected — server-owned). The substance of D7 survives intact and is what the API now
+says: **no edit ever rewrites the provenance as a side effect** — a Chronodrive food stays one
+however its values change — but the user may deliberately correct it. The control sits in the food
+form at **creation and edit** (owner decision: the same form, and at creation it shows what will be
+saved, flipping to Chronodrive on its own when the Chronodrive search is used).
+
+**Owner decision — `chronodrive` is offered in that control only if it can mean something**: a food
+already carries it, or the Chronodrive integration is configured. Otherwise the form would propose
+a provenance this instance cannot produce. `ciqual` is **always** offered (owner decision): the
+Ciqual catalog ships inside the image, so tagging a hand-copied entry is always meaningful.
+
+**Trap worth recording — one `where` key, two meanings.** `buildWhere` already pinned
+`source: { not: 'recipe' }` to exclude recipe-derived foods. The filter overwrites that same key,
+which is correct **only** because the accepted filter vocabulary can never be `recipe`. Widen that
+enum without touching `buildWhere` and the Aliments list silently starts showing recipe-derived
+foods. The constraint is now a comment at the site.
+
+**Contract drift corrected in the same amendment** (owner: align the contract on the code — no
+behaviour change): `spec/api/foods-recipes.md` documented `GET /foods` → `{data, next_cursor}`
+although B-278 added `total`; `design/components/data-tables.md` omitted `Utilisation` from the
+Aliments sortable set although FU-1 made it sortable.
+
+**Contract impact.** `spec/api/foods-recipes.md` §Foods (`GET /foods` query + `sort` set +
+`sources` in the response; `PATCH /foods/:id`), `design/components/data-tables.md` §Shared table
+conventions (sortable set, and the single narrow band becomes two),
+`specifications/screens/food-db.md`. No schema change: `food.source` and its CHECK are unchanged
+since CIQ-1. No design-token change.

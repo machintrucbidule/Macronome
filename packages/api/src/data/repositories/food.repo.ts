@@ -37,18 +37,44 @@ const SORT_COLUMN: Record<Exclude<FoodListQuery['sort'], 'usage'>, keyof FoodMod
   carb: 'carbPer100g',
   protein: 'proteinPer100g',
   rating: 'rating',
+  source: 'source',
   visibility: 'visibility',
 };
 
+/** Recipe-derived foods (source='recipe') live on the Recettes screen and the combined
+ *  /search/loggable, never in the Aliments catalog (spec/api §Foods). */
+const BROWSABLE: Prisma.StringFilter<'Food'> = { not: 'recipe' };
+
 function buildWhere(userId: string, q: ListQuery): Prisma.FoodWhereInput {
-  // Browse foods only — recipe-derived foods (source='recipe') live on the Recettes
-  // screen and the combined /search/loggable, not the Aliments catalog (spec/api §Foods).
-  const where: Prisma.FoodWhereInput = { ownerId: userId, source: { not: 'recipe' } };
+  const where: Prisma.FoodWhereInput = { ownerId: userId, source: BROWSABLE };
   if (!q.include_archived) where.archivedAt = null;
   if (q.visibility) where.visibility = q.visibility;
+  // Overwrites the BROWSABLE guard on the SAME key — safe only because the accepted filter
+  // vocabulary (manual|ciqual|chronodrive, FoodListQuerySchema) can never be 'recipe'. Widen
+  // that enum and this silently starts exposing recipe-derived foods: compose, don't replace.
+  if (q.source) where.source = q.source;
   if (q.min_rating) where.rating = { gte: q.min_rating }; // excludes Bof(0) and unrated(null)
   if (q.normalized) where.normalizedName = { contains: q.normalized };
   return where;
+}
+
+/** Columns to write on a patch: only the provided ones (undefined = leave unchanged), while
+ *  `comment: null` is meaningful and must reach the row. Extracted from `update` so the
+ *  transaction body stays one statement rather than a wall of conditional spreads. */
+function patchColumns(data: Partial<FoodWriteData>): Prisma.FoodUpdateInput {
+  return {
+    ...(data.name !== undefined ? { name: data.name } : {}),
+    ...(data.normalizedName !== undefined ? { normalizedName: data.normalizedName } : {}),
+    ...(data.kcalPer100g !== undefined ? { kcalPer100g: data.kcalPer100g } : {}),
+    ...(data.fatPer100g !== undefined ? { fatPer100g: data.fatPer100g } : {}),
+    ...(data.carbPer100g !== undefined ? { carbPer100g: data.carbPer100g } : {}),
+    ...(data.proteinPer100g !== undefined ? { proteinPer100g: data.proteinPer100g } : {}),
+    ...(data.comment !== undefined ? { comment: data.comment } : {}),
+    ...(data.rating !== undefined ? { rating: data.rating } : {}),
+    ...(data.visibility !== undefined ? { visibility: data.visibility } : {}),
+    ...(data.source !== undefined ? { source: data.source } : {}),
+    ...(data.aiProposable !== undefined ? { aiProposable: data.aiProposable } : {}),
+  };
 }
 
 /** Attach each food's portions in one extra query (ordered for stable display). */
@@ -163,6 +189,19 @@ export const foodRepo = {
     };
   },
 
+  /**
+   * The provenance values present in the user's browsable catalog, sorted (B-295). Deliberately
+   * takes NO filters: the client's Source filter must offer a stable set that does not shift
+   * while the user types, so archived foods count too. `recipe` is excluded like everywhere else.
+   */
+  async distinctSources(userId: string): Promise<string[]> {
+    const groups = await prisma.food.groupBy({
+      by: ['source'],
+      where: { ownerId: userId, source: BROWSABLE },
+    });
+    return groups.map((g) => g.source).sort();
+  },
+
   async findById(userId: string, id: string): Promise<FoodWithPortions | null> {
     const food = await prisma.food.findFirst({ where: { id, ownerId: userId } });
     if (!food) return null;
@@ -227,21 +266,7 @@ export const foodRepo = {
     });
     if (!owned) return null;
     await prisma.$transaction(async (tx) => {
-      await tx.food.update({
-        where: { id },
-        data: {
-          ...(data.name !== undefined ? { name: data.name } : {}),
-          ...(data.normalizedName !== undefined ? { normalizedName: data.normalizedName } : {}),
-          ...(data.kcalPer100g !== undefined ? { kcalPer100g: data.kcalPer100g } : {}),
-          ...(data.fatPer100g !== undefined ? { fatPer100g: data.fatPer100g } : {}),
-          ...(data.carbPer100g !== undefined ? { carbPer100g: data.carbPer100g } : {}),
-          ...(data.proteinPer100g !== undefined ? { proteinPer100g: data.proteinPer100g } : {}),
-          ...(data.comment !== undefined ? { comment: data.comment } : {}),
-          ...(data.rating !== undefined ? { rating: data.rating } : {}),
-          ...(data.visibility !== undefined ? { visibility: data.visibility } : {}),
-          ...(data.aiProposable !== undefined ? { aiProposable: data.aiProposable } : {}),
-        },
-      });
+      await tx.food.update({ where: { id }, data: patchColumns(data) });
       if (data.portions) await syncPortions(tx, id, data.portions);
     });
     return this.findById(userId, id);

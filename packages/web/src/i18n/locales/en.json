@@ -147,6 +147,7 @@
       "protein": "P",
       "portion": "Portion",
       "rating": "Rating",
+      "source": "Source",
       "visibility": "Visib.",
       "usage": "Use (90 d)"
     },
@@ -155,10 +156,17 @@
       "private": "Private",
       "shared": "Shared"
     },
+    "source": {
+      "all": "All",
+      "manual": "Manual",
+      "ciqual": "Ciqual",
+      "chronodrive": "Chronodrive"
+    },
     "filters": {
       "title": "Filters",
       "minRating": "Minimum rating",
       "visibility": "Visibility",
+      "source": "Source",
       "all": "All",
       "showArchived": "Show archived"
     },
@@ -171,6 +179,7 @@
       "protein": "Protein",
       "rating": "Rating",
       "visibility": "Visibility",
+      "source": "Source",
       "aiProposable": "Available for AI recipes",
       "comment": "Comment"
     },

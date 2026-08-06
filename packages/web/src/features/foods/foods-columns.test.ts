@@ -16,9 +16,9 @@ describe('Aliments column widths (B-284)', () => {
     expect(css).toMatch(/\.foodsTable\s*\{[^}]*table-layout:\s*fixed/);
   });
 
-  it('declares a width for the nine sized columns (Nom takes the remainder)', () => {
+  it('declares a width for the ten sized columns (Nom takes the remainder)', () => {
     const declared = css.match(/\.foodsTable th:nth-child\((\d+)\)/g) ?? [];
-    expect(new Set(declared).size).toBe(9);
+    expect(new Set(declared).size).toBe(10);
     expect(css).not.toMatch(/\.foodsTable th:nth-child\(1\)/);
   });
 
@@ -30,11 +30,23 @@ describe('Aliments column widths (B-284)', () => {
     expect(css).toMatch(/\.foodsTable td:nth-child\(1\)\s*\{[^}]*text-overflow:\s*ellipsis/);
   });
 
-  it('hides header and cell together in the 561-820px band', () => {
-    // The old rule hid the `.portion`/`.vis` <td> classes only, which the <th>s never carried, so
-    // the body slid one column left. Both indices must appear as th AND td inside the media query.
-    const band = /@media \(max-width: 820px\) \{([\s\S]*?)\n\}/.exec(css)?.[1] ?? '';
-    for (const n of [6, 8]) {
+  // Both bands hide by index, and both must hide the header WITH the cell: the old rule hid the
+  // `.portion`/`.vis` <td> classes only, which the <th>s never carried, so the body slid one
+  // column left and the stars rendered under "PORTION".
+  const bandAt = (px: number): string =>
+    new RegExp(`@media \\(max-width: ${px}px\\) \\{([\\s\\S]*?)\\n\\}`).exec(css)?.[1] ?? '';
+
+  it('hides the Source column below 960px, header and cell together', () => {
+    // Source is the widest chip column (B-291); without its own band the elastic Nom column goes
+    // negative between 821 and ~900px and the table overflows the page.
+    const band = bandAt(960);
+    expect(band).toContain('.foodsTable th:nth-child(8)');
+    expect(band).toContain('.foodsTable td:nth-child(8)');
+  });
+
+  it('hides Portion and Visibilité together in the 561-820px band', () => {
+    const band = bandAt(820);
+    for (const n of [6, 9]) {
       expect(band).toContain(`.foodsTable th:nth-child(${n})`);
       expect(band).toContain(`.foodsTable td:nth-child(${n})`);
     }

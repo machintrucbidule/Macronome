@@ -2,7 +2,7 @@ import { createElement, type ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, waitFor, type RenderResult } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import type { ChronoProductResponse, Food, Settings } from '@macronome/shared';
+import type { ChronoProductResponse, Food, FoodSource, Settings } from '@macronome/shared';
 import i18n from '../../../i18n/config';
 import { foodsApi } from '../../../api/foods';
 import { settingsApi } from '../../../api/settings';
@@ -17,9 +17,15 @@ function wrapper({ children }: { children: ReactNode }) {
   return createElement(QueryClientProvider, { client }, children);
 }
 
-function renderModal(food: Food | null) {
+function renderModal(food: Food | null, presentSources: FoodSource[] = ['manual']) {
   return render(
-    <FoodModal food={food} isDuplicate={() => false} onClose={vi.fn()} onArchive={vi.fn()} />,
+    <FoodModal
+      food={food}
+      presentSources={presentSources}
+      isDuplicate={() => false}
+      onClose={vi.fn()}
+      onArchive={vi.fn()}
+    />,
     {
       wrapper,
     },
@@ -236,5 +242,63 @@ describe('FoodModal — ai_proposable toggle (S3 / B-123)', () => {
     expect(getByRole('button', { name: i18n.t('common.yes') }).getAttribute('aria-pressed')).toBe(
       'false',
     );
+  });
+});
+
+// B-295: the provenance is correctable by hand from the food form. "Chronodrive" is offered only
+// when it can mean something — a food already carries it, or the gateway is configured — so the
+// control never proposes a provenance the instance cannot produce.
+describe('FoodModal — source selector (B-295)', () => {
+  const sourceButton = (r: RenderResult, key: string) =>
+    r.queryByRole('button', { name: i18n.t(`foods.source.${key}`) });
+
+  it('offers Manuel and Ciqual but not Chronodrive with neither food nor integration', async () => {
+    vi.spyOn(settingsApi, 'get').mockResolvedValue({ data: settingsWith(false) });
+    const r = renderModal(null, ['manual']);
+    await waitFor(() => expect(settingsApi.get).toHaveBeenCalled());
+
+    expect(sourceButton(r, 'manual')).toBeTruthy();
+    expect(sourceButton(r, 'ciqual')).toBeTruthy();
+    expect(sourceButton(r, 'chronodrive')).toBeNull();
+  });
+
+  it('offers Chronodrive once the integration is configured', async () => {
+    vi.spyOn(settingsApi, 'get').mockResolvedValue({ data: settingsWith(true) });
+    const r = renderModal(null, ['manual']);
+    await waitFor(() => expect(sourceButton(r, 'chronodrive')).toBeTruthy());
+  });
+
+  it('offers Chronodrive when a food already carries it, integration or not', async () => {
+    vi.spyOn(settingsApi, 'get').mockResolvedValue({ data: settingsWith(false) });
+    const r = renderModal(null, ['chronodrive', 'manual']);
+    await waitFor(() => expect(settingsApi.get).toHaveBeenCalled());
+    expect(sourceButton(r, 'chronodrive')).toBeTruthy();
+  });
+
+  it('sends the corrected provenance when editing an existing food', async () => {
+    vi.spyOn(settingsApi, 'get').mockResolvedValue({ data: settingsWith(false) });
+    const updateSpy = vi.spyOn(foodsApi, 'update').mockResolvedValue({ data: editableFood(true) });
+    const r = renderModal(editableFood(true), ['manual']);
+    await waitFor(() => expect(sourceButton(r, 'ciqual')).toBeTruthy());
+
+    fireEvent.click(sourceButton(r, 'ciqual')!);
+    fireEvent.click(r.getByRole('button', { name: i18n.t('common.save') }));
+
+    await waitFor(() => expect(updateSpy).toHaveBeenCalledTimes(1));
+    expect(updateSpy.mock.calls[0]?.[1]).toMatchObject({ source: 'ciqual' });
+  });
+
+  it('leaves an untouched food on the provenance it was hydrated with', async () => {
+    vi.spyOn(settingsApi, 'get').mockResolvedValue({ data: settingsWith(false) });
+    const updateSpy = vi.spyOn(foodsApi, 'update').mockResolvedValue({ data: editableFood(true) });
+    const r = renderModal(editableFood(true), ['manual']);
+
+    fireEvent.change(r.getByLabelText(i18n.t('foods.field.name')), {
+      target: { value: 'Yaourt grec 0%' },
+    });
+    fireEvent.click(r.getByRole('button', { name: i18n.t('common.save') }));
+
+    await waitFor(() => expect(updateSpy).toHaveBeenCalledTimes(1));
+    expect(updateSpy.mock.calls[0]?.[1]).toMatchObject({ source: 'manual' });
   });
 });

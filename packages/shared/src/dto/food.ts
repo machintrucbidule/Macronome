@@ -15,9 +15,11 @@ export const VisibilitySchema = z.enum(['private', 'shared']);
 /** Provenance of a food (B-290). `recipe` is server-owned (only the derived-food writer sets
  * it), so it is excluded from what a client may declare — see `CreateFoodSourceSchema`. */
 export const FoodSourceSchema = z.enum(['manual', 'recipe', 'ciqual', 'chronodrive']);
+export type FoodSource = z.infer<typeof FoodSourceSchema>;
 
-/** The subset a client may declare on `POST /foods`: how the draft was built. */
+/** The subset a client may declare on `POST /foods` / `PATCH /foods/:id`: how the food came to be. */
 export const CreateFoodSourceSchema = z.enum(['manual', 'ciqual', 'chronodrive']);
+export type CreateFoodSource = z.infer<typeof CreateFoodSourceSchema>;
 
 // --- Named portions -------------------------------------------------------
 
@@ -88,7 +90,7 @@ export const CreateFoodSchema = z
     comment: z.string().max(2000).nullish(),
     rating: RatingSchema.optional().default(null),
     visibility: VisibilitySchema.optional().default('private'),
-    // Provenance, fixed at creation and not patchable afterwards (B-290).
+    // Provenance: how the draft was built (B-290).
     source: CreateFoodSourceSchema.optional().default('manual'),
     ai_proposable: z.boolean().optional().default(true),
     named_portions: z.array(NamedPortionInputSchema).optional().default([]),
@@ -103,6 +105,9 @@ export const UpdateFoodSchema = z
     comment: z.string().max(2000).nullish(),
     rating: RatingSchema,
     visibility: VisibilitySchema,
+    // Never rewritten as a side effect of an edit — the food form sends the value it was
+    // hydrated with — but the user may deliberately correct it (B-295).
+    source: CreateFoodSourceSchema,
     ai_proposable: z.boolean(),
     named_portions: z.array(NamedPortionInputSchema),
   })
@@ -148,6 +153,7 @@ export const FOOD_SORT_FIELDS = [
   'carb',
   'protein',
   'rating',
+  'source',
   'visibility',
   'usage',
 ] as const;
@@ -160,6 +166,9 @@ export const FoodListQuerySchema = z.object({
     .pipe(z.union([z.literal(1), z.literal(2), z.literal(3)]))
     .optional(),
   visibility: VisibilitySchema.optional(),
+  // Provenance filter (B-291). `recipe` is deliberately not accepted: recipe-derived foods are
+  // excluded from this list by construction, so it could only ever return nothing.
+  source: CreateFoodSourceSchema.optional(),
   include_archived: z
     .union([z.boolean(), z.enum(['true', 'false'])])
     .optional()
@@ -182,6 +191,13 @@ export interface FoodListResponse {
    * from the first page, and shows the figure in the toolbar.
    */
   total: number;
+  /**
+   * The provenance values actually present in the user's catalog — sorted, `recipe` excluded,
+   * archived foods included, and computed **independently of this query's own filters** (B-295).
+   * The client offers a Source filter only for the values listed here, and hides the filter
+   * altogether below two: a stable set that does not shift while the user types.
+   */
+  sources: FoodSource[];
 }
 
 /** Create/update may carry non-blocking warnings (e.g. duplicate_name). */

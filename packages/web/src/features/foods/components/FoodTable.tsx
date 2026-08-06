@@ -6,8 +6,10 @@ import { FoodRow } from './FoodRow';
 import styles from '../foods.module.css';
 
 // Sortable foods table (specifications/screens/food-db.md). Sortable columns:
-// Nom·kcal·L·G·P·Note·Visib·Utilisation. The Portion column is display-only (DECISIONS Gap #10).
-// `usage` is the 90-day meal-log count (FU-1/B-151); default sort stays A→Z (name).
+// Nom·kcal·L·G·P·Note·Source·Visib·Utilisation. The Portion column is display-only
+// (DECISIONS Gap #10). `usage` is the 90-day meal-log count (FU-1/B-151); default sort stays
+// A→Z (name). Source (B-291) sits between Note and Visib. and is hidden below 960px — see the
+// band arithmetic in foods.module.css.
 export type SortField =
   | 'name'
   | 'kcal'
@@ -15,6 +17,7 @@ export type SortField =
   | 'carb'
   | 'protein'
   | 'rating'
+  | 'source'
   | 'visibility'
   | 'usage';
 
@@ -65,6 +68,7 @@ export function FoodTable({
             {th('protein', 'center')}
             <th>{t('foods.col.portion')}</th>
             {th('rating', 'center')}
+            {th('source', 'center')}
             {th('visibility', 'center')}
             {th('usage', 'center')}
             <th aria-label="actions" />

@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '../../../components/Button/Button';
 import { SearchField } from '../../../components/Form/SearchField';
 import { FiltersPopover, type MinRating, type VisibilityFilter } from './FiltersPopover';
+import type { SourceFilter } from '../sourceFilter';
 import styles from '../foods.module.css';
 
 // Aliments toolbar: title + count, search field, filters popover, "+ Ajouter" CTA
@@ -13,10 +14,13 @@ interface FoodsToolbarProps {
   q: string;
   minRating: MinRating;
   visibility: VisibilityFilter;
+  source: SourceFilter;
+  sourceOptions: SourceFilter[];
   showArchived: boolean;
   onQ: (q: string) => void;
   onMinRating: (r: MinRating) => void;
   onVisibility: (v: VisibilityFilter) => void;
+  onSource: (s: SourceFilter) => void;
   onShowArchived: (v: boolean) => void;
   onAdd: () => void;
 }
@@ -37,9 +41,12 @@ export function FoodsToolbar(props: FoodsToolbarProps) {
       <FiltersPopover
         minRating={props.minRating}
         visibility={props.visibility}
+        source={props.source}
+        sourceOptions={props.sourceOptions}
         showArchived={props.showArchived}
         onMinRating={props.onMinRating}
         onVisibility={props.onVisibility}
+        onSource={props.onSource}
         onShowArchived={props.onShowArchived}
       />
       <Button className={styles.addbtn} onClick={props.onAdd}>

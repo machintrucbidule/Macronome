@@ -6,8 +6,10 @@ See `00-conventions.md`. All scoped to the authenticated user.
 
 - `GET /foods` — browse foods only (no recipes). Query: `q` (autocomplete),
   `min_rating` (1|2|3 — excludes Bof 0 and unrated when ≥1), `visibility`
-  (private|shared), `include_archived` (bool, default false),
-  `sort` ∈ {name,kcal,fat,carb,protein,rating,visibility,usage} (Portion NOT sortable,
+  (private|shared), `source` (manual|ciqual|chronodrive — absent = every source;
+  `recipe` is not accepted, those rows are excluded from this list by construction),
+  `include_archived` (bool, default false),
+  `sort` ∈ {name,kcal,fat,carb,protein,rating,source,visibility,usage} (Portion NOT sortable,
   OPEN_GAPS #10), `dir`, `limit`, `cursor`. **`usage`** (FU-1) orders by the food's
   **meal-log count over the last 90 days** (most-used first for `dir=desc`), ties broken by
   most-recent use then name; usage is derived from `meal_entry` at query time (no stored
@@ -15,7 +17,12 @@ See `00-conventions.md`. All scoped to the authenticated user.
   lines (unfilled pinned placeholders, B-045) are not usage and do not count (B-157). **Every**
   `GET /foods` list response carries a `usage` integer on each Food (the 90-day consumed
   count), regardless of `sort` (B-156).
-  → 200 `{data:[Food], next_cursor}`.
+  Every response also carries **`sources`** — the provenance values actually present in the
+  user's catalog, sorted, **`recipe` excluded and archived foods included**. It is deliberately
+  computed **independently of the query's own filters** (`q`, `min_rating`, `visibility`,
+  `source`, `include_archived`), so the client's Source filter offers a stable set that does not
+  shift while the user types, and offers nothing when a provenance is absent (B-295).
+  → 200 `{data:[Food], next_cursor, total, sources}` (`total` = rows matching the filters, B-278).
 - `GET /foods/:id` → 200 Food | 404.
 - `POST /foods` — create. Body: `{name, kcal_per_100g, fat_per_100g,
 carb_per_100g, protein_per_100g, comment?, rating?(null|0..3),
@@ -28,8 +35,10 @@ named_portions:[{label,grams}]}`.
   server-owned and only `recipe-derived-food` writes it. Duplicate active
   name → 200/201 with `warnings:['duplicate_name']` (non-blocking). → 201 Food.
 - `PATCH /foods/:id` — edit. Editing macros affects **future** logs only (past
-  meal_entry snapshots untouched). `source` is **not** patchable: provenance is
-  fixed at creation and survives later edits (B-290). → 200 Food.
+  meal_entry snapshots untouched). `source` accepts the same restricted vocabulary as
+  create (`recipe` rejected, 422). It is **never** rewritten as a side effect of an edit —
+  a food keeps its provenance through any change to its values (B-290) — but the user may
+  **deliberately** correct it from the food form (B-295). → 200 Food.
 - `POST /foods/:id/archive` → 200 (sets archived_at; removed from search/list).
 - `POST /foods/:id/restore` → 200.
 - `POST /foods/parse-label` — **stateless** macro-label parser (PM-1/B-114). Body

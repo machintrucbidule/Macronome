@@ -8,6 +8,7 @@ import { useListReserve } from '../../../lib/useListReserve';
 import { FoodsToolbar } from './FoodsToolbar';
 import { FoodTable, type SortField } from './FoodTable';
 import type { MinRating, VisibilityFilter } from './FiltersPopover';
+import type { SourceFilter } from '../sourceFilter';
 
 // Desktop Aliments view (mobile-responsive S7): the dense table + toolbar extracted verbatim
 // from FoodsPage so the page can be a thin useIsMobile() switch. Rendered when useIsMobile()
@@ -22,12 +23,16 @@ interface FoodsDesktopProps {
   q: string;
   minRating: MinRating;
   visibility: VisibilityFilter;
+  source: SourceFilter;
+  /** Chips the Source filter may offer; empty hides the block entirely (B-295). */
+  sourceOptions: SourceFilter[];
   showArchived: boolean;
   sort: SortField;
   dir: 'asc' | 'desc';
   onQ: (q: string) => void;
   onMinRating: (r: MinRating) => void;
   onVisibility: (v: VisibilityFilter) => void;
+  onSource: (s: SourceFilter) => void;
   onShowArchived: (v: boolean) => void;
   onSort: (field: SortField) => void;
   onAdd: () => void;
@@ -48,10 +53,13 @@ export function FoodsDesktop(props: FoodsDesktopProps) {
         q={props.q}
         minRating={props.minRating}
         visibility={props.visibility}
+        source={props.source}
+        sourceOptions={props.sourceOptions}
         showArchived={props.showArchived}
         onQ={props.onQ}
         onMinRating={props.onMinRating}
         onVisibility={props.onVisibility}
+        onSource={props.onSource}
         onShowArchived={props.onShowArchived}
         onAdd={props.onAdd}
       />
