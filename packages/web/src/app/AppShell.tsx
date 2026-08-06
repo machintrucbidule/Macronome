@@ -111,10 +111,12 @@ export function AppShell() {
           </span>
           <AccountMenu />
         </div>
+        {/* B-262: the day-tone rule lives INSIDE the sticky header, absolutely positioned at its
+            lower edge. It must not be a block in the flow: `--appbar-h` is the sticky offset shared
+            by the Repas day bar, the table headers, ListChrome and Poids, and 2px of extra height
+            knocked all of them out of true (visible as the Repas totals band jittering on scroll). */}
+        <DayToneRule />
       </header>
-      {/* B-262: the day-tone rule belongs to the title strip — it must stay directly after
-          </header> so it reads as its lower edge in an installed WCO window. */}
-      <DayToneRule />
       {/* B-260: one global "server unreachable" banner, above the page body. */}
       <OfflineBanner />
       <main className={flush ? styles.pageFlush : styles.page}>

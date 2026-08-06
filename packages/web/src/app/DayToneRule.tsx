@@ -15,7 +15,7 @@ const TONE_CLASS: Record<DayTone, string | undefined> = {
   ok: styles.toneOk,
   warn: styles.toneWarn,
   nok: styles.toneNok,
-  none: undefined, // falls back to --border: indistinguishable from the appbar's own edge
+  none: undefined, // transparent: an unstarted day looks exactly as it did before this rule existed
 };
 
 export function DayToneRule() {

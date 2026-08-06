@@ -14,18 +14,26 @@
 }
 
 /* ===== Day-tone rule (B-262, design/components/top-nav.md) =====
-   A 2px full-bleed rule carrying TODAY's compliance tone, directly under the appbar. Sticky at the
-   appbar's own height so it reads as the lower edge of the title strip — in an installed WCO window
-   that is literally the bottom of the OS title band; in a browser tab it degrades to a rule under
-   the header. On `none` it is the ordinary --border, i.e. indistinguishable from the appbar's own
-   bottom edge: an unstarted day must not shout. Decorative (aria-hidden) — the verdict is already
-   available as text on Repas and Journal. */
+   A 2px full-bleed band carrying TODAY's compliance tone, at the appbar's lower edge.
+
+   It is an ABSOLUTELY POSITIONED CHILD OF THE APPBAR, not a sibling below it, and that is load-
+   bearing: `--appbar-h` (51px) is the sticky offset SHARED by the Repas day bar, the DataTable
+   theads, ListChrome and Poids. A 2px block in the normal flow — worse, a second sticky element
+   at the same offset — pushed every one of those stick points 2px out of true, which showed up as
+   the Repas totals band jittering during scroll. Out of the flow, it costs zero height, needs no
+   sticky of its own (it rides the already-sticky header), and leaves all six offsets exact.
+
+   `none` is transparent rather than --border: an unstarted day then looks exactly as it did before
+   this rule existed, keeping the header's own 1px bottom border and nothing more.
+   Decorative (aria-hidden) — the verdict is already available as text on Repas and Journal. */
 .toneRule {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
   height: 2px;
-  background: var(--border);
-  position: sticky;
-  top: var(--appbar-h);
-  z-index: var(--z-appbar);
+  background: transparent;
+  pointer-events: none;
 }
 .toneOk {
   background: var(--ok);
@@ -67,10 +75,8 @@
     -webkit-app-region: drag;
     app-region: drag;
   }
-  /* The tone rule sticks under whatever height the appbar actually took above (B-262). */
-  .toneRule {
-    top: max(env(titlebar-area-height, var(--appbar-h)), var(--appbar-h));
-  }
+  /* No WCO override needed for the tone rule (B-262): it is anchored to the appbar's own bottom
+     edge, so it follows whatever height the strip takes here without restating the calculation. */
   /* Interactive controls opt out of the drag region so they stay clickable. */
   .nav a,
   .themeToggleWrap,
