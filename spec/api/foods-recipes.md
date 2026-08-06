@@ -39,6 +39,15 @@ named_portions:[{label,grams}]}`.
   create (`recipe` rejected, 422). It is **never** rewritten as a side effect of an edit —
   a food keeps its provenance through any change to its values (B-290) — but the user may
   **deliberately** correct it from the food form (B-295). → 200 Food.
+- `POST /foods/from-ref` — adopt a Ciqual reference entry (B-293). Body `{ref_id, locale?}`.
+  Copies the entry into a real food with the adoption defaults: name **in the requested locale**
+  (default `fr`, D6), the four macros, `source:'ciqual'`, `visibility:'shared'`,
+  `ai_proposable:true`, no named portion, unrated. **Idempotent** — if an active food of that
+  normalized name already exists it is returned untouched rather than duplicated, so a double click
+  or a second pick of the same entry cannot create two foods. → **201** Food when created, **200**
+  Food when it already existed; unknown `ref_id` → 404. This is what the search pickers call when
+  the user picks a reference entry; the Aliments catalog view instead prefills the food form, so the
+  user can rename before saving (B-292).
 - `POST /foods/:id/archive` → 200 (sets archived_at; removed from search/list).
 - `POST /foods/:id/restore` → 200.
 - `POST /foods/parse-label` — **stateless** macro-label parser (PM-1/B-114). Body
@@ -68,9 +77,12 @@ named_portions:[{label,grams}]}`.
 
 Read-only browse over `food_ref`, the global Ciqual catalog shipped inside the image
 (`spec/schema/tables-catalog.md` §food_ref, `spec/logic/ciqual-catalog.md`). Reference data, not
-user data: nothing here is owned, created or edited through the API. A reference entry becomes a
-real food only when the user adopts it, which **copies** the values through the ordinary
-`POST /foods` with `source:'ciqual'` — there is no server-side adoption endpoint in B-292.
+user data: nothing here is owned, created or edited through the API — the two endpoints below only
+read. A reference entry becomes a real food only when the user adopts it, and an adoption is always
+a **copy**, never a link: no column ties a food back to the entry it came from, so a later Ciqual
+edition can change or drop a row without touching anything the user saved. Two doors lead to it —
+the Aliments catalog prefills the food form (B-292), the search pickers call
+`POST /foods/from-ref` (B-293) — and both land on the same defaults.
 
 - `GET /food-refs` — browse the catalog. Query: `q` (autocomplete — matches the **French and
   English** normalized names at once, so "pomme" and "apple" find the same entry, D6), `group`
@@ -157,15 +169,33 @@ Derived per-100 g / per-portion are computed server-side
 yield panel reads them from `POST /recipes/preview` while editing, and the persisted
 figures from `GET /recipes/:id` after save (cf. `screens/recipe.md` live recompute).
 
-## Combined log search (food ∪ recipe-derived food)
+## Combined log search (food ∪ recipe-derived food ∪ Ciqual reference)
 
 - `GET /search/loggable?q=` — diacritic-insensitive autocomplete over foods AND
-  recipe-derived foods (what the Daily log / cook mode / recipe ingredient picker
-  use). Excludes archived. **Ordered most-used-first** (FU-1): by the item's 90-day
-  meal-log count of **consumed** entries (`served_quantity > 0`; quantity-0 placeholder
+  recipe-derived foods (what the Daily log / cook mode / recipe ingredient picker / the
+  garde-manger picker use). Query: `q`, `limit` (default 20, max 50), `locale`
+  (`fr`|`en`, default `fr`). Excludes archived. **Ordered most-used-first** (FU-1): by the item's
+  90-day meal-log count of **consumed** entries (`served_quantity > 0`; quantity-0 placeholder
   lines do not count, B-157), ties broken by most-recent use then name (recipes rank by
-  their own logged usage, via their derived food). → 200 `{data:[{id,name,kind:'food'|'recipe',
-named_portions:[...]}]}`.
+  their own logged usage, via their derived food).
+  → 200 `{data:[{id,name,kind:'food'|'recipe',origin:'own'|'ciqual_ref',recipe_id,named_portions:[...]}]}`.
+
+**Ciqual reference entries in the results (B-293).** When — and only when — `q` is supplied, the
+user's own items are followed by matching entries of the reference catalog, filling whatever slots
+remain under `limit`. Two rules make that tail safe:
+
+- **Own first, always.** The FU-1 order above governs the user's own block and is untouched; the
+  reference tail is appended after it and can never displace an own item. With no `q` the response
+  is exactly what it was before B-293 — the picker opens on the user's habits, not on the catalog.
+- **A reference entry the user already has is not offered at all** (D11): excluded when its
+  normalized name in the requested `locale` matches one of the user's **active** foods. Their own
+  food wins; the catalog does not duplicate it.
+
+**`origin` is a discriminator, not a label.** `own` items carry a real `food.id`; `ciqual_ref` items
+carry a `food_ref.id`, which is **not** a food id and must never be sent to an endpoint expecting
+one. A client picking a `ciqual_ref` item adopts it first (`POST /foods/from-ref`) and continues
+with the returned food. `locale` selects which name a reference entry is returned under, and which
+name the duplicate rule compares — the same reason it exists on the reference catalog.
 
 ## Containers
 

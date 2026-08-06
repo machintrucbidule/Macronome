@@ -20,6 +20,9 @@ export interface SearchSheetItem {
   name: string;
   /** Inline badge, e.g. `recette` / `portion`. */
   tag?: string;
+  /** Second, NEUTRAL badge (B-293): where a result comes from when it is not yet one of the
+   *  user's own items, e.g. "Ciqual". */
+  hint?: string;
   /** Rendered dimmed and not tappable (e.g. a recipe that would create a cycle). */
   disabled?: boolean;
 }
@@ -36,7 +39,9 @@ interface SearchSheetProps {
   /** Omitted → no custom row at all (the recipe builder and the pantry offer none). */
   customLabel?: string;
   onCustom?: () => void;
-  onPick: (id: string) => void;
+  /** Receives the whole item, not just its id (B-293): a Ciqual reference id is NOT a food id,
+   *  and a host that looked the pick back up by id could not tell the two apart. */
+  onPick: (item: SearchSheetItem) => void;
   onClose: () => void;
 }
 
@@ -91,10 +96,15 @@ export function SearchSheet({
               ]
                 .filter(Boolean)
                 .join(' ')}
-              onClick={() => onPick(item.id)}
+              onClick={() => onPick(item)}
             >
               <span className={styles.name}>{item.name}</span>
-              {item.tag !== undefined && <span className={styles.tag}>{item.tag}</span>}
+              {(item.tag !== undefined || item.hint !== undefined) && (
+                <span className={styles.tags}>
+                  {item.tag !== undefined && <span className={styles.tag}>{item.tag}</span>}
+                  {item.hint !== undefined && <span className={styles.hint}>{item.hint}</span>}
+                </span>
+              )}
             </button>
           ))}
           {items.length === 0 && <div className={styles.empty}>{emptyLabel}</div>}

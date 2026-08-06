@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import {
+  AdoptFoodRefSchema,
   CreateFoodSchema,
   ErrorCode,
   FoodListQuerySchema,
@@ -36,6 +37,20 @@ export async function create(req: Request, res: Response): Promise<void> {
   if (!parsed.success) throw new ApiError(422, ErrorCode.ValidationError, zodDetails(parsed.error));
   const { food, warnings } = await foodsService.create(userId(res), parsed.data);
   res.status(201).json({ data: food, ...(warnings.length ? { warnings } : {}) });
+}
+
+/** Adopt a Ciqual reference entry (B-293). 201 when created, 200 when it already existed —
+ *  the endpoint is idempotent, so a second pick of the same entry is not an error. */
+export async function createFromRef(req: Request, res: Response): Promise<void> {
+  const parsed = AdoptFoodRefSchema.safeParse(req.body);
+  if (!parsed.success) throw new ApiError(422, ErrorCode.ValidationError, zodDetails(parsed.error));
+  const result = await foodsService.createFromRef(
+    userId(res),
+    parsed.data.ref_id,
+    parsed.data.locale,
+  );
+  if (!result) throw new ApiError(404, ErrorCode.NotFound);
+  res.status(result.created ? 201 : 200).json({ data: result.food });
 }
 
 export async function update(req: Request, res: Response): Promise<void> {

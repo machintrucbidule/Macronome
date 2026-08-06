@@ -100,6 +100,19 @@
   border: 1px solid color-mix(in srgb, var(--recipe) 40%, transparent);
   color: var(--recipe);
 }
+/* Neutral sibling of .tag (B-293): same geometry, no colour of its own. The accent-coloured
+   .tag classifies what an item IS (a recipe, a portion); this one only says where it comes
+   from, so it must not compete with it. */
+.hint {
+  font-family: var(--font-num);
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 1px 4px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+}
 
 .empty {
   padding: 10px;
@@ -135,7 +148,8 @@
   .nm {
     font-size: var(--fs-12); /* 14px — result rows, not just the field (owner's ask) */
   }
-  .tag {
+  .tag,
+  .hint {
     font-size: var(--fs-9); /* 12px */
   }
   /* The `top` above is a hard-coded 30px, which a 16px input (≈31px tall) would sit under: the list

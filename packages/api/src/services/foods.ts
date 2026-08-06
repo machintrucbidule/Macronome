@@ -1,4 +1,5 @@
 import type {
+  CatalogLocale,
   CreateFoodRequest,
   Food,
   FoodListQuery,
@@ -12,6 +13,7 @@ import {
   type FoodWithPortions,
   type FoodWriteData,
 } from '../data/repositories/food.repo.js';
+import * as foodRefRepo from '../data/repositories/food-ref.repo.js';
 import { normalize } from '../domain/search/normalize.js';
 import { parseLabel as parseLabelDomain } from '../domain/macro-label-parser/index.js';
 
@@ -90,6 +92,49 @@ export async function create(
   };
   const row = await foodRepo.create(userId, data);
   return { food: toDto(row), warnings };
+}
+
+/**
+ * Adopt a Ciqual reference entry into a real food (B-293) — what the search pickers call when the
+ * user picks a catalog entry, where the Aliments view instead prefills the form (B-292). The
+ * defaults are the same in both doors: name in the requested locale (D6), the four macros,
+ * `source:'ciqual'`, `visibility:'shared'`, `ai_proposable:true`, no portion, unrated.
+ *
+ * **Idempotent.** A picker gives no chance to rename before saving, so a second pick of the same
+ * entry — or a double click — must not leave two foods behind: an existing active food of that
+ * normalized name is returned untouched.
+ *
+ * @returns `created:false` when an existing food was returned, so the controller can answer 200
+ *          rather than 201; null when `refId` matches no entry.
+ */
+export async function createFromRef(
+  userId: string,
+  refId: string,
+  locale: CatalogLocale,
+): Promise<{ food: Food; created: boolean } | null> {
+  const ref = await foodRefRepo.findById(refId);
+  if (!ref) return null;
+  const name = locale === 'en' ? ref.nameEng : ref.nameFr;
+  const normalizedName = normalize(name);
+
+  const existing = await foodRepo.findActiveByNormalizedName(userId, normalizedName);
+  if (existing) return { food: toDto(existing), created: false };
+
+  const row = await foodRepo.create(userId, {
+    name,
+    normalizedName,
+    kcalPer100g: num(ref.kcalPer100g),
+    fatPer100g: num(ref.fatPer100g),
+    carbPer100g: num(ref.carbPer100g),
+    proteinPer100g: num(ref.proteinPer100g),
+    comment: null,
+    rating: null,
+    visibility: 'shared',
+    source: 'ciqual',
+    aiProposable: true,
+    portions: [],
+  });
+  return { food: toDto(row), created: true };
 }
 
 // Build the patch with conditional spreads so only provided fields are written

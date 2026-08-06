@@ -6,6 +6,7 @@ import {
   type AutocompleteItem,
 } from '../../../components/Form/Autocomplete/Autocomplete';
 import { useLoggableSearch } from '../useRecipes';
+import { usePickLoggable } from '../../foods/usePickLoggable';
 
 // Ingredient picker: autocomplete over foods AND recipes (spec/api §"Combined log search").
 // The recipe being edited is shown disabled (self-reference); deeper transitive cycles are
@@ -44,10 +45,14 @@ export function IngredientSearch({
     return () => document.removeEventListener('mousedown', onDown);
   }, [onClose]);
 
+  const { resolveItem } = usePickLoggable();
+
   const items: AutocompleteItem[] = results.map((r) => ({
     id: r.id,
     name: r.name,
     ...(r.kind === 'recipe' ? { tag: t('recipes.builder.recipeTag') } : {}),
+    // Ciqual entries are not yours yet — picking one adopts it first (B-293).
+    ...(r.origin === 'ciqual_ref' ? { hint: t('foods.source.ciqual') } : {}),
     disabled: r.id === disabledFoodId,
   }));
   const byId = new Map(results.map((r) => [r.id, r]));
@@ -63,7 +68,8 @@ export function IngredientSearch({
         placeholder={t('recipes.builder.searchPlaceholder')}
         onPick={(it) => {
           const picked = byId.get(it.id);
-          if (picked) onPick(picked);
+          // A Ciqual entry becomes a real food before it can be an ingredient (B-293).
+          if (picked) void resolveItem(picked).then(onPick);
         }}
         onClose={onClose}
       />

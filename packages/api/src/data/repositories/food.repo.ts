@@ -240,6 +240,22 @@ export const foodRepo = {
     return new Set(rows.map((r) => r.normalizedName));
   },
 
+  /**
+   * The user's ACTIVE food of that normalized name, or null (B-293). `existsActiveByNormalizedName`
+   * only answers yes/no; an idempotent adoption has to hand the caller the food that already
+   * exists rather than create a second one.
+   */
+  async findActiveByNormalizedName(
+    userId: string,
+    normalizedName: string,
+  ): Promise<FoodWithPortions | null> {
+    const food = await prisma.food.findFirst({
+      where: { ownerId: userId, normalizedName, archivedAt: null },
+    });
+    if (!food) return null;
+    return (await withPortions([food]))[0] ?? null;
+  },
+
   async create(userId: string, data: FoodWriteData): Promise<FoodWithPortions> {
     const food = await prisma.$transaction(async (tx) => {
       const created = await tx.food.create({

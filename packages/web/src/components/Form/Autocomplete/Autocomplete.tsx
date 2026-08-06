@@ -13,8 +13,11 @@ export interface AutocompleteItem {
   name: string;
   /** Right-aligned meta, e.g. "121 kcal /100g". */
   meta?: string;
-  /** Inline badge label, e.g. "portion" or "recette". */
+  /** Inline badge label, e.g. "portion" or "recette" — accent-coloured. */
   tag?: string;
+  /** Second, NEUTRAL badge (B-293): names where a result comes from when it is not yet one of
+   *  the user's own items, e.g. "Ciqual". Grey on purpose — it qualifies, it does not classify. */
+  hint?: string;
   disabled?: boolean;
 }
 
@@ -117,6 +120,7 @@ function AutocompleteList({
           <span className={styles.nm}>
             <span className={styles.name}>{highlightMatch(item.name, query, styles.em)}</span>
             {item.tag && <span className={styles.tag}>{item.tag}</span>}
+            {item.hint && <span className={styles.hint}>{item.hint}</span>}
           </span>
           {item.meta && <span className={styles.meta}>{item.meta}</span>}
         </div>

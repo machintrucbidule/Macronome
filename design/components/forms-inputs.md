@@ -151,7 +151,14 @@ box-shadow:var(--shadow); max-height:240–300px; overflow:auto; min-width:260�
   current `.cur` → 1px accent outline; **disabled** `.disabled` (would create a
   recipe cycle) → `opacity:.4; cursor:not-allowed`; **empty** `.empty` →
   "Aucun résultat" in `--text-faint`.
-- **tags**: a `portion` tag and a `recette` (`--recipe`) badge can appear inline.
+- **tags**: up to two badges inline, and they answer different questions.
+  - The **classifying** badge — `portion`, or `recette` in `--recipe` — says what the item **is**.
+  - The **provenance** badge (B-293) is **neutral grey** (`--text-dim` on `--border`) and says
+    where a result **comes from** when it is not yet one of the user's own items — today
+    `Ciqual`, for a reference entry the user has not adopted. Grey on purpose: it qualifies the
+    result, it must not compete with the badge that classifies it. In the sheet, where both are
+    already neutral, the provenance badge steps back by ink (`--text-faint`, softened border)
+    rather than by hue, and the two travel as one group on the right of the row.
 - A **custom option** `.custom-opt` (`color:var(--accent)`) → "+ Valeurs
   manuelles (custom)…" opens the custom-food modal. It is **leading** (first row) when the query is
   **empty** and **trailing** (last row) once the user types (B-159) — so Enter/Tab keep selecting the
@@ -165,9 +172,9 @@ box-shadow:var(--shadow); max-height:240–300px; overflow:auto; min-width:260�
   pinned search field with large tappable rows, which a dropdown anchored to a dense cell cannot
   be. The `.ac` spec above therefore describes the **desktop and tablet** presentation only
   (≥561px, where it is byte-identical). Everything the dropdown does that the user can perceive —
-  the current-item marker, the `recette` / `portion` tags, disabled entries, the empty label and
-  the leading/trailing custom option (B-159) — has a counterpart in the sheet, so the two
-  presentations stay behaviourally in parity.
+  the current-item marker, the `recette` / `portion` tags, the neutral provenance badge (B-293),
+  disabled entries, the empty label and the leading/trailing custom option (B-159) — has a
+  counterpart in the sheet, so the two presentations stay behaviourally in parity.
   - The autocomplete input itself still honours `--fs-13` (= 16px) at ≤560px to avoid iOS
     focus-zoom (spec §8), because a phone in **landscape** exceeds 560px and keeps the dropdown
     (B-230).

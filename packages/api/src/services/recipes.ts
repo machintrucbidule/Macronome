@@ -271,7 +271,7 @@ export async function restore(userId: string, id: string): Promise<boolean> {
 
 export async function loggableSearch(userId: string, query: LoggableSearchQuery) {
   const normalized = query.q ? normalize(query.q) : undefined;
-  return { data: await loggableRepo.search(userId, normalized, query.limit) };
+  return { data: await loggableRepo.search(userId, normalized, query.limit, query.locale) };
 }
 
 // Local helper: normalise an existing recipe's persisted ingredients (for PATCHes that

@@ -10,6 +10,10 @@ import { useFoodSearch } from '../useFoodPicker';
 import { PantryFoodChip } from './PantryFoodChip';
 import { PantryPickerSheet } from './PantryPickerSheet';
 import styles from '../settings.module.css';
+import { usePickLoggable } from '../../foods/usePickLoggable';
+import type { TFunction } from 'i18next';
+import type { LoggableItem } from '@macronome/shared';
+import type { SearchSheetItem } from '../../../components/SearchSheet';
 
 // Per-meal garde-manger editor (screens/settings.md): pinned foods as removable chips (each
 // with a prefill-unit chip/menu, GM-2/B-094) + a food picker to add one. Same pantry_item data as
@@ -54,6 +58,24 @@ const restoreBody = (item: PantryItem): CreatePantryRequest => ({
   order_index: item.order_index,
 });
 
+/** Picker rows: already-pinned foods filtered out, the recipe tag, and the Ciqual provenance
+ *  chip on entries that are not the user's foods yet (B-293). */
+function pickerOptions(
+  results: LoggableItem[],
+  items: PantryItem[],
+  t: TFunction,
+): SearchSheetItem[] {
+  const pinnedIds = new Set(items.map((i) => i.food_id));
+  return results
+    .filter((f) => !pinnedIds.has(f.id))
+    .map((f) => ({
+      id: f.id,
+      name: f.name,
+      ...(f.kind === 'recipe' ? { tag: t('recipes.builder.recipeTag') } : {}),
+      ...(f.origin === 'ciqual_ref' ? { hint: t('foods.source.ciqual') } : {}),
+    }));
+}
+
 export function PantryEditor({ mealSlotName, items }: Props) {
   const { t } = useTranslation();
   const { create, update, remove } = usePantryMutations();
@@ -62,19 +84,22 @@ export function PantryEditor({ mealSlotName, items }: Props) {
   const [q, setQ] = useState('');
   const [error, setError] = useState<string | null>(null);
   const search = useFoodSearch(q, picking);
+  const { resolve } = usePickLoggable();
   const pickerRef = useRef<HTMLDivElement>(null);
 
   useOutsideClose(picking && !isMobile, pickerRef, setPicking);
 
-  const pinnedIds = new Set(items.map((i) => i.food_id));
-  const options = (search.data?.data ?? [])
-    .filter((f) => !pinnedIds.has(f.id))
-    .map((f) => ({ id: f.id, name: f.name }));
+  const results = search.data?.data ?? [];
+  const options = pickerOptions(results, items, t);
 
-  const add = async (foodId: string): Promise<void> => {
+  const add = async (id: string): Promise<void> => {
     setError(null);
+    const hit = results.find((r) => r.id === id);
+    if (!hit) return;
     try {
-      await create.mutateAsync({ meal_slot_name: mealSlotName, food_id: foodId });
+      // A Ciqual entry becomes a real food before it can be pinned (B-293).
+      const picked = await resolve(hit);
+      await create.mutateAsync({ meal_slot_name: mealSlotName, food_id: picked.id });
       setPicking(false);
       setQ('');
     } catch (e) {
@@ -85,6 +110,7 @@ export function PantryEditor({ mealSlotName, items }: Props) {
   const setUnit = (id: string, unit: EntryUnit, portionId: string | null): void => {
     update.mutate({ id, body: { unit, portion_id: portionId } });
   };
+  const closePicker = (): void => setPicking(false);
 
   // B-261: undo re-pins the food with its prefill unit AND its position — POST /pantry gained
   // order_index for exactly this (owner-approved), so the chip does not come back at the end.
@@ -121,7 +147,7 @@ export function PantryEditor({ mealSlotName, items }: Props) {
             emptyLabel={t('settings.pantry.searchEmpty')}
             placeholder={t('settings.pantry.searchPlaceholder')}
             onPick={(item) => void add(item.id)}
-            onClose={() => setPicking(false)}
+            onClose={closePicker}
           />
         </div>
       )}
@@ -130,8 +156,8 @@ export function PantryEditor({ mealSlotName, items }: Props) {
           query={q}
           onQueryChange={setQ}
           items={options}
-          onPick={(foodId) => void add(foodId)}
-          onClose={() => setPicking(false)}
+          onPick={(item) => void add(item.id)}
+          onClose={closePicker}
         />
       )}
       {error && <div className={styles.error}>{error}</div>}

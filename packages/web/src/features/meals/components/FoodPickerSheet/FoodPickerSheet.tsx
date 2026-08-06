@@ -4,6 +4,7 @@ import { SearchSheet, type SearchSheetItem } from '../../../../components/Search
 import { useMeals } from '../../MealsContext';
 import { useFoodSearch } from '../../hooks/useFoodLookup';
 import type { EditTarget } from '../../hooks/mealActions';
+import { usePickLoggable } from '../../../foods/usePickLoggable';
 
 // Mobile-only food picker (spec §5.3). Replaces the inline autocomplete on phones: a search field +
 // a tappable result list (foods ∪ recipes via `/search/loggable`), shown as a bottom sheet (owner
@@ -30,6 +31,8 @@ export function FoodPickerSheet({ target }: { target: EditTarget }) {
     return e?.food_id ?? null;
   }, [target.entryId, day]);
 
+  const { resolve } = usePickLoggable();
+
   const items: SearchSheetItem[] = results.map((r) => ({
     id: r.id,
     name: r.name,
@@ -38,19 +41,27 @@ export function FoodPickerSheet({ target }: { target: EditTarget }) {
       : r.named_portions.length
         ? { tag: t('meals.tag.portion') }
         : {}),
+    // Ciqual entries are not yours yet — picking one adopts it first (B-293).
+    ...(r.origin === 'ciqual_ref' ? { hint: t('foods.source.ciqual') } : {}),
   }));
 
-  const pick = (id: string): void =>
-    void actions.pickFood(
-      {
-        mealId: target.mealId,
-        mealIndex: target.mealIndex,
-        entryId: target.entryId,
-        orderIndex: target.orderIndex ?? null,
-      },
-      id,
-      results.find((r) => r.id === id)?.named_portions,
+  const pick = (item: SearchSheetItem): void => {
+    const hit = results.find((r) => r.id === item.id);
+    if (!hit) return;
+    // A Ciqual entry is adopted first; `resolve` hands back a real food either way (B-293).
+    void resolve(hit).then((picked) =>
+      actions.pickFood(
+        {
+          mealId: target.mealId,
+          mealIndex: target.mealIndex,
+          entryId: target.entryId,
+          orderIndex: target.orderIndex ?? null,
+        },
+        picked.id,
+        picked.named_portions,
+      ),
     );
+  };
 
   return (
     <SearchSheet

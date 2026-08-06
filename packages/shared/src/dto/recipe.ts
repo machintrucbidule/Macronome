@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { NamedPortionSchema, RatingSchema } from './food.js';
+import { CatalogLocaleSchema } from './food-ref.js';
 
 // Recipe DTOs (spec/api/foods-recipes.md §Recipes). One source for controller
 // validation and the web client's types. Field names stay snake_case to match the API
@@ -201,11 +202,22 @@ export interface RecipeMutationResponse {
 
 // --- Combined log search (food ∪ recipe-derived food) ---------------------
 
+/**
+ * Where a search hit comes from (B-293). A discriminator, not a label: `own` items carry a real
+ * `food.id`, `ciqual_ref` items carry a `food_ref.id` — which is NOT a food id and must never be
+ * sent to an endpoint expecting one. Picking a reference entry adopts it first
+ * (`POST /foods/from-ref`) and continues with the food that comes back.
+ */
+export const LoggableOriginSchema = z.enum(['own', 'ciqual_ref']);
+export type LoggableOrigin = z.infer<typeof LoggableOriginSchema>;
+
 export const LoggableItemSchema = z.object({
-  /** The loggable food id (a recipe-derived food when kind='recipe'). */
+  /** The loggable food id (a recipe-derived food when kind='recipe'; a food_ref id when
+   *  origin='ciqual_ref'). */
   id: z.string().uuid(),
   name: z.string(),
   kind: z.enum(['food', 'recipe']),
+  origin: LoggableOriginSchema,
   /** The source recipe id when kind='recipe' (for recipe-ingredient references). */
   recipe_id: z.string().uuid().nullable(),
   named_portions: z.array(NamedPortionSchema),
@@ -215,6 +227,9 @@ export type LoggableItem = z.infer<typeof LoggableItemSchema>;
 export const LoggableSearchQuerySchema = z.object({
   q: z.string().trim().max(255).optional(),
   limit: z.coerce.number().int().positive().max(50).optional().default(20),
+  /** Which language a reference entry is returned under, and which name the duplicate rule
+   *  compares — same role as on the reference catalog (D6). */
+  locale: CatalogLocaleSchema.optional().default('fr'),
 });
 export type LoggableSearchQuery = z.infer<typeof LoggableSearchQuerySchema>;
 

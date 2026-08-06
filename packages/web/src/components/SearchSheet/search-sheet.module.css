@@ -69,11 +69,29 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* Chips travel together on the right: `.row` is space-between, so two loose siblings would
+   drift apart across the row instead of reading as one group (B-293). */
+.tags {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
 .tag {
   flex: none;
   font-size: var(--fs-10);
   color: var(--text-dim);
   border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 2px 6px;
+}
+/* The desktop dropdown distinguishes the two chips by colour; here both are already neutral,
+   so the provenance chip is set apart by weight of ink instead. */
+.hint {
+  flex: none;
+  font-size: var(--fs-10);
+  color: var(--text-faint);
+  border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
   border-radius: var(--r-sm);
   padding: 2px 6px;
 }

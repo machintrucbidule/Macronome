@@ -10,6 +10,8 @@ import { notifyUndoable } from '../../components/Toast/notify';
 import { loggableSearchApi } from '../../api/loggableSearch';
 import { LIST_GC_TIME } from '../../lib/listCache';
 import { draftToPreviewBody, type RecipeDraft } from './modals/draft';
+import { useTranslation } from 'react-i18next';
+import { catalogLocale } from '../foods/catalog/refName';
 
 // Data hooks for the Recettes screen. The page owns search/sort state and passes it
 // here; mutations invalidate the recipes cache so the list refetches.
@@ -66,9 +68,11 @@ export function useRecipePreview(draft: RecipeDraft) {
 
 /** Combined food∪recipe search for the ingredient picker. */
 export function useLoggableSearch(query: string, enabled: boolean) {
+  const { i18n } = useTranslation();
+  const locale = catalogLocale(i18n.language);
   return useQuery({
-    queryKey: ['loggable', query],
-    queryFn: () => loggableSearchApi.search(query),
+    queryKey: ['loggable', query, locale],
+    queryFn: () => loggableSearchApi.search(query, locale),
     enabled,
     staleTime: 30_000,
   });

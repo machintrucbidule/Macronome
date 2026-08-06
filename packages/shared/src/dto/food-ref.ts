@@ -57,3 +57,15 @@ export interface FoodRefListResponse {
 export interface FoodRefGroupsResponse {
   data: string[];
 }
+
+/**
+ * Adopt a reference entry into a real food (`POST /foods/from-ref`, B-293). What the search
+ * pickers call when the user picks a Ciqual entry — the Aliments catalog instead prefills the
+ * food form, so the user can rename before saving (B-292). Idempotent server-side.
+ */
+export const AdoptFoodRefSchema = z.object({
+  ref_id: z.string().uuid(),
+  /** Which language the adopted food is named in (D6). */
+  locale: CatalogLocaleSchema.optional().default('fr'),
+});
+export type AdoptFoodRefRequest = z.infer<typeof AdoptFoodRefSchema>;

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { LoggableItem } from '@macronome/shared';
 import { SearchSheet, type SearchSheetItem } from '../../../components/SearchSheet';
 import { useLoggableSearch } from '../useRecipes';
+import { usePickLoggable } from '../../foods/usePickLoggable';
 
 // The ingredient picker on phones (MOB-1, specifications/screens/recipe.md §Interactions). Same
 // results and same disabled rule as the desktop `IngredientSearch` — the presentation is the shared
@@ -38,10 +39,14 @@ export function IngredientPickerSheet({
   const search = useLoggableSearch(query, true);
   const results = search.data?.data ?? [];
 
+  const { resolveItem } = usePickLoggable();
+
   const items: SearchSheetItem[] = results.map((r) => ({
     id: r.id,
     name: r.name,
     ...(r.kind === 'recipe' ? { tag: t('recipes.builder.recipeTag') } : {}),
+    // Ciqual entries are not yours yet — picking one adopts it first (B-293).
+    ...(r.origin === 'ciqual_ref' ? { hint: t('foods.source.ciqual') } : {}),
     disabled: r.id === disabledFoodId,
   }));
 
@@ -57,9 +62,10 @@ export function IngredientPickerSheet({
       items={items}
       currentId={currentId ?? null}
       // No custom option: the builder allows no custom-inline ingredients (recipe.md).
-      onPick={(id) => {
-        const picked = results.find((r) => r.id === id);
-        if (picked) onPick(picked);
+      onPick={(item) => {
+        const picked = results.find((r) => r.id === item.id);
+        // A Ciqual entry becomes a real food before it can be an ingredient (B-293).
+        if (picked) void resolveItem(picked).then(onPick);
       }}
       onClose={onClose}
     />

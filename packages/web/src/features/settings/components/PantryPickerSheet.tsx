@@ -13,7 +13,7 @@ interface PantryPickerSheetProps {
   query: string;
   onQueryChange: (query: string) => void;
   items: SearchSheetItem[];
-  onPick: (foodId: string) => void;
+  onPick: (item: SearchSheetItem) => void;
   onClose: () => void;
 }
 

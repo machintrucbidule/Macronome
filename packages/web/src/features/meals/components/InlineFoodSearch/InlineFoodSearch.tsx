@@ -6,6 +6,7 @@ import {
 } from '../../../../components/Form/Autocomplete/Autocomplete';
 import { useMeals } from '../../MealsContext';
 import { useFoodSearch } from '../../hooks/useFoodLookup';
+import { usePickLoggable } from '../../../foods/usePickLoggable';
 
 // Inline food picker shown in the name cell while editing a line. Searches foods ∪ recipes
 // (server-side `/search/loggable`), maps results to the shared Autocomplete, and routes a
@@ -46,6 +47,8 @@ export function InlineFoodSearch({
     return () => document.removeEventListener('mousedown', onDoc);
   }, [actions]);
 
+  const { resolve } = usePickLoggable();
+
   const items: AutocompleteItem[] = useMemo(
     () =>
       (search.data?.data ?? []).map((item) => ({
@@ -56,6 +59,8 @@ export function InlineFoodSearch({
           : item.named_portions.length
             ? { tag: t('meals.tag.portion') }
             : {}),
+        // Ciqual entries are not yours yet — picking one adopts it first (B-293).
+        ...(item.origin === 'ciqual_ref' ? { hint: t('foods.source.ciqual') } : {}),
       })),
     [search.data, t],
   );
@@ -70,15 +75,20 @@ export function InlineFoodSearch({
         emptyLabel={t('meals.search.empty')}
         customOptionLabel={t('meals.search.custom')}
         placeholder={t('meals.search.placeholder')}
-        onPick={(item) =>
-          void actions.pickFood(
-            { mealId, mealIndex, entryId, orderIndex: orderIndex ?? null },
-            item.id,
-            // Default-unit-on-add (B-109): the loggable item (food or recipe) already carries its
-            // named portions in memory; pass them so the new line defaults to a portion, not g.
-            search.data?.data.find((f) => f.id === item.id)?.named_portions,
-          )
-        }
+        onPick={(item) => {
+          const hit = search.data?.data.find((f) => f.id === item.id);
+          if (!hit) return;
+          // A Ciqual entry is adopted first; `resolve` hands back a real food either way (B-293).
+          void resolve(hit).then((picked) =>
+            actions.pickFood(
+              { mealId, mealIndex, entryId, orderIndex: orderIndex ?? null },
+              picked.id,
+              // Default-unit-on-add (B-109): the loggable item already carries its named portions
+              // in memory; pass them so the new line defaults to a portion, not g.
+              picked.named_portions,
+            ),
+          );
+        }}
         onCustom={() => actions.openCustom(mealId, mealIndex, entryId, orderIndex)}
         onClose={actions.closeEdit}
         selectOnMount={seed == null}

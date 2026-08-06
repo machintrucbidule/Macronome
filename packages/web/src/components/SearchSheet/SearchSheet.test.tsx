@@ -44,10 +44,12 @@ describe('SearchSheet', () => {
     expect(screen.getByRole('button', { name: /Gratin.*recette/ })).toBeTruthy();
   });
 
-  it('reports the picked id', () => {
+  // B-293: the whole item travels, not just its id — a Ciqual reference id is not a food id,
+  // and a host that looked the pick back up by id could not tell the two apart.
+  it('reports the picked item', () => {
     const { onPick } = renderSheet();
     fireEvent.click(screen.getByRole('button', { name: /Flocons/ }));
-    expect(onPick).toHaveBeenCalledWith('f1');
+    expect(onPick).toHaveBeenCalledWith(expect.objectContaining({ id: 'f1' }));
   });
 
   // The recipe builder needs this: a recipe that would create a cycle is shown but must be

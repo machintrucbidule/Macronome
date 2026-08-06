@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { PantryItem } from '@macronome/shared';
 import '../../../i18n/config';
+import { foodsApi } from '../../../api/foods';
 import { PantryEditor } from './PantryEditor';
 
 // GM-2 — the per-food prefill unit selector (B-094) and the food picker outside-click (B-095,
@@ -12,7 +13,9 @@ const mocks = vi.hoisted(() => ({
   create: { mutateAsync: vi.fn().mockResolvedValue({}) },
   update: { mutate: vi.fn() },
   remove: { mutate: vi.fn() },
-  search: { data: { data: [{ id: 'f9', name: 'Banane' }] } },
+  search: {
+    data: { data: [{ id: 'f9', name: 'Banane', kind: 'food', origin: 'own', named_portions: [] }] },
+  },
   food: {
     data: {
       data: { name: 'Flocons', named_portions: [{ id: 'p1', label: 'tranche', grams: 30 }] },
@@ -30,10 +33,14 @@ vi.mock('../../meals/hooks/useFoodLookup', () => ({ useFood: () => mocks.food })
 const { isMobile } = vi.hoisted(() => ({ isMobile: { value: false } }));
 vi.mock('../../../lib/useIsMobile', () => ({ useIsMobile: () => isMobile.value }));
 
+const DEFAULT_RESULTS = mocks.search.data;
+
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
   isMobile.value = false;
+  // The Ciqual block below swaps the picker results; restore them so order cannot matter.
+  mocks.search.data = DEFAULT_RESULTS;
 });
 
 const item: PantryItem = {
@@ -103,16 +110,19 @@ describe('PantryEditor — picker sheet on phones (MOB-1)', () => {
     expect(screen.queryByRole('combobox')).toBeNull();
   });
 
-  it('pins the tapped food', () => {
+  // Pinning is async since B-293: a Ciqual entry is adopted first, so every pick resolves.
+  it('pins the tapped food', async () => {
     isMobile.value = true;
     renderEditor([]);
     fireEvent.click(screen.getByRole('button', { name: '+ Aliment' }));
 
     fireEvent.click(screen.getByRole('button', { name: /Banane/ }));
-    expect(mocks.create.mutateAsync).toHaveBeenCalledWith({
-      meal_slot_name: 'Petit déjeuner',
-      food_id: 'f9',
-    });
+    await waitFor(() =>
+      expect(mocks.create.mutateAsync).toHaveBeenCalledWith({
+        meal_slot_name: 'Petit déjeuner',
+        food_id: 'f9',
+      }),
+    );
   });
 
   it('does not close on an outside mousedown (the sheet has its own close paths)', () => {
@@ -122,5 +132,48 @@ describe('PantryEditor — picker sheet on phones (MOB-1)', () => {
 
     fireEvent.mouseDown(document.body);
     expect(screen.getByRole('dialog')).toBeTruthy();
+  });
+});
+
+// B-293 acceptance, pantry family. This picker used to query GET /foods, which made it the only
+// one of the three without recipes and without Ciqual; it now shares /search/loggable.
+describe('PantryEditor — Ciqual entries (B-293)', () => {
+  const CIQUAL = {
+    id: 'ref-1',
+    name: 'Banane, pulpe, crue',
+    kind: 'food',
+    origin: 'ciqual_ref',
+    named_portions: [],
+  };
+
+  it('marks a reference entry and leaves the user own results unmarked', () => {
+    isMobile.value = true;
+    mocks.search.data = { data: [...DEFAULT_RESULTS.data, CIQUAL] };
+    renderEditor([]);
+    fireEvent.click(screen.getByRole('button', { name: '+ Aliment' }));
+
+    expect(screen.getByRole('button', { name: /Banane, pulpe, crue.*Ciqual/ })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /^Banane$/ })).toBeTruthy();
+  });
+
+  it('adopts a reference entry, then pins the real food', async () => {
+    isMobile.value = true;
+    mocks.search.data = { data: [CIQUAL] };
+    const spy = vi.spyOn(foodsApi, 'createFromRef').mockResolvedValue({
+      data: { id: 'new-food', named_portions: [] },
+    } as unknown as Awaited<ReturnType<typeof foodsApi.createFromRef>>);
+    renderEditor([]);
+    fireEvent.click(screen.getByRole('button', { name: '+ Aliment' }));
+
+    fireEvent.click(screen.getByRole('button', { name: /Banane, pulpe, crue/ }));
+
+    await waitFor(() => expect(spy).toHaveBeenCalledWith({ ref_id: 'ref-1', locale: 'fr' }));
+    // The pin points at the NEW food id, never the reference id.
+    await waitFor(() =>
+      expect(mocks.create.mutateAsync).toHaveBeenCalledWith({
+        meal_slot_name: 'Petit déjeuner',
+        food_id: 'new-food',
+      }),
+    );
   });
 });

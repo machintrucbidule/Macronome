@@ -108,6 +108,34 @@ export async function list(query: ListOpts): Promise<FoodRefPage> {
   return { rows: page, nextCursor: hasMore ? (page.at(-1)?.id ?? null) : null, total };
 }
 
+/** One entry by id, for adoption (B-293). Null when the id is unknown. */
+export async function findById(id: string): Promise<FoodRefModel | null> {
+  return prisma.foodRef.findUnique({ where: { id } });
+}
+
+/**
+ * A bounded name search for the combined log picker (B-293) — the reference tail appended under
+ * the user's own results. Unlike `list` it has no cursor and runs no `count`: the picker shows at
+ * most a handful of rows and never pages.
+ */
+export async function searchByName(
+  normalized: string,
+  locale: FoodRefListQuery['locale'],
+  limit: number,
+): Promise<FoodRefModel[]> {
+  if (limit <= 0) return [];
+  return prisma.foodRef.findMany({
+    where: {
+      OR: [
+        { normalizedNameFr: { contains: normalized } },
+        { normalizedNameEng: { contains: normalized } },
+      ],
+    },
+    orderBy: [{ [SORT_COLUMN[locale].name]: 'asc' }, { id: 'asc' }],
+    take: limit,
+  });
+}
+
 /** The level-1 group labels present, sorted — the catalog's group filter (B-292). */
 export async function groups(locale: FoodRefListQuery['locale']): Promise<string[]> {
   const column = groupColumn(locale);

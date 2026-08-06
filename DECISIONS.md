@@ -6308,3 +6308,58 @@ did not sit well in a three-up grid.
 `design/components/data-tables.md` (second Aliments table instance + the page mode-switch
 convention), `docs/architecture/module-map.md` §2, `specifications/screens/food-db.md`. No schema
 change: `food_ref` is unchanged since CIQ-1. No design-token change.
+
+---
+
+## CIQ-4 / B-293 — Ciqual in the food searches, and silent adoption — RESOLVED (owner, 2026-08-06)
+
+**Observed.** CIQ-3 made the catalog browsable from the Aliments screen, but the daily gesture is
+not to go browsing: it is to type a name in a meal's picker, the recipe ingredient builder or the
+garde-manger. Until this batch the 3 400 entries were invisible exactly where the user searches.
+
+**Decision — the catalog is a tail, never a peer.** The user's own results keep the FU-1 90-day
+usage order, untouched, and reference entries are appended **after** them, filling only the slots
+left free under `limit`. A reference entry can therefore never displace an own food, whatever the
+query.
+
+**Owner decision — the tail appears only once something is typed.** With no `q` the picker opens on
+the user's habits, exactly as before. The alternative (always filling the free slots) would have
+put arbitrary alphabetical catalog rows in half the list on every open, for no benefit. It also
+keeps the existing FU-1 ordering assertions honest rather than papered over.
+
+**Decision — a reference entry the user already owns is not offered at all (D11).** Excluded by
+normalized name against their **active** foods. Their own food wins; showing both would only invite
+the duplicate the exclusion exists to prevent. Archive that food and the catalog entry comes back.
+
+**Decision — `origin`, not `source`.** A reference entry carries a `food_ref` id, which is **not** a
+food id: everything downstream (a meal line, an ingredient, a pin) needs a real one. An explicit
+`origin: 'own' | 'ciqual_ref'` discriminator makes that impossible to confuse in silence, where a
+looser `source` field would have read like decoration. The same reasoning widened
+`SearchSheet.onPick` from an id to the whole item — three hosts were re-finding the pick by id in
+their own array, which cannot tell the two id spaces apart.
+
+**Decision — `POST /foods/from-ref` is idempotent.** A picker gives no chance to review before
+saving, so a double click or a second pick of the same entry must not leave two foods behind: an
+existing active food of that name is returned untouched, with **200** instead of 201. The adoption
+defaults are shared with the B-292 prefilled form — one definition, two doors.
+
+**Owner decision — the garde-manger picker moves to the common search, recipes included.** It was
+the only one of the three querying `GET /foods`, which is why it had neither recipes nor Ciqual.
+Worth recording because it looks like new behaviour and is not: **a recipe was already pinnable**
+through the Repas 📌 (a pin points at the recipe's derived food, and nothing filters it
+server-side). The Paramètres picker was simply the one door that excluded them; this aligns the two.
+
+**Owner decision — a grey chip, no separator row.** The provenance chip carries the distinction on
+its own. A "Catalogue Ciqual" heading between the two blocks was rejected: one more line in a list
+capped at 20, and an element the keyboard navigation would have to learn to skip.
+
+**Consequence accepted, not discovered.** A silent adoption keeps the raw Ciqual label, so a journal
+line can read "Blé dur précuit, cuit". That is the price of the one-click gesture (D12); the
+Aliments screen remains where a food is renamed, and the adopted food is editable there immediately.
+
+**Contract impact.** `spec/api/foods-recipes.md` (§Combined log search rewritten — `origin`,
+`locale`, own-first, the q-gated tail, the duplicate rule; §Foods gains `POST /foods/from-ref`;
+§Food reference catalog's "no adoption endpoint" sentence corrected),
+`design/components/forms-inputs.md` (a second, neutral provenance badge alongside the classifying
+one, and the sheet/dropdown parity clause), `specifications/screens/meals.md`, `recipe.md`,
+`settings.md`. No schema change. No design-token change.

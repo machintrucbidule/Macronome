@@ -1,4 +1,5 @@
 import type {
+  AdoptFoodRefRequest,
   CreateFoodRequest,
   Food,
   FoodListResponse,
@@ -40,6 +41,10 @@ export const foodsApi = {
     api.get<FoodListResponse>(`/foods${toQueryString(params)}`),
   get: (id: string) => api.get<{ data: Food }>(`/foods/${id}`),
   create: (body: CreateFoodRequest) => api.post<FoodMutationResponse>('/foods', body),
+  // Adopt a Ciqual reference entry (B-293). Idempotent server-side: picking the same entry
+  // twice returns the food that already exists rather than creating a second one.
+  createFromRef: (body: AdoptFoodRefRequest) =>
+    api.post<FoodMutationResponse>('/foods/from-ref', body),
   update: (id: string, body: UpdateFoodRequest) =>
     api.patch<FoodMutationResponse>(`/foods/${id}`, body),
   archive: (id: string) => api.post<{ ok: true }>(`/foods/${id}/archive`),
