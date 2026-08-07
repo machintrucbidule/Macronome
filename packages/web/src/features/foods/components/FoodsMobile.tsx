@@ -101,9 +101,10 @@ export function FoodsMobile(props: FoodsMobileProps) {
           fabSafe
         />
         {/* Batch edit (BE-1, owner follow-up): one more icon-only chrome control, in the row's
-            normal place just left of Filtrer — not a text button on a band of its own. The count
-            stays off the phone: the ticked cards already show it. */}
-        <BulkIconButton count={props.bulk.selection.count} onClick={props.onBulkEdit} />
+            normal place just left of Filtrer — and only once something is ticked, so an untouched
+            list leaves the whole row to the search field. The count stays off the phone: the
+            ticked cards already show it. */}
+        {props.bulk.selection.count > 0 && <BulkIconButton onClick={props.onBulkEdit} />}
         <FiltersSheet sections={filterSections} active={filtersActive(props)} fabSafe />
       </ListToolbar>
 

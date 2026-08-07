@@ -129,9 +129,15 @@ a durable working set that survives scrolling and feeds a write, not an ephemera
   open-button **and** the checkbox — a checkbox nested inside a button is invalid.
   The batch-edit control is **one more icon-only square button in the sticky toolbar**, in the row's
   normal place just left of Filtrer — the standing convention below, not a text button on a band of
-  its own, which cost the list a whole strip of vertical space. It reads as **active** (accent) once
-  something is ticked and is disabled at zero. **The count is not shown on a phone**: the ticked
-  cards already say it, and the toolbar has no room for a second read-out.
+  its own, which cost the list a whole strip of vertical space. It appears **only once something is
+  ticked** (accent-coloured, like any active chrome control): at zero it would be a dead control,
+  and that row is tight enough that the space belongs to the search field, which narrows to make
+  room when the button joins. **The count is not shown on a phone**: the ticked cards already say
+  it, and the toolbar has no room for a second read-out.
+- **The batch popup must fit the sheet.** Its controls span the popup's width and share it evenly,
+  wrapping their own labels rather than widening the panel — a « Ne pas modifier » option plus a
+  four-way Source group overruns a 360px sheet at the natural segmented width, and a modal that
+  scrolls sideways is a defect, not a layout.
 
 ## Macro cells (Journal)
 

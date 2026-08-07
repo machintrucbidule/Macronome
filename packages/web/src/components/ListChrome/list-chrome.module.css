@@ -21,12 +21,18 @@
   display: flex;
   align-items: center;
   gap: var(--sp-3);
+  /* Both are load-bearing: the slot must be allowed to shrink (`min-width: 0`) AND to be the one
+     that gives way (`flex: 1`), so its search field narrows when a control joins the row instead
+     of running under the buttons (BE-1 follow-up). */
+  flex: 1;
   min-width: 0;
 }
 .actions {
   display: flex;
   align-items: center;
   gap: var(--sp-3);
+  /* Never squeezed: the icon buttons are --tap targets and the leading slot absorbs the change. */
+  flex: none;
   margin-left: auto;
 }
 

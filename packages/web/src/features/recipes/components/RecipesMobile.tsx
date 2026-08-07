@@ -126,8 +126,8 @@ export function RecipesMobile(props: RecipesMobileProps) {
           fabSafe
         />
         {/* Batch edit (BE-1, owner follow-up): an icon-only chrome control in the row's normal
-            place, left of Filtrer — see the twin comment in FoodsMobile. */}
-        <BulkIconButton count={props.bulk.selection.count} onClick={props.onBulkEdit} />
+            place, left of Filtrer, shown only once something is ticked — see FoodsMobile. */}
+        {props.bulk.selection.count > 0 && <BulkIconButton onClick={props.onBulkEdit} />}
         <FiltersSheet sections={filterSections} active={filtersActive} fabSafe />
       </ListToolbar>
 

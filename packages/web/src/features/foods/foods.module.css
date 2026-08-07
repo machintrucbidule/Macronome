@@ -292,6 +292,24 @@
   flex-direction: column;
   gap: var(--sp-5);
   margin-top: var(--sp-5);
+  min-width: 0;
+}
+/* The batch segmented controls must FIT (owner follow-up): « Ne pas modifier » is a long option and
+   Source offers four of them, so the shared inline-flex row ran past the phone sheet and gave the
+   whole popup a horizontal scrollbar. Here the group spans the width, its options share it evenly
+   and wrap their own label onto a second line rather than widening the sheet. Scoped to this form —
+   the single-food segmented has short options and keeps its natural width. */
+.bulkFields .visseg {
+  display: flex;
+  width: 100%;
+}
+.bulkFields .visseg button {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 7px 6px;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.2;
 }
 
 /* ---- modal: macros grid, portions editor, warnings ---- */

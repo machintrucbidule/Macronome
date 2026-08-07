@@ -124,8 +124,12 @@
 .search {
   position: relative;
   display: inline-flex;
-  flex: 1;
-  min-width: 200px;
+  /* 200px is the PREFERRED width, not a floor: on the phone toolbar the field shares a single
+     non-wrapping row with two or three icon controls, and a hard `min-width` made it overrun them
+     instead of giving way (BE-1 follow-up). Desktop toolbars wrap, so they still lay it out at
+     200px and only squeeze it when the row genuinely has nothing left to give. */
+  flex: 1 1 200px;
+  min-width: 0;
 }
 .search svg {
   position: absolute;
