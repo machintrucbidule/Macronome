@@ -62,3 +62,19 @@ jobs:
           printf 'DATABASE_URL=%s\nPORT=3000\nSESSION_SECRET=ci-session-secret-0123456789abcdef\nTRUSTED_PROXY=loopback\nPUBLIC_BASE_URL=http://localhost:5173\nCOOKIE_SECURE=false\nNODE_ENV=development\n' "$DATABASE_URL" > packages/api/.env
           npx playwright install --with-deps chromium
           npm run e2e
+
+      # A failing e2e writes `error-context.md` (the page snapshot at the moment of the failure)
+      # and, on the retry, `trace.zip` — both under test-results/, both destroyed with the runner.
+      # Without them a CI-only failure can only be guessed at from a locator name, which is exactly
+      # the half-day this step exists to prevent. Uploaded ONLY on failure, so a green run stays as
+      # cheap as it was.
+      - name: Upload e2e failure artefacts
+        if: failure() && (github.event_name == 'pull_request' || github.ref == 'refs/heads/main')
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-failure
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
