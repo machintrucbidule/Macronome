@@ -69,19 +69,30 @@ Stats · Conseils** (Conseils appended by B-311). Both navigations read the **sa
 ## FAB `.fab` (new `Fab` component — contextual “+”)
 
 A single floating **“+”** button, bottom-right, **above** the bottom bar, safe-area
-aware. **Shown only on Aliments / Recettes / Poids**; absent on Repas, Journal, Stats and
-the secondary screens. Its action opens that screen’s **add form** (food / recipe / weigh-in) —
+aware. Its action opens that screen’s **add form** (food / recipe / weigh-in / container) —
 as a **bottom sheet**, like every other mobile overlay since MS-1 retired the `fullscreen`
 variant (`mobile.md` §Overlay taxonomy). This line said `Modal mobile="fullscreen"` until
 B-312; the variant no longer exists.
+
+**Which screens have one — [B-328].** **Aliments · Recettes · Poids · Contenants.** The rule is
+structural, not a list of primary screens: a screen gets the FAB when its phone layout is a **card
+list whose main action is "add one"**. Contenants is exactly that — the same toolbar + cards +
+add-sheet shape as Aliments and Recettes — so it has one, and being a secondary (account-menu)
+screen is irrelevant. Repas, Journal and Stats do not: their add actions are per-meal / per-day /
+none at all, so a single screen-level “+” would have nothing unambiguous to do.
+_(This paragraph read "shown only on Aliments / Recettes / Poids; absent on … the secondary
+screens" until B-328. The shipped app had had a Contenants FAB since that screen's mobile slice;
+the three-screen wording predated it rather than deciding against it, and the owner kept the
+control — removing a working thumb-reachable button to satisfy a sentence would have been the worse
+outcome.)_
 
 - `position:fixed; right:var(--page-gutter)`,
   `bottom: calc(56px + env(safe-area-inset-bottom) + var(--sp-5))` (clears the bottom
   bar), circular, `background:var(--accent); color:var(--accent-ink)`, `box-shadow`,
   `--fs-24` glyph, min `--tap` × `--tap`. `display:none` ≥561px.
 - Props: `onClick`, `label` (`aria-label`). **Created in S3 but placed by each screen**
-  (wired in S6 Recettes / S7 Aliments / S8 Poids), so `AppShell` is not touched again
-  after S3.
+  (wired in S6 Recettes / S7 Aliments / S8 Poids, and on Contenants with its own mobile slice),
+  so `AppShell` is not touched again after S3.
 
 ## Chrome text is not selectable — [B-258]
 
@@ -107,4 +118,4 @@ and must be regenerated whenever a glyph changes.
 - **App-bar title**: reflects the active route; hidden ≥561px.
 - **Bottom nav**: default · active route lit · **scrolled** (fade on the side that hides tabs, the
   active tab pulled into view) · hidden ≥561px.
-- **FAB**: shown (its 3 screens, mobile) · hidden (other screens / ≥561px) · pressed.
+- **FAB**: shown (its 4 screens, mobile — B-328) · hidden (other screens / ≥561px) · pressed.

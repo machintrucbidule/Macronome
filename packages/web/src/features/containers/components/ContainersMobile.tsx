@@ -11,7 +11,9 @@ import type { SortKey } from './ContainerTable';
 
 // Mobile Contenants view (mobile-responsive follow-up, same pattern as Aliments/Recettes). A
 // sticky search toolbar + Trier sheet over a card list, with a FAB opening the add sheet (bottom
-// sheet, owner decision). The app bar already shows the "Contenants" title (S3), so no page
+// sheet, owner decision). B-328: the FAB stays — bottom-nav.md used to list three screens and now
+// states the structural rule (card list whose main action is "add one"), which this screen meets
+// exactly; being an account-menu screen is irrelevant. The app bar already shows the title (S3), so no page
 // title/count here, and the desktop lead hint is omitted on mobile (owner request). Consumes the
 // shared ListChrome/Fab read-only; renders only — desktop is untouched (this never mounts ≥561px).
 interface ContainersMobileProps {

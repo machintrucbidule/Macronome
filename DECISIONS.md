@@ -6697,7 +6697,7 @@ No schema change, no migration.
 
 ---
 
-## UI-2 / B-309, B-310, B-311, B-312 — the chrome tells the truth, and Conseils gets a slot — RESOLVED (owner, 2026-08-07)
+## UI-2 / B-309, B-310, B-311, B-312, B-328 — the chrome tells the truth, and Conseils gets a slot — RESOLVED (owner, 2026-08-07)
 
 **The ask.** Four reports about the app frame. On a phone the Paramètres row that launches an
 update did not fit the width. À propos said nothing when a new version was waiting, and the number
@@ -6769,13 +6769,28 @@ dark jump-list popup. Transparent background, amber glyph, which reads on both p
 height stays 56px, a literal repeated in six CSS files with no token — introducing one was out of
 scope and none of the six values moved.
 
+**Decision (B-328) — the Contenants floating "+" stays, and the rule behind it is restated.** The
+screen shipped a mobile FAB that `bottom-nav.md` denied it: the doc said the button is "shown only on
+Aliments / Recettes / Poids; absent on … the secondary screens", and had said so since before
+Contenants had a phone layout at all. Which side was wrong was a product call, not a technical one,
+and the owner kept the control: on a phone Contenants **is** a card list whose main action is "add
+one", structurally identical to Aliments and Recettes, and removing a working thumb-reachable button
+to satisfy a sentence would have been the worse outcome. So the contract now names **four** screens
+and, more usefully, states the **structural** rule instead of a list — which is also what explains
+the exclusions: Repas, Journal and Stats have per-meal / per-day / no add action, so a screen-level
+"+" would have nothing unambiguous to do. A new `fab-screens.test.ts` holds the four to it. Each
+screen places its own `<Fab/>`, so adding one anywhere was a one-line edit no test looked at — which
+is exactly how this drifted unnoticed for months. Folded into UI-2 because the batch already had
+`bottom-nav.md` open.
+
 **Contract impact.** `design/components/top-nav.md` (nav order → 7 entries, the shared `NAV_ITEMS`
 source, §"Conseils lightbulb" replaced by §"Conseils has a nav slot", the 561–900px tightening
 replacing the never-implemented ≤900px hide, the doc-accuracy flag retired, mobile appbar and
 §States updated), `design/components/bottom-nav.md` (7 routes, 5 visible + horizontal scroll,
 auto-scroll and edge fade, the label font, the icon contract and the corrected glyph inventory, the
-transparent shortcut background; the stale `Modal mobile="fullscreen"` reference retired by MS-1
-corrected in the same pass), `design/components/mobile.md` (the scrollable-band mechanism row, and
+transparent shortcut background, **§FAB and §States rewritten for B-328**; the stale
+`Modal mobile="fullscreen"` reference retired by MS-1 corrected in the same pass),
+`design/components/mobile.md` (the scrollable-band mechanism row, and
 why a fixed band's own `overflow-x` does not interact with the `overflow-x: clip` safety net),
 `design/components/pwa.md` (§Update card — the shared availability hook and the À propos surface),
 `specifications/screens/about.md` (the two version rows and their sources, the update mention and
