@@ -56,6 +56,7 @@ export async function list(userId: string, query: FoodListQuery): Promise<FoodLi
     data: page.rows.map(toDto),
     next_cursor: page.nextCursor,
     total: page.total,
+    with_comment: page.withComment,
     sources: sources as FoodListResponse['sources'],
   };
 }

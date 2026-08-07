@@ -35,7 +35,8 @@ export interface GrowingRows {
 export function useGrowingRows(count: number, gap = 0): GrowingRows {
   const [rendered, setRendered] = useState(() => Math.min(count, INITIAL_ROWS));
   const shown = Math.min(rendered, count);
-  const [pitch, listRef] = useRowPitch(shown, gap);
+  // The Journal's rows are all alike, so the two measured variants are the same figure.
+  const [{ base: pitch }, listRef] = useRowPitch(shown, gap);
 
   useEffect(() => {
     if (pitch <= 0) return;

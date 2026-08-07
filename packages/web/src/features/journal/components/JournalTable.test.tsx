@@ -22,7 +22,10 @@ const VIEWPORT = 768;
 beforeEach(() => {
   window.scrollTo = vi.fn();
   vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
-    const rows = this.querySelectorAll?.('tr[data-date]').length ?? 0;
+    // A row reports its own height and the container the sum: since the B-303 follow-up the pitch
+    // is measured per row (a list can hold two row heights), not by dividing the container.
+    const self = (this as HTMLElement).dataset?.date !== undefined ? 1 : 0;
+    const rows = self || (this.querySelectorAll?.('tr[data-date]').length ?? 0);
     const height = rows > 0 ? rows * ROW_PX : 0;
     const top = -window.scrollY;
     return {

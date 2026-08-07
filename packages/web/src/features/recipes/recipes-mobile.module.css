@@ -9,6 +9,12 @@
   display: flex;
   flex-direction: column;
   gap: var(--sp-5);
+  /* LD-1/B-303 follow-up — opt out of the browser's scroll anchoring. A backfilled page lands
+     ABOVE the viewport (D18 fills the interval behind a jump), replacing an equal height of gap:
+     net zero, but the browser compensated for the shrink anyway and pulled the scroll up by
+     exactly one page, once per page delivered — measured at 13 × 2385px on the Ciqual catalog.
+     This list computes its own reserved height, so the compensation only ever fights it. */
+  overflow-anchor: none;
 }
 .card {
   appearance: none;

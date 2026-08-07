@@ -196,6 +196,14 @@ export interface FoodListResponse {
    */
   total: number;
   /**
+   * How many of those `total` rows carry a comment (LD-1/B-303 follow-up). An Aliments row is
+   * taller when it draws the comment sub-line, so a client reserving height for rows it has not
+   * loaded needs the exact split, not an average sampled from the rows it happens to hold — the
+   * first page is not representative of the rest. Counted on the same predicate as `total`, and
+   * excluding empty comments, which draw no sub-line.
+   */
+  with_comment: number;
+  /**
    * The provenance values actually present in the user's catalog — sorted, `recipe` excluded,
    * archived foods included, and computed **independently of this query's own filters** (B-295).
    * The client offers a Source filter only for the values listed here, and hides the filter

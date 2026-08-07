@@ -36,6 +36,7 @@ function mockApis() {
     data: [],
     next_cursor: null,
     total: 0,
+    with_comment: 0,
     sources: ['manual'],
   });
   vi.spyOn(foodRefsApi, 'list').mockResolvedValue({
@@ -122,6 +123,7 @@ describe('FoodsPage — first click sorts in the useful direction (B-299)', () =
       data: [{ id: 'f1', name: 'Pomme', named_portions: [] } as unknown as Food],
       next_cursor: null,
       total: 1,
+      with_comment: 0,
       sources: ['manual'],
     });
     const r = render(<FoodsPage />, { wrapper });

@@ -27,6 +27,7 @@ function page(prefix: string) {
     data: [food(`${prefix}1`), food(`${prefix}2`)],
     next_cursor: 'c',
     total: 500,
+    with_comment: 0,
     sources: ['manual'] as FoodListResponse['sources'],
   };
 }

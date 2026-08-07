@@ -45,7 +45,8 @@ tabular-nums; white-space:nowrap`; first/name cell left, `--font-body`. The **Jo
   name/free-text one, so a fixed layout gives it the remainder; `white-space: nowrap` on
   `tbody td` so every row keeps the same height (the scroll reserve measures the pitch of the
   rows already drawn); and `overflow:hidden; text-overflow:ellipsis` + the full value on
-  `title` for the elastic column and any other free-text cell. Under the default `auto`
+  `title` for the elastic column and any other free-text cell.
+  Under the default `auto`
   layout a column is as wide as the widest row **currently rendered**, so each arriving page
   re-solves the whole table and the columns — and the sticky header cells above them — visibly
   jump. **Screen-local, never in `DataTable.module.css`**: the shared sheet serves tables with
@@ -55,6 +56,18 @@ tabular-nums; white-space:nowrap`; first/name cell left, `--font-body`. The **Jo
   (`*-columns.test.ts`), since jsdom cannot catch a layout regression. Accepted consequence:
   declared columns cannot squeeze, so on a narrow desktop window the table overflows and the
   **page scrolls sideways** — the same behaviour as the Poids period table above.
+  **`overflow-anchor: none` on the rows container** (LD-1/B-303): a backfilled page lands _above_
+  the viewport, and the browser's scroll anchoring compensates for the gap it replaces by pulling
+  the scroll up by exactly that page — measured at thirteen steps of 2 385 px on the Ciqual
+  catalog, while the document height never moved. These lists compute their own reserved height,
+  so the compensation only ever fights them. Scoped to them: a list that only appends below (the
+  Journal) is unaffected and keeps the browser default.
+  **Where a row can carry an optional extra line** — only Aliments, the comment sub-line — the
+  reserve is **computed, not averaged**: the row marks itself `data-row-tall`, the two heights are
+  measured separately, and the server reports how many of the matching rows carry it
+  (`with_comment`), so what is reserved is the exact height of what is missing. A variance that
+  **cannot** be counted server-side (a value line free to wrap at some viewport width) is not
+  allowed at all — it is kept to one line, like every other cell.
 - **narrow desktop bands (Aliments)** — two, because the columns do not all cost the same:
   - **below 960px**: Source steps aside (B-291). It is the widest chip column (`CHRONODRIVE`
     sets its width), and the table is already at the edge of its budget just above 820px —

@@ -6,7 +6,6 @@ import type { Slot } from '../../../lib/usePagedList';
 import { gramsDisplay, kcalDisplay } from '../format';
 import { refGroup, refName } from './refName';
 import cards from '../foods-mobile.module.css';
-import styles from './catalog.module.css';
 
 // Ciqual catalog on mobile (B-292): the Aliments card list, minus what a reference entry has
 // no business with (rating, portion, usage) and plus the food group. The whole card adopts,
@@ -46,7 +45,9 @@ function CatalogCard({ ref_, onAdopt }: { ref_: FoodRef; onAdopt: (ref: FoodRef)
 
       <div className={cards.portion}>
         <span className={cards.portionLabel}>{t('foods.catalog.group')}</span>
-        <span className={`${cards.portionValue} ${styles.groupValue}`}>
+        {/* One line like every other card value (LD-1/B-303 follow-up): the group label used to be
+            allowed to wrap, which made cards unequal in height and the scroll reserve inexact. */}
+        <span className={cards.portionValue} title={refGroup(ref_, i18n.language)}>
           {refGroup(ref_, i18n.language)}
         </span>
       </div>

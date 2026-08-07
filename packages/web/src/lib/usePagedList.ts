@@ -43,6 +43,11 @@ export interface PagedList<T> {
   isError: boolean;
   /** Rows in the measured container (page 0's), the pitch reference. */
   firstPageCount: number;
+  /** How many of the `total` matching rows carry the taller variant (0 when the list has none).
+   *  Comes from the server: the client cannot know it for rows it has not loaded. */
+  withTall: number;
+  /** How many of the LOADED rows carry it — counted, so the remainder is exact. */
+  loadedTall: number;
   /** Ask for the page holding this absolute row index, then queue the interval behind it. */
   requestRow: (rowIndex: number) => void;
 }
@@ -52,6 +57,14 @@ interface Options<T> {
   queryKey: readonly unknown[];
   fetchPage: (offset: number, limit: number) => Promise<PagedPage<T>>;
   enabled?: boolean;
+  /**
+   * A row that draws an optional extra line is taller (LD-1/B-303 follow-up). `withTall` is how
+   * many of the matching rows carry it, straight from the server envelope — the client cannot
+   * count what it has not loaded — and `isTall` recognises the loaded ones. Omit both for a list
+   * whose rows are all alike.
+   */
+  withTall?: number;
+  isTall?: (item: T) => boolean;
 }
 
 const merge = (prev: number[], add: number[]): number[] =>
@@ -65,7 +78,7 @@ function backlogFor(target: number, have: Set<number>): number[] {
 }
 
 export function usePagedList<T>(opts: Options<T>): PagedList<T> {
-  const { queryKey, fetchPage, enabled = true } = opts;
+  const { queryKey, fetchPage, enabled = true, withTall = 0, isTall } = opts;
   // Mounted page queries. Grow-only within a filter set: dropping one would refetch it on the way
   // back up, which D17 forbids. A changed `queryKey` remounts the hook's consumer state anyway.
   const [wanted, setWanted] = useState<number[]>([0]);
@@ -144,6 +157,8 @@ export function usePagedList<T>(opts: Options<T>): PagedList<T> {
     loading: total === undefined && !isError,
     isError,
     firstPageCount: byIndex.get(0)?.length ?? 0,
+    withTall,
+    loadedTall: isTall ? rows.filter(isTall).length : 0,
     requestRow,
   };
 }

@@ -24,6 +24,10 @@ export function FoodRow({ food, onOpen, onArchive, onRestore }: FoodRowProps) {
       onClick={() => onOpen(food)}
       // Context-menu row id (B-195): resolved by useFoodsContextMenu.
       data-food={food.id}
+      // The comment sub-line below makes this row taller: `useRowPitch` measures the two variants
+      // separately so the scroll reserve is exact instead of averaged (B-303 follow-up). Set from
+      // the SAME condition the sub-line renders on, so the two cannot drift apart.
+      {...(food.comment ? { 'data-row-tall': '' } : {})}
     >
       <td>
         <span className={tableStyles.nameLabel} title={food.name}>

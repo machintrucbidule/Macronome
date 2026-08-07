@@ -26,13 +26,20 @@ export interface FoodsPage extends PagedList<Food> {
 
 export function useFoodsList(params: FoodListParams): FoodsPage {
   const sources = useRef<FoodSource[]>([]);
+  // How many matching foods carry a comment — an Aliments row is taller when it draws the sub-line,
+  // so this is what makes the reserved height exact rather than averaged (B-303 follow-up).
+  const withComment = useRef(0);
   const paged = usePagedList<Food>({
     queryKey: [...FOODS_KEY, params],
     fetchPage: async (offset, limit) => {
       const res = await foodsApi.list({ ...params, offset, limit });
       sources.current = res.sources;
+      withComment.current = res.with_comment;
       return { data: res.data, total: res.total };
     },
+    withTall: withComment.current,
+    // The same condition the row renders on, so the count and the markup cannot disagree.
+    isTall: (food) => Boolean(food.comment),
   });
   return { ...paged, sources: sources.current };
 }

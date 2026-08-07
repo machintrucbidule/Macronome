@@ -149,8 +149,9 @@ async function listByUsage(userId: string, query: ListQuery): Promise<ListPage> 
   return {
     rows: rows.map((r) => ({ ...r, usage: usage.get(r.id)?.count ?? 0 })),
     nextCursor,
-    // Free here: this path already materialises every match to rank it.
+    // Both are free here: this path already materialises every match to rank it.
     total: ranked.length,
+    withComment: ranked.filter((f) => f.comment !== null && f.comment !== '').length,
   };
 }
 
@@ -159,7 +160,16 @@ interface ListPage {
   rows: FoodWithPortions[];
   nextCursor: string | null;
   total: number;
+  /** Of those `total` rows, how many carry a comment (LD-1/B-303 follow-up). The Aliments row is
+   *  taller when it shows the comment sub-line, so this is what lets the client reserve the exact
+   *  height of the rows it has not loaded instead of averaging the ones it has. */
+  withComment: number;
 }
+
+/** Matches the render condition exactly (`FoodRow`: `{food.comment && …}`) — an empty string is
+ *  storable (`comment: body.comment ?? null`, no trim in the DTO) and draws no sub-line, so
+ *  `IS NOT NULL` alone would over-count. `NOT [a, b]` is "neither a nor b" in Prisma. */
+const HAS_COMMENT: Prisma.FoodWhereInput = { NOT: [{ comment: null }, { comment: '' }] };
 
 export const foodRepo = {
   async list(userId: string, query: ListQuery): Promise<ListPage> {
@@ -172,7 +182,7 @@ export const foodRepo = {
     const where = buildWhere(userId, query);
     // B-278: the same predicate, counted — how many rows match regardless of limit/cursor. The
     // client reserves the height of the rows not yet loaded and shows the figure in the toolbar.
-    const [foods, total] = await Promise.all([
+    const [foods, total, withComment] = await Promise.all([
       prisma.food.findMany({
         where,
         orderBy,
@@ -180,6 +190,7 @@ export const foodRepo = {
         ...pageWindow(query),
       }),
       prisma.food.count({ where }),
+      prisma.food.count({ where: { AND: [where, HAS_COMMENT] } }),
     ]);
     const hasMore = foods.length > query.limit;
     const page = hasMore ? foods.slice(0, query.limit) : foods;
@@ -195,6 +206,7 @@ export const foodRepo = {
       rows: rows.map((r) => ({ ...r, usage: usage.get(r.id)?.count ?? 0 })),
       nextCursor,
       total,
+      withComment,
     };
   },
 

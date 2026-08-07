@@ -18,6 +18,12 @@ See `00-conventions.md`. All scoped to the authenticated user.
   lines (unfilled pinned placeholders, B-045) are not usage and do not count (B-157). **Every**
   `GET /foods` list response carries a `usage` integer on each Food (the 90-day consumed
   count), regardless of `sort` (B-156).
+  Every response also carries **`with_comment`** (LD-1/B-303 follow-up): how many of the `total`
+  matching rows carry a comment. An Aliments row is **taller** when it draws its comment sub-line,
+  so a client reserving height for rows it has not loaded needs the exact split — the first page is
+  not a representative sample of the rest, and an average taken from it is wrong for every row
+  beyond it. Counted on the **same predicate as `total`** (unlike `sources` below), and excluding
+  empty comments, which draw no sub-line.
   Every response also carries **`sources`** — the provenance values actually present in the
   user's catalog, sorted, **`recipe` excluded and archived foods included**. It is deliberately
   computed **independently of the query's own filters** (`q`, `min_rating`, `visibility`,
