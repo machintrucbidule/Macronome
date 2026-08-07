@@ -93,6 +93,11 @@ export function FoodsMobile(props: FoodsMobileProps) {
           />
         }
       >
+        {/* Batch edit (BE-1, owner follow-up): one more icon-only chrome control, **first** in the
+            trailing group — left of Trier — and only once something is ticked, so an untouched list
+            leaves the whole row to the search field. The count stays off the phone: the ticked
+            cards already show it. */}
+        {props.bulk.selection.count > 0 && <BulkIconButton onClick={props.onBulkEdit} />}
         <SortSheet
           options={sortOptions}
           sort={props.sort}
@@ -100,11 +105,6 @@ export function FoodsMobile(props: FoodsMobileProps) {
           onSort={props.onSort}
           fabSafe
         />
-        {/* Batch edit (BE-1, owner follow-up): one more icon-only chrome control, in the row's
-            normal place just left of Filtrer — and only once something is ticked, so an untouched
-            list leaves the whole row to the search field. The count stays off the phone: the
-            ticked cards already show it. */}
-        {props.bulk.selection.count > 0 && <BulkIconButton onClick={props.onBulkEdit} />}
         <FiltersSheet sections={filterSections} active={filtersActive(props)} fabSafe />
       </ListToolbar>
 

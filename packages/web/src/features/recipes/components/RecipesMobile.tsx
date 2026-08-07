@@ -118,6 +118,9 @@ export function RecipesMobile(props: RecipesMobileProps) {
           />
         }
       >
+        {/* Batch edit (BE-1, owner follow-up): an icon-only chrome control, first in the trailing
+            group — left of Trier — shown only once something is ticked; see FoodsMobile. */}
+        {props.bulk.selection.count > 0 && <BulkIconButton onClick={props.onBulkEdit} />}
         <SortSheet
           options={sortOptions}
           sort={props.sort}
@@ -125,9 +128,6 @@ export function RecipesMobile(props: RecipesMobileProps) {
           onSort={props.onSort}
           fabSafe
         />
-        {/* Batch edit (BE-1, owner follow-up): an icon-only chrome control in the row's normal
-            place, left of Filtrer, shown only once something is ticked — see FoodsMobile. */}
-        {props.bulk.selection.count > 0 && <BulkIconButton onClick={props.onBulkEdit} />}
         <FiltersSheet sections={filterSections} active={filtersActive} fabSafe />
       </ListToolbar>
 
