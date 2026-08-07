@@ -6512,6 +6512,31 @@ for the Journal's trailing spacer, for the same reason — a placeholder inside 
 corrupt the pitch that every reserved gap after it depends on.
 
 **Contract impact.** `spec/api/00-conventions.md` §List behaviour (`offset`, mutual exclusion, the
-`total` rule), `spec/api/foods-recipes.md` (the three lists), `spec/schema/indexes.md` + a migration,
-`specifications/screens/food-db.md` and `recipe.md` (the lazy-loading bullets), plus the amendments
-to TOT-1/B-278 and `PERF_REPORT.md` L1/L2 above. No schema-column change.
+`total` rule), `spec/api/foods-recipes.md` (the three lists, plus `with_comment` below),
+`spec/schema/indexes.md` + a migration, `specifications/screens/food-db.md` and `recipe.md` (the
+lazy-loading bullets), `design/components/data-tables.md` (the anchoring opt-out and the
+counted-variant rule), plus the amendments to TOT-1/B-278 and `PERF_REPORT.md` L1/L2 above. No
+schema-column change.
+
+**Follow-up, same session — two defects the owner found on the shipped batch.** Reported as "the
+page is much taller than computed"; two console captures refuted that and both first hypotheses
+(wrapped names, the category sub-line) with it. The height was right — 162 413 px before a jump,
+162 391 after, against `3 400 × 47.7076` computed — and the Ciqual rows are uniform (2 144 at
+47.7 px, six outliers, mean 47.708 = the measured pitch). **What moved was the position**: after
+reaching the bottom, `161955 → 159569 → 157183 → … → 130992` with the height flat, every step
+exactly `50 × 47.708` — one page, thirteen times. That is the **browser's scroll anchoring**: a
+backfilled page lands _above_ the viewport (new with D18, where pages used to only append below)
+and the browser compensates for the gap it replaces. `overflow-anchor: none` on the five paged-list
+containers, scoped there because the Journal only ever appends below.
+
+**And the reserve stopped guessing.** Where rows are _not_ uniform, a pitch sampled from the first
+50 can never give the right total. Exactly one thing is conditional in an Aliments row — the comment
+sub-line — so `GET /foods` reports **`with_comment`** (same predicate as `total`; empty strings
+excluded, since they draw no sub-line), rows mark themselves `data-row-tall`, and the two variants
+are measured separately: what is reserved is the exact height of what is **missing**, not an average
+of what is loaded. With a page 0 that is 80 % tall against a catalogue that is 50 %, the old
+arithmetic reserved ~20 000 px of phantom height. The two mobile lines that could wrap (the Ciqual
+category, the Aliments portion) are kept to one line: unlike the comment, a wrap depends on the text
+and the viewport, so no count can describe it and no reserve can be exact while it exists.
+
+Commit: `B-303 (LD-1 follow-up)`.
