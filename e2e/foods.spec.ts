@@ -86,8 +86,14 @@ test('edit two foods in one batch, then undo it', async ({ page, playwright }) =
     await page.getByRole('button', { name: 'Enregistrer' }).click();
   }
 
-  // Narrow the list to the two, then tick them.
+  // Narrow the list to the two, and WAIT for that filter to be the one on screen before ticking.
+  // The search debounces 300 ms, and a change of filter clears the selection by design (a frozen
+  // set must not outlive its filter) — so ticking the pre-filter rows would have them cleared out
+  // from under the test. The toolbar count is the precise settle signal: it reports the server's
+  // `total` for the query in force, so it can only read 2 once the filtered response has landed.
   await page.getByPlaceholder(/Rechercher/).fill('E2E Lot');
+  await expect(page.getByText('2 aliments')).toBeVisible();
+
   for (const name of BULK_NAMES) {
     await page.getByRole('checkbox', { name: `Sélectionner ${name}` }).check();
   }
