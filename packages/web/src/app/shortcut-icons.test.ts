@@ -20,11 +20,11 @@ function paths(source: string): string[] {
   return [...source.matchAll(/\sd="([^"]+)"/g)].map((m) => m[1] as string);
 }
 
-/** The `ICON.<key>` fragment of BottomNav.tsx — the authority for the four reused glyphs. */
-function bottomNavGlyph(key: string): string {
-  const nav = read('src/app/BottomNav.tsx');
+/** The `ICON.<key>` fragment of nav-icons.tsx — the authority for the four reused glyphs. */
+function navGlyph(key: string): string {
+  const nav = read('src/app/nav-icons.tsx');
   const start = nav.indexOf(`${key}:`);
-  expect(start, `ICON.${key} missing from BottomNav`).toBeGreaterThan(-1);
+  expect(start, `ICON.${key} missing from nav-icons`).toBeGreaterThan(-1);
   // Up to the next top-level key of the ICON map, or the map's end.
   const rest = nav.slice(start);
   const end = rest.search(/\n} as const;/);
@@ -32,9 +32,11 @@ function bottomNavGlyph(key: string): string {
   return rest.slice(0, next > -1 && next < end ? next + 1 : end);
 }
 
-// Repas / Poids / Journal / Stats reuse a bottom-nav glyph. Paramètres has no counterpart there
-// (the bar carries only the six primary routes), so it is the one drawn for this set and has
-// nothing to be compared against.
+const SHORTCUT_FILES = ['meals', 'weight', 'journal', 'stats', 'settings'] as const;
+
+// Repas / Poids / Journal / Stats reuse a nav glyph. Paramètres has no counterpart there (the bar
+// carries only the primary routes), so it is the one drawn for this set and has nothing to be
+// compared against.
 const REUSED = [
   ['meals', 'meals'],
   ['weight', 'weight'],
@@ -43,20 +45,41 @@ const REUSED = [
 ] as const;
 
 describe('taskbar shortcut icons reuse the mobile nav glyphs (B-259)', () => {
-  it.each(REUSED)('shortcut-%s carries BottomNav ICON.%s verbatim', (file, key) => {
+  it.each(REUSED)('shortcut-%s carries ICON.%s verbatim', (file, key) => {
     const svg = read(`icons/shortcut-${file}.svg`);
-    const expected = paths(bottomNavGlyph(key));
+    const expected = paths(navGlyph(key));
     expect(expected.length, `ICON.${key} declares no path`).toBeGreaterThan(0);
-    // Only `d` attributes are compared, and that is enough here: the brand disc is a <rect>, so
-    // every `d` in the file belongs to the glyph. Caveat worth stating rather than glossing —
-    // ICON.journal also uses a <rect> for the page outline, which this therefore does NOT guard;
-    // its `d` half (the spine + binding rings) is covered like the others.
+    // Only `d` attributes are compared, and that is enough here: the glyphs' non-path members are
+    // <rect>s (the Journal page outline, the Poids platform), which this therefore does NOT guard;
+    // their `d` half is covered like the others.
     expect(paths(svg)).toEqual(expected);
   });
 
   it('the Paramètres glyph is the only one with no bottom-nav counterpart', () => {
-    expect(read('src/app/BottomNav.tsx')).not.toMatch(/\n {2}settings: /);
+    expect(read('src/app/nav-icons.tsx')).not.toMatch(/\n {2}settings: /);
     expect(paths(read('icons/shortcut-settings.svg')).length).toBeGreaterThan(0);
+  });
+
+  // B-312 — the two ways the "same mark" claim used to be false on style rather than on shape.
+  it('draws both copies with round caps and joins', () => {
+    expect(read('src/app/BottomNav.tsx')).toMatch(/strokeLinecap="round"/);
+    expect(read('src/app/BottomNav.tsx')).toMatch(/strokeLinejoin="round"/);
+    for (const file of SHORTCUT_FILES) {
+      const svg = read(`icons/shortcut-${file}.svg`);
+      expect(svg, `shortcut-${file} caps`).toMatch(/stroke-linecap="round"/);
+      expect(svg, `shortcut-${file} joins`).toMatch(/stroke-linejoin="round"/);
+    }
+  });
+
+  it('leaves no opaque background behind a shortcut glyph', () => {
+    // The full-bleed brand disc read as a black square inside Windows' dark jump-list popup.
+    for (const file of SHORTCUT_FILES) {
+      const svg = read(`icons/shortcut-${file}.svg`);
+      expect(svg, `shortcut-${file} still paints a background`).not.toMatch(
+        /<rect[^>]*\bwidth="24"[^>]*\bheight="24"/,
+      );
+      expect(svg, `shortcut-${file} still fills a shape`).not.toMatch(/\bfill="#[0-9a-fA-F]{6}"/);
+    }
   });
 });
 

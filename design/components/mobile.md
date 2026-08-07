@@ -26,12 +26,13 @@ contract with slice S3, when the phone breakpoint first drives real shell behavi
 
 ## How desktop stays identical (mechanism per concern)
 
-| Concern                                                          | Mechanism                                                                  | Desktop guarantee                                           |
-| ---------------------------------------------------------------- | -------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| Type scale, food-line restyle, sticky toolbars, show/hide chrome | **CSS-only** `@media (max-width:560px)`                                    | inert ≥561px → byte-identical                               |
-| Bottom nav, FAB, mobile app-bar title                            | new DOM, **`display:none` ≥561px**                                         | removed from layout + a11y tree                             |
-| Lists (table ↔ cards), Poids period table ↔ list                 | **render-switch** via `useIsMobile()`                                      | `false` ≥561px → exact existing component                   |
-| Meal tabs (Repas)                                                | new tab-bar DOM `display:none` ≥561px + mobile-only active-meal visibility | ≥561px the tab bar is absent, every column renders as today |
+| Concern                                                          | Mechanism                                                                                                                                                | Desktop guarantee                                                           |
+| ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Type scale, food-line restyle, sticky toolbars, show/hide chrome | **CSS-only** `@media (max-width:560px)`                                                                                                                  | inert ≥561px → byte-identical                                               |
+| Bottom nav, FAB, mobile app-bar title                            | new DOM, **`display:none` ≥561px**                                                                                                                       | removed from layout + a11y tree                                             |
+| Lists (table ↔ cards), Poids period table ↔ list                 | **render-switch** via `useIsMobile()`                                                                                                                    | `false` ≥561px → exact existing component                                   |
+| Meal tabs (Repas)                                                | new tab-bar DOM `display:none` ≥561px + mobile-only active-meal visibility                                                                               | ≥561px the tab bar is absent, every column renders as today                 |
+| **Scrollable tab band** (bottom nav, Repas meal tabs)            | equal-flex items sized to a **fraction of the bar** + `overflow-x:auto` with hidden scrollbars, active item `scrollIntoView`, edge fade via `mask-image` | the whole band is `display:none` ≥561px — the pattern never reaches desktop |
 
 ## Overlay taxonomy (one interaction language across screens)
 
@@ -65,6 +66,10 @@ container (the sticky app bar / table headers keep sticking to the viewport) and
 containing block (the fixed `BottomNav` stays viewport-fixed and unclipped). **Interim
 cost:** content wider than the screen is clipped (no side-scroll) on un-adapted screens
 until each page's slice (S4 Repas, S5–S8 lists) reflows it.
+
+**A `position:fixed` band may scroll horizontally on its own** (B-312). The bottom tab bar is
+fixed, so it is not inside `.root`'s clip and its own `overflow-x: auto` is unaffected by the
+safety net — the two rules do not interact. The safety net only ever clips _page content_.
 
 ## Cross-cutting rules
 

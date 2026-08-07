@@ -1,10 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="96" height="96">
   <!-- Taskbar shortcut icon (B-259). The glyph is COPIED VERBATIM from the mobile bottom nav
-       (app/BottomNav.tsx → ICON.stats) so the jump list and the phone tab bar show the same
+       (app/nav-icons.tsx → ICON.stats) so the jump list and the phone tab bar show the same
        mark; shortcut-icons.test.ts fails the build if the two ever drift.
-       Brand disc + amber stroke, matching public/icon.svg. -->
-  <rect width="24" height="24" rx="5" fill="#0d0f12" />
+       B-312: no background. The full-bleed brand disc that used to sit here rendered as a black
+       square inside Windows' dark jump-list popup; the bare amber stroke reads on both popups. -->
   <g fill="none" stroke="#e0b341" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
+    <path d="M3.5 21h17" />
+    <path d="M7 21v-7.5M12 21V3.5M17 21v-11" />
   </g>
 </svg>

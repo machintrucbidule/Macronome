@@ -1206,7 +1206,8 @@
     },
     "row": {
       "name": "Nom",
-      "version": "Version",
+      "versionRunning": "Version installée",
+      "versionServed": "Version du serveur",
       "environment": "Environnement",
       "node": "Node.js",
       "startedAt": "Démarré le",
@@ -1224,6 +1225,8 @@
       "postgres": "PostgreSQL",
       "dbSize": "Taille de la base"
     },
+    "updateAvailable": "Nouvelle version disponible.",
+    "updateLink": "Mettre à jour dans Paramètres",
     "credits": {
       "title": "Sources de données",
       "ciqual": "Catalogue de référence Ciqual 2025 (édition du 3 novembre 2025) — Anses, Table de composition nutritionnelle des aliments. Diffusé sous Licence Ouverte / Open Licence 2.0 (Etalab).",

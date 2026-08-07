@@ -2,7 +2,7 @@ import { expect, test, type Page, type PlaywrightWorkerArgs } from '@playwright/
 import argon2 from 'argon2';
 import { PrismaClient } from '@prisma/client';
 
-// e2e for the advices page (B-202): open via the 💡 lightbulb → generate → the archived advice
+// e2e for the advices page (B-202): open from the primary nav → generate → the archived advice
 // appears → delete → it disappears. The AI provider call is not exercised end-to-end; the browser→API
 // advice calls are stubbed at the Playwright layer (real generation/persistence is covered by the API
 // integration tests). The user's settings are seeded with the advice task configured so the button
@@ -88,7 +88,9 @@ async function stubAdvice(page: Page): Promise<void> {
   });
 }
 
-test('open via the lightbulb → generate → archived → delete', async ({ page, playwright }) => {
+// B-311: Conseils is the last primary nav entry (it was an appbar 💡 until then). At the desktop
+// test viewport the mobile bottom bar is display:none, so "Conseils" still resolves to one link.
+test('open from the nav → generate → archived → delete', async ({ page, playwright }) => {
   await seedUser('e2e_advices');
   await login(page, playwright, 'e2e_advices');
   await stubAdvice(page);

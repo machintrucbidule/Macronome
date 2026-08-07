@@ -14,31 +14,29 @@ Left → right:
 1. **Brand**: `.tick` + wordmark (see foundations).
 2. **Primary nav** `.nav`: inline links, `--font-num`, `--fs-12`,
    `color:var(--text-dim)`, `padding:6px 10px; border-radius:var(--r-sm)`.
-   Order (masterplan v1.9): **Repas · Journal · Poids · Aliments · Recettes ·
-   Stats**.
-3. **Right cluster** `.right` (`margin-left:auto; gap:8px`): a **Conseils 💡
-   lightbulb** icon button + theme **segmented toggle** (dark `●` / light `○`) +
-   account button. (CONFIRMED ①A: theme toggle present on every screen incl.
-   Paramètres/Compte; **no language toggle here** — language lives in Paramètres.)
+   Order (masterplan v1.9, **+ Conseils appended by B-311**): **Repas · Journal ·
+   Poids · Aliments · Recettes · Stats · Conseils**.
+3. **Right cluster** `.right` (`margin-left:auto; gap:8px`): theme **segmented
+   toggle** (dark `●` / light `○`) + account button. (CONFIRMED ①A: theme toggle
+   present on every screen incl. Paramètres/Compte; **no language toggle here** —
+   language lives in Paramètres.)
 
-## Conseils lightbulb (appbar icon button) — [B-202]
+**The nav list has one source** (B-311): `app/nav-items.ts` (`NAV_ITEMS` — route, i18n key,
+icon key, plus the Repas `/` + `/day/:date` active override). The desktop `.nav` and the
+mobile `BottomNav` both map it; neither hard-codes its own copy. Adding a primary route means
+adding one entry there, and its glyph in `app/nav-icons.tsx` (see `bottom-nav.md`).
 
-A **persistent icon button** in the `.right` cluster, **before** the theme toggle and the
-account avatar: a **💡 lightbulb** that is a `NavLink` to **`/advices`** (the AI advice
-page). It is the app's first always-on appbar icon (there is **no** shared `IconButton`
-primitive yet — this establishes the appbar-icon pattern; the row-hover icon affordance of
-`00-foundations.md` is a different, table-row pattern).
+## Conseils has a nav slot, not an appbar icon — [B-311, supersedes B-202]
 
-- Style: borderless, transparent background, `color:var(--text-dim)`; **hover / active-route**
-  → `color:var(--accent)`; a `--tap` (40→44px) hit target, `border-radius:var(--r-sm)`, the
-  glyph at `--fs-16`. `aria-label` "Conseils" (localised); `title` the same. Active-route
-  emphasis mirrors the nav links (accent), but as a **tint** (no filled pill — it is an icon,
-  not a text tab).
-- **Visible on mobile too** (owner decision, B-202): **unlike** the primary nav and the theme
-  toggle, the lightbulb is **exempt** from the ≤560px appbar hide (below) and from the ≤900px
-  `.nav` hide — Conseils has no bottom-tab slot, so the lightbulb is its only entry point and
-  must stay on the bar at every width. In the installed WCO window it inherits
-  `app-region:no-drag` (it is interactive chrome), like the other right-cluster controls.
+Conseils is the **last** primary nav entry, at every width: a text link in `.nav` on desktop,
+the 7th tab of the bottom bar on mobile (`bottom-nav.md`). The **💡 lightbulb icon button that
+used to sit in the `.right` cluster is removed** — this is a move, not a duplication.
+
+B-202 had put the bulb on the bar and exempted it from every responsive hide, with one stated
+justification: _"Conseils has no bottom-tab slot, so the lightbulb is its only entry point"_.
+Giving Conseils a slot in both navigations removes that justification, so the exemption and the
+bulb go together. The appbar keeps no always-on icon button; the right cluster is theme toggle +
+avatar, and on mobile the avatar alone.
 
 ## Chrome text is not selectable — [B-258]
 
@@ -89,8 +87,13 @@ tone (`logic/day-snapshot-verdict.md §8b`, server-computed — the web never de
   Rule must be `.nav a:not(.active):hover` — the active tab does **not** react to
   hover.
 - **active**: `color:var(--accent-ink); background:var(--accent)` (filled pill).
-- Hidden entirely at the `lg` breakpoint (≤900px); navigation then via account
-  menu / back-affordances.
+- **Tightened between 561 and 900px — [B-311].** A
+  `@media (min-width: 561px) and (max-width: 900px)` rule shrinks the `.nav` `gap` and the
+  `.nav a` horizontal padding (nothing else — same font, same colours, same states), so the
+  **seven** labels still fit beside the brand and the right cluster. **≥901px is untouched**,
+  and ≤560px the nav is hidden and the bottom tab bar takes over (`bottom-nav.md`).
+  This rule **replaces** the never-implemented "`.nav` hidden ≤900px" intention that stood here
+  until B-311: the nav stays visible down to 561px, which is what the app has always done.
 
 ## Account menu — [AUTO-normalised to acct-pop]
 
@@ -145,8 +148,9 @@ guard (403) are the real protections.
 ## Mobile account sheet (≤560px) — mobile-responsive S3
 
 On the phone breakpoint the appbar hides the **primary nav** and the **theme segmented
-toggle** (spec §2.1; both move off the bar) — but **keeps the Conseils 💡 lightbulb** (B-202),
-its only entry point (see above). The avatar then opens a **bottom sheet**
+toggle** (spec §2.1; both move off the bar). Since B-311 there is nothing else to keep on the
+bar — the Conseils lightbulb is gone and Conseils is the bottom bar's 7th tab — so the mobile
+appbar reads: brand `.tick` + screen title + avatar. The avatar opens a **bottom sheet**
 (`Modal mobile="sheet"`, overlay taxonomy in `mobile.md` / `modals.md`) instead of the
 `<details>` dropdown. The sheet holds, as comfortable `--tap` rows: the **theme toggle**
 (moved out of the bar) + the canonical secondary destinations **in the same titled blocks as
@@ -160,12 +164,6 @@ carries the primary routes on mobile.
 
 - **default / open** (menu shown/hidden).
 - **active route** reflected on the matching nav link.
-- **responsive (≤900px)**: `.nav` hidden; brand + right cluster remain. Account
-  menu is the fallback navigation surface.
-
-> **Doc-accuracy flag (mobile-responsive S3, 2026-06-10):** the shipped
-> `AppShell.module.css` has **no** ≤900px rule hiding `.nav` — the primary nav stays
-> visible 561–900px today. The S3 mobile shell only hides `.nav` at **≤560px** (where it
-> moves to the bottom tab bar), per spec §0 "no existing desktop-range breakpoint is
-> modified". The ≤900px claim above is left as written (an unimplemented design
-> intention); reconciling it is an owner decision, out of S3 scope.
+- **responsive (561–900px)**: `.nav` visible and **tightened** (see Nav link states).
+- **responsive (≤560px)**: `.nav` and the theme toggle hidden; brand + screen title +
+  avatar remain, and the primary routes live in the bottom tab bar.

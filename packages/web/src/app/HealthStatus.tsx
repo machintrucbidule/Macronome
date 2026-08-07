@@ -1,12 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
+import type { Health } from '../lib/pwa/useUpdateAvailable';
 
 // Proves the full round-trip browser → proxy → api → db by reading /health.
-interface Health {
-  status: string;
-  db: string;
-}
+// The payload type is shared (B-310): this screen and the Paramètres update card cache under the
+// same ['health'] key, and used to declare two different shapes for the one entry.
 
 export function HealthStatus() {
   const { t } = useTranslation();

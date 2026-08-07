@@ -7,13 +7,15 @@ import { BottomNav } from './BottomNav';
 import { DayToneRule } from './DayToneRule';
 import { ErrorBoundary } from './ErrorBoundary';
 import { OfflineBanner } from './OfflineBanner';
+import { isMealsActive, NAV_ITEMS } from './nav-items';
 import { ThemeToggle } from './ThemeToggle';
 import { useScrollRestoration } from './useScrollRestoration';
 import styles from './AppShell.module.css';
 
 // In-app frame: appbar (brand tick + wordmark + primary nav + theme toggle + account menu)
 // + page body. Cibles / Contenants / Paramètres / Compte live in the account menu (top-right
-// avatar), not the primary nav (specifications/screens/settings.md).
+// avatar), not the primary nav (specifications/screens/settings.md). The `.right` cluster holds
+// no always-on icon button since B-311 removed the Conseils lightbulb.
 //
 // B-274: this is a **layout route** (router.tsx), mounted once for the whole session — the page
 // renders into the <Outlet/> below. Nothing here is rebuilt on navigation, which is what stopped
@@ -58,7 +60,7 @@ export function AppShell() {
   useScrollRestoration();
   // Repas is reachable as both `/` and `/day/:date`; keep its tab lit on either (B-014). The same
   // test decides `flush`: Repas is the only flush screen.
-  const mealsActive = pathname === '/' || pathname.startsWith('/day/');
+  const mealsActive = isMealsActive(pathname);
   const flush = mealsActive;
   return (
     <div className={styles.root}>
@@ -69,41 +71,24 @@ export function AppShell() {
         </div>
         {/* Mobile-only screen title (≤560px); hidden ≥561px. */}
         <span className={styles.appbarTitle}>{t(titleKey(pathname))}</span>
+        {/* B-311: one shared list (`nav-items.ts`) drives this nav AND the bottom bar. Conseils is
+            its last entry — it used to be a 💡 icon button in `.right`, exempt from every
+            responsive hide because it had no other entry point; giving it a slot in both
+            navigations removed that justification, so the button went with it. */}
         <nav className={styles.nav} aria-label={t('app.title')}>
-          <NavLink to="/" className={() => (mealsActive ? styles.active : '')}>
-            {t('meals.title')}
-          </NavLink>
-          <NavLink to="/history" className={({ isActive }) => (isActive ? styles.active : '')}>
-            {t('journal.title')}
-          </NavLink>
-          <NavLink to="/weight" className={({ isActive }) => (isActive ? styles.active : '')}>
-            {t('weight.title')}
-          </NavLink>
-          <NavLink to="/foods" className={({ isActive }) => (isActive ? styles.active : '')}>
-            {t('foods.title')}
-          </NavLink>
-          <NavLink to="/recipes" className={({ isActive }) => (isActive ? styles.active : '')}>
-            {t('recipes.title')}
-          </NavLink>
-          <NavLink to="/stats" className={({ isActive }) => (isActive ? styles.active : '')}>
-            {t('stats.title')}
-          </NavLink>
+          {NAV_ITEMS.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) =>
+                (item.to === '/' ? mealsActive : isActive) ? styles.active : ''
+              }
+            >
+              {t(item.labelKey)}
+            </NavLink>
+          ))}
         </nav>
         <div className={styles.right}>
-          {/* Persistent Conseils entry (B-202): the AI-advice page has no primary tab / account-menu
-              entry, so this 💡 is its only entry point — kept visible at every width (unlike the theme
-              toggle, it is NOT hidden ≤560px). In `.right` it inherits the WCO app-region:no-drag. */}
-          <NavLink
-            to="/advices"
-            className={({ isActive }) => `${styles.bulb} ${isActive ? styles.bulbActive : ''}`}
-            title={t('advices.title')}
-            aria-label={t('advices.title')}
-          >
-            {/* Lightbulb as an SVG (not the 💡 emoji) so it tints via currentColor per top-nav.md. */}
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
-              <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z" />
-            </svg>
-          </NavLink>
           {/* Theme toggle is hidden ≤560px (it moves into the account sheet); the wrapper
               keeps that toggle out of ThemeToggle's own module. */}
           <span className={styles.themeToggleWrap}>

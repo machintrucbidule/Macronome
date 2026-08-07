@@ -4,6 +4,7 @@ import { MealTemplateCard } from './components/MealTemplateCard';
 import { DataCard } from './components/DataCard';
 import { GoogleDriveCard } from './components/GoogleDriveCard';
 import { UpdateCard } from './components/UpdateCard';
+import { useHashScroll } from './useHashScroll';
 import styles from './settings.module.css';
 
 // Paramètres screen (specifications/screens/settings.md): appearance & language, the default
@@ -11,6 +12,7 @@ import styles from './settings.module.css';
 // AI-assistant connection are separate account-menu entries. It renders; never computes.
 export function SettingsPage() {
   const { t } = useTranslation();
+  useHashScroll();
   return (
     <>
       <div className={styles.wrap}>

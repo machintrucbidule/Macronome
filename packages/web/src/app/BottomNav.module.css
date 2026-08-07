@@ -20,10 +20,21 @@
     background: var(--bg-elev);
     border-top: var(--bw) solid var(--border);
     padding-bottom: env(safe-area-inset-bottom);
+    /* B-312: 5 tabs visible, the last 2 reached by scrolling. Same construction as the Repas
+       meal-tab band (MealTabs.module.css) — overflow with the scrollbar hidden, since a visible
+       one would eat into a 56px bar. The bar is `position:fixed`, so it sits outside the shell's
+       ≤560px `overflow-x: clip` safety net and the two rules never interact (mobile.md). */
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .bottomnav::-webkit-scrollbar {
+    display: none;
   }
 
+  /* Exactly a fifth each, and no shrinking: six equal slots already put 8-character labels
+     (Aliments, Recettes) within ~2px of each other at 360px, and seven would be ~51px. */
   .bottomnav a {
-    flex: 1 1 0;
+    flex: 1 0 20%;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -32,10 +43,27 @@
     min-height: var(--tap);
     text-decoration: none;
     color: var(--text-dim);
-    font-family: var(--font-num);
   }
   .bottomnav a.active {
     color: var(--accent);
+  }
+
+  /* B-312: which side has hidden tabs, as a fade on the bar itself — no extra element. The
+     component sets data-fade on scroll; `none` (everything fits) simply declares no mask. */
+  .bottomnav[data-fade='right'] {
+    mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent 100%);
+  }
+  .bottomnav[data-fade='left'] {
+    mask-image: linear-gradient(to right, transparent 0, #000 28px);
+  }
+  .bottomnav[data-fade='both'] {
+    mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      #000 28px,
+      #000 calc(100% - 28px),
+      transparent 100%
+    );
   }
 
   .ic {
@@ -44,8 +72,13 @@
     flex: none;
   }
 
+  /* The label leaves --font-num (B-312): that family is monospace (~0.6em per character) and the
+     responsive type layer raises --fs-9 from 9 to 12px on a phone, which the original sizing never
+     accounted for. The normal text family is ~20% narrower at the same size, and `nowrap` stops
+     the 320px case from breaking a word across two lines. */
   .lbl {
     font-size: var(--fs-9);
     line-height: 1;
+    white-space: nowrap;
   }
 }

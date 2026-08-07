@@ -1,25 +1,19 @@
-import { useQuery } from '@tanstack/react-query';
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../../../components/Button/Button';
-import { api } from '../../../api/client';
 import { toastAfterReload } from '../../../components/Toast/toast-store';
-import { BUILD_VERSION, IS_DEV_BUILD } from '../../../lib/build-version';
 import { reloadPage } from '../../../lib/reload';
 import { activateUpdate, checkForUpdate } from '../../../lib/pwa/registerSw';
 import { useInstallPrompt } from '../../../lib/pwa/useInstallPrompt';
+import { useUpdateAvailable } from '../../../lib/pwa/useUpdateAvailable';
 import { SettingsCard } from './SettingsCard';
 import styles from '../settings.module.css';
 
 // Mise à jour card (PWA-1, design/components/pwa.md): the version of the bundle you are running
 // (baked at build — B-286), the version the server serves when the two differ, a manual "force
 // update" button, and an install button shown only when the browser offers installation.
-// It renders; it never computes.
-interface Health {
-  status: string;
-  db: string;
-  version: string;
-}
+// It renders; it never computes — the availability rule itself lives in `useUpdateAvailable`
+// (B-310), shared with the À propos Application card so the two surfaces cannot disagree.
 
 function Row(props: { label: string; desc: string; children: ReactNode }) {
   return (
@@ -36,12 +30,8 @@ function Row(props: { label: string; desc: string; children: ReactNode }) {
 export function UpdateCard() {
   const { t } = useTranslation();
   const { canInstall, promptInstall } = useInstallPrompt();
-  const health = useQuery({ queryKey: ['health'], queryFn: () => api.get<Health>('/health') });
+  const { running, served, hasUpdate } = useUpdateAvailable();
   const [busy, setBusy] = useState(false);
-
-  const served = health.data?.version;
-  // An unversioned local build can never claim to be stale (dev + e2e run both sides on 'dev').
-  const hasUpdate = !IS_DEV_BUILD && served !== undefined && served !== BUILD_VERSION;
 
   // B-285: ask the server for a new build, activate it if there is one, then ALWAYS reload —
   // the button is labelled "Forcer la mise à jour" and must be deterministic. The confirmation
@@ -62,8 +52,8 @@ export function UpdateCard() {
       aside={
         <span className={styles.meta}>
           {hasUpdate
-            ? t('settings.update.versionUpgrade', { running: BUILD_VERSION, served })
-            : t('settings.update.version', { version: BUILD_VERSION })}
+            ? t('settings.update.versionUpgrade', { running, served })
+            : t('settings.update.version', { version: running })}
         </span>
       }
     >

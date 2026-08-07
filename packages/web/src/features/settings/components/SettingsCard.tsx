@@ -7,7 +7,10 @@ import styles from '../settings.module.css';
 // NOT persisted (owner decision). Mirrors the house AdviceArchive disclosure (glyph swap,
 // conditional body — no animation). Renders; never computes.
 interface SettingsCardProps {
-  /** Stable id, used for the body's aria-controls target. */
+  /**
+   * Stable id. It is the card element's DOM id — so `/settings#<id>` is a working anchor
+   * (B-310: À propos links to `#update`) — and the base of the body's aria-controls target.
+   */
   id: string;
   title: string;
   /** Open by default; pass false for the long/rarely-touched cards (template, Google Drive). */
@@ -36,7 +39,7 @@ export function SettingsCard({
   const bodyCls = bodyClassName ? `${styles.cb} ${bodyClassName}` : styles.cb;
 
   return (
-    <div className={cardCls}>
+    <div id={id} className={cardCls}>
       <button
         type="button"
         className={styles.chToggle}

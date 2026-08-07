@@ -107,6 +107,12 @@ A `.card` after the Données card with:
   standalone, and on browsers that never fire the event (iOS Safari → users install via
   Share → Add to Home Screen; no in-app hint).
 
+**The same availability rule also surfaces on À propos — [B-310].** The running-vs-served
+comparison lives in **one** hook (`lib/pwa/useUpdateAvailable`) that this card and the À propos
+Application card both consume; neither recomputes it. À propos shows the two numbers as two rows
+(_Version installée_ / _Version du serveur_) and, when they differ, the same accent mention plus a
+**link back to this card** — never a second update button. The action stays here.
+
 ## States
 
 - **update button** — idle → on click, **disabled and labelled "Mise à jour…"** while the

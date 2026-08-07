@@ -1,39 +1,20 @@
-import type { ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink, useLocation } from 'react-router-dom';
+import { ICON } from './nav-icons';
+import { isMealsActive, NAV_ITEMS } from './nav-items';
 import styles from './BottomNav.module.css';
 
 // Mobile-only bottom tab bar (mobile-responsive S3, spec §2.2; design/components/bottom-nav.md).
-// The 6 primary routes — same order as the desktop top nav (top-nav.md) — as icon + short
-// label. Rendered by AppShell on every screen; `display:none` ≥561px, so it is absent from the
-// desktop layout and tab order (desktop byte-identical). Icons are the stroke SVGs from
-// specifications/features/mobile-responsive/mockups/01-shell.html.
+// The 7 primary routes — same list and order as the desktop top nav, from `nav-items.ts` — as
+// icon + short label. Rendered by AppShell on every screen; `display:none` ≥561px, so it is absent
+// from the desktop layout and tab order (desktop byte-identical).
+//
+// B-312: only 5 fit legibly on a phone, so the bar scrolls horizontally, keeps the active tab in
+// view, and fades the edge that hides something. Both behaviours are the Repas meal-tab band's,
+// reused rather than reinvented (MealTabs.tsx).
 
-const ICON = {
-  meals: <path d="M6 3v8m0 0a2 2 0 0 0 2-2V3M4 3v6m12-6c-1.5 0-2 4-2 6h2m0-6v18" />,
-  journal: (
-    <>
-      <rect x="4" y="5" width="16" height="16" rx="2" />
-      <path d="M4 9h16M8 3v4M16 3v4" />
-    </>
-  ),
-  weight: (
-    <>
-      <path d="M5 21h14a2 2 0 0 0 2-2 9 9 0 0 0-18 0 2 2 0 0 0 2 2Z" />
-      <path d="M12 12l3-4" />
-    </>
-  ),
-  foods: (
-    <path d="M12 8c0-3 2-5 5-4 1 4-1 6-5 6m0-2c0-2-2-4-4-3-.8 3 .8 5 4 5m0-3c4 0 5 3 4 7-1 3-3 4-4 4s-3-1-4-4c-1-4 0-7 4-7Z" />
-  ),
-  recipes: (
-    <>
-      <path d="M4 5a2 2 0 0 1 2-2h11v15H6a2 2 0 0 0-2 2zM17 3v15" />
-      <path d="M7 7h6M7 10h6" />
-    </>
-  ),
-  stats: <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />,
-} as const;
+type Fade = 'none' | 'left' | 'right' | 'both';
 
 function Icon({ children }: { children: ReactNode }) {
   return (
@@ -43,6 +24,10 @@ function Icon({ children }: { children: ReactNode }) {
       fill="none"
       stroke="currentColor"
       strokeWidth="1.7"
+      // B-312: the taskbar shortcut SVGs have always declared these; the bar did not, so the same
+      // mark rendered with butt caps and miter joins here and round ones in the OS jump list.
+      strokeLinecap="round"
+      strokeLinejoin="round"
       aria-hidden="true"
     >
       {children}
@@ -53,36 +38,52 @@ function Icon({ children }: { children: ReactNode }) {
 export function BottomNav() {
   const { t } = useTranslation();
   const { pathname } = useLocation();
-  // Repas is reachable as both `/` and `/day/:date`; keep its tab lit on either (B-014),
-  // mirroring AppShell's top-nav rule.
-  const mealsActive = pathname === '/' || pathname.startsWith('/day/');
-  const active = (isActive: boolean): string => (isActive ? (styles.active ?? '') : '');
+  const barRef = useRef<HTMLElement>(null);
+  const activeRef = useRef<HTMLAnchorElement>(null);
+  const [fade, setFade] = useState<Fade>('none');
+
+  const syncFade = useCallback(() => {
+    const bar = barRef.current;
+    if (!bar) return;
+    // 1px of slack: sub-pixel widths otherwise leave a fade showing at either end forever.
+    const atStart = bar.scrollLeft <= 1;
+    const atEnd = bar.scrollLeft >= bar.scrollWidth - bar.clientWidth - 1;
+    setFade(atStart && atEnd ? 'none' : atStart ? 'right' : atEnd ? 'left' : 'both');
+  }, []);
+
+  // Keep the current screen's tab visible — it is otherwise the one that can sit off-edge.
+  // The call is optional because the bar is mounted by AppShell on every screen, so a jsdom
+  // render of any page would otherwise die on a method jsdom does not implement — for a purely
+  // visual convenience. Every real browser has it.
+  useEffect(() => {
+    activeRef.current?.scrollIntoView?.({ inline: 'nearest', block: 'nearest' });
+    syncFade();
+  }, [pathname, syncFade]);
+
+  const mealsActive = isMealsActive(pathname);
+  const cls = (isActive: boolean): string => (isActive ? (styles.active ?? '') : '');
   return (
-    <nav className={styles.bottomnav} aria-label={t('app.title')}>
-      <NavLink to="/" className={() => active(mealsActive)}>
-        <Icon>{ICON.meals}</Icon>
-        <span className={styles.lbl}>{t('meals.title')}</span>
-      </NavLink>
-      <NavLink to="/history" className={({ isActive }) => active(isActive)}>
-        <Icon>{ICON.journal}</Icon>
-        <span className={styles.lbl}>{t('journal.title')}</span>
-      </NavLink>
-      <NavLink to="/weight" className={({ isActive }) => active(isActive)}>
-        <Icon>{ICON.weight}</Icon>
-        <span className={styles.lbl}>{t('weight.title')}</span>
-      </NavLink>
-      <NavLink to="/foods" className={({ isActive }) => active(isActive)}>
-        <Icon>{ICON.foods}</Icon>
-        <span className={styles.lbl}>{t('foods.title')}</span>
-      </NavLink>
-      <NavLink to="/recipes" className={({ isActive }) => active(isActive)}>
-        <Icon>{ICON.recipes}</Icon>
-        <span className={styles.lbl}>{t('recipes.title')}</span>
-      </NavLink>
-      <NavLink to="/stats" className={({ isActive }) => active(isActive)}>
-        <Icon>{ICON.stats}</Icon>
-        <span className={styles.lbl}>{t('stats.title')}</span>
-      </NavLink>
+    <nav
+      ref={barRef}
+      className={styles.bottomnav}
+      data-fade={fade}
+      onScroll={syncFade}
+      aria-label={t('app.title')}
+    >
+      {NAV_ITEMS.map((item) => {
+        const active = item.to === '/' ? mealsActive : pathname.startsWith(item.to);
+        return (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            ref={active ? activeRef : undefined}
+            className={({ isActive }) => cls(item.to === '/' ? mealsActive : isActive)}
+          >
+            <Icon>{ICON[item.iconKey]}</Icon>
+            <span className={styles.lbl}>{t(item.labelKey)}</span>
+          </NavLink>
+        );
+      })}
     </nav>
   );
 }

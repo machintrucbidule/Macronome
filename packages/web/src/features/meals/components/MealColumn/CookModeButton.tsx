@@ -8,10 +8,10 @@ import styles from './meal-column.module.css';
 // an inline <svg>, not the former 🍳 emoji. Two reasons:
 // at --fs-14 the emoji is an unrecognisable coloured blob that renders differently on every
 // machine (the owner read it as a magnifier), and it named the *kitchen* rather than what the
-// mode actually shows — a large touch NumPad (modals.md §Cook mode). Same precedent as the
-// Conseils lightbulb (app/AppShell.tsx): inlined at the call site — there is no shared Icon
-// primitive, deliberately (top-nav.md) — and tinted via `currentColor`, which is --accent at rest
-// so this is the findable control of the two.
+// mode actually shows — a large touch NumPad (modals.md §Cook mode). Inlined at the call site —
+// there is no shared Icon primitive, deliberately (top-nav.md) — and tinted via `currentColor`,
+// which is --accent at rest so this is the findable control of the two. (The precedent used to be
+// the Conseils appbar lightbulb; B-311 removed it when Conseils became a primary nav entry.)
 export function CookModeButton({ onClick }: { onClick: () => void }) {
   const { t } = useTranslation();
   return (

@@ -27,6 +27,9 @@
   border-radius: var(--r-lg);
   margin-bottom: var(--sp-5);
   overflow: hidden;
+  /* B-310: each card is an anchor target (`/settings#update` from À propos). The app bar is
+     sticky, so without this the anchored card lands underneath it. */
+  scroll-margin-top: calc(var(--appbar-h) + var(--sp-4));
 }
 .card.soon {
   opacity: 0.6;
@@ -537,4 +540,71 @@
   padding: 1px var(--sp-2);
   margin-left: var(--sp-2);
   word-break: break-all;
+}
+
+/* ----------------------------------------------------------------------------
+   B-309 — the rows reflow on a phone.
+
+   `.row`, `.ch` and `.chToggle` are `nowrap` flexes with no `min-width: 0` on either side, so
+   their min-content width is label + description + control, side by side, and nothing can
+   shrink. On a phone that exceeds the viewport minus `.cb`'s gutters — and the responsive type
+   layer makes it worse, not better, since it raises `--fs-10` 10→12px and `--fs-13` 13→16px, so
+   the right-hand cluster is physically *wider* here than on the desktop. It read as clipped
+   rather than side-scrollable only because of the S3 `overflow-x: clip` safety net on the shell
+   root (`design/components/mobile.md`), which Paramètres was still relying on.
+
+   Every row and every card header gets the same treatment, not just the update one: they share
+   the construction, so each would have surfaced the defect in its turn (owner decision).
+   Mobile-only — the block is inert ≥561px and the desktop stays byte-identical.
+   ---------------------------------------------------------------------------- */
+@media (max-width: 560px) {
+  /* Label + description own the first line; the control drops below, pushed right. */
+  .row {
+    flex-wrap: wrap;
+  }
+  .lab {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+  .row > *:not(.lab) {
+    margin-left: auto;
+  }
+  .desc {
+    max-width: 100%;
+  }
+  /* The mention now owns its line, so it keeps `white-space: nowrap` (see .updAvail). */
+  .updRow {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  /* Card headers: title left and the chevron right on the first line, the meta aside on a second
+     line aligned right (owner decision).
+
+     This one is a grid, not a wrapping flex, and deliberately so: with flex, `.chRight` is an
+     item whose base size is its own max-content (meta + chevron side by side), so whether it
+     shrinks in place or wraps whole to a second line depends on how much room the title leaves —
+     i.e. the result would change from card to card. The grid states the placement outright.
+     `display: contents` on `.chRight` promotes its two children to grid items without touching
+     the DOM, so the desktop markup — and its byte-identical flex rendering ≥561px — is untouched. */
+  .chToggle {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: var(--sp-4);
+    row-gap: var(--sp-1);
+  }
+  .chToggle .t {
+    grid-area: 1 / 1;
+  }
+  .chRight {
+    display: contents;
+  }
+  .chevron {
+    grid-area: 1 / 2;
+  }
+  .chToggle .meta {
+    grid-area: 2 / 1 / 3 / 3;
+    text-align: right;
+  }
 }

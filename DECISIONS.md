@@ -6694,3 +6694,93 @@ adoption bullet) and `recipe.md` (its §Édition par lots), `design/components/d
 scoping of the Repas clause + a new §Selection column), `forms-inputs.md` (§Checkbox),
 `toasts-warnings.md` (§Scope gains the batch edit, with Annuler), `modals.md` (the recap dialog).
 No schema change, no migration.
+
+---
+
+## UI-2 / B-309, B-310, B-311, B-312 — the chrome tells the truth, and Conseils gets a slot — RESOLVED (owner, 2026-08-07)
+
+**The ask.** Four reports about the app frame. On a phone the Paramètres row that launches an
+update did not fit the width. À propos said nothing when a new version was waiting, and the number
+it called "Version" was not the one running. The Conseils lightbulb, alone on the top bar, should
+move into the main navigation — text on PC, icon on mobile. And the icons of the phone bar were
+neither legible nor consistent with one another.
+
+**They are one batch because they are one surface.** Three of the four touch `AppShell` and
+`BottomNav`, and the fourth is CSS in a file the same review would open anyway. Shipping them
+apart would each cost a full verification cycle for a few minutes of development — and B-311 and
+B-312 are strictly inseparable: adding a 7th entry is precisely what breaks the phone bar, and the
+Conseils glyph is part of the redrawn set. Between the two commits the bar would have been
+unreadable.
+
+**Decision (B-309) — the rows wrap, all of them.** At ≤560px a Paramètres row keeps its label and
+description on the first line and drops its control to a second, aligned right; card headers do
+the same, with the ▾ chevron pinned right on the first line and the complement ("Version 1.2.3 →
+1.3.0") below it. The reflow applies to **every** row and every card header, not only the update
+one: they share a construction — a `nowrap` flex with no `min-width: 0` on either side — so each
+would have surfaced the same defect in its turn. Pure CSS, ≤560px only, desktop byte-identical;
+the precedent (`flex-wrap: wrap` + `margin-left: auto`) was already in the same file, on the
+Google Drive action row. Note this defect presented as _clipping_, not as a side-scroll, because
+of the S3 `overflow-x: clip` safety net — Paramètres is simply one of the screens that net was
+covering for.
+
+**Decision (B-310) — two version rows, always both, plus a link and no second button.** À propos
+keeps the server's version and gains the installed one; the two are shown permanently, since their
+equality _is_ the "you are up to date" readout, and a card whose shape changes with the deployment
+state would be worse than one that is always the same. When they differ, an accent mention and a
+link to Paramètres → Mise à jour appear inside the Application card, under the two rows — the
+screen stays informational and the **action stays where it already is**. The link scrolls to the
+update card rather than dropping the user at the top of a long page; that required giving the card
+an anchor, which it did not have (the triage note assumed otherwise — only the card _body_ carried
+an id, and only while open). **Accepted consequence:** À propos is no longer strictly read-only,
+which its fiche had stated. The availability rule itself moved into one shared hook consumed by
+both surfaces, so the two can never disagree; the same move unified the two different TypeScript
+shapes that were being cached under the single `['health']` query key.
+
+**Decision (B-311) — Conseils is the 7th nav entry, last, and the lightbulb goes.** This is a move,
+not a duplication. B-202 had exempted the bulb from every responsive hide with one stated
+justification — _Conseils has no bottom-tab slot, so the lightbulb is its only entry point_ —
+which giving it a slot removes outright. Both navigations were hard-coded JSX duplicated across two
+files with no shared source; they now read one `NAV_ITEMS` list, which is what keeps a 7th entry
+from being a two-file edit forever. **Same pass, two standing drifts closed:** the fiche
+`conseils.md` declared the route as `/conseils` while the app has always shipped `/advices` — the
+fiche was corrected and **no redirect was added**, since `/conseils` has never been reachable and
+nothing points at it; and the ≤900px "`.nav` hidden" rule that `top-nav.md` had documented but the
+app never implemented is **replaced** by what was actually decided here — a
+`561–900px` tightening of the link padding and gap, so seven labels still fit. ≥901px is untouched.
+
+**Decision (B-312) — five visible tabs, a scrolling bar, and a redrawn set.** Seven equal slots put
+~51px under an eight-character label at 360px; five give ~72px. The remaining two are reached by
+scrolling the bar, with the active tab pulled into view on every route change and a fade marking
+whichever side hides something. Nothing here is invented: the construction, the hidden scrollbars
+and the `scrollIntoView` call are the Repas meal-tab band's, reused. The labels also left the
+monospace family — the type layer raises their size 33% on a phone, which the bottom-nav CSS had
+never accounted for, and the mono advance is ~20% wider at equal size. **The whole icon set was
+redrawn to one contract** (1.7 stroke, round caps _and joins_ — the wrapper declared neither,
+which is why the bar rendered butt caps while the taskbar copies of the same marks declared round —
+one optical square, one vertical extent). **The owner reviewed and approved every glyph before any
+was implemented:** Repas keeps its fork and knife (the fork finally gets the handle it never had,
+ending at the knife's baseline), Journal keeps its calendar, Stats its bars; Poids' low dome became
+a square bathroom scale, Recettes' angled closed book became an open book, and Conseils gained a
+stroke lightbulb. For Aliments the illegible three-arc leaf was put to a choice between an apple, a
+stylised hen, a drumstick and a steak — **the owner chose the apple**, the most compact of the four
+and the one that does not narrow the catalogue to a category. Finally the five taskbar shortcut
+SVGs **lost their opaque background rect**: it was drawing a near-black square inside Windows'
+dark jump-list popup. Transparent background, amber glyph, which reads on both popups. The bar
+height stays 56px, a literal repeated in six CSS files with no token — introducing one was out of
+scope and none of the six values moved.
+
+**Contract impact.** `design/components/top-nav.md` (nav order → 7 entries, the shared `NAV_ITEMS`
+source, §"Conseils lightbulb" replaced by §"Conseils has a nav slot", the 561–900px tightening
+replacing the never-implemented ≤900px hide, the doc-accuracy flag retired, mobile appbar and
+§States updated), `design/components/bottom-nav.md` (7 routes, 5 visible + horizontal scroll,
+auto-scroll and edge fade, the label font, the icon contract and the corrected glyph inventory, the
+transparent shortcut background; the stale `Modal mobile="fullscreen"` reference retired by MS-1
+corrected in the same pass), `design/components/mobile.md` (the scrollable-band mechanism row, and
+why a fixed band's own `overflow-x` does not interact with the `overflow-x: clip` safety net),
+`design/components/pwa.md` (§Update card — the shared availability hook and the À propos surface),
+`specifications/screens/about.md` (the two version rows and their sources, the update mention and
+its link, §Interactions is no longer "read-only"), `specifications/screens/conseils.md` (route
+`/conseils` → `/advices`, Conseils as a primary nav entry, the responsive entry point),
+`specifications/masterplan.md` (primary-navigation enumeration), and
+`specifications/features/mobile-responsive/` (spec §2.2 revision blockquote + a post-feature
+revision pointer in `dev-plan.md`). No API change, no DTO change, no schema change, no migration.

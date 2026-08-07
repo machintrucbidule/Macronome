@@ -1,11 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="96" height="96">
   <!-- Taskbar shortcut icon (B-259). THE ONE INVENTED GLYPH of this set: Paramètres has no
-       counterpart in the mobile bottom nav, which carries only Repas · Journal · Poids ·
-       Aliments · Recettes · Stats. Drawn in that bar's exact vocabulary — 24×24, stroke 1.7,
-       round caps — so it sits with the other four rather than beside them. The other four are
-       copied verbatim from app/BottomNav.tsx and guarded by shortcut-icons.test.ts.
-       Brand disc + amber stroke, matching public/icon.svg. -->
-  <rect width="24" height="24" rx="5" fill="#0d0f12" />
+       counterpart in the mobile bottom nav, which carries only the primary routes (Repas ·
+       Journal · Poids · Aliments · Recettes · Stats · Conseils). Drawn in that bar's exact
+       vocabulary — 24×24, stroke 1.7, round caps and joins — so it sits with the other four
+       rather than beside them. The other four are copied verbatim from app/nav-icons.tsx and
+       guarded by shortcut-icons.test.ts.
+       B-312: no background. The full-bleed brand disc that used to sit here rendered as a black
+       square inside Windows' dark jump-list popup; the bare amber stroke reads on both popups. -->
   <g fill="none" stroke="#e0b341" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
     <circle cx="12" cy="12" r="3.2" />
     <path d="M12 2.5v3M12 18.5v3M21.5 12h-3M5.5 12h-3M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1M18.7 18.7l-2.1-2.1M7.4 7.4 5.3 5.3" />

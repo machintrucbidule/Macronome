@@ -161,6 +161,25 @@
   color: var(--accent-ink);
   background: var(--accent);
 }
+/* B-311 — the 561–900px tightening (top-nav.md §Nav link states).
+
+   The nav went from six labels to seven when Conseils moved off the appbar, and it already sat
+   tight against the brand and the right cluster in this range. Only the gap and the horizontal
+   padding shrink: same font, same colours, same hover/active treatment, same hit height. ≥901px
+   is untouched, and ≤560px the nav is hidden anyway (the bottom tab bar takes over).
+
+   This is also what settles the ≤900px `.nav` hide that top-nav.md documented for months but the
+   app never implemented: the nav stays visible down to 561px — which is what it has always done —
+   and is tightened instead of dropped. */
+@media (min-width: 561px) and (max-width: 900px) {
+  .nav {
+    gap: 0;
+    margin-left: var(--sp-2);
+  }
+  .nav a {
+    padding: 6px 6px;
+  }
+}
 
 .page {
   padding: var(--sp-7) var(--page-gutter);
@@ -194,29 +213,8 @@
   margin-left: auto;
 }
 
-/* Conseils lightbulb (B-202) — a persistent appbar icon in the right cluster; stays visible at every
-   width (NOT in the ≤560px hide list). Active route → accent. */
-.bulb {
-  display: grid;
-  place-items: center;
-  min-width: var(--tap);
-  min-height: var(--tap);
-  font-size: var(--fs-16);
-  line-height: 1;
-  border-radius: var(--r-sm);
-  color: var(--text-dim);
-  text-decoration: none;
-}
-/* Split from the hover rule below (B-253): the active-route tint must survive on touch, so it
-   cannot share a selector list with :hover once that list is gated to pointer devices. */
-.bulbActive {
-  color: var(--accent);
-}
-@media (hover: hover) {
-  .bulb:hover {
-    color: var(--accent);
-  }
-}
+/* B-311 removed `.bulb` / `.bulbActive` — the Conseils lightbulb that used to sit in `.right`
+   before Conseils became a primary nav entry. The appbar carries no always-on icon button now. */
 
 /* Account menu (top-right avatar dropdown). */
 .acct {
