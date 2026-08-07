@@ -6419,14 +6419,14 @@ Utilisateurs Créé le).
 
 Per screen, as arbitrated column by column — descending first / alphabetical first:
 
-| Screen           | Descending                                       | Alphabetical              |
-| ---------------- | ------------------------------------------------ | ------------------------- |
-| Aliments         | kcal · L · G · P · Note · Utilisation            | Nom · Source · Visibilité |
-| Catalogue Ciqual | kcal · L · G · P                                 | Nom                       |
-| Recettes         | Poids du lot · Portions · Note                   | Nom                       |
-| Contenants       | Poids                                            | Nom                       |
-| Utilisateurs     | Créé le · Dernière connexion · Dernière activité | Utilisateur               |
-| Historique       | Jour _(already)_ · Calories                      | Verdict · Activité        |
+| Screen           | Descending                                                  | Alphabetical              |
+| ---------------- | ----------------------------------------------------------- | ------------------------- |
+| Aliments         | kcal · L · G · P · Note · Utilisation                       | Nom · Source · Visibilité |
+| Catalogue Ciqual | kcal · L · G · P                                            | Nom                       |
+| Recettes         | Poids du lot · Portions · Note _(+ the five of RS-1/B-306)_ | Nom                       |
+| Contenants       | Poids                                                       | Nom                       |
+| Utilisateurs     | Créé le · Dernière connexion · Dernière activité            | Utilisateur               |
+| Historique       | Jour _(already)_ · Calories                                 | Verdict · Activité        |
 
 **Historique is in scope, deliberately.** It was not among the five screens of the initial decision,
 but it already carried half the rule (`Jour` descending, B-066) and its Calories column did not —
@@ -6540,3 +6540,50 @@ category, the Aliments portion) are kept to one line: unlike the comment, a wrap
 and the viewport, so no count can describe it and no reserve can be exact while it exists.
 
 Commit: `B-303 (LD-1 follow-up)`.
+
+---
+
+## RS-1 / B-306 — the Recettes table becomes sortable end to end — RESOLVED (owner, 2026-08-07)
+
+**Observed:** on Recettes, kcal/100 g, L, G, P and g/portion were plain headers. Not a defect —
+`spec/api/foods-recipes.md` said so in words ("derived macro columns NOT sortable, cf. OPEN_GAPS
+#10"), and `RECIPE_SORT_FIELDS` enforced it. **Decision (D25): all five become sortable**, so the
+table is fully sortable, like Aliments.
+
+**What the restriction was actually protecting.** The `recipe` table stores only name, batch,
+servings and rating; the per-100 g macros live on the recipe's **derived food** row, read in a
+second query and merged in JS — and `food.recipe_id` is not a Prisma relation, so no `orderBy`
+spans the two. `weight_per_portion` is a third case again: `total_batch_grams / servings`, two real
+recipe columns, but an **expression**, which Prisma cannot order by either. All five therefore share
+one answer.
+
+**The answer was already in the repo.** Aliments' **Utilisation** column has no stored column
+either, and `food.repo.listByUsage` handles it: materialise the whole `buildWhere` match set, rank
+it in JS behind a **stable `name` → `id` tiebreak**, then slice by `pageStartIndex`. Its stated
+justification — the match set is a single user's bounded catalog — holds a fortiori for recipes, a
+smaller catalog than foods. The tiebreak is the load-bearing part: without a total order that is
+identical between calls, `offset` slicing (LD-1/B-303) would return duplicated and dropped rows.
+`dir` flips the **value axis only**, exactly as `rankByUsage` flips the count axis alone.
+
+**One structural move.** The derived-summary read lived in the service, _after_ the repo had
+paginated, so a ranking path could not have seen the rows it was meant to order. `recipeRepo.list`
+now returns the summaries alongside the page — the column path still reads only the page's, the
+ranked path already has all of them.
+
+**Decision — a computed 0 is an ordinary value, superseding the triage proposal (D26).** Triage had
+proposed that a recipe with no computed macros sink to the bottom in both directions, like an
+unrated note. Two facts sank it instead. A recipe with **no ingredient cannot be saved from the
+app** (the builder's Save stays disabled below one ingredient), so the rule would only ever have
+fired on rows the UI cannot produce. And the case that _is_ reachable — a recipe whose ingredients
+genuinely total zero, a herbal tea — is a real measurement, not a missing one: burying it would hide
+data rather than tidy it. So the macro sorts order strictly on the number, zeros leading the
+ascending sort and closing the descending one. **NULLS-LAST (B-299) stays scoped to `rating`**, the
+only nullable sortable field in the app. `weight_per_portion` never lacks a value at all: batch is
+asserted `> 0` and servings is `≥ 1`.
+
+**Contract impact.** `spec/api/foods-recipes.md` §Recipes (the sort vocabulary, the ranked-sort
+semantics, and the response line, which had drifted — it omitted the `total` B-278 has been sending
+since), `specifications/screens/recipe.md` (§Sort plus the two "sortable" mentions), and the
+Recettes row of the B-299 first-click table above. `design/components/data-tables.md` needs nothing:
+its sortable-header bullet enumerates Aliments only, and its first-click rule already covers these
+columns. No schema change, no migration.

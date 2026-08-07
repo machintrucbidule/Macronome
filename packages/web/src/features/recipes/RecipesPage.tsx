@@ -20,8 +20,13 @@ type ModalState = { mode: 'add' } | { mode: 'edit'; id: string } | null;
 
 /** Columns that start descending on a first click (B-299): every numeric one. */
 export const RECIPES_DESC_FIRST: ReadonlySet<SortField> = new Set<SortField>([
+  'kcal',
+  'fat',
+  'carb',
+  'protein',
   'batch',
   'servings',
+  'weight_per_portion',
   'rating',
 ]);
 

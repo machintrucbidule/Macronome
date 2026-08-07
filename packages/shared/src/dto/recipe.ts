@@ -165,10 +165,21 @@ export interface RecipePreviewResponse {
 
 // --- List / search query --------------------------------------------------
 
-// Recipe-native sort fields only. Derived macro columns live on the derived food row,
-// not the recipe table, so they are not keyset-sortable here (cf. foods' "Portion NOT
-// sortable", OPEN_GAPS #10); the screen shows them as non-sortable columns.
-export const RECIPE_SORT_FIELDS = ['name', 'batch', 'servings', 'rating'] as const;
+// Every Recettes column is sortable (RS-1/B-306), in column order. Four of them have no stored
+// column — the per-100 g macros live on the derived food row — and `weight_per_portion` is an
+// expression (batch / servings); those five are ranked at query time over the whole match set
+// (`recipe-rank.ts`), the rest order in SQL.
+export const RECIPE_SORT_FIELDS = [
+  'name',
+  'kcal',
+  'fat',
+  'carb',
+  'protein',
+  'batch',
+  'servings',
+  'weight_per_portion',
+  'rating',
+] as const;
 
 export const RecipeListQuerySchema = z
   .object({

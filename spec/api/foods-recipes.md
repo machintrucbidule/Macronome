@@ -127,10 +127,18 @@ surfaced** in v1 (owner decision, B-292): the catalog shows a homogeneous kcal c
 
 - `GET /recipes` — recipes only. Query: `q`, `min_rating` (1|2|3 — excludes Bof 0
   and unrated when ≥1, mirrors foods), `include_archived`, `sort` ∈
-  {name,batch,servings,rating} (derived macro columns NOT sortable, cf. OPEN_GAPS #10),
+  {name,kcal,fat,carb,protein,batch,servings,weight_per_portion,rating} (column order),
   `dir`, `limit`, `cursor` **or `offset`** (LD-1/B-303, mutually exclusive).
-  → 200 `{data:[RecipeSummary], next_cursor}` (incl. derived per-100 g, batch,
-  `batch_weight_auto`, servings, weight/portion, rating).
+  **`kcal`, `fat`, `carb`, `protein` and `weight_per_portion`** (RS-1/B-306) have **no stored
+  column** — the per-100 g macros live on the recipe's derived food, and weight/portion is
+  `total_batch_grams / servings`. They are therefore **ranked at query time over the whole
+  filtered match set**, ties broken by name then id: a total order, identical across paginated
+  calls, which is what lets `cursor` and `offset` slice it coherently. `next_cursor`, `offset`
+  and `total` behave exactly as on the column sorts. A recipe whose macros compute to **0 is
+  ordered on that 0** like any other value — the NULLS-LAST rule (B-299) applies to `rating`
+  alone, the only nullable sortable field here.
+  → 200 `{data:[RecipeSummary], next_cursor, total}` (`total` = rows matching the filters,
+  B-278; incl. derived per-100 g, batch, `batch_weight_auto`, servings, weight/portion, rating).
 - `GET /recipes/:id` → 200 RecipeFull (ingredients + instructions + derived +
   rating + `batch_weight_auto`).
 - `POST /recipes` — `{name, instructions?, rating?(null|0..3), total_batch_grams?,

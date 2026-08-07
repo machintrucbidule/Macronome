@@ -5,7 +5,9 @@ import type {
 } from '@prisma/client';
 import type { RecipeListQuery } from '@macronome/shared';
 import { prisma } from '../prisma.js';
-import { pageWindow } from './page-window.js';
+import { pageStartIndex, pageWindow } from './page-window.js';
+import { recipeDerivedFoodRepo, type DerivedSummary } from './recipe-derived-food.repo.js';
+import { isRankedSort, rankRecipes, type RankedRecipeSort } from './recipe-rank.js';
 
 // Repository for recipe + recipe_ingredient. Every method is scoped by the authenticated
 // `userId` (CLAUDE.md rule 3); a cross-tenant id resolves to null → 404 at the controller.
@@ -37,7 +39,10 @@ export interface RecipeWriteData {
   ingredients: IngredientWriteData[];
 }
 
-const SORT_COLUMN: Record<RecipeListQuery['sort'], keyof RecipeModel> = {
+/** Map the `sort` query field to its column. The ranked sorts (RS-1/B-306) have none — excluding
+ *  them here makes a missing mapping a compile error rather than a silent `undefined` orderBy,
+ *  the shape `food.repo` already uses for `usage`. */
+const SORT_COLUMN: Record<Exclude<RecipeListQuery['sort'], RankedRecipeSort>, keyof RecipeModel> = {
   name: 'name',
   batch: 'totalBatchGrams',
   servings: 'servings',
@@ -91,11 +96,41 @@ function toIngredientCreate(recipeId: string, data: IngredientWriteData[]) {
   }));
 }
 
+/** A page of the list, plus the derived-food summaries of the rows on it. The summaries are read
+ *  HERE rather than in the service (RS-1/B-306): the ranked path orders on figures that live on
+ *  the derived food, so it cannot wait for the service to fetch them after pagination. */
+export interface RecipeListPage {
+  rows: RecipeModel[];
+  derived: Map<string, DerivedSummary>;
+  nextCursor: string | null;
+  total: number;
+}
+
+/** Ranked sorts (RS-1/B-306): no column to order by, so materialise the match set, read every
+ *  matched recipe's derived summary, rank, and paginate by slicing the deterministic order —
+ *  `food.repo.listByUsage`'s shape, and sound for the same reason: the match set is a single
+ *  user's bounded catalog. Never keyset, so `offset` is simply where the slice starts. */
+async function listRanked(
+  userId: string,
+  query: ListQuery,
+  sort: RankedRecipeSort,
+): Promise<RecipeListPage> {
+  const matches = await prisma.recipe.findMany({ where: buildWhere(userId, query) });
+  const derived = await recipeDerivedFoodRepo.derivedSummariesByRecipeIds(
+    userId,
+    matches.map((r) => r.id),
+  );
+  const ranked = rankRecipes(matches, derived, sort, query.dir);
+  const begin = pageStartIndex(query, () => ranked.findIndex((r) => r.id === query.cursor));
+  const rows = ranked.slice(begin, begin + query.limit);
+  const nextCursor = begin + query.limit < ranked.length ? (rows.at(-1)?.id ?? null) : null;
+  // Free here: this path already materialises every match to rank it.
+  return { rows, derived, nextCursor, total: ranked.length };
+}
+
 export const recipeRepo = {
-  async list(
-    userId: string,
-    query: ListQuery,
-  ): Promise<{ rows: RecipeModel[]; nextCursor: string | null; total: number }> {
+  async list(userId: string, query: ListQuery): Promise<RecipeListPage> {
+    if (isRankedSort(query.sort)) return listRanked(userId, query, query.sort);
     const column = SORT_COLUMN[query.sort];
     const orderBy: Prisma.RecipeOrderByWithRelationInput[] = [
       { [column]: orderFor(column, query.dir) },
@@ -116,7 +151,11 @@ export const recipeRepo = {
     const hasMore = rows.length > query.limit;
     const page = hasMore ? rows.slice(0, query.limit) : rows;
     const nextCursor = hasMore ? (page.at(-1)?.id ?? null) : null;
-    return { rows: page, nextCursor, total };
+    const derived = await recipeDerivedFoodRepo.derivedSummariesByRecipeIds(
+      userId,
+      page.map((r) => r.id),
+    );
+    return { rows: page, derived, nextCursor, total };
   },
 
   async findById(userId: string, id: string): Promise<RecipeWithIngredients | null> {

@@ -162,11 +162,9 @@ function toSummary(
 
 export async function list(userId: string, query: RecipeListQuery): Promise<RecipeListResponse> {
   const opts = query.q ? { ...query, normalized: normalize(query.q) } : query;
-  const { rows, nextCursor, total } = await recipeRepo.list(userId, opts);
-  const derived = await recipeDerivedFoodRepo.derivedSummariesByRecipeIds(
-    userId,
-    rows.map((r) => r.id),
-  );
+  // The derived summaries come back with the page: the ranked sorts (RS-1/B-306) order on figures
+  // that live on the derived food, so the repository has to read them before it can paginate.
+  const { rows, derived, nextCursor, total } = await recipeRepo.list(userId, opts);
   return {
     data: rows.map((r) => toSummary(r, derived.get(r.id))),
     next_cursor: nextCursor,

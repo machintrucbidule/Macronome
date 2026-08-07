@@ -37,7 +37,22 @@ const EXPECTED: Record<string, [ReadonlySet<string>, Record<string, 'asc' | 'des
     CATALOG_DESC_FIRST,
     { name: 'asc', kcal: 'desc', fat: 'desc', carb: 'desc', protein: 'desc' },
   ],
-  Recettes: [RECIPES_DESC_FIRST, { name: 'asc', batch: 'desc', servings: 'desc', rating: 'desc' }],
+  // RS-1/B-306 made the whole table sortable: the four derived macros and g/portion joined in,
+  // and being numeric they all fall on the descending side.
+  Recettes: [
+    RECIPES_DESC_FIRST,
+    {
+      name: 'asc',
+      kcal: 'desc',
+      fat: 'desc',
+      carb: 'desc',
+      protein: 'desc',
+      batch: 'desc',
+      servings: 'desc',
+      weight_per_portion: 'desc',
+      rating: 'desc',
+    },
+  ],
   Contenants: [CONTAINERS_DESC_FIRST, { name: 'asc', weight: 'desc' }],
   Utilisateurs: [
     USERS_DESC_FIRST,

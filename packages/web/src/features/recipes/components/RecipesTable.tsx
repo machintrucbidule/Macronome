@@ -7,10 +7,45 @@ import type { Slot } from '../../../lib/usePagedList';
 import { RecipeRow } from './RecipeRow';
 import styles from '../recipes.module.css';
 
-// Sortable recipes table (specifications/screens/recipe.md). Server-sortable columns:
-// Nom · Lot · Portions · Note (recipe-native). Derived macro columns (kcal/L/G/P,
-// weight/portion) are display-only — they live on the derived food, not the recipe table.
-export type SortField = 'name' | 'batch' | 'servings' | 'rating';
+// Sortable recipes table (specifications/screens/recipe.md). Every data column sorts server-side
+// (RS-1/B-306); the derived macro columns and g/portion have no stored column, so the API ranks
+// them over the whole match set. The screen renders, it never orders.
+export type SortField =
+  | 'name'
+  | 'kcal'
+  | 'fat'
+  | 'carb'
+  | 'protein'
+  | 'batch'
+  | 'servings'
+  | 'weight_per_portion'
+  | 'rating';
+
+/** Sortable columns in table order; the mobile Trier sheet mirrors this list. */
+export const SORT_KEYS: SortField[] = [
+  'name',
+  'kcal',
+  'fat',
+  'carb',
+  'protein',
+  'batch',
+  'servings',
+  'weight_per_portion',
+  'rating',
+];
+
+/** Translation key per column — the wire name `weight_per_portion` keeps the existing label. */
+export const SORT_LABEL: Record<SortField, string> = {
+  name: 'name',
+  kcal: 'kcal',
+  fat: 'fat',
+  carb: 'carb',
+  protein: 'protein',
+  batch: 'batch',
+  servings: 'servings',
+  weight_per_portion: 'weightPerPortion',
+  rating: 'rating',
+};
 
 interface RecipesTableProps {
   /** The whole result set: loaded rows, loading placeholders and reserved gaps (LD-1/B-303). */
@@ -61,7 +96,7 @@ export function RecipesTable({
       align={align}
       onSort={(f) => onSort(f as SortField)}
     >
-      {t(`recipes.col.${field}`)}
+      {t(`recipes.col.${SORT_LABEL[field]}`)}
     </SortableTh>
   );
   return (
@@ -71,13 +106,13 @@ export function RecipesTable({
         <thead>
           <tr>
             {th('name', 'left')}
-            <th className={tableStyles.r}>{t('recipes.col.kcal')}</th>
-            <th className={tableStyles.c}>{t('recipes.col.fat')}</th>
-            <th className={tableStyles.c}>{t('recipes.col.carb')}</th>
-            <th className={tableStyles.c}>{t('recipes.col.protein')}</th>
+            {th('kcal', 'right')}
+            {th('fat', 'center')}
+            {th('carb', 'center')}
+            {th('protein', 'center')}
             {th('batch', 'center')}
             {th('servings', 'center')}
-            <th className={tableStyles.c}>{t('recipes.col.weightPerPortion')}</th>
+            {th('weight_per_portion', 'center')}
             {th('rating', 'center')}
             <th aria-label="actions" />
           </tr>

@@ -16,7 +16,7 @@ import { InfiniteScrollFooter } from '../../../lib/InfiniteScrollFooter';
 import { useListReserve } from '../../../lib/useListReserve';
 import type { PagedList } from '../../../lib/usePagedList';
 import { RecipeCards } from './RecipeCards';
-import type { SortField } from './RecipesTable';
+import { SORT_KEYS, SORT_LABEL, type SortField } from './RecipesTable';
 import type { MinRating } from './FiltersPopover';
 
 // Recettes mobile view (mobile-responsive S6, mockups/03-recipes.html / spec §4.3): the phone
@@ -55,13 +55,11 @@ export function RecipesMobile(props: RecipesMobileProps) {
   // B-278: reserve the unloaded rows' height and chain pages when the scroll asks for them.
   const reserve = useListReserve(props.list, CARD_GAP);
 
-  // The server-sortable columns (mirrors RecipesTable's SortField + the desktop sortable th's).
-  const sortOptions: SortOption<SortField>[] = [
-    { key: 'name', label: t('recipes.col.name') },
-    { key: 'batch', label: t('recipes.col.batch') },
-    { key: 'servings', label: t('recipes.col.servings') },
-    { key: 'rating', label: t('recipes.col.rating') },
-  ];
+  // The server-sortable columns, from the desktop table's own list so the two cannot drift.
+  const sortOptions: SortOption<SortField>[] = SORT_KEYS.map((key) => ({
+    key,
+    label: t(`recipes.col.${SORT_LABEL[key]}`),
+  }));
 
   // The desktop FiltersPopover controls, in one bottom sheet: min-rating chips + show-archived.
   const ratings: MinRating[] = [0, 1, 2, 3];
