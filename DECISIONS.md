@@ -6676,6 +6676,17 @@ reference table has nothing to edit.
 
 **B-304 rides along** — see the amendment on CIQ-3 above: adoption now defaults to `Privé`.
 
+**Follow-up, same session — three placement corrections on the shipped batch (owner).** The
+selection count was rendering **beside the search field**, taking width from the widest control in
+the toolbar; it moved **under the "N aliments" read-out** on the left, absolutely positioned so
+ticking rows cannot change the toolbar's height. On a phone it is **not shown at all** — the ticked
+cards already say it. And the mobile batch button was a full-width text button on **a band of its
+own**, which cost the list a strip of vertical space for a control used occasionally; it became one
+more **icon-only square button in the sticky toolbar**, in the row's normal place left of Filtrer,
+which is the standing convention for list-screen chrome controls. It reads as active once something
+is ticked. `design/components/data-tables.md` §Selection column and
+`specifications/screens/food-db.md` §Édition par lots say so.
+
 **Contract impact.** `spec/api/00-conventions.md` (new §Bulk writes), `spec/api/foods-recipes.md`
 (the six new endpoints, the adoption default, and `ai_proposable` restored to the documented Food
 payload it had drifted out of), `specifications/screens/food-db.md` (new §Édition par lots, the

@@ -120,10 +120,18 @@ a durable working set that survives scrolling and feeds a write, not an ephemera
   accepted consequence, not an oversight; moving a band would have changed when Portion and
   Visibilité disappear, which was out of scope. **Recettes** has no band, so its only change is the
   index shift.
+- **The count of what is ticked** sits **under the toolbar's own row count** ("12 aliments"), not
+  beside the search field — the search field is the widest thing in that row and must not pay for a
+  read-out. Absolutely positioned, so ticking rows never changes the toolbar's height.
 - **Mobile.** A card is not a table row: the checkbox sits at the **bottom-right of the card**,
   deliberately **low-contrast** so it recedes when the user is not selecting. It is **permanent**
   (no selection mode). A card root that was a single `<button>` must become a container holding the
   open-button **and** the checkbox — a checkbox nested inside a button is invalid.
+  The batch-edit control is **one more icon-only square button in the sticky toolbar**, in the row's
+  normal place just left of Filtrer — the standing convention below, not a text button on a band of
+  its own, which cost the list a whole strip of vertical space. It reads as **active** (accent) once
+  something is ticked and is disabled at zero. **The count is not shown on a phone**: the ticked
+  cards already say it, and the toolbar has no room for a second read-out.
 
 ## Macro cells (Journal)
 

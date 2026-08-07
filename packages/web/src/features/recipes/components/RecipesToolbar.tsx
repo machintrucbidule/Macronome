@@ -18,17 +18,27 @@ interface RecipesToolbarProps {
   onMinRating: (r: MinRating) => void;
   onShowArchived: (v: boolean) => void;
   onAdd: () => void;
-  /** Batch-edit control + count (BE-1/B-308), rendered left of the filters like Aliments. */
+  /** Batch-edit control (BE-1/B-308), rendered left of the filters like Aliments. */
   bulk?: ReactNode;
+  /** How many rows are ticked; shown under the count rather than beside the search field. */
+  selectedCount?: number | undefined;
 }
 
 export function RecipesToolbar(props: RecipesToolbarProps) {
   const { t } = useTranslation();
+  const selected = props.selectedCount ?? 0;
   return (
     <div className={styles.toolbar}>
       <h1>{t('recipes.title')}</h1>
-      <span className={styles.count}>
-        {props.count === undefined ? '' : t('recipes.count', { count: props.count })}
+      {/* The selection read-out is absolutely positioned under the count, so ticking rows never
+          changes the toolbar's height. */}
+      <span className={styles.countCell}>
+        <span className={styles.count}>
+          {props.count === undefined ? '' : t('recipes.count', { count: props.count })}
+        </span>
+        {selected > 0 && (
+          <span className={styles.selectedCount}>{t('bulk.selected', { count: selected })}</span>
+        )}
       </span>
       <SearchField
         value={props.q}

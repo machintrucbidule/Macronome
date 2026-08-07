@@ -65,6 +65,7 @@ export function FoodsDesktop(props: FoodsDesktopProps) {
         onQ={props.onQ}
         onAdd={props.onAdd}
         bulk={<BulkButton count={props.bulk.selection.count} onClick={props.onBulkEdit} />}
+        selectedCount={props.bulk.selection.count}
         filters={
           <FiltersPopover
             minRating={props.minRating}

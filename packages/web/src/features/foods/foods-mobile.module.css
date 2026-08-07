@@ -161,14 +161,3 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
-/* Batch action row (BE-1/D14): appears under the sticky toolbar only once something is ticked, so
-   the phone list is unchanged when the user is not selecting. The boxes themselves live on the
-   cards, so this row carries just the count and the button. */
-.bulkBar {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--sp-4);
-  padding: var(--sp-3) var(--sp-2) 0;
-}

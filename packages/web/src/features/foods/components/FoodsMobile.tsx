@@ -6,7 +6,7 @@ import { EmptyState } from '../../../components/states/EmptyState';
 import { SkeletonRows } from '../../../components/states/SkeletonRows';
 import { SearchField } from '../../../components/Form/SearchField';
 import { FiltersSheet, ListToolbar, SortSheet } from '../../../components/ListChrome';
-import { BulkButton } from '../../../components/BulkEdit';
+import { BulkIconButton } from '../../../components/BulkEdit';
 import { Fab } from '../../../app/Fab';
 import { InfiniteScrollFooter } from '../../../lib/InfiniteScrollFooter';
 import { useListReserve } from '../../../lib/useListReserve';
@@ -17,7 +17,6 @@ import type { SortField } from './FoodTable';
 import type { MinRating, VisibilityFilter } from './FiltersPopover';
 import type { SourceFilter } from '../sourceFilter';
 import { buildFilterSections, buildSortOptions, filtersActive } from './foods-mobile-chrome';
-import styles from '../foods-mobile.module.css';
 
 // Mobile Aliments view (mobile-responsive S7, spec §4.3 — same pattern as Recettes S6).
 // Sticky list chrome (search + Trier + Filtres) over a card list, with a FAB that opens the
@@ -101,16 +100,12 @@ export function FoodsMobile(props: FoodsMobileProps) {
           onSort={props.onSort}
           fabSafe
         />
+        {/* Batch edit (BE-1, owner follow-up): one more icon-only chrome control, in the row's
+            normal place just left of Filtrer — not a text button on a band of its own. The count
+            stays off the phone: the ticked cards already show it. */}
+        <BulkIconButton count={props.bulk.selection.count} onClick={props.onBulkEdit} />
         <FiltersSheet sections={filterSections} active={filtersActive(props)} fabSafe />
       </ListToolbar>
-
-      {/* Batch selection (BE-1/D14): the boxes live on the cards, so the toolbar only needs the
-          count and the button. Hidden entirely at zero, to keep the phone list quiet. */}
-      {props.bulk.selection.count > 0 && (
-        <div className={styles.bulkBar}>
-          <BulkButton count={props.bulk.selection.count} onClick={props.onBulkEdit} />
-        </div>
-      )}
 
       {props.modeToggle}
 

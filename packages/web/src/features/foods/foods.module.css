@@ -13,10 +13,28 @@
   font-weight: var(--fw-bold);
   margin: 0;
 }
+/* BE-1 (owner follow-up): the batch selection read-out sits UNDER the row count rather than beside
+   the search field, which it was narrowing. Absolutely positioned so ticking rows never changes the
+   toolbar's height. */
+.countCell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
 .count {
   font-family: var(--font-num);
   font-size: var(--fs-11);
   color: var(--text-faint);
+}
+.selectedCount {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 2px;
+  font-family: var(--font-num);
+  font-size: var(--fs-10);
+  color: var(--accent);
+  white-space: nowrap;
 }
 .addbtn {
   margin-left: auto;

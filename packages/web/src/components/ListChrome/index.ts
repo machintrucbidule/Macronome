@@ -7,3 +7,6 @@ export { SortSheet, type SortOption } from './SortSheet';
 export { FilterSheet, type FilterOption } from './FilterSheet';
 export { FiltersSheet, type FilterSection } from './FiltersSheet';
 export { OverflowMenu, type OverflowAction } from './OverflowMenu';
+// The toolbar-control styling itself, so a control living outside this folder can still be one of
+// the icon-only square buttons the convention prescribes (BE-1's batch-edit control).
+export { default as chromeStyles } from './list-chrome.module.css';

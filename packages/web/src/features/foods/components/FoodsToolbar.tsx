@@ -17,9 +17,12 @@ interface FoodsToolbarProps {
   q: string;
   onQ: (q: string) => void;
   filters: ReactNode;
-  /** Batch-edit control + count (BE-1), rendered left of the filters. Absent in catalog mode,
-   *  where a read-only reference table has nothing to edit. */
+  /** Batch-edit control (BE-1), rendered left of the filters. Absent in catalog mode, where a
+   *  read-only reference table has nothing to edit. */
   bulk?: ReactNode;
+  /** How many rows are ticked (BE-1). Shown **under** the count on the left rather than beside
+   *  the search field, which it was costing width (owner follow-up); 0 shows nothing. */
+  selectedCount?: number | undefined;
   onAdd: () => void;
   /** Disabled in catalog mode, where adding is per row (B-292). Greyed rather than removed,
    *  so the toolbar keeps its geometry when switching mode. */
@@ -28,11 +31,19 @@ interface FoodsToolbarProps {
 
 export function FoodsToolbar(props: FoodsToolbarProps) {
   const { t } = useTranslation();
+  const selected = props.selectedCount ?? 0;
   return (
     <div className={styles.toolbar}>
       <h1>{t('foods.title')}</h1>
-      <span className={styles.count}>
-        {props.count === undefined ? '' : t(props.countKey, { count: props.count })}
+      {/* The selection read-out is absolutely positioned under the count, so ticking rows never
+          changes the toolbar's height. */}
+      <span className={styles.countCell}>
+        <span className={styles.count}>
+          {props.count === undefined ? '' : t(props.countKey, { count: props.count })}
+        </span>
+        {selected > 0 && (
+          <span className={styles.selectedCount}>{t('bulk.selected', { count: selected })}</span>
+        )}
       </span>
       <SearchField
         value={props.q}

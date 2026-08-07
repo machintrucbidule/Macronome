@@ -54,6 +54,7 @@ export function RecipesDesktop(props: RecipesDesktopProps) {
         onShowArchived={props.onShowArchived}
         onAdd={props.onAdd}
         bulk={<BulkButton count={props.bulk.selection.count} onClick={props.onBulkEdit} />}
+        selectedCount={props.bulk.selection.count}
       />
 
       {props.loading ? (

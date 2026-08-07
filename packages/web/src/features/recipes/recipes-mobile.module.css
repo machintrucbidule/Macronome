@@ -46,14 +46,6 @@
   background: color-mix(in srgb, var(--select) 16%, var(--bg-elev));
   border-color: var(--select);
 }
-/* Batch action row (BE-1/D14): shown only once something is ticked. */
-.bulkBar {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--sp-4);
-  padding: var(--sp-3) var(--sp-2) 0;
-}
 @media (hover: hover) {
   .card:hover {
     border-color: var(--border-strong);

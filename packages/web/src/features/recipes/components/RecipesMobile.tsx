@@ -11,14 +11,13 @@ import {
   type FilterSection,
   type SortOption,
 } from '../../../components/ListChrome';
-import { BulkButton } from '../../../components/BulkEdit';
+import { BulkIconButton } from '../../../components/BulkEdit';
 import { Fab } from '../../../app/Fab';
 import { InfiniteScrollFooter } from '../../../lib/InfiniteScrollFooter';
 import { useListReserve } from '../../../lib/useListReserve';
 import type { PagedList } from '../../../lib/usePagedList';
 import type { RecipesBulk } from '../useRecipesBulk';
 import { RecipeCards } from './RecipeCards';
-import styles from '../recipes-mobile.module.css';
 import { SORT_KEYS, SORT_LABEL, type SortField } from './RecipesTable';
 import type { MinRating } from './FiltersPopover';
 
@@ -126,16 +125,11 @@ export function RecipesMobile(props: RecipesMobileProps) {
           onSort={props.onSort}
           fabSafe
         />
+        {/* Batch edit (BE-1, owner follow-up): an icon-only chrome control in the row's normal
+            place, left of Filtrer — see the twin comment in FoodsMobile. */}
+        <BulkIconButton count={props.bulk.selection.count} onClick={props.onBulkEdit} />
         <FiltersSheet sections={filterSections} active={filtersActive} fabSafe />
       </ListToolbar>
-
-      {/* Batch selection (BE-1/D14): the boxes live on the cards, so this row is only the count
-          and the button, and only once something is ticked. */}
-      {props.bulk.selection.count > 0 && (
-        <div className={styles.bulkBar}>
-          <BulkButton count={props.bulk.selection.count} onClick={props.onBulkEdit} />
-        </div>
-      )}
 
       {body}
 

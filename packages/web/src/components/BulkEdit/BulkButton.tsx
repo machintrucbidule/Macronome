@@ -1,10 +1,12 @@
 import { useTranslation } from 'react-i18next';
 import { Button } from '../Button/Button';
-import styles from './BulkEdit.module.css';
 
-// The batch-edit control of a catalogue toolbar (BE-1): the count of what is ticked, then the
-// button that opens the editor. Disabled at zero — there is nothing to edit — and at one it opens
-// the ordinary single-row form, which the caller decides; this component only reports the click.
+// The batch-edit control of a desktop catalogue toolbar (BE-1): a plain ghost button, disabled at
+// zero — there is nothing to edit. At one selected it opens the ordinary single-row form, which the
+// caller decides; this component only reports the click.
+//
+// It carries no count: the count belongs under the toolbar's own "N aliments" read-out (owner
+// follow-up), where it costs the search field no width.
 
 interface Props {
   count: number;
@@ -14,11 +16,8 @@ interface Props {
 export function BulkButton({ count, onClick }: Props) {
   const { t } = useTranslation();
   return (
-    <>
-      {count > 0 && <span className={styles.count}>{t('bulk.selected', { count })}</span>}
-      <Button variant="ghost" onClick={onClick} disabled={count === 0}>
-        {t('bulk.edit')}
-      </Button>
-    </>
+    <Button variant="ghost" onClick={onClick} disabled={count === 0}>
+      {t('bulk.edit')}
+    </Button>
   );
 }
