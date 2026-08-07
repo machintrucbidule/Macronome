@@ -22,7 +22,12 @@ export default defineConfig({
   // in the first place — that is why CI has been green while local runs were not.
   workers: process.env.CI ? undefined : 4,
   expect: { timeout: 10_000 },
-  use: { baseURL: 'http://localhost:5173', trace: 'on-first-retry' },
+  // `retain-on-failure`, not `on-first-retry`: the retry is not a faithful replay. Every spec
+  // seeds fixture rows named once per worker process, so a test that failed halfway leaves its
+  // rows behind and the retry meets a different database than the first attempt did — the foods
+  // batch spec's retry fails on the row COUNT, several steps before the assertion that actually
+  // broke. Tracing the first attempt is the only way to see the failure that matters.
+  use: { baseURL: 'http://localhost:5173', trace: 'retain-on-failure' },
   // The first-run spec needs a zero-user database (the setup endpoint is gated to it). It
   // truncates app_user, so it must not run concurrently with the other DB-backed specs:
   // it runs alone in the `first-run` project, which the `app` project depends on, giving a
