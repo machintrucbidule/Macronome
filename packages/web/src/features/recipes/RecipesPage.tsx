@@ -110,7 +110,7 @@ export function RecipesPage() {
     // One selected recipe opens the ordinary builder; two or more the batch popup (BE-1).
     onBulkEdit: (): void => {
       const ids = [...bulk.selection.selected];
-      setModal(ids.length === 1 ? { mode: 'edit', id: ids[0] as string } : { mode: 'bulk' });
+      setModal(ids.length === 1 ? { mode: 'edit', id: ids[0] as string } : { mode: 'bulk', ids });
     },
   };
 
@@ -131,10 +131,9 @@ export function RecipesPage() {
       <RecipesModals
         modal={modal}
         archiveTarget={archiveTarget}
-        bulkCount={bulk.selection.count}
         onCloseModal={() => setModal(null)}
-        onApplyBulk={(patch) => {
-          bulk.apply(patch);
+        onApplyBulk={(ids, patch) => {
+          bulk.apply(ids, patch);
           setModal(null); // the selection itself survives (owner)
         }}
         onArchiveTarget={setArchiveTarget}

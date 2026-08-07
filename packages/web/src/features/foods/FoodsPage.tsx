@@ -22,7 +22,10 @@ type ModalState =
   | { mode: 'add' }
   | { mode: 'edit'; food: Food }
   | { mode: 'adopt'; ref: FoodRef }
-  | { mode: 'bulk' }
+  // B-329: the batch popup carries the ids it was opened on. Reading the live selection at write
+  // time was a race — a filter change clears the selection by design, and if that landed while
+  // the popup was open the write went out with `ids: []` and was rejected 422, silently.
+  | { mode: 'bulk'; ids: string[] }
   | null;
 
 /** Live (non-authoritative) duplicate-name hint; the server returns the real warning. */
@@ -40,7 +43,7 @@ function isDuplicateName(foods: Food[], name: string, editingId: string | null):
 function bulkModalFor(selected: Set<string>, foods: Food[]): ModalState {
   const ids = [...selected];
   const only = ids.length === 1 ? foods.find((f) => f.id === ids[0]) : undefined;
-  return only ? { mode: 'edit', food: only } : { mode: 'bulk' };
+  return only ? { mode: 'edit', food: only } : { mode: 'bulk', ids };
 }
 
 export function FoodsPage() {
@@ -97,11 +100,11 @@ export function FoodsPage() {
 
       {modal?.mode === 'bulk' && (
         <FoodBulkModal
-          count={library.bulk.selection.count}
+          count={modal.ids.length}
           presentSources={library.sources}
           onClose={() => setModal(null)}
           onApply={(patch) => {
-            library.bulk.apply(patch);
+            library.bulk.apply(modal.ids, patch);
             setModal(null); // the selection itself survives (owner), so a second field can follow
           }}
         />

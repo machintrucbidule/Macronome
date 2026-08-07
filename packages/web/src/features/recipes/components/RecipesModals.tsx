@@ -10,16 +10,15 @@ import { RecipeBulkModal } from '../modals/RecipeBulkModal';
 export type RecipesModalState =
   | { mode: 'add' }
   | { mode: 'edit'; id: string }
-  | { mode: 'bulk' }
+  // B-329: the batch popup carries the ids it was opened on — see FoodsPage for the race.
+  | { mode: 'bulk'; ids: string[] }
   | null;
 
 interface Props {
   modal: RecipesModalState;
   archiveTarget: RecipeSummary | null;
-  /** How many recipes the batch popup will write to. */
-  bulkCount: number;
   onCloseModal: () => void;
-  onApplyBulk: (patch: RecipeBulkPatch) => void;
+  onApplyBulk: (ids: string[], patch: RecipeBulkPatch) => void;
   onArchiveTarget: (recipe: RecipeSummary | null) => void;
   onConfirmArchive: () => void;
 }
@@ -30,9 +29,9 @@ export function RecipesModals(props: Props) {
     <>
       {modal?.mode === 'bulk' && (
         <RecipeBulkModal
-          count={props.bulkCount}
+          count={modal.ids.length}
           onClose={props.onCloseModal}
-          onApply={props.onApplyBulk}
+          onApply={(patch) => props.onApplyBulk(modal.ids, patch)}
         />
       )}
 

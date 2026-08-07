@@ -137,4 +137,38 @@ describe('Aliments — batch edit (BE-1)', () => {
     // Owner decision: the selection survives, so a second field can follow without re-ticking.
     expect(screen.getByText(i18n.t('bulk.selected', { count: 2 }))).toBeTruthy();
   });
+
+  // B-329. The popup used to read the LIVE selection at write time, and the selection is dropped
+  // whenever the filter changes (a frozen set must not outlive its filter). Typing in the search
+  // box while the popup is open did exactly that: the write went out with `ids: []`, the API
+  // answered 422, and the screen showed nothing at all — the popup closed and no row changed.
+  // The ids are now frozen when the popup opens, which is also the set the recap counted.
+  it('writes the ids the popup was opened on, even if the selection is dropped meanwhile', async () => {
+    mockApis();
+    render(<FoodsPage />, { wrapper });
+    await screen.findByText('Avoine');
+
+    fireEvent.click(rowBox('Avoine'));
+    fireEvent.click(rowBox('Beurre'));
+    fireEvent.click(screen.getByRole('button', { name: i18n.t('bulk.edit') }));
+
+    // The filter changes under the open popup — this is what cleared the selection.
+    fireEvent.change(screen.getByPlaceholderText(i18n.t('foods.searchPlaceholder')), {
+      target: { value: 'Avo' },
+    });
+    await waitFor(() =>
+      expect(screen.queryByText(i18n.t('bulk.selected', { count: 2 }))).toBeNull(),
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: i18n.t('foods.visibility.shared') }));
+    fireEvent.click(screen.getByRole('button', { name: i18n.t('bulk.continue') }));
+    fireEvent.click(screen.getByRole('button', { name: i18n.t('bulk.apply') }));
+
+    await waitFor(() =>
+      expect(foodsApi.bulkUpdate).toHaveBeenCalledWith({
+        ids: ['f1', 'f2'],
+        patch: { visibility: 'shared' },
+      }),
+    );
+  });
 });

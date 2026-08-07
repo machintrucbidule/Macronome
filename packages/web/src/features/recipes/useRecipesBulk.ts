@@ -11,7 +11,8 @@ import { useIdSelection, type IdSelection } from '../../lib/useIdSelection';
 export interface RecipesBulk {
   selection: IdSelection;
   selectAll: (checked: boolean) => void;
-  apply: (patch: RecipeBulkPatch) => void;
+  /** Applies to the ids the recap counted, passed in rather than read live — see useFoodsBulk (B-329). */
+  apply: (ids: string[], patch: RecipeBulkPatch) => void;
 }
 
 export function useRecipesBulk(params: RecipeListParams): RecipesBulk {
@@ -28,8 +29,7 @@ export function useRecipesBulk(params: RecipeListParams): RecipesBulk {
   });
 
   const applyMutation = useMutation({
-    mutationFn: (patch: RecipeBulkPatch) =>
-      recipesApi.bulkUpdate({ ids: [...selection.selected], patch }),
+    mutationFn: (vars: { ids: string[]; patch: RecipeBulkPatch }) => recipesApi.bulkUpdate(vars),
     onSuccess: () => {
       void invalidate();
       notifyUndoable('recipesBulkEdited', async () => {
@@ -45,6 +45,9 @@ export function useRecipesBulk(params: RecipeListParams): RecipesBulk {
       if (checked) selectAllMutation.mutate();
       else selection.clear();
     },
-    apply: (patch) => applyMutation.mutate(patch),
+    // An empty set is not a write: the API answers 422 and the screen would report nothing.
+    apply: (ids, patch) => {
+      if (ids.length > 0) applyMutation.mutate({ ids, patch });
+    },
   };
 }
