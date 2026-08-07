@@ -10,7 +10,7 @@ import { RecipeBulkModal } from '../modals/RecipeBulkModal';
 export type RecipesModalState =
   | { mode: 'add' }
   | { mode: 'edit'; id: string }
-  // B-329: the batch popup carries the ids it was opened on — see FoodsPage for the race.
+  // B-333: the batch popup carries the ids it was opened on — see FoodsPage for the race.
   | { mode: 'bulk'; ids: string[] }
   | null;
 

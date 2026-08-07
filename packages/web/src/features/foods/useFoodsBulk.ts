@@ -17,7 +17,7 @@ export interface FoodsBulk {
   selectAll: (checked: boolean) => void;
   /**
    * Apply a patch to **the ids the recap counted** — passed in, not read from the live selection
-   * (B-329). The set is frozen when the popup opens; between that moment and Appliquer the live
+   * (B-333). The set is frozen when the popup opens; between that moment and Appliquer the live
    * selection can still be dropped (a filter change clears it by design), and reading it at write
    * time sent `ids: []`, which the API rejects with a 422 the user never saw: the popup closed and
    * nothing happened. The selection itself still SURVIVES the write (owner), so a second field can

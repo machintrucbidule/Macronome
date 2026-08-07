@@ -138,7 +138,7 @@ describe('Aliments — batch edit (BE-1)', () => {
     expect(screen.getByText(i18n.t('bulk.selected', { count: 2 }))).toBeTruthy();
   });
 
-  // B-329. The popup used to read the LIVE selection at write time, and the selection is dropped
+  // B-333. The popup used to read the LIVE selection at write time, and the selection is dropped
   // whenever the filter changes (a frozen set must not outlive its filter). Typing in the search
   // box while the popup is open did exactly that: the write went out with `ids: []`, the API
   // answered 422, and the screen showed nothing at all — the popup closed and no row changed.

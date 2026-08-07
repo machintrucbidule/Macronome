@@ -11,7 +11,7 @@ import { useIdSelection, type IdSelection } from '../../lib/useIdSelection';
 export interface RecipesBulk {
   selection: IdSelection;
   selectAll: (checked: boolean) => void;
-  /** Applies to the ids the recap counted, passed in rather than read live — see useFoodsBulk (B-329). */
+  /** Applies to the ids the recap counted, passed in rather than read live — see useFoodsBulk (B-333). */
   apply: (ids: string[], patch: RecipeBulkPatch) => void;
 }
 

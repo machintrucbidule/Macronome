@@ -22,7 +22,7 @@ type ModalState =
   | { mode: 'add' }
   | { mode: 'edit'; food: Food }
   | { mode: 'adopt'; ref: FoodRef }
-  // B-329: the batch popup carries the ids it was opened on. Reading the live selection at write
+  // B-333: the batch popup carries the ids it was opened on. Reading the live selection at write
   // time was a race — a filter change clears the selection by design, and if that landed while
   // the popup was open the write went out with `ids: []` and was rejected 422, silently.
   | { mode: 'bulk'; ids: string[] }
