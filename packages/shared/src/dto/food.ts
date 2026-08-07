@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { offsetField, rejectCursorWithOffset } from './pagination.js';
+import { BulkIdsSchema, rejectEmptyPatch } from './bulk.js';
 
 // Food DTOs (spec/api/foods-recipes.md §Foods). One source for controller
 // validation and the web client's request/response types. Field names stay
@@ -159,23 +160,30 @@ export const FOOD_SORT_FIELDS = [
   'usage',
 ] as const;
 
+/** What narrows the catalogue, shared by `GET /foods` and `GET /foods/ids` (BE-1) — the header
+ *  checkbox must select exactly the set the list is showing, so the two cannot own separate
+ *  copies of the filter vocabulary. Paging and ordering are NOT here: an id set has neither. */
+const foodFilters = {
+  q: z.string().trim().max(255).optional(),
+  min_rating: z.coerce
+    .number()
+    .int()
+    .pipe(z.union([z.literal(1), z.literal(2), z.literal(3)]))
+    .optional(),
+  visibility: VisibilitySchema.optional(),
+  // Provenance filter (B-291). `recipe` is deliberately not accepted: recipe-derived foods are
+  // excluded from this list by construction, so it could only ever return nothing.
+  source: CreateFoodSourceSchema.optional(),
+  include_archived: z
+    .union([z.boolean(), z.enum(['true', 'false'])])
+    .optional()
+    .default(false)
+    .transform((v) => v === true || v === 'true'),
+};
+
 export const FoodListQuerySchema = z
   .object({
-    q: z.string().trim().max(255).optional(),
-    min_rating: z.coerce
-      .number()
-      .int()
-      .pipe(z.union([z.literal(1), z.literal(2), z.literal(3)]))
-      .optional(),
-    visibility: VisibilitySchema.optional(),
-    // Provenance filter (B-291). `recipe` is deliberately not accepted: recipe-derived foods are
-    // excluded from this list by construction, so it could only ever return nothing.
-    source: CreateFoodSourceSchema.optional(),
-    include_archived: z
-      .union([z.boolean(), z.enum(['true', 'false'])])
-      .optional()
-      .default(false)
-      .transform((v) => v === true || v === 'true'),
+    ...foodFilters,
     sort: z.enum(FOOD_SORT_FIELDS).optional().default('name'),
     dir: z.enum(['asc', 'desc']).optional().default('asc'),
     limit: z.coerce.number().int().positive().max(200).optional().default(50),
@@ -184,6 +192,34 @@ export const FoodListQuerySchema = z
   })
   .superRefine(rejectCursorWithOffset);
 export type FoodListQuery = z.infer<typeof FoodListQuerySchema>;
+
+// --- Bulk edit (BE-1) ------------------------------------------------------
+
+/** `GET /foods/ids` — the same filter, no paging and no ordering. */
+export const FoodIdsQuerySchema = z.object(foodFilters);
+export type FoodIdsQuery = z.infer<typeof FoodIdsQuerySchema>;
+
+/** The five attribute fields the batch form offers. Macros, name and named portions are
+ *  deliberately absent: they are per-food values, meaningless across a selection. Semantics are
+ *  the single-row PATCH's — absent = leave unchanged, `comment: null` = clear, `rating: null` =
+ *  « Pas noté ». */
+export const FoodBulkPatchSchema = z
+  .object({
+    rating: RatingSchema,
+    source: CreateFoodSourceSchema,
+    visibility: VisibilitySchema,
+    ai_proposable: z.boolean(),
+    comment: z.string().max(2000).nullable(),
+  })
+  .partial()
+  .superRefine(rejectEmptyPatch);
+export type FoodBulkPatch = z.infer<typeof FoodBulkPatchSchema>;
+
+export const FoodBulkUpdateSchema = z.object({
+  ids: BulkIdsSchema,
+  patch: FoodBulkPatchSchema,
+});
+export type FoodBulkUpdateRequest = z.infer<typeof FoodBulkUpdateSchema>;
 
 /** List response envelope (spec/api/00-conventions.md §List behaviour). */
 export interface FoodListResponse {

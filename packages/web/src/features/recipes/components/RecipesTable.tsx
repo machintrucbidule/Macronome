@@ -2,6 +2,8 @@ import type { RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { RecipeSummary } from '@macronome/shared';
 import { SortableTh, tableStyles } from '../../../components/DataTable/SortableTh';
+import { SelectCheckbox } from '../../../components/BulkEdit';
+import type { IdSelection } from '../../../lib/useIdSelection';
 import { TableSlots } from '../../../components/states/ListSlotFillers';
 import type { Slot } from '../../../lib/usePagedList';
 import { RecipeRow } from './RecipeRow';
@@ -60,11 +62,16 @@ interface RecipesTableProps {
   onOpen: (recipe: RecipeSummary) => void;
   onArchive: (recipe: RecipeSummary) => void;
   onRestore: (recipe: RecipeSummary) => void;
+  /** Batch selection (BE-1/B-308) — the header box selects the whole FILTERED set, not the loaded
+   *  rows, so the page resolves it server-side and hands the result down. */
+  selection: IdSelection;
+  onSelectAll: (checked: boolean) => void;
+  total: number | undefined;
   /** Rows container, measured to size the reserved scrollbar height (B-278). */
   rowsRef?: RefObject<HTMLElement | null>;
 }
 
-const COLUMNS = 10;
+const COLUMNS = 11;
 
 export function RecipesTable({
   slots,
@@ -76,6 +83,9 @@ export function RecipesTable({
   onOpen,
   onArchive,
   onRestore,
+  selection,
+  onSelectAll,
+  total,
   rowsRef,
 }: RecipesTableProps) {
   const { t } = useTranslation();
@@ -83,11 +93,14 @@ export function RecipesTable({
     <RecipeRow
       key={recipe.id}
       recipe={recipe}
+      selected={selection.isSelected(recipe.id)}
+      onToggle={selection.toggle}
       onOpen={onOpen}
       onArchive={onArchive}
       onRestore={onRestore}
     />
   );
+  const allSelected = total !== undefined && total > 0 && selection.count === total;
   const th = (field: SortField, align: 'left' | 'right' | 'center') => (
     <SortableTh
       field={field}
@@ -105,6 +118,14 @@ export function RecipesTable({
       <table className={`${tableStyles.table} ${styles.recipesTable}`}>
         <thead>
           <tr>
+            <th className={styles.selectCell}>
+              <SelectCheckbox
+                checked={allSelected}
+                indeterminate={selection.count > 0}
+                onChange={onSelectAll}
+                ariaLabel={t('bulk.selectAll')}
+              />
+            </th>
             {th('name', 'left')}
             {th('kcal', 'right')}
             {th('fat', 'center')}

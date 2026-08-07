@@ -7,6 +7,8 @@ import { SkeletonTableRows } from '../../../components/states/SkeletonTableRows'
 import { InfiniteScrollFooter } from '../../../lib/InfiniteScrollFooter';
 import { useListReserve } from '../../../lib/useListReserve';
 import type { PagedList } from '../../../lib/usePagedList';
+import { BulkButton } from '../../../components/BulkEdit';
+import type { FoodsBulk } from '../useFoodsBulk';
 import { FoodsToolbar } from './FoodsToolbar';
 import { FoodTable, type SortField } from './FoodTable';
 import { FiltersPopover, type MinRating, type VisibilityFilter } from './FiltersPopover';
@@ -43,6 +45,10 @@ interface FoodsDesktopProps {
   onOpen: (food: Food) => void;
   onArchive: (food: Food) => void;
   onRestore: (food: Food) => void;
+  /** Batch selection + write (BE-1); `onBulkEdit` is the page's, since at 1 selected it opens the
+   *  ordinary food form rather than the batch popup. */
+  bulk: FoodsBulk;
+  onBulkEdit: () => void;
 }
 
 export function FoodsDesktop(props: FoodsDesktopProps) {
@@ -58,6 +64,7 @@ export function FoodsDesktop(props: FoodsDesktopProps) {
         q={props.q}
         onQ={props.onQ}
         onAdd={props.onAdd}
+        bulk={<BulkButton count={props.bulk.selection.count} onClick={props.onBulkEdit} />}
         filters={
           <FiltersPopover
             minRating={props.minRating}
@@ -92,6 +99,9 @@ export function FoodsDesktop(props: FoodsDesktopProps) {
             onOpen={props.onOpen}
             onArchive={props.onArchive}
             onRestore={props.onRestore}
+            selection={props.bulk.selection}
+            onSelectAll={props.bulk.selectAll}
+            total={props.total}
             rowsRef={reserve.listRef}
           />
           <InfiniteScrollFooter loadedCount={props.list.rows.length} />

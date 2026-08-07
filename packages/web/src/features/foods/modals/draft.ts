@@ -96,8 +96,9 @@ export function chronoPatch(prefill: ChronoFoodPrefill, currentName: string): Pa
 /**
  * Adoption patch (B-292): a Ciqual reference entry becomes an ordinary food draft. The name is
  * taken in the CURRENT UI language (D6) — the catalog carries both, and this is the one place
- * that decides, so the row the user read is the food they get. `visibility:'shared'` is the
- * owner's call: a food copied from a public table has nothing personal in it.
+ * that decides, so the row the user read is the food they get. `visibility:'private'` since
+ * BE-1/B-304, reversing CIQ-3: nothing is `Partagé` unless the owner said so. The server applies
+ * the same default on the silent door (`POST /foods/from-ref`).
  *
  * No named portion and no rating: the whole point of opening the form rather than saving
  * silently is that "Blé dur précuit, cuit" wants renaming, and a portion is worth adding.
@@ -105,7 +106,7 @@ export function chronoPatch(prefill: ChronoFoodPrefill, currentName: string): Pa
 export function ciqualPatch(ref: FoodRef, language: string): Partial<Draft> {
   return {
     source: 'ciqual',
-    visibility: 'shared',
+    visibility: 'private',
     name: refName(ref, language),
     kcal: String(ref.kcal_per_100g),
     fat: String(ref.fat_per_100g),

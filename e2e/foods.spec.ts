@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page, type PlaywrightWorkerArgs } from '@playwright/test';
 import argon2 from 'argon2';
 import { PrismaClient } from '@prisma/client';
 
@@ -12,6 +12,7 @@ const prisma = new PrismaClient();
 const USER = 'e2e_foods';
 const PASSWORD = 'correct-horse-battery';
 const FOOD_NAME = `E2E Crème ${Date.now()}`;
+const BULK_NAMES = [`E2E Lot A ${Date.now()}`, `E2E Lot B ${Date.now()}`];
 
 test.beforeAll(async () => {
   const passwordHash = await argon2.hash(PASSWORD, { type: argon2.argon2id });
@@ -32,8 +33,8 @@ test.afterAll(async () => {
   await prisma.$disconnect();
 });
 
-test('create a food, find it in search, then archive it', async ({ page, playwright }) => {
-  // Log in via the proxied API (same origin as the SPA) and copy the cookies over.
+/** Log in via the proxied API (same origin as the SPA) and copy the cookies over. */
+async function login(page: Page, playwright: PlaywrightWorkerArgs['playwright']): Promise<void> {
   const api = await playwright.request.newContext({ baseURL: 'http://localhost:5173' });
   await api.get('/api/v1/auth/session');
   const csrf =
@@ -43,6 +44,10 @@ test('create a food, find it in search, then archive it', async ({ page, playwri
     data: { username: USER, password: PASSWORD },
   });
   await page.context().addCookies((await api.storageState()).cookies);
+}
+
+test('create a food, find it in search, then archive it', async ({ page, playwright }) => {
+  await login(page, playwright);
 
   await page.goto('/foods');
 
@@ -64,4 +69,43 @@ test('create a food, find it in search, then archive it', async ({ page, playwri
   await page.getByRole('button', { name: 'Archiver' }).first().click();
   await page.getByRole('button', { name: 'Archiver' }).click();
   await expect(page.getByText(FOOD_NAME)).toHaveCount(0);
+});
+
+// BE-1: tick two foods, set one field on both at once, confirm the recap, then undo from the toast.
+test('edit two foods in one batch, then undo it', async ({ page, playwright }) => {
+  await login(page, playwright);
+  await page.goto('/foods');
+
+  for (const name of BULK_NAMES) {
+    await page.getByRole('button', { name: '+ Ajouter un aliment' }).click();
+    await page.getByPlaceholder('Blancs de poulet').fill(name);
+    await page.getByLabel('Calories /100g').fill('100');
+    await page.getByLabel('Lipides /100g').fill('1');
+    await page.getByLabel('Glucides /100g').fill('2');
+    await page.getByLabel('Protéines /100g').fill('3');
+    await page.getByRole('button', { name: 'Enregistrer' }).click();
+  }
+
+  // Narrow the list to the two, then tick them.
+  await page.getByPlaceholder(/Rechercher/).fill('E2E Lot');
+  for (const name of BULK_NAMES) {
+    await page.getByRole('checkbox', { name: `Sélectionner ${name}` }).check();
+  }
+  await expect(page.getByText('2 sélectionnés')).toBeVisible();
+
+  // Two selected → the batch popup, not the single-food form.
+  await page.getByRole('button', { name: 'Édition par lots' }).click();
+  await page.getByRole('button', { name: 'Partagé' }).click();
+  await page.getByRole('button', { name: 'Continuer' }).click();
+  await expect(page.getByText('Confirmer la modification')).toBeVisible();
+  await page.getByRole('button', { name: 'Appliquer' }).click();
+
+  const shared = page.getByRole('row').filter({ hasText: 'E2E Lot' }).getByText('Partagé');
+  await expect(shared).toHaveCount(2);
+
+  // The toast's Annuler puts the previous values back.
+  await page.getByRole('button', { name: 'Annuler' }).click();
+  await expect(
+    page.getByRole('row').filter({ hasText: 'E2E Lot' }).getByText('Partagé'),
+  ).toHaveCount(0);
 });

@@ -11,6 +11,27 @@
     "ok": "OK",
     "top": "Top"
   },
+  "bulk": {
+    "title": "Batch edit",
+    "sub": "The changes below will be applied to {{what}}.",
+    "edit": "Batch edit",
+    "selected_one": "{{count}} selected",
+    "selected_other": "{{count}} selected",
+    "selectAll": "Select all",
+    "selectRow": "Select {{name}}",
+    "keep": "Leave unchanged",
+    "continue": "Continue",
+    "apply": "Apply",
+    "comment": {
+      "replace": "Replace with…",
+      "clear": "Clear the comment",
+      "cleared": "(cleared)"
+    },
+    "recap": {
+      "title": "Confirm the change",
+      "intro": "You are about to change {{what}}:"
+    }
+  },
   "nav": {
     "home": "Home"
   },
@@ -119,7 +140,9 @@
     "userDeleted": "User deleted",
     "roleChanged": "Role changed",
     "tokenRevoked": "Link revoked",
-    "dismiss": "Dismiss notification"
+    "dismiss": "Dismiss notification",
+    "foodsBulkEdited": "Foods updated",
+    "recipesBulkEdited": "Recipes updated"
   },
   "a11y": {
     "moreLoaded": "{{count}} more item loaded",

@@ -8,6 +8,7 @@ import { prisma } from '../prisma.js';
 import { pageStartIndex, pageWindow } from './page-window.js';
 import { recipeDerivedFoodRepo, type DerivedSummary } from './recipe-derived-food.repo.js';
 import { isRankedSort, rankRecipes, type RankedRecipeSort } from './recipe-rank.js';
+import { buildRecipeWhere } from './recipe-where.js';
 
 // Repository for recipe + recipe_ingredient. Every method is scoped by the authenticated
 // `userId` (CLAUDE.md rule 3); a cross-tenant id resolves to null → 404 at the controller.
@@ -58,14 +59,6 @@ function orderFor(column: keyof RecipeModel, dir: 'asc' | 'desc') {
 
 type ListQuery = RecipeListQuery & { normalized?: string };
 
-function buildWhere(userId: string, q: ListQuery): Prisma.RecipeWhereInput {
-  const where: Prisma.RecipeWhereInput = { ownerId: userId };
-  if (!q.include_archived) where.archivedAt = null;
-  if (q.normalized) where.normalizedName = { contains: q.normalized };
-  if (q.min_rating) where.rating = { gte: q.min_rating }; // excludes Bof(0) and unrated(null)
-  return where;
-}
-
 async function ingredientsByRecipeIds(
   ids: string[],
 ): Promise<Map<string, RecipeIngredientModel[]>> {
@@ -115,7 +108,7 @@ async function listRanked(
   query: ListQuery,
   sort: RankedRecipeSort,
 ): Promise<RecipeListPage> {
-  const matches = await prisma.recipe.findMany({ where: buildWhere(userId, query) });
+  const matches = await prisma.recipe.findMany({ where: buildRecipeWhere(userId, query) });
   const derived = await recipeDerivedFoodRepo.derivedSummariesByRecipeIds(
     userId,
     matches.map((r) => r.id),
@@ -136,7 +129,7 @@ export const recipeRepo = {
       { [column]: orderFor(column, query.dir) },
       { id: query.dir },
     ];
-    const where = buildWhere(userId, query);
+    const where = buildRecipeWhere(userId, query);
     // B-278: the same predicate, counted — how many rows match regardless of limit/cursor. The
     // client reserves the height of the rows not yet loaded and shows the figure in the toolbar.
     const [rows, total] = await Promise.all([

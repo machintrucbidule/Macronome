@@ -139,6 +139,33 @@ because the database is unreachable returns **503** `database_unavailable` inste
   `normalized_name` via `unaccent`+`pg_trgm`; returns ranked matches, default
   `limit=10`. Used by foods, recipes, and the combined food∪recipe log search.
 
+## Bulk writes (BE-1)
+
+One request that edits **several independent rows** of one resource (`PATCH /foods/bulk`,
+`PATCH /recipes/bulk`). Distinct from the multi-id bodies that already existed — a reorder, a
+leftover selection — which act on **one** parent row.
+
+- **All or nothing, in one transaction.** There is deliberately **no partial-success convention**:
+  the response is a plain count (`{updated: n}`), never a per-row error list. A caller that has to
+  reconcile "37 of 40 worked" cannot show anything useful, and the undo below could not restore a
+  half-applied batch.
+- **Every id is checked against the authenticated user.** The ids come from the client and are
+  never trusted. If any id is not the user's — or is not a row of that resource — the request is a
+  **404** and **nothing is written** (same rule as `PATCH /meals/:mealId/entries/order`).
+- **`ids`**: at least 1, at most **5 000** (`validation_error`, 422, above it). The ceiling sits far
+  above any personal catalogue; it exists so a malformed client cannot hand the server an unbounded
+  list, not to limit a real selection.
+- **The patch must change something**: a body whose every field is absent → **422**
+  `{details:{patch:'empty_patch'}}`. An absent field means _leave unchanged_; a field set to `null`,
+  where the column is nullable, means _clear_ — the same semantics as the single-row `PATCH`.
+- **Undo** (`POST /<resource>/bulk/undo`, no body). Restores the values the last bulk write
+  overwrote → `{restored: n}`. The snapshot is held **server-side in memory**, one slot per user and
+  per resource, **overwritten** by the next bulk write and **consumed** on success — so undo is
+  **single-level**, like the day restore point: a second call → **409 `nothing_to_undo`**, as does a
+  user who has run no bulk write. It does not survive a server restart, which is deliberate: the
+  toast that offers _Annuler_ is the only door to it, and that toast does not survive a restart
+  either.
+
 ## Numbers, units, dates
 
 - All masses in grams, body weight in kg, energy kcal; SI only.

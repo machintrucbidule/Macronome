@@ -119,46 +119,70 @@
 .foodsTable tbody td {
   white-space: nowrap;
 }
+/* BE-1: the selection column took index 1, so every index below moved up one and Nom — still the
+   single undeclared, elastic column — is now index 2. Accepted consequence (owner): the table is
+   2.25rem wider and the two bands below stay at their existing thresholds, so between ~820 and
+   ~900px Nom is very narrow and truncates early. Moving a band would have changed when Portion and
+   Visibilité disappear, which was out of scope. */
+.foodsTable th:nth-child(1),
 .foodsTable td:nth-child(1) {
+  width: 2.25rem;
+}
+.foodsTable td:nth-child(2) {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.foodsTable th:nth-child(2),
-.foodsTable td:nth-child(2) {
+.foodsTable th:nth-child(3),
+.foodsTable td:nth-child(3) {
   width: 5rem;
 }
-.foodsTable th:nth-child(3),
-.foodsTable td:nth-child(3),
 .foodsTable th:nth-child(4),
 .foodsTable td:nth-child(4),
 .foodsTable th:nth-child(5),
-.foodsTable td:nth-child(5) {
-  width: 3.25rem;
-}
+.foodsTable td:nth-child(5),
 .foodsTable th:nth-child(6),
 .foodsTable td:nth-child(6) {
-  width: 11rem;
+  width: 3.25rem;
 }
 .foodsTable th:nth-child(7),
 .foodsTable td:nth-child(7) {
+  width: 11rem;
+}
+.foodsTable th:nth-child(8),
+.foodsTable td:nth-child(8) {
   width: 4.25rem;
 }
 /* Source (B-291) — sized on "CHRONODRIVE", the longest chip, not on the "SOURCE" header. */
-.foodsTable th:nth-child(8),
-.foodsTable td:nth-child(8) {
-  width: 6.25rem;
-}
 .foodsTable th:nth-child(9),
 .foodsTable td:nth-child(9) {
-  width: 5.25rem;
+  width: 6.25rem;
 }
 .foodsTable th:nth-child(10),
 .foodsTable td:nth-child(10) {
-  width: 6rem;
+  width: 5.25rem;
 }
 .foodsTable th:nth-child(11),
 .foodsTable td:nth-child(11) {
+  width: 6rem;
+}
+.foodsTable th:nth-child(12),
+.foodsTable td:nth-child(12) {
   width: 2.75rem;
+}
+
+/* Selection cell (BE-1, data-tables.md §Selection column): the checkbox is centred and the cell
+   must not inherit the row's click affordance beyond what the box itself handles. */
+.selectCell {
+  text-align: center;
+}
+/* A ticked row reuses the same --select blue as the Repas selection, so one token covers both. */
+.selected {
+  background: color-mix(in srgb, var(--select) 16%, transparent);
+}
+@media (hover: hover) {
+  .selected:hover {
+    background: color-mix(in srgb, var(--select) 22%, transparent);
+  }
 }
 
 /* table cells */
@@ -220,26 +244,36 @@
    classes alone, which the <th>s do not carry, slid the whole body one column left and put the
    stars under "PORTION" (found during B-284; owner-approved fix).
 
-   Below 960px: Source (8) steps aside. Its 6.25rem is the single most expensive chip column, and
-   the declared widths already left the elastic Nom column ~66px just above 820px — adding Source
-   without its own band would have driven Nom negative between 821 and ~900px, i.e. a table
-   overflowing its page. With this band the 561-820px range is byte-for-byte what it was (B-291). */
+   Below 960px: Source (index 9 since BE-1) steps aside. Its 6.25rem is the single most expensive
+   chip column, and the declared widths already left the elastic Nom column ~66px just above 820px —
+   adding Source without its own band would have driven Nom negative between 821 and ~900px, i.e. a
+   table overflowing its page. BE-1's selection column takes a further 2.25rem out of Nom in that
+   same range; the thresholds were deliberately left alone (owner), so names truncate early there. */
 @media (max-width: 960px) {
-  .foodsTable th:nth-child(8),
-  .foodsTable td:nth-child(8) {
+  .foodsTable th:nth-child(9),
+  .foodsTable td:nth-child(9) {
     display: none;
   }
 }
-/* Below 820px: Portion (6) and Visibilité (9) step aside too, and the comment line under the name
+/* Below 820px: Portion (7) and Visibilité (10) step aside too, and the comment line under the name
    is dropped. Reclaims a further 16.25rem, which is what keeps the table inside a 561px window. */
 @media (max-width: 820px) {
-  .foodsTable th:nth-child(6),
-  .foodsTable td:nth-child(6),
-  .foodsTable th:nth-child(9),
-  .foodsTable td:nth-child(9),
+  .foodsTable th:nth-child(7),
+  .foodsTable td:nth-child(7),
+  .foodsTable th:nth-child(10),
+  .foodsTable td:nth-child(10),
   .comment {
     display: none;
   }
+}
+
+/* Batch popup (BE-1): one control per line — five fields plus an optional comment input, so the
+   three-up grid of the single-food form would leave the last row ragged. */
+.bulkFields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  margin-top: var(--sp-5);
 }
 
 /* ---- modal: macros grid, portions editor, warnings ---- */

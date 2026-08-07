@@ -96,6 +96,35 @@ tabular-nums; white-space:nowrap`; first/name cell left, `--font-body`. The **Jo
 - **row icon actions**: hidden until hover (see foundations icon buttons);
   archive 🗑 / restore ↺ / delete ×; destructive hover → `--nok`.
 
+## Selection column (Aliments & Recettes, BE-1)
+
+A catalogue table whose rows can be **edited in batch** carries a real selection column — the
+opposite call from the Repas selection-sum above, and for a different problem: here the selection is
+a durable working set that survives scrolling and feeds a write, not an ephemeral sum.
+
+- **A leading column, index 1**, with a **declared width** like every other sized column
+  (`2.25rem` — the 18px native checkbox plus its cell padding). The **name column stays the single
+  undeclared, elastic one**; it simply moves to index 2. The checkbox itself is the native tinted
+  input of `forms-inputs.md` §Checkbox, not a custom control.
+- **A header checkbox in the same column**, tri-state: unchecked · **indeterminate** when some rows
+  are selected · checked when the whole matching set is. It selects **everything the current filter
+  matches**, which is a server round trip (`GET /<resource>/ids`), not the loaded rows only.
+- **The selected row also takes `.selected`** — the same `--select` blue fill the Repas grid uses,
+  so one token covers both. A checkbox column alone reads poorly once a selection is scattered
+  through a long scrolled list.
+- **Clicking the checkbox must not fire the row's own click** (which opens the editor): the cell
+  stops propagation, the same way the row's icon actions already do.
+- **The width arithmetic must be redone when this column is added** — it is a column like any other.
+  For **Aliments** the two narrow bands were deliberately **left where they are** (owner): between
+  ~820 and ~900px the elastic Nom column is consequently very narrow and truncates early. That is an
+  accepted consequence, not an oversight; moving a band would have changed when Portion and
+  Visibilité disappear, which was out of scope. **Recettes** has no band, so its only change is the
+  index shift.
+- **Mobile.** A card is not a table row: the checkbox sits at the **bottom-right of the card**,
+  deliberately **low-contrast** so it recedes when the user is not selecting. It is **permanent**
+  (no selection mode). A card root that was a single `<button>` must become a container holding the
+  open-button **and** the checkbox — a checkbox nested inside a button is invalid.
+
 ## Macro cells (Journal)
 
 `.mF→var(--c-fat)`, `.mC→var(--c-carb)`, `.mP→var(--c-prot)`; `.none →
@@ -283,8 +312,12 @@ rather than on pin state by B-224** — the accent marks a line that is actually
 keeps its own 📌 glyph), `.editing`
 (`background:var(--bg-field)`, inline search input), `.dragging` (`opacity:.4`),
 `.selected` (**B-207 desktop selection-sum** — a full-row `--select` **blue** background tint,
-**no checkbox and no extra column**; deliberately distinct from `.used`'s amber left edge, so a
-line that is both used **and** selected shows both — the blue fill + the amber edge).
+**no checkbox and no extra column _in this grid_**; deliberately distinct from `.used`'s amber left
+edge, so a line that is both used **and** selected shows both — the blue fill + the amber edge).
+**Scope of the "no checkbox" clause (BE-1):** it belongs to the Repas selection-sum, where the
+selection is an ephemeral read-out entered from a Σ toggle and a checkbox column would have cost a
+column in the densest grid in the app. It is **not** a house-wide rule — the catalogue tables carry
+a real selection column, see §Selection column below.
 Hover reveals pin/del. The **drag grip is permanently visible** on any row that holds a food —
 faint at rest, full opacity on hover (B-298); the blank spacer grips of the empty "+ aliment" row
 and of the inline-editing row stay invisible, which is what makes the handle read as "this row can

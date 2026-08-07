@@ -1,26 +1,23 @@
 import { type ReactNode } from 'react';
-import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import type { Food } from '@macronome/shared';
 import { Banner } from '../../../components/Banner/Banner';
 import { EmptyState } from '../../../components/states/EmptyState';
 import { SkeletonRows } from '../../../components/states/SkeletonRows';
 import { SearchField } from '../../../components/Form/SearchField';
-import {
-  FiltersSheet,
-  ListToolbar,
-  SortSheet,
-  type FilterSection,
-  type SortOption,
-} from '../../../components/ListChrome';
+import { FiltersSheet, ListToolbar, SortSheet } from '../../../components/ListChrome';
+import { BulkButton } from '../../../components/BulkEdit';
 import { Fab } from '../../../app/Fab';
 import { InfiniteScrollFooter } from '../../../lib/InfiniteScrollFooter';
 import { useListReserve } from '../../../lib/useListReserve';
 import type { PagedList } from '../../../lib/usePagedList';
+import type { FoodsBulk } from '../useFoodsBulk';
 import { FoodCards } from './FoodCards';
 import type { SortField } from './FoodTable';
 import type { MinRating, VisibilityFilter } from './FiltersPopover';
 import type { SourceFilter } from '../sourceFilter';
+import { buildFilterSections, buildSortOptions, filtersActive } from './foods-mobile-chrome';
+import styles from '../foods-mobile.module.css';
 
 // Mobile Aliments view (mobile-responsive S7, spec §4.3 — same pattern as Recettes S6).
 // Sticky list chrome (search + Trier + Filtres) over a card list, with a FAB that opens the
@@ -51,70 +48,14 @@ interface FoodsMobileProps {
   onSort: (field: SortField) => void;
   onAdd: () => void;
   onOpen: (food: Food) => void;
+  /** Batch selection + write (BE-1); `onBulkEdit` is the page's — at 1 selected it opens the
+   *  ordinary food sheet rather than the batch one. */
+  bulk: FoodsBulk;
+  onBulkEdit: () => void;
 }
 
 /** The card list's own `gap: var(--sp-5)`, which a measured container excludes (B-278). */
 const CARD_GAP = 10;
-
-const SORT_KEYS: SortField[] = [
-  'name',
-  'kcal',
-  'fat',
-  'carb',
-  'protein',
-  'rating',
-  'source',
-  'visibility',
-  'usage',
-];
-
-/** The Trier sheet mirrors the desktop table's sortable headers, in column order. */
-function buildSortOptions(t: TFunction): SortOption<SortField>[] {
-  return SORT_KEYS.map((key) => ({ key, label: t(`foods.col.${key}`) }));
-}
-
-/** The Filtres sheet mirrors the desktop popover, section for section. */
-function buildFilterSections(props: FoodsMobileProps, t: TFunction): FilterSection[] {
-  const ratings: MinRating[] = [0, 1, 2, 3];
-  const visibilities: VisibilityFilter[] = ['all', 'private', 'shared'];
-  return [
-    {
-      kind: 'chips',
-      label: t('foods.filters.minRating'),
-      value: String(props.minRating),
-      options: ratings.map((r) => ({
-        key: String(r),
-        label: r === 0 ? t('foods.filters.all') : `≥${r}★`,
-      })),
-      onChange: (k) => props.onMinRating(Number(k) as MinRating),
-    },
-    {
-      kind: 'chips',
-      label: t('foods.filters.visibility'),
-      value: props.visibility,
-      options: visibilities.map((v) => ({ key: v, label: t(`foods.visibility.${v}`) })),
-      onChange: (k) => props.onVisibility(k as VisibilityFilter),
-    },
-    // Same rule as the desktop popover: no Source section below two provenances present (B-295).
-    ...(props.sourceOptions.length > 0
-      ? [
-          {
-            kind: 'chips' as const,
-            label: t('foods.filters.source'),
-            value: props.source,
-            options: props.sourceOptions.map((s) => ({ key: s, label: t(`foods.source.${s}`) })),
-            onChange: (k: string) => props.onSource(k as SourceFilter),
-          },
-        ]
-      : []),
-    {
-      kind: 'toggle',
-      label: t('foods.filters.showArchived'),
-      checked: props.showArchived,
-      onChange: props.onShowArchived,
-    },
-  ];
-}
 
 export function FoodsMobile(props: FoodsMobileProps) {
   const { t } = useTranslation();
@@ -123,11 +64,6 @@ export function FoodsMobile(props: FoodsMobileProps) {
 
   const sortOptions = buildSortOptions(t);
   const filterSections = buildFilterSections(props, t);
-  const filtersActive =
-    props.minRating > 0 ||
-    props.visibility !== 'all' ||
-    props.source !== 'all' ||
-    props.showArchived;
 
   const body = ((): ReactNode => {
     if (props.loading) return <SkeletonRows />;
@@ -139,6 +75,7 @@ export function FoodsMobile(props: FoodsMobileProps) {
           head={props.list.firstPageCount}
           pitch={reserve.pitch}
           onOpen={props.onOpen}
+          selection={props.bulk.selection}
           rowsRef={reserve.listRef}
         />
         <InfiniteScrollFooter loadedCount={props.list.rows.length} />
@@ -164,8 +101,16 @@ export function FoodsMobile(props: FoodsMobileProps) {
           onSort={props.onSort}
           fabSafe
         />
-        <FiltersSheet sections={filterSections} active={filtersActive} fabSafe />
+        <FiltersSheet sections={filterSections} active={filtersActive(props)} fabSafe />
       </ListToolbar>
+
+      {/* Batch selection (BE-1/D14): the boxes live on the cards, so the toolbar only needs the
+          count and the button. Hidden entirely at zero, to keep the phone list quiet. */}
+      {props.bulk.selection.count > 0 && (
+        <div className={styles.bulkBar}>
+          <BulkButton count={props.bulk.selection.count} onClick={props.onBulkEdit} />
+        </div>
+      )}
 
       {props.modeToggle}
 

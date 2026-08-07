@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import type { RecipeSummary } from '@macronome/shared';
 import { tableStyles } from '../../../components/DataTable/SortableTh';
+import { SelectCheckbox } from '../../../components/BulkEdit';
 import { Stars } from '../../../components/RatingStars/Stars';
 import { gramsDisplay, kcalDisplay } from '../format';
 import styles from '../recipes.module.css';
@@ -10,21 +11,40 @@ import styles from '../recipes.module.css';
 // macros + weight/portion are read from the server, never recomputed.
 interface RecipeRowProps {
   recipe: RecipeSummary;
+  /** Batch selection (BE-1/B-308); a ticked row is tinted like its Aliments twin. */
+  selected: boolean;
+  onToggle: (id: string) => void;
   onOpen: (recipe: RecipeSummary) => void;
   onArchive: (recipe: RecipeSummary) => void;
   onRestore: (recipe: RecipeSummary) => void;
 }
 
-export function RecipeRow({ recipe, onOpen, onArchive, onRestore }: RecipeRowProps) {
+export function RecipeRow({
+  recipe,
+  selected,
+  onToggle,
+  onOpen,
+  onArchive,
+  onRestore,
+}: RecipeRowProps) {
   const { t } = useTranslation();
   const archived = recipe.archived_at !== null;
   return (
     <tr
-      className={`${styles.row} ${tableStyles.clickable} ${archived ? tableStyles.archived : ''}`}
+      className={`${styles.row} ${tableStyles.clickable} ${archived ? tableStyles.archived : ''} ${
+        selected ? styles.selected : ''
+      }`}
       onClick={() => onOpen(recipe)}
       // Context-menu row id (B-195): resolved by useRecipesContextMenu.
       data-recipe={recipe.id}
     >
+      <td className={styles.selectCell}>
+        <SelectCheckbox
+          checked={selected}
+          onChange={() => onToggle(recipe.id)}
+          ariaLabel={t('bulk.selectRow', { name: recipe.name })}
+        />
+      </td>
       <td>
         <span className={tableStyles.nameLabel} title={recipe.name}>
           {recipe.name}

@@ -1,5 +1,9 @@
 import type {
+  BulkIdsResponse,
+  BulkUndoResponse,
+  BulkUpdateResponse,
   CreateRecipeRequest,
+  RecipeBulkUpdateRequest,
   RecipeFull,
   RecipeListResponse,
   RecipeMutationResponse,
@@ -46,4 +50,10 @@ export const recipesApi = {
     api.patch<RecipeMutationResponse>(`/recipes/${id}`, body),
   archive: (id: string) => api.post<{ ok: true }>(`/recipes/${id}/archive`),
   restore: (id: string) => api.post<{ ok: true }>(`/recipes/${id}/restore`),
+  // Bulk edit (BE-1/B-308) — rating only; see the twin block in `api/foods.ts`.
+  ids: (params: RecipeListParams = {}) =>
+    api.get<BulkIdsResponse>(`/recipes/ids${toQueryString(params)}`),
+  bulkUpdate: (body: RecipeBulkUpdateRequest) =>
+    api.patch<BulkUpdateResponse>('/recipes/bulk', body),
+  bulkUndo: () => api.post<BulkUndoResponse>('/recipes/bulk/undo'),
 };

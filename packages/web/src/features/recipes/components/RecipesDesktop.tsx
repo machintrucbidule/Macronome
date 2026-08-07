@@ -5,6 +5,8 @@ import { SkeletonTableRows } from '../../../components/states/SkeletonTableRows'
 import { InfiniteScrollFooter } from '../../../lib/InfiniteScrollFooter';
 import { useListReserve } from '../../../lib/useListReserve';
 import type { PagedList } from '../../../lib/usePagedList';
+import { BulkButton } from '../../../components/BulkEdit';
+import type { RecipesBulk } from '../useRecipesBulk';
 import { RecipesToolbar } from './RecipesToolbar';
 import { RecipesTable, type SortField } from './RecipesTable';
 import type { MinRating } from './FiltersPopover';
@@ -31,6 +33,9 @@ interface RecipesDesktopProps {
   onOpen: (recipe: RecipeSummary) => void;
   onArchive: (recipe: RecipeSummary) => void;
   onRestore: (recipe: RecipeSummary) => void;
+  /** Batch selection + write (BE-1/B-308); at 1 selected `onBulkEdit` opens the ordinary builder. */
+  bulk: RecipesBulk;
+  onBulkEdit: () => void;
 }
 
 export function RecipesDesktop(props: RecipesDesktopProps) {
@@ -48,6 +53,7 @@ export function RecipesDesktop(props: RecipesDesktopProps) {
         onMinRating={props.onMinRating}
         onShowArchived={props.onShowArchived}
         onAdd={props.onAdd}
+        bulk={<BulkButton count={props.bulk.selection.count} onClick={props.onBulkEdit} />}
       />
 
       {props.loading ? (
@@ -66,6 +72,9 @@ export function RecipesDesktop(props: RecipesDesktopProps) {
             onOpen={props.onOpen}
             onArchive={props.onArchive}
             onRestore={props.onRestore}
+            selection={props.bulk.selection}
+            onSelectAll={props.bulk.selectAll}
+            total={props.total}
             rowsRef={reserve.listRef}
           />
           <InfiniteScrollFooter loadedCount={props.list.rows.length} />

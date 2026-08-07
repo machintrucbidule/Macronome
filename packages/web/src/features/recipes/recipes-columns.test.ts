@@ -16,10 +16,12 @@ describe('Recettes column widths (B-284)', () => {
     expect(css).toMatch(/\.recipesTable\s*\{[^}]*table-layout:\s*fixed/);
   });
 
-  it('declares a width for the nine sized columns (Nom takes the remainder)', () => {
+  // BE-1 put the selection checkbox in a column of its own at index 1, so every other index moved
+  // up one: ten declared widths now, and Nom — still the single elastic column — is index 2.
+  it('declares a width for the ten sized columns (Nom takes the remainder)', () => {
     const declared = css.match(/\.recipesTable th:nth-child\((\d+)\)/g) ?? [];
-    expect(new Set(declared).size).toBe(9);
-    expect(css).not.toMatch(/\.recipesTable th:nth-child\(1\)/);
+    expect(new Set(declared).size).toBe(10);
+    expect(css).not.toMatch(/\.recipesTable th:nth-child\(2\)/);
   });
 
   it('keeps cells on one line, so every row stays the same height', () => {
@@ -27,6 +29,6 @@ describe('Recettes column widths (B-284)', () => {
   });
 
   it('ellipsises the name column instead of letting it widen the table', () => {
-    expect(css).toMatch(/\.recipesTable td:nth-child\(1\)\s*\{[^}]*text-overflow:\s*ellipsis/);
+    expect(css).toMatch(/\.recipesTable td:nth-child\(2\)\s*\{[^}]*text-overflow:\s*ellipsis/);
   });
 });

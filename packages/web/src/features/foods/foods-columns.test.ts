@@ -16,10 +16,12 @@ describe('Aliments column widths (B-284)', () => {
     expect(css).toMatch(/\.foodsTable\s*\{[^}]*table-layout:\s*fixed/);
   });
 
-  it('declares a width for the ten sized columns (Nom takes the remainder)', () => {
+  // BE-1 put the selection checkbox in a column of its own at index 1, so every other index moved
+  // up one: eleven declared widths now, and Nom — still the single elastic column — is index 2.
+  it('declares a width for the eleven sized columns (Nom takes the remainder)', () => {
     const declared = css.match(/\.foodsTable th:nth-child\((\d+)\)/g) ?? [];
-    expect(new Set(declared).size).toBe(10);
-    expect(css).not.toMatch(/\.foodsTable th:nth-child\(1\)/);
+    expect(new Set(declared).size).toBe(11);
+    expect(css).not.toMatch(/\.foodsTable th:nth-child\(2\)/);
   });
 
   it('keeps cells on one line, so every row stays the same height', () => {
@@ -27,7 +29,7 @@ describe('Aliments column widths (B-284)', () => {
   });
 
   it('ellipsises the name column instead of letting it widen the table', () => {
-    expect(css).toMatch(/\.foodsTable td:nth-child\(1\)\s*\{[^}]*text-overflow:\s*ellipsis/);
+    expect(css).toMatch(/\.foodsTable td:nth-child\(2\)\s*\{[^}]*text-overflow:\s*ellipsis/);
   });
 
   // Both bands hide by index, and both must hide the header WITH the cell: the old rule hid the
@@ -38,15 +40,15 @@ describe('Aliments column widths (B-284)', () => {
 
   it('hides the Source column below 960px, header and cell together', () => {
     // Source is the widest chip column (B-291); without its own band the elastic Nom column goes
-    // negative between 821 and ~900px and the table overflows the page.
+    // negative between 821 and ~900px and the table overflows the page. Index 9 since BE-1.
     const band = bandAt(960);
-    expect(band).toContain('.foodsTable th:nth-child(8)');
-    expect(band).toContain('.foodsTable td:nth-child(8)');
+    expect(band).toContain('.foodsTable th:nth-child(9)');
+    expect(band).toContain('.foodsTable td:nth-child(9)');
   });
 
   it('hides Portion and Visibilité together in the 561-820px band', () => {
     const band = bandAt(820);
-    for (const n of [6, 9]) {
+    for (const n of [7, 10]) {
       expect(band).toContain(`.foodsTable th:nth-child(${n})`);
       expect(band).toContain(`.foodsTable td:nth-child(${n})`);
     }

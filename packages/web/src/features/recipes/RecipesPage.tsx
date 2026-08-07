@@ -4,9 +4,9 @@ import { RecipesDesktop } from './components/RecipesDesktop';
 import { RecipesMobile } from './components/RecipesMobile';
 import type { SortField } from './components/RecipesTable';
 import type { MinRating } from './components/FiltersPopover';
-import { RecipeBuilderModal } from './modals/RecipeBuilderModal';
-import { RecipeArchiveConfirm } from './modals/RecipeArchiveConfirm';
+import { RecipesModals, type RecipesModalState } from './components/RecipesModals';
 import { useRecipeMutations, useRecipesList } from './useRecipes';
+import { useRecipesBulk } from './useRecipesBulk';
 import { useRecipesContextMenu } from './useRecipesContextMenu';
 import { defaultDirFor } from '../../components/DataTable/sortDir';
 import { useIsMobile } from '../../lib/useIsMobile';
@@ -16,7 +16,7 @@ import { SEARCH_DEBOUNCE_MS, useDebouncedValue } from '../../lib/useDebouncedVal
 // fetches via TanStack Query (server-side search/filter/sort), and renders the desktop table or
 // the mobile card list (useIsMobile render-switch, S6) + the shared builder / archive confirm.
 // It renders; it never computes (derived figures come from the API).
-type ModalState = { mode: 'add' } | { mode: 'edit'; id: string } | null;
+type ModalState = RecipesModalState;
 
 /** Columns that start descending on a first click (B-299): every numeric one. */
 export const RECIPES_DESC_FIRST: ReadonlySet<SortField> = new Set<SortField>([
@@ -60,9 +60,11 @@ export function RecipesPage() {
 
   // The field stays instant; the query waits 300 ms (LD-1/B-303) — see FoodsPage.
   const debouncedQ = useDebouncedValue(q.trim(), SEARCH_DEBOUNCE_MS);
-  const list = useRecipesList(
-    buildListParams({ q: debouncedQ, minRating, showArchived, sort, dir }),
-  );
+  const params = buildListParams({ q: debouncedQ, minRating, showArchived, sort, dir });
+  const list = useRecipesList(params);
+  // Batch selection (BE-1/B-308), built from the SAME params — that is what keeps "select
+  // everything matching the filter" honest.
+  const bulk = useRecipesBulk(params);
   const { archive, restore } = useRecipeMutations();
   const recipes = list.rows;
   // Rows matching the current filters, server-side (B-278). Read from whichever page answered —
@@ -104,6 +106,12 @@ export function RecipesPage() {
     onSort,
     onAdd: () => setModal({ mode: 'add' }),
     onOpen: (recipe: RecipeSummary) => setModal({ mode: 'edit', id: recipe.id }),
+    bulk,
+    // One selected recipe opens the ordinary builder; two or more the batch popup (BE-1).
+    onBulkEdit: (): void => {
+      const ids = [...bulk.selection.selected];
+      setModal(ids.length === 1 ? { mode: 'edit', id: ids[0] as string } : { mode: 'bulk' });
+    },
   };
 
   return (
@@ -120,27 +128,21 @@ export function RecipesPage() {
         />
       )}
 
-      {modal && (
-        <RecipeBuilderModal
-          recipeId={modal.mode === 'edit' ? modal.id : null}
-          onClose={() => setModal(null)}
-          onArchive={(recipe) => {
-            setModal(null);
-            setArchiveTarget(recipe);
-          }}
-        />
-      )}
-
-      {archiveTarget && (
-        <RecipeArchiveConfirm
-          recipe={archiveTarget}
-          onCancel={() => setArchiveTarget(null)}
-          onConfirm={() => {
-            archive.mutate(archiveTarget.id);
-            setArchiveTarget(null);
-          }}
-        />
-      )}
+      <RecipesModals
+        modal={modal}
+        archiveTarget={archiveTarget}
+        bulkCount={bulk.selection.count}
+        onCloseModal={() => setModal(null)}
+        onApplyBulk={(patch) => {
+          bulk.apply(patch);
+          setModal(null); // the selection itself survives (owner)
+        }}
+        onArchiveTarget={setArchiveTarget}
+        onConfirmArchive={() => {
+          if (archiveTarget) archive.mutate(archiveTarget.id);
+          setArchiveTarget(null);
+        }}
+      />
     </>
   );
 }

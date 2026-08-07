@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '../../../components/Button/Button';
 import { SearchField } from '../../../components/Form/SearchField';
@@ -17,6 +18,8 @@ interface RecipesToolbarProps {
   onMinRating: (r: MinRating) => void;
   onShowArchived: (v: boolean) => void;
   onAdd: () => void;
+  /** Batch-edit control + count (BE-1/B-308), rendered left of the filters like Aliments. */
+  bulk?: ReactNode;
 }
 
 export function RecipesToolbar(props: RecipesToolbarProps) {
@@ -32,6 +35,7 @@ export function RecipesToolbar(props: RecipesToolbarProps) {
         placeholder={t('recipes.searchPlaceholder')}
         onChange={(e) => props.onQ(e.target.value)}
       />
+      {props.bulk}
       <FiltersPopover
         minRating={props.minRating}
         showArchived={props.showArchived}

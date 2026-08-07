@@ -3,6 +3,7 @@ import type { RecipeSummary } from '@macronome/shared';
 import { RecipeCard } from './RecipeCard';
 import { CardSlots } from '../../../components/states/ListSlotFillers';
 import type { Slot } from '../../../lib/usePagedList';
+import type { IdSelection } from '../../../lib/useIdSelection';
 import styles from '../recipes-mobile.module.css';
 
 // Recettes mobile card list (mobile-responsive S6): the row→card variant of the recipe table,
@@ -14,12 +15,20 @@ interface RecipeCardsProps {
   head: number;
   pitch: number;
   onOpen: (recipe: RecipeSummary) => void;
+  /** Batch selection (BE-1/B-308) — a permanent, low-contrast box at the bottom-right of a card. */
+  selection: IdSelection;
   rowsRef?: RefObject<HTMLElement | null>;
 }
 
-export function RecipeCards({ slots, head, pitch, onOpen, rowsRef }: RecipeCardsProps) {
+export function RecipeCards({ slots, head, pitch, onOpen, selection, rowsRef }: RecipeCardsProps) {
   const card = (recipe: RecipeSummary) => (
-    <RecipeCard key={recipe.id} recipe={recipe} onOpen={onOpen} />
+    <RecipeCard
+      key={recipe.id}
+      recipe={recipe}
+      selected={selection.isSelected(recipe.id)}
+      onToggle={selection.toggle}
+      onOpen={onOpen}
+    />
   );
   return (
     <>

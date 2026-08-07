@@ -11,6 +11,27 @@
     "ok": "Ok",
     "top": "Top"
   },
+  "bulk": {
+    "title": "Édition par lots",
+    "sub": "Les modifications ci-dessous seront appliquées à {{what}}.",
+    "edit": "Édition par lots",
+    "selected_one": "{{count}} sélectionné",
+    "selected_other": "{{count}} sélectionnés",
+    "selectAll": "Tout sélectionner",
+    "selectRow": "Sélectionner {{name}}",
+    "keep": "Ne pas modifier",
+    "continue": "Continuer",
+    "apply": "Appliquer",
+    "comment": {
+      "replace": "Remplacer par…",
+      "clear": "Effacer le commentaire",
+      "cleared": "(effacé)"
+    },
+    "recap": {
+      "title": "Confirmer la modification",
+      "intro": "Tu vas modifier {{what}} :"
+    }
+  },
   "nav": {
     "home": "Accueil"
   },
@@ -119,7 +140,9 @@
     "userDeleted": "Utilisateur supprimé",
     "roleChanged": "Rôle modifié",
     "tokenRevoked": "Lien révoqué",
-    "dismiss": "Fermer la notification"
+    "dismiss": "Fermer la notification",
+    "foodsBulkEdited": "Aliments modifiés",
+    "recipesBulkEdited": "Recettes modifiées"
   },
   "a11y": {
     "moreLoaded": "{{count}} élément supplémentaire chargé",

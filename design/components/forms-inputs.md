@@ -98,8 +98,13 @@ Focus is the browser's own ring on the native control (inputs are deliberately e
 from the global `:focus-visible` ring — `theming.md`).
 
 Applies everywhere: "Rester connecté" (login), the Repas proposal meal picker, the
-leftover-modal row checkboxes, and the Aliments/Recettes "Afficher les archivé·es"
-filter — desktop popover **and** mobile filter sheet.
+leftover-modal row checkboxes, the Aliments/Recettes "Afficher les archivé·es"
+filter — desktop popover **and** mobile filter sheet — and the **batch-selection checkboxes** of the
+Aliments/Recettes lists (BE-1): the row and header boxes of the desktop selection column, and the
+one on a mobile card. The two selection cases depart from the wrapping `<label>` row above, having
+no text of their own: the table cells carry a bare input with an `aria-label`, and the mobile card's
+sits at the bottom-right at **reduced opacity** so it recedes until used
+(`data-tables.md` §Selection column).
 
 ## Radio
 

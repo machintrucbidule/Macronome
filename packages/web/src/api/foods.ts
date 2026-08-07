@@ -1,7 +1,11 @@
 import type {
   AdoptFoodRefRequest,
+  BulkIdsResponse,
+  BulkUndoResponse,
+  BulkUpdateResponse,
   CreateFoodRequest,
   Food,
+  FoodBulkUpdateRequest,
   FoodListResponse,
   FoodMutationResponse,
   FoodParseLabelRequest,
@@ -51,6 +55,12 @@ export const foodsApi = {
     api.patch<FoodMutationResponse>(`/foods/${id}`, body),
   archive: (id: string) => api.post<{ ok: true }>(`/foods/${id}/archive`),
   restore: (id: string) => api.post<{ ok: true }>(`/foods/${id}/restore`),
+  // Bulk edit (BE-1). `ids` answers the header checkbox — the whole matching set, not the loaded
+  // rows — and the client freezes what it gets back (D10).
+  ids: (params: FoodListParams = {}) =>
+    api.get<BulkIdsResponse>(`/foods/ids${toQueryString(params)}`),
+  bulkUpdate: (body: FoodBulkUpdateRequest) => api.patch<BulkUpdateResponse>('/foods/bulk', body),
+  bulkUndo: () => api.post<BulkUndoResponse>('/foods/bulk/undo'),
   // PM-1/B-114: deduce per-100 g macros from a pasted nutrition label (stateless).
   parseLabel: (body: FoodParseLabelRequest) =>
     api.post<FoodParseLabelResponse>('/foods/parse-label', body),

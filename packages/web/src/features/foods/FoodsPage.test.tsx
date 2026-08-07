@@ -162,7 +162,7 @@ describe('FoodsPage — adopting a catalog entry (B-292)', () => {
       name: APPLE.name_fr,
       kcal_per_100g: 54,
       source: 'ciqual',
-      visibility: 'shared',
+      visibility: 'private',
       // The food group is shown under the name in the list, never copied onto the food (D10).
       comment: null,
       named_portions: [],

@@ -17,6 +17,9 @@ interface LibraryViewProps {
   onOpen: (food: Food) => void;
   onArchive: (food: Food) => void;
   onRestore: (food: Food) => void;
+  /** Batch edit (BE-1): the page decides which modal opens, since 1 selected means the single
+   *  food form and 2+ the batch popup. */
+  onBulkEdit: () => void;
 }
 
 export function LibraryView({ library, ...props }: LibraryViewProps) {
@@ -28,6 +31,7 @@ export function LibraryView({ library, ...props }: LibraryViewProps) {
     modeToggle: props.modeToggle,
     onAdd: props.onAdd,
     onOpen: props.onOpen,
+    onBulkEdit: props.onBulkEdit,
   };
   return isMobile ? (
     <FoodsMobile {...common} />

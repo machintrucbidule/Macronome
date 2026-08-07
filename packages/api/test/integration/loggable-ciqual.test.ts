@@ -135,7 +135,9 @@ describe('POST /foods/from-ref — silent adoption (B-293)', () => {
       name: APPLE_FR,
       kcal_per_100g: 54,
       source: 'ciqual',
-      visibility: 'shared',
+      // BE-1/B-304 reversed CIQ-3: nothing arrives `Partagé` unless the owner said so. This is
+      // the silent door (the search pickers); the prefilled catalogue form is pinned web-side.
+      visibility: 'private',
       ai_proposable: true,
       rating: null,
       comment: null,

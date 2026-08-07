@@ -340,6 +340,16 @@ the safety net that the dialog would otherwise be. The day-level _Tout effacer_ 
 it is the same gesture over the whole day, and there the blast radius earns the extra click. Like
 CP-2, this exception is named, not general: a new destructive flow still confirms by default.
 
+**The batch-edit recap follows the house rule, not the exceptions (BE-1).** Applying a batch edit to
+the Aliments or Recettes selection overwrites existing values on rows that are mostly **off-screen**,
+so it confirms first, in a `confirm`-size modal. What makes it a _recap_ rather than a bare
+confirmation is that the dialog **states what is about to change**, not just how many rows: the count
+on one line, then one line per field the user actually set — `« 37 aliments · Note → ★★ ·
+Visibilité → Privé »` — with the fields left on _Ne pas modifier_ absent, exactly as they are absent
+from the request. Reuses the recap-header pattern of the Poids interval popup below (a summary strip
+of `N · M · …`), in the shared confirm shell. Confirm applies; the toast that follows carries
+_Annuler_ (`toasts-warnings.md` §Scope).
+
 ## Typed-confirmation modal (irreversible actions)
 
 confirm-size. A stronger confirm for **irreversible, account-wide** actions (the Données

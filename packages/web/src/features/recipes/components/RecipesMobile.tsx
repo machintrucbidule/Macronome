@@ -11,11 +11,14 @@ import {
   type FilterSection,
   type SortOption,
 } from '../../../components/ListChrome';
+import { BulkButton } from '../../../components/BulkEdit';
 import { Fab } from '../../../app/Fab';
 import { InfiniteScrollFooter } from '../../../lib/InfiniteScrollFooter';
 import { useListReserve } from '../../../lib/useListReserve';
 import type { PagedList } from '../../../lib/usePagedList';
+import type { RecipesBulk } from '../useRecipesBulk';
 import { RecipeCards } from './RecipeCards';
+import styles from '../recipes-mobile.module.css';
 import { SORT_KEYS, SORT_LABEL, type SortField } from './RecipesTable';
 import type { MinRating } from './FiltersPopover';
 
@@ -45,6 +48,9 @@ interface RecipesMobileProps {
   onSort: (field: SortField) => void;
   onAdd: () => void;
   onOpen: (recipe: RecipeSummary) => void;
+  /** Batch selection + write (BE-1/B-308); at 1 selected `onBulkEdit` opens the ordinary sheet. */
+  bulk: RecipesBulk;
+  onBulkEdit: () => void;
 }
 
 /** The card list's own `gap: var(--sp-5)`, which a measured container excludes (B-278). */
@@ -94,6 +100,7 @@ export function RecipesMobile(props: RecipesMobileProps) {
           head={props.list.firstPageCount}
           pitch={reserve.pitch}
           onOpen={props.onOpen}
+          selection={props.bulk.selection}
           rowsRef={reserve.listRef}
         />
         <InfiniteScrollFooter loadedCount={props.list.rows.length} />
@@ -121,6 +128,14 @@ export function RecipesMobile(props: RecipesMobileProps) {
         />
         <FiltersSheet sections={filterSections} active={filtersActive} fabSafe />
       </ListToolbar>
+
+      {/* Batch selection (BE-1/D14): the boxes live on the cards, so this row is only the count
+          and the button, and only once something is ticked. */}
+      {props.bulk.selection.count > 0 && (
+        <div className={styles.bulkBar}>
+          <BulkButton count={props.bulk.selection.count} onClick={props.onBulkEdit} />
+        </div>
+      )}
 
       {body}
 

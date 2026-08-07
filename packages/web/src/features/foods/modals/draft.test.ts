@@ -60,7 +60,7 @@ describe('ciqual adoption patch (B-292)', () => {
   });
 
   it('stamps the adoption defaults the owner chose', () => {
-    expect(ciqualPatch(ref, 'fr')).toMatchObject({ source: 'ciqual', visibility: 'shared' });
+    expect(ciqualPatch(ref, 'fr')).toMatchObject({ source: 'ciqual', visibility: 'private' });
   });
 
   it('copies the macros and leaves the rest of the form to the user', () => {
@@ -73,7 +73,7 @@ describe('ciqual adoption patch (B-292)', () => {
       carb_per_100g: 11.3,
       protein_per_100g: 0.3,
       source: 'ciqual',
-      visibility: 'shared',
+      visibility: 'private',
       ai_proposable: true,
       rating: null,
     });

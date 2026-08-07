@@ -48,8 +48,11 @@ named_portions:[{label,grams}]}`.
   **deliberately** correct it from the food form (B-295). → 200 Food.
 - `POST /foods/from-ref` — adopt a Ciqual reference entry (B-293). Body `{ref_id, locale?}`.
   Copies the entry into a real food with the adoption defaults: name **in the requested locale**
-  (default `fr`, D6), the four macros, `source:'ciqual'`, `visibility:'shared'`,
-  `ai_proposable:true`, no named portion, unrated. **Idempotent** — if an active food of that
+  (default `fr`, D6), the four macros, `source:'ciqual'`, **`visibility:'private'`**,
+  `ai_proposable:true`, no named portion, unrated. **`private` since BE-1/B-304**, reversing CIQ-3's
+  `shared`: the owner would rather every food he did not deliberately share start private, and
+  `visibility` is inert in v1 anyway, so the change touches the chip, the filter and the export
+  column only. Already-adopted foods keep `shared` (D20) — no migration. **Idempotent** — if an active food of that
   normalized name already exists it is returned untouched rather than duplicated, so a double click
   or a second pick of the same entry cannot create two foods. → **201** Food when created, **200**
   Food when it already existed; unknown `ref_id` → 404. This is what the search pickers call when
@@ -57,6 +60,25 @@ named_portions:[{label,grams}]}`.
   user can rename before saving (B-292).
 - `POST /foods/:id/archive` → 200 (sets archived_at; removed from search/list).
 - `POST /foods/:id/restore` → 200.
+- `GET /foods/ids` — the ids matching a filter, **unpaginated** (BE-1). Same query vocabulary as
+  `GET /foods` minus `limit`/`cursor`/`offset`/`sort`/`dir` — an id set has no order and no page.
+  → 200 `{data:["<uuid>", …]}`. It exists for the "select everything matching the current filter"
+  header checkbox: the list is paginated 50 rows at a time, so the client cannot know the rows it
+  has not loaded. The client **freezes** what it gets back (D10) and edits that exact set, rather
+  than asking the server to re-resolve the filter at write time — so what is written is what the
+  count promised, even if the catalogue changed meanwhile.
+- `PATCH /foods/bulk` — edit several foods at once (BE-1). Body
+  `{ids:[<uuid>…], patch:{rating?, source?, visibility?, ai_proposable?, comment?}}` → 200
+  `{updated:n}`. Exactly the five fields the batch form offers; the macros, the name and the named
+  portions are **not** bulk-editable — they are per-food values, and editing them across a
+  selection has no meaning. Each field follows the single-row `PATCH` semantics: absent = leave
+  unchanged, `comment:null` = clear, `rating:null` = « Pas noté ». `source` keeps its restricted
+  vocabulary (`recipe` rejected, 422). Recipe-derived rows are never touched. All-or-nothing,
+  cross-tenant → 404 with nothing written, ceilings and `empty_patch` per
+  `00-conventions.md` §Bulk writes.
+- `POST /foods/bulk/undo` — restore the values the last `PATCH /foods/bulk` overwrote. No body.
+  → 200 `{restored:n}`; **409 `nothing_to_undo`** on a second call or with no batch on record
+  (`00-conventions.md` §Bulk writes).
 - `POST /foods/parse-label` — **stateless** macro-label parser (PM-1/B-114). Body
   `{label_text}` (1..10000 chars) = nutrition text pasted from a grocery site. Deduces
   the per-100 g figures per `logic/macro-label-parser.md`; persists nothing. Found macros
@@ -76,7 +98,7 @@ named_portions:[{label,grams}]}`.
 ```json
 { "id","owner_id","name","kcal_per_100g","fat_per_100g","carb_per_100g",
   "protein_per_100g","comment","rating": null,
-  "visibility":"private","source":"manual","recipe_id":null,
+  "visibility":"private","source":"manual","ai_proposable":true,"recipe_id":null,
   "named_portions":[{"id","label","grams"}],"archived_at":null }
 ```
 
@@ -160,6 +182,18 @@ ingredients:[{ref_type,ref_id,quantity,unit,portion_id?,order_index}]}`.
   `total_batch_grams` alone flips the recipe to manual); `true` ⇒ batch
   re-resolves to Σ (same both-present 422 as POST).
 - `POST /recipes/:id/archive` · `POST /recipes/:id/restore`.
+- `GET /recipes/ids` — the ids matching a filter, **unpaginated** (BE-1). Same query vocabulary as
+  `GET /recipes` minus paging and sorting; → 200 `{data:["<uuid>", …]}`. Same purpose as the foods
+  twin above.
+- `PATCH /recipes/bulk` — edit several recipes at once (BE-1). Body `{ids:[<uuid>…],
+patch:{rating?}}` → 200 `{updated:n}`. **`rating` is the only bulk-editable field**, deliberately
+  (owner): a recipe's other editable values — `servings`, `total_batch_grams` — **recompute its
+  derived food**, so setting them across a selection would move the per-portion and per-100 g
+  figures of every recipe touched, and a bulk `total_batch_grams` would additionally flip
+  `batch_weight_auto` recipes to manual. `rating` changes nothing but the stars.
+  Semantics, ceilings and failure modes per `00-conventions.md` §Bulk writes.
+- `POST /recipes/bulk/undo` — restore the ratings the last `PATCH /recipes/bulk` overwrote. No
+  body. → 200 `{restored:n}`; **409 `nothing_to_undo`** otherwise.
 - `POST /recipes/preview` — **stateless** live recompute for the builder (an
   unsaved draft). Body = the recipe body **without `name`**: `{servings(≥1),
 total_batch_grams?, ingredients:[{ref_type,ref_id,quantity,unit,portion_id?,

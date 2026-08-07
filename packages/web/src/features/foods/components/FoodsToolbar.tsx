@@ -17,6 +17,9 @@ interface FoodsToolbarProps {
   q: string;
   onQ: (q: string) => void;
   filters: ReactNode;
+  /** Batch-edit control + count (BE-1), rendered left of the filters. Absent in catalog mode,
+   *  where a read-only reference table has nothing to edit. */
+  bulk?: ReactNode;
   onAdd: () => void;
   /** Disabled in catalog mode, where adding is per row (B-292). Greyed rather than removed,
    *  so the toolbar keeps its geometry when switching mode. */
@@ -36,6 +39,7 @@ export function FoodsToolbar(props: FoodsToolbarProps) {
         placeholder={t('foods.searchPlaceholder')}
         onChange={(e) => props.onQ(e.target.value)}
       />
+      {props.bulk}
       {props.filters}
       <Button className={styles.addbtn} onClick={props.onAdd} disabled={props.addDisabled ?? false}>
         {t('foods.add')}

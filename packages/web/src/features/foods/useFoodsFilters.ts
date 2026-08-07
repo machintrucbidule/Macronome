@@ -5,6 +5,7 @@ import type { MinRating, VisibilityFilter } from './components/FiltersPopover';
 import { sourceFilterOptions, type SourceFilter } from './sourceFilter';
 import { defaultDirFor } from '../../components/DataTable/sortDir';
 import { useFoodsList } from './useFoods';
+import { useFoodsBulk } from './useFoodsBulk';
 
 // Filter/sort state of the "Mes aliments" mode, and the query it produces. Extracted from
 // FoodsPage so the page stays a thin mode + modal switch.
@@ -81,7 +82,12 @@ function useFoodsFilters() {
  */
 export function useFoodsLibrary(q: string) {
   const filters = useFoodsFilters();
-  const list = useFoodsList(buildListParams(filters.state, q));
+  const params = buildListParams(filters.state, q);
+  const list = useFoodsList(params);
+  // Batch selection (BE-1) rides along in the same bundle, so both views receive it by the spread
+  // the page already does — and it is built from the SAME params, which is what keeps "select
+  // everything matching the filter" honest.
+  const bulk = useFoodsBulk(params);
   // Every page of one query reports the same `total` (B-278) and the same `sources` (B-295), so
   // the hook keeps whichever answered — since B-303 that is not necessarily page 1, because a
   // scrollbar jump asks for the page under the thumb first. Undefined until one lands, so the
@@ -97,6 +103,7 @@ export function useFoodsLibrary(q: string) {
     loading: list.loading,
     isError: list.isError,
     list,
+    bulk,
   };
 }
 

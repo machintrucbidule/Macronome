@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { NamedPortionSchema, RatingSchema } from './food.js';
 import { CatalogLocaleSchema } from './food-ref.js';
 import { offsetField, rejectCursorWithOffset } from './pagination.js';
+import { BulkIdsSchema, rejectEmptyPatch } from './bulk.js';
 
 // Recipe DTOs (spec/api/foods-recipes.md §Recipes). One source for controller
 // validation and the web client's types. Field names stay snake_case to match the API
@@ -181,19 +182,25 @@ export const RECIPE_SORT_FIELDS = [
   'rating',
 ] as const;
 
+/** What narrows the list, shared by `GET /recipes` and `GET /recipes/ids` (BE-1) — see the twin
+ *  comment in `food.ts`. Paging and ordering are not here: an id set has neither. */
+const recipeFilters = {
+  q: z.string().trim().max(255).optional(),
+  min_rating: z.coerce
+    .number()
+    .int()
+    .pipe(z.union([z.literal(1), z.literal(2), z.literal(3)]))
+    .optional(),
+  include_archived: z
+    .union([z.boolean(), z.enum(['true', 'false'])])
+    .optional()
+    .default(false)
+    .transform((v) => v === true || v === 'true'),
+};
+
 export const RecipeListQuerySchema = z
   .object({
-    q: z.string().trim().max(255).optional(),
-    min_rating: z.coerce
-      .number()
-      .int()
-      .pipe(z.union([z.literal(1), z.literal(2), z.literal(3)]))
-      .optional(),
-    include_archived: z
-      .union([z.boolean(), z.enum(['true', 'false'])])
-      .optional()
-      .default(false)
-      .transform((v) => v === true || v === 'true'),
+    ...recipeFilters,
     sort: z.enum(RECIPE_SORT_FIELDS).optional().default('name'),
     dir: z.enum(['asc', 'desc']).optional().default('asc'),
     limit: z.coerce.number().int().positive().max(200).optional().default(50),
@@ -202,6 +209,28 @@ export const RecipeListQuerySchema = z
   })
   .superRefine(rejectCursorWithOffset);
 export type RecipeListQuery = z.infer<typeof RecipeListQuerySchema>;
+
+// --- Bulk edit (BE-1 / B-308) ----------------------------------------------
+
+/** `GET /recipes/ids` — the same filter, no paging and no ordering. */
+export const RecipeIdsQuerySchema = z.object(recipeFilters);
+export type RecipeIdsQuery = z.infer<typeof RecipeIdsQuerySchema>;
+
+/** **The rating alone** (owner). A recipe's other editable values — `servings`,
+ *  `total_batch_grams` — rebuild its derived food, so a batch write would move the per-portion and
+ *  per-100 g figures of every recipe touched, and a batch `total_batch_grams` would additionally
+ *  flip `batch_weight_auto` recipes to manual. */
+export const RecipeBulkPatchSchema = z
+  .object({ rating: RatingSchema })
+  .partial()
+  .superRefine(rejectEmptyPatch);
+export type RecipeBulkPatch = z.infer<typeof RecipeBulkPatchSchema>;
+
+export const RecipeBulkUpdateSchema = z.object({
+  ids: BulkIdsSchema,
+  patch: RecipeBulkPatchSchema,
+});
+export type RecipeBulkUpdateRequest = z.infer<typeof RecipeBulkUpdateSchema>;
 
 export interface RecipeListResponse {
   data: RecipeSummary[];

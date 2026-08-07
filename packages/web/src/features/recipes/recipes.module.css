@@ -125,40 +125,47 @@
 .recipesTable tbody td {
   white-space: nowrap;
 }
+/* BE-1: the selection column took index 1, so every index below moved up one and Nom — still the
+   single undeclared, elastic column — is now index 2. Recettes has no narrow band, so the shift is
+   the whole of the change here. */
+.recipesTable th:nth-child(1),
 .recipesTable td:nth-child(1) {
+  width: 2.25rem;
+}
+.recipesTable td:nth-child(2) {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.recipesTable th:nth-child(2),
-.recipesTable td:nth-child(2) {
+.recipesTable th:nth-child(3),
+.recipesTable td:nth-child(3) {
   width: 5rem;
 }
-.recipesTable th:nth-child(3),
-.recipesTable td:nth-child(3),
 .recipesTable th:nth-child(4),
 .recipesTable td:nth-child(4),
 .recipesTable th:nth-child(5),
-.recipesTable td:nth-child(5) {
-  width: 3.25rem;
-}
+.recipesTable td:nth-child(5),
 .recipesTable th:nth-child(6),
 .recipesTable td:nth-child(6) {
-  width: 4.5rem;
+  width: 3.25rem;
 }
 .recipesTable th:nth-child(7),
 .recipesTable td:nth-child(7) {
-  width: 5rem;
+  width: 4.5rem;
 }
 .recipesTable th:nth-child(8),
 .recipesTable td:nth-child(8) {
-  width: 5.25rem;
+  width: 5rem;
 }
 .recipesTable th:nth-child(9),
 .recipesTable td:nth-child(9) {
-  width: 4.25rem;
+  width: 5.25rem;
 }
 .recipesTable th:nth-child(10),
 .recipesTable td:nth-child(10) {
+  width: 4.25rem;
+}
+.recipesTable th:nth-child(11),
+.recipesTable td:nth-child(11) {
   width: 2.75rem;
 }
 
@@ -515,4 +522,26 @@
 }
 .mProt {
   color: var(--c-prot);
+}
+
+/* Batch popup (BE-1/B-308): one control per line, like the Aliments one — a single field today,
+   but the layout is the shared one so the two popups read alike. */
+.bulkFields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  margin-top: var(--sp-5);
+}
+
+/* Selection column (BE-1, data-tables.md §Selection column). */
+.selectCell {
+  text-align: center;
+}
+.selected {
+  background: color-mix(in srgb, var(--select) 16%, transparent);
+}
+@media (hover: hover) {
+  .selected:hover {
+    background: color-mix(in srgb, var(--select) 22%, transparent);
+  }
 }

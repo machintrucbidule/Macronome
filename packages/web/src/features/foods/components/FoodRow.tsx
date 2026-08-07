@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import type { Food } from '@macronome/shared';
 import { Stars } from '../../../components/RatingStars/Stars';
 import { tableStyles } from '../../../components/DataTable/SortableTh';
+import { SelectCheckbox } from '../../../components/BulkEdit';
 import { gramsDisplay, kcalDisplay, portionSummary } from '../format';
 import styles from '../foods.module.css';
 
@@ -9,18 +10,23 @@ import styles from '../foods.module.css';
 // the edit modal; the hover icon archives (or restores an archived row).
 interface FoodRowProps {
   food: Food;
+  /** Batch selection (BE-1): ticked rows are also tinted, so a scattered selection stays readable. */
+  selected: boolean;
+  onToggle: (id: string) => void;
   onOpen: (food: Food) => void;
   onArchive: (food: Food) => void;
   onRestore: (food: Food) => void;
 }
 
-export function FoodRow({ food, onOpen, onArchive, onRestore }: FoodRowProps) {
+export function FoodRow({ food, selected, onToggle, onOpen, onArchive, onRestore }: FoodRowProps) {
   const { t } = useTranslation();
   const archived = food.archived_at !== null;
   const portions = portionSummary(food.named_portions);
   return (
     <tr
-      className={`${styles.row} ${tableStyles.clickable} ${archived ? tableStyles.archived : ''}`}
+      className={`${styles.row} ${tableStyles.clickable} ${archived ? tableStyles.archived : ''} ${
+        selected ? styles.selected : ''
+      }`}
       onClick={() => onOpen(food)}
       // Context-menu row id (B-195): resolved by useFoodsContextMenu.
       data-food={food.id}
@@ -29,6 +35,13 @@ export function FoodRow({ food, onOpen, onArchive, onRestore }: FoodRowProps) {
       // the SAME condition the sub-line renders on, so the two cannot drift apart.
       {...(food.comment ? { 'data-row-tall': '' } : {})}
     >
+      <td className={styles.selectCell}>
+        <SelectCheckbox
+          checked={selected}
+          onChange={() => onToggle(food.id)}
+          ariaLabel={t('bulk.selectRow', { name: food.name })}
+        />
+      </td>
       <td>
         <span className={tableStyles.nameLabel} title={food.name}>
           {food.name}

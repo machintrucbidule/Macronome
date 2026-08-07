@@ -99,7 +99,7 @@ export async function create(
  * Adopt a Ciqual reference entry into a real food (B-293) — what the search pickers call when the
  * user picks a catalog entry, where the Aliments view instead prefills the form (B-292). The
  * defaults are the same in both doors: name in the requested locale (D6), the four macros,
- * `source:'ciqual'`, `visibility:'shared'`, `ai_proposable:true`, no portion, unrated.
+ * `source:'ciqual'`, `visibility:'private'` (BE-1/B-304), `ai_proposable:true`, no portion, unrated.
  *
  * **Idempotent.** A picker gives no chance to rename before saving, so a second pick of the same
  * entry — or a double click — must not leave two foods behind: an existing active food of that
@@ -130,7 +130,10 @@ export async function createFromRef(
     proteinPer100g: num(ref.proteinPer100g),
     comment: null,
     rating: null,
-    visibility: 'shared',
+    // BE-1/B-304: adoption arrives PRIVATE, reversing CIQ-3. Nothing is `Partagé` unless the
+    // owner said so; `visibility` is inert in v1, so this moves the chip, the filter and the
+    // export column and nothing else. Already-adopted foods keep `shared` (D20, no migration).
+    visibility: 'private',
     source: 'ciqual',
     aiProposable: true,
     portions: [],

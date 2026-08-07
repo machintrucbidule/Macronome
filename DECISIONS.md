@@ -6298,6 +6298,16 @@ page, not one per row. The integration suite proves the scoping on that field sp
 - **Adoption arrives as `Partagé`**, not the `Privé` of a hand-typed food: a food copied from a
   public table has nothing personal in it. Accepted consequence: two foods created the same day
   can default differently depending on where they came from.
+  > **Reversed by BE-1 / B-304 (owner, 2026-08-07) — adoption now arrives as `Privé`.** The
+  > accepted consequence above is what the owner stopped accepting: he would rather nothing be
+  > `Partagé` unless he said so, and would rather not have to remember which door a food came
+  > through. The reversal is cheap because `visibility` is inert in v1 — it has exactly one read
+  > consumer, the optional `GET /foods?visibility=` filter, and no query anywhere reads another
+  > user's foods — so it moves the chip, the filter and the export column and nothing else.
+  > Applies to **both doors** (the prefilled catalogue form and the silent `POST /foods/from-ref`
+  > the search pickers call). **No migration** (D20): already-adopted foods keep `Partagé` and can
+  > be corrected in bulk, which the same batch makes possible. The **Excel import keeps `shared`**
+  > (D21, Gap 6a untouched), so the ETL becomes the only automatic producer of it.
 - **The group filter is a dropdown**, not the chip rows the other filters use — twelve labels,
   several long ("fruits, légumes, légumineuses et oléagineux"), would fill the 240px popover with a
   dozen wrapped lines. On **mobile** it stays chips: the bottom sheet is full-width and scrolls,
@@ -6587,3 +6597,89 @@ since), `specifications/screens/recipe.md` (§Sort plus the two "sortable" menti
 Recettes row of the B-299 first-click table above. `design/components/data-tables.md` needs nothing:
 its sortable-header bullet enumerates Aliments only, and its first-click rule already covers these
 columns. No schema change, no migration.
+
+---
+
+## BE-1 / B-301, B-302, B-304, B-308 — editing a catalogue in batch — RESOLVED (owner, 2026-08-07)
+
+**The ask.** Correcting a rating, a visibility or a provenance meant opening one food at a time.
+The owner wanted a checkbox in front of every food, one in the header selecting **everything the
+filter matches**, and a batch popup for the five attribute fields — then, mid-plan, **the same
+mechanism on Recettes**.
+
+**Nothing like it existed.** No route in the API accepts several ids to write on **independent**
+rows: the three multi-id bodies that exist (`entries/order`, the leftover selection, the AI meal
+picker) all act on one parent. `spec/api/00-conventions.md` therefore had **no rule at all** for
+this shape, and the batch had to write one before it could write code.
+
+**Decision — all or nothing, and the response is a count.** No partial-success convention: a caller
+told "37 of 40 worked" can show nothing useful, and the undo below cannot restore a half-applied
+batch. Any id that is not the user's makes the whole request a **404 with nothing written** — the
+rule `PATCH /meals/:mealId/entries/order` already stated, now generalised. The ids come from the
+client, so they are re-scoped server-side on every write (CLAUDE.md rule 3); `ids` is capped at
+5 000, far above any personal catalogue, purely so a malformed client cannot hand over an unbounded
+list.
+
+**Decision (D10) — "select all" is a frozen list of ids**, fetched at click time from a new
+unpaginated `GET /<resource>/ids`, not a server-side "apply to whatever matches when the write
+lands". The lists paginate 50 rows at a time (LD-1/B-303), so the client genuinely cannot know the
+rows it has not loaded; freezing means **what is written is what the count promised**, and rows stay
+individually un-tickable afterwards. The set is **cleared when the search, the filters or the mode
+change** — a frozen set must not outlive its filter — and **kept on a sort change**, which does not
+change the matching set.
+
+**Decision (D11, D12) — a recap before, an Annuler after, and the undo holds no table.** The recap
+states what will change, not only how many rows. The undo snapshot lives **in memory, one slot per
+user and per resource**, overwritten by the next batch and consumed on success — single-level, like
+the day restore point, and `409 nothing_to_undo` on a second call. It does not survive a restart,
+deliberately: the toast that offers _Annuler_ is its only door, and that toast does not either.
+This is the one place the codebase departs from its DB-backed undo precedent, on the owner's
+"transient, no new table".
+
+**Decision (D13, and its price) — a real checkbox column.** `design/components/data-tables.md` said
+selection was a full-row tint with "no checkbox and no extra column"; that sentence was written for
+the Repas selection-sum, an ephemeral read-out in the densest grid in the app, and is now **scoped
+to it** rather than deleted. Here the selection is a durable working set that feeds a write, so it
+earns a column. Offered the cheaper alternative — the checkbox **inside** the name cell, costing no
+column and no responsive rework — the owner chose the real column knowingly. **Accepted
+consequence:** every Aliments column shifts by one, the declared-width arithmetic and both narrow
+bands were re-derived, and because the bands were **left at their existing thresholds** the elastic
+Nom column is very narrow between ~820 and ~900px and truncates early. Moving a band would have
+changed when Portion and Visibilité disappear — a behaviour nobody asked to change. Recettes has no
+band, so there the shift is all there is.
+
+**Decision — a selected row is also tinted**, reusing the same `--select` blue as Repas. A column of
+small boxes alone is hard to read once the selection is scattered through a scrolled list.
+
+**Decision (D14, and the mobile shape) — a permanent, low-contrast checkbox at the bottom-right of
+each card.** The alternative offered was the house precedent, a selection _mode_ toggled from the
+toolbar (what Repas does with Σ); the owner chose permanent boxes, styled to recede. Consequence:
+`FoodCard` and `RecipeCard` stop being a single `<button>` — a checkbox nested in a button is
+invalid — and become a container holding the open-button and the box.
+
+**Decision — the selection survives the write** (owner), so a second field can be applied to the
+same set without re-ticking. Weighed against the risk of re-applying to a stale set; the recap is
+what guards that.
+
+**Decision (D15) — every field defaults to « Ne pas modifier », and an untouched field is absent
+from the request**, which maps 1:1 onto the `PATCH` semantics the service already had (`undefined`
+= leave unchanged, `comment: null` = clear). Note additionally offers _Pas noté_; Commentaire offers
+_Remplacer par…_ and _Effacer le commentaire_. At **exactly one** row selected the ordinary edit
+popup opens instead — a reduced form for a single food would be a worse form.
+
+**Decision (B-308) — Recettes gets the mechanism, and the Note alone.** A recipe has none of the
+other four fields; of what it does have, `servings` and `total_batch_grams` **recompute its derived
+food**, so a batch write would move the per-portion and per-100 g figures of every recipe touched,
+and a batch `total_batch_grams` would additionally flip `batch_weight_auto` recipes to manual. The
+owner scoped them out. Bulk edit is likewise **unavailable in Catalogue Ciqual mode** — a read-only
+reference table has nothing to edit.
+
+**B-304 rides along** — see the amendment on CIQ-3 above: adoption now defaults to `Privé`.
+
+**Contract impact.** `spec/api/00-conventions.md` (new §Bulk writes), `spec/api/foods-recipes.md`
+(the six new endpoints, the adoption default, and `ai_proposable` restored to the documented Food
+payload it had drifted out of), `specifications/screens/food-db.md` (new §Édition par lots, the
+adoption bullet) and `recipe.md` (its §Édition par lots), `design/components/data-tables.md` (the
+scoping of the Repas clause + a new §Selection column), `forms-inputs.md` (§Checkbox),
+`toasts-warnings.md` (§Scope gains the batch edit, with Annuler), `modals.md` (the recap dialog).
+No schema change, no migration.

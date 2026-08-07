@@ -8,6 +8,7 @@ import { LibraryView } from './components/LibraryView';
 import { CatalogView } from './catalog/CatalogView';
 import { FOOD_REFS_KEY } from './catalog/useFoodRefs';
 import { FoodModal } from './modals/FoodModal';
+import { FoodBulkModal } from './modals/FoodBulkModal';
 import { ArchiveConfirm } from './modals/ArchiveConfirm';
 import { ciqualPatch } from './modals/draft';
 import { useFoodMutations } from './useFoods';
@@ -21,6 +22,7 @@ type ModalState =
   | { mode: 'add' }
   | { mode: 'edit'; food: Food }
   | { mode: 'adopt'; ref: FoodRef }
+  | { mode: 'bulk' }
   | null;
 
 /** Live (non-authoritative) duplicate-name hint; the server returns the real warning. */
@@ -31,6 +33,14 @@ function isDuplicateName(foods: Food[], name: string, editingId: string | null):
       f.archived_at === null &&
       f.name.localeCompare(name, undefined, { sensitivity: 'base' }) === 0,
   );
+}
+
+/** Which modal the batch button opens (BE-1): one selected food gets the ordinary form — a reduced
+ *  form for a single row would be a worse form — and two or more get the batch popup. */
+function bulkModalFor(selected: Set<string>, foods: Food[]): ModalState {
+  const ids = [...selected];
+  const only = ids.length === 1 ? foods.find((f) => f.id === ids[0]) : undefined;
+  return only ? { mode: 'edit', food: only } : { mode: 'bulk' };
 }
 
 export function FoodsPage() {
@@ -72,6 +82,7 @@ export function FoodsPage() {
           onOpen={openFood}
           onArchive={(food) => setArchiveTarget(food)}
           onRestore={(food) => restore.mutate(food.id)}
+          onBulkEdit={() => setModal(bulkModalFor(library.bulk.selection.selected, library.foods))}
         />
       ) : (
         <CatalogView
@@ -84,7 +95,19 @@ export function FoodsPage() {
         />
       )}
 
-      {modal && (
+      {modal?.mode === 'bulk' && (
+        <FoodBulkModal
+          count={library.bulk.selection.count}
+          presentSources={library.sources}
+          onClose={() => setModal(null)}
+          onApply={(patch) => {
+            library.bulk.apply(patch);
+            setModal(null); // the selection itself survives (owner), so a second field can follow
+          }}
+        />
+      )}
+
+      {modal && modal.mode !== 'bulk' && (
         <FoodModal
           food={modal.mode === 'edit' ? modal.food : null}
           {...(modal.mode === 'adopt' ? { prefill: ciqualPatch(modal.ref, i18n.language) } : {})}

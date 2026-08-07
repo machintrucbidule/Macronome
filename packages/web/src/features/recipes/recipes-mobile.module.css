@@ -16,18 +16,43 @@
      This list computes its own reserved height, so the compensation only ever fights it. */
   overflow-anchor: none;
 }
+/* BE-1: the card root stopped being the <button> — a selection checkbox cannot be nested inside
+   one. It is now the positioning context holding the full-area open-button AND the box. */
 .card {
+  position: relative;
+  background: var(--bg-elev);
+  border: var(--bw) solid var(--border);
+  border-radius: var(--r-lg);
+}
+.cardBody {
   appearance: none;
   display: block;
   width: 100%;
   text-align: left;
-  background: var(--bg-elev);
-  border: var(--bw) solid var(--border);
-  border-radius: var(--r-lg);
+  background: none;
+  border: 0;
+  border-radius: inherit;
   padding: var(--sp-4) var(--sp-6);
   color: inherit;
   font: inherit;
   cursor: pointer;
+}
+/* Room for the box in the bottom-right corner, so the meta row never runs under it. */
+.cardBody > *:last-child {
+  padding-right: var(--sp-7);
+}
+/* A ticked card takes the same --select blue as a ticked desktop row. */
+.cardSelected {
+  background: color-mix(in srgb, var(--select) 16%, var(--bg-elev));
+  border-color: var(--select);
+}
+/* Batch action row (BE-1/D14): shown only once something is ticked. */
+.bulkBar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--sp-4);
+  padding: var(--sp-3) var(--sp-2) 0;
 }
 @media (hover: hover) {
   .card:hover {

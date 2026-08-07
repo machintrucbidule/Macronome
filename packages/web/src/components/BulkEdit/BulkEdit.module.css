@@ -1,0 +1,62 @@
+/* Shared chrome for the batch-edit feature (BE-1): the recap list, the selection toolbar count,
+   and the two checkbox surfaces (table cell + mobile card) that data-tables.md §Selection column
+   describes. Screen-local widths stay in the feature sheets; only what BOTH screens share is here. */
+
+.recapList {
+  list-style: none;
+  margin: var(--sp-4) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.recapList li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  font-size: var(--fs-13);
+}
+.recapLabel {
+  color: var(--text-dim);
+}
+.recapValue {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* Count read-out next to the batch button ("12 sélectionnés"), in the desktop toolbar and the
+   mobile action row alike. */
+.count {
+  font-size: var(--fs-12);
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+/* The table's selection cell: a bare native checkbox, tinted (forms-inputs.md §Checkbox). It
+   carries no label text of its own — the row is the label — so `aria-label` does that work. */
+.cellBox {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+/* The mobile card's box (owner): bottom-right, deliberately faint so it recedes until the user is
+   actually selecting. Full opacity once ticked — a chosen card must read as chosen. */
+.cardBox {
+  position: absolute;
+  right: var(--sp-4);
+  bottom: var(--sp-4);
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--accent);
+  opacity: 0.35;
+  cursor: pointer;
+}
+.cardBox:checked,
+.cardBox:focus-visible {
+  opacity: 1;
+}

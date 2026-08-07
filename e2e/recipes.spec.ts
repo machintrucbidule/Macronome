@@ -96,7 +96,8 @@ test('build a recipe, save it, then log one portion on a day', async ({ page, pl
   await page.getByRole('button', { name: 'Enregistrer' }).click();
 
   // It appears in the recipes list with the server-computed per-100 g (200).
-  await expect(page.getByRole('cell', { name: RECIPE })).toBeVisible();
+  // `exact`: since BE-1 the row also holds a selection cell labelled "Sélectionner <name>".
+  await expect(page.getByRole('cell', { name: RECIPE, exact: true })).toBeVisible();
 
   // Log "1 portion" of it on a day (the derived food is loggable like any food).
   const date = daysAgoIso(7);

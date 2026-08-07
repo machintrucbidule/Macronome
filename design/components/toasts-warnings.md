@@ -61,11 +61,13 @@ _off-screen or invisible_, never a substitute for an inline warning (A/B/C/D).
   the caller supplies an undo. It is the **only** affordance: once the toast is
   gone the action is no longer reversible from the UI.
 - **`role="status"`, `aria-live="polite"`** — announced once, not interrupting.
-- **Scope (owner decision, B-261).** Toast: deleting a meal line · the three
+- **Scope (owner decision, B-261; extended by BE-1).** Toast: deleting a meal line · the three
   destructive day actions (vider / copier une journée / supprimer un repas) ·
-  data import & export completion · an explicit Cibles/Paramètres save. With
-  **Annuler**: the line deletion and the three day actions. Auto-saving fields do
-  **not** toast — one bubble per keystroke would be noise.
+  data import & export completion · an explicit Cibles/Paramètres save · a **batch edit** of
+  Aliments or Recettes. With **Annuler**: the line deletion, the three day actions and the batch
+  edit. Auto-saving fields do **not** toast — one bubble per keystroke would be noise.
+  The batch edit qualifies squarely under the inline-first rule: it rewrites rows spread through a
+  paginated list, most of them **off-screen**, so nothing inline could confirm it.
 - **Never** for AI dish analysis: `ai-dish-analysis.md` is explicit that the
   filled form is the feedback.
 - `--z-toast` is **reserved for real toasts**. Floating layers that merely need

@@ -10,6 +10,16 @@ import { RecipesTable, SORT_KEYS, type SortField } from './RecipesTable';
 // is oriented; the ordering itself is the server's and is covered by the integration suite.
 afterEach(cleanup);
 
+/** An empty selection — these cases are about the headers, not about BE-1's selection column. */
+const noSelection = {
+  selected: new Set<string>(),
+  count: 0,
+  isSelected: () => false,
+  toggle: vi.fn(),
+  setAll: vi.fn(),
+  clear: vi.fn(),
+};
+
 function renderTable(onSort = vi.fn()) {
   render(
     <RecipesTable
@@ -22,6 +32,9 @@ function renderTable(onSort = vi.fn()) {
       onOpen={vi.fn()}
       onArchive={vi.fn()}
       onRestore={vi.fn()}
+      selection={noSelection}
+      onSelectAll={vi.fn()}
+      total={0}
     />,
   );
   return onSort;
@@ -30,8 +43,8 @@ function renderTable(onSort = vi.fn()) {
 describe('RecipesTable — sortable headers (B-306)', () => {
   it('makes every data column a sortable header', () => {
     renderTable();
-    // Nine data columns + the unlabelled actions cell, none of the nine inert any more.
-    expect(screen.getAllByRole('columnheader')).toHaveLength(SORT_KEYS.length + 1);
+    // Nine data columns + BE-1's selection column + the unlabelled actions cell.
+    expect(screen.getAllByRole('columnheader')).toHaveLength(SORT_KEYS.length + 2);
     expect(screen.getAllByRole('button')).toHaveLength(SORT_KEYS.length);
   });
 
